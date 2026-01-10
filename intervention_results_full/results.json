@@ -1,0 +1,223 @@
+{
+  "per_seed": {
+    "baseline": [
+      {
+        "condition": "baseline",
+        "seed": 42,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.8428899082568807,
+        "training_time": 23.560219287872314,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      },
+      {
+        "condition": "baseline",
+        "seed": 43,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.8795871559633027,
+        "training_time": 23.622793436050415,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      },
+      {
+        "condition": "baseline",
+        "seed": 44,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.8818807339449541,
+        "training_time": 24.14190149307251,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      },
+      {
+        "condition": "baseline",
+        "seed": 45,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.8669724770642202,
+        "training_time": 23.215469121932983,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      },
+      {
+        "condition": "baseline",
+        "seed": 46,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.893348623853211,
+        "training_time": 18.155030012130737,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      }
+    ],
+    "intervention": [
+      {
+        "condition": "intervention",
+        "seed": 42,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.875,
+        "training_time": 21.836155652999878,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      },
+      {
+        "condition": "intervention",
+        "seed": 43,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.8910550458715596,
+        "training_time": 24.53887939453125,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      },
+      {
+        "condition": "intervention",
+        "seed": 44,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.8772935779816514,
+        "training_time": 24.090409755706787,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      },
+      {
+        "condition": "intervention",
+        "seed": 45,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.8715596330275229,
+        "training_time": 21.83246397972107,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      },
+      {
+        "condition": "intervention",
+        "seed": 46,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.8715596330275229,
+        "training_time": 17.04356074333191,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      }
+    ]
+  }
+}

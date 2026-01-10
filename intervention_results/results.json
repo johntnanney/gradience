@@ -1,0 +1,51 @@
+{
+  "per_seed": {
+    "baseline": [
+      {
+        "condition": "baseline",
+        "seed": 42,
+        "total_params": 72265732,
+        "trainable_params": 5310722,
+        "final_accuracy": 0.828,
+        "training_time": 1.5795056819915771,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": null
+        }
+      }
+    ],
+    "intervention": [
+      {
+        "condition": "intervention",
+        "seed": 42,
+        "total_params": 71233540,
+        "trainable_params": 4278530,
+        "final_accuracy": 0.804,
+        "training_time": 1.2532849311828613,
+        "lora_config": {
+          "rank": 64,
+          "alpha": 64,
+          "target_modules": [
+            "q_lin",
+            "k_lin",
+            "v_lin",
+            "lin1",
+            "lin2"
+          ],
+          "rank_pattern": {
+            "v_lin": 32,
+            "lin2": 32
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "config": {
+    "model_name": "distilbert-base-uncased",
+    "task": "sst2",
+    "num_epochs": 1,
+    "learning_rate": 0.0003,
+    "ranks_tested": [
+      8,
+      32,
+      64
+    ]
+  },
+  "results": [
+    {
+      "rank": 8,
+      "alpha": 8,
+      "final_accuracy": 0.584,
+      "final_loss": 0.6379229389131069,
+      "avg_effective_rank": 5.507169663653286,
+      "rank_utilization": 0.6883962079566608,
+      "training_time_seconds": 2.126819372177124,
+      "trainable_params": 739586,
+      "peak_memory_mb": 1295.13037109375
+    },
+    {
+      "rank": 32,
+      "alpha": 32,
+      "final_accuracy": 0.726,
+      "final_loss": 0.604723297059536,
+      "avg_effective_rank": 17.21909462617457,
+      "rank_utilization": 0.5380967070679553,
+      "training_time_seconds": 1.8312530517578125,
+      "trainable_params": 1181954,
+      "peak_memory_mb": 1304.06787109375
+    },
+    {
+      "rank": 64,
+      "alpha": 64,
+      "final_accuracy": 0.822,
+      "final_loss": 0.5322843231260777,
+      "avg_effective_rank": 27.955554043710336,
+      "rank_utilization": 0.436805531932974,
+      "training_time_seconds": 1.8612489700317383,
+      "trainable_params": 1771778,
+      "peak_memory_mb": 1316.81787109375
+    }
+  ],
+  "analysis": {
+    "best_rank": 64,
+    "best_accuracy": 0.822,
+    "optimal_rank": 64,
+    "optimal_accuracy": 0.822
+  }
+}

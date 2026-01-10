@@ -1,0 +1,25 @@
+
+FINDING: Spectral Signature of Generalization Onset
+
+Dataset: Modular addition (p=97)
+Event: Step 23300 → 23400
+
+BEFORE (steady memorization):
+- Effective rank: decreasing at -0.2/100 steps
+- Test accuracy: ~3.4% (near random)
+
+AT TRANSITION:
+- Rank: 62.7 → 69.7 (+11% discontinuous jump)
+- Test: 3.4% → 6.8% (doubled)
+
+AFTER:
+- Rank stabilized ~69, then resumed compression
+- Test peaked at 7.4%, declined to ~5%
+
+INTERPRETATION:
+This appears to be a "failed grok" or precursor oscillation.
+The rank jump coincided precisely with generalization improvement,
+suggesting effective rank is an order parameter for the 
+memorization → generalization phase transition.
+
+NEXT: Run to 150k steps to observe full grokking.

@@ -1,0 +1,49 @@
+
+================================================================================
+FINDING: Effective Rank as Order Parameter for Generalization
+================================================================================
+
+EXPERIMENT: Modular addition (p=97), 150k steps
+MODEL: 3-layer MLP (128-256-256-97)
+
+KEY OBSERVATION:
+Positive rank discontinuities predict generalization improvements.
+
+DATA:
+Step    | ΔRank | Test Acc Change
+--------|-------|----------------
+23400   | +7.0  | 3.4% → 6.8%
+38800   | +6.4  | 7.6% → 9.6%
+38900   | +2.3  | 9.6% → 12.3%
+73900   | +3.6  | 13.9% → 16.9%
+112000  | +3.3  | 11.7% → 18.4%
+131700  | +4.9  | 13.8% → 19.0%
+
+TRAJECTORY:
+- Rank: 175 → 42 (76% compression overall)
+- But punctuated by expansion events that correlate with generalization
+
+INTERPRETATION:
+The model alternates between:
+1. COMPRESSION: Finding lower-rank (simpler) representations
+2. EXPANSION: Restructuring to capture generalizable features
+
+Each expansion event appears as a discontinuous rank jump coinciding
+with improved test accuracy. This suggests effective rank is an 
+ORDER PARAMETER for the memorization→generalization transition.
+
+SURPRISING FINDING:
+κ (condition number) exploded from 143 to 4.7 MILLION during training,
+yet the model continued improving. This challenges the simple
+"high κ = instability" narrative and suggests κ alone is insufficient
+for characterizing training health.
+
+IMPLICATIONS:
+1. Rank dynamics may predict grokking before it manifests in accuracy
+2. Rank expansion events could be used as checkpointing triggers
+3. The κ-stability relationship needs refinement
+
+NEXT STEPS:
+1. Run to 300k steps to observe full grokking
+2. Repeat with different seeds to verify reproducibility
+3. Test on other algorithmic datasets (multiplication, permutation)

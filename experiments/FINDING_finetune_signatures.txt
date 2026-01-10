@@ -1,0 +1,46 @@
+
+================================================================================
+FINDING: FINE-TUNING SPECTRAL SIGNATURES
+================================================================================
+
+REGIME              │ κ Pattern           │ Test Stability │ Outcome
+════════════════════╪═════════════════════╪════════════════╪════════════
+Healthy             │ Slow steady rise    │ Stable         │ ✅ Good
+Memorization risk   │ Flat/slow rise      │ Oscillates     │ ⚠️ Gap
+High LR (risky)     │ Fast rise, may dip  │ May dip        │ ⚠️ Unstable
+
+================================================================================
+CONNECTING TO GEOMETRIC EARLY STOPPING PAPER
+================================================================================
+
+Your paper identified:
+- Pre-training: "Compression arc" (κ̃ rises then curls)
+- Fine-tuning: "Equilibrium" (κ̃ rises rapidly then plateaus)
+- Memorization: "Vertical tower" (κ̃ shoots up)
+
+Our findings ADD:
+- Test oscillation as memorization signal
+- κ growth RATE differentiates regimes
+- Slow κ growth + oscillation = insufficient data/regularization
+
+================================================================================
+FINE-TUNING DIAGNOSTIC ALGORITHM
+================================================================================
+
+At epoch E (after train acc > 95%):
+
+1. Compute test_stability = std(test_acc[-5:])
+2. Compute kappa_growth = κ[E] / κ[0]
+3. Compute gap = train_acc - test_acc
+
+CLASSIFY:
+- If test_stability < 0.02 AND gap < 0.03 → HEALTHY
+- If test_stability > 0.05 OR gap > 0.05 → MEMORIZATION RISK
+- If κ dropped > 20% from peak → INSTABILITY
+
+ACTION:
+- HEALTHY: Continue or stop (converged)
+- MEMORIZATION: Add regularization, more data, or stop
+- INSTABILITY: Reduce LR, add warmup
+
+================================================================================

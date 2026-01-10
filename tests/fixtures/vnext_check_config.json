@@ -1,0 +1,28 @@
+{
+  "model_name": "mistral-7b",
+  "dataset_name": "gsm8k",
+  "task_profile": "hard_reasoning",
+  "optimizer": {
+    "name": "AdamW",
+    "lr": 0.0002,
+    "weight_decay": 0.0
+  },
+  "lora": {
+    "r": 32,
+    "alpha": 32,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ]
+  },
+  "training": {
+    "seed": 0,
+    "max_steps": 200,
+    "dtype": "bfloat16"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "config": {
+    "model_name": "distilbert-base-uncased",
+    "rank": 64,
+    "num_epochs": 1,
+    "tasks": [
+      "sst2",
+      "mrpc"
+    ]
+  },
+  "results": [
+    {
+      "task_name": "SST-2",
+      "task_complexity": "simple",
+      "num_labels": 2,
+      "train_size": 1000,
+      "rank": 64,
+      "final_accuracy": 0.832,
+      "avg_effective_rank": 25.595632685918318,
+      "rank_utilization": 0.3999317607174737,
+      "suggested_rank": 64
+    },
+    {
+      "task_name": "MRPC",
+      "task_complexity": "medium",
+      "num_labels": 2,
+      "train_size": 1000,
+      "rank": 64,
+      "final_accuracy": 0.6838235294117647,
+      "avg_effective_rank": 34.97566927020646,
+      "rank_utilization": 0.5464948323469759,
+      "suggested_rank": 64
+    }
+  ],
+  "analysis": {
+    "complexity_rank_correlation": true
+  }
+}

@@ -1,0 +1,702 @@
+[
+  {
+    "step": 0,
+    "loss": 4.571416854858398,
+    "test_acc": 0.009260664946105966,
+    "weight_mean_kappa": 222.70961069885107,
+    "weight_mean_effective_rank": 175.6889753891475
+  },
+  {
+    "step": 500,
+    "loss": 2.1081249713897705,
+    "test_acc": 0.0,
+    "weight_mean_kappa": 18276.33107854972,
+    "weight_mean_effective_rank": 151.27097085501435
+  },
+  {
+    "step": 1000,
+    "loss": 0.12380761653184891,
+    "test_acc": 0.0003036283588887202,
+    "weight_mean_kappa": 621.1915765680809,
+    "weight_mean_effective_rank": 139.96815364019318
+  },
+  {
+    "step": 1500,
+    "loss": 0.01951497420668602,
+    "test_acc": 0.0003036283588887202,
+    "weight_mean_kappa": 2030.9444014642804,
+    "weight_mean_effective_rank": 137.45811635087935
+  },
+  {
+    "step": 2000,
+    "loss": 0.011646464467048645,
+    "test_acc": 0.0004554425383330803,
+    "weight_mean_kappa": 767.5324489700505,
+    "weight_mean_effective_rank": 135.68454974642796
+  },
+  {
+    "step": 2500,
+    "loss": 0.008401460945606232,
+    "test_acc": 0.0004554425383330803,
+    "weight_mean_kappa": 830.523623739849,
+    "weight_mean_effective_rank": 133.9450050396101
+  },
+  {
+    "step": 3000,
+    "loss": 0.005674188956618309,
+    "test_acc": 0.0004554425383330803,
+    "weight_mean_kappa": 2494.9029860453934,
+    "weight_mean_effective_rank": 132.21958172573798
+  },
+  {
+    "step": 3500,
+    "loss": 0.0054579079151153564,
+    "test_acc": 0.0004554425383330803,
+    "weight_mean_kappa": 18323.072146799448,
+    "weight_mean_effective_rank": 130.47806321069632
+  },
+  {
+    "step": 4000,
+    "loss": 0.0037384373135864735,
+    "test_acc": 0.0006072567177774404,
+    "weight_mean_kappa": 1797.771936226752,
+    "weight_mean_effective_rank": 128.70911291463676
+  },
+  {
+    "step": 4500,
+    "loss": 0.002283151028677821,
+    "test_acc": 0.0007590708972218005,
+    "weight_mean_kappa": 1841.3325108389017,
+    "weight_mean_effective_rank": 126.91167532099769
+  },
+  {
+    "step": 5000,
+    "loss": 0.00183497101534158,
+    "test_acc": 0.0007590708972218005,
+    "weight_mean_kappa": 863.3603530693305,
+    "weight_mean_effective_rank": 125.12682223608822
+  },
+  {
+    "step": 5500,
+    "loss": 0.0012866274919360876,
+    "test_acc": 0.0006072567177774404,
+    "weight_mean_kappa": 974.7535505832644,
+    "weight_mean_effective_rank": 123.35350007356318
+  },
+  {
+    "step": 6000,
+    "loss": 0.8396039009094238,
+    "test_acc": 0.0013663276149992408,
+    "weight_mean_kappa": 4676.811259706145,
+    "weight_mean_effective_rank": 121.73048495877741
+  },
+  {
+    "step": 6500,
+    "loss": 0.0019352007657289505,
+    "test_acc": 0.0018217701533323211,
+    "weight_mean_kappa": 1044.6428301033236,
+    "weight_mean_effective_rank": 121.02531003197375
+  },
+  {
+    "step": 7000,
+    "loss": 0.001260790741071105,
+    "test_acc": 0.001518141794443601,
+    "weight_mean_kappa": 1094.2095001725204,
+    "weight_mean_effective_rank": 120.63522792159972
+  },
+  {
+    "step": 7500,
+    "loss": 0.0015023889718577266,
+    "test_acc": 0.001669955973887961,
+    "weight_mean_kappa": 1016.4218330246148,
+    "weight_mean_effective_rank": 119.79221147513438
+  },
+  {
+    "step": 8000,
+    "loss": 0.001563715049996972,
+    "test_acc": 0.0013663276149992408,
+    "weight_mean_kappa": 3357.540656664484,
+    "weight_mean_effective_rank": 118.41875681388906
+  },
+  {
+    "step": 8500,
+    "loss": 0.001555213937535882,
+    "test_acc": 0.0013663276149992408,
+    "weight_mean_kappa": 3393.7436586222043,
+    "weight_mean_effective_rank": 116.77328933816345
+  },
+  {
+    "step": 9000,
+    "loss": 0.0010165560524910688,
+    "test_acc": 0.001518141794443601,
+    "weight_mean_kappa": 4524.216055500736,
+    "weight_mean_effective_rank": 114.98255514121415
+  },
+  {
+    "step": 9500,
+    "loss": 0.0008070436888374388,
+    "test_acc": 0.001669955973887961,
+    "weight_mean_kappa": 4779.086551425475,
+    "weight_mean_effective_rank": 113.13406671511875
+  },
+  {
+    "step": 10000,
+    "loss": 0.0007273361552506685,
+    "test_acc": 0.0021253985122210413,
+    "weight_mean_kappa": 19793.709396746748,
+    "weight_mean_effective_rank": 111.33442657678545
+  },
+  {
+    "step": 10500,
+    "loss": 0.0005166330956853926,
+    "test_acc": 0.0025808410505541216,
+    "weight_mean_kappa": 2398.973146889719,
+    "weight_mean_effective_rank": 109.55515197382478
+  },
+  {
+    "step": 11000,
+    "loss": 0.000342093117069453,
+    "test_acc": 0.0025808410505541216,
+    "weight_mean_kappa": 1155.4887522140818,
+    "weight_mean_effective_rank": 107.81358556160023
+  },
+  {
+    "step": 11500,
+    "loss": 0.00029723081388510764,
+    "test_acc": 0.003036283588887202,
+    "weight_mean_kappa": 1096.4898545820565,
+    "weight_mean_effective_rank": 106.10994079408418
+  },
+  {
+    "step": 12000,
+    "loss": 0.00021112793183419853,
+    "test_acc": 0.002884469409442842,
+    "weight_mean_kappa": 1540.456622834987,
+    "weight_mean_effective_rank": 104.4540338228813
+  },
+  {
+    "step": 12500,
+    "loss": 0.00017795703024603426,
+    "test_acc": 0.003339911947775922,
+    "weight_mean_kappa": 4348.828305319679,
+    "weight_mean_effective_rank": 102.8379844696576
+  },
+  {
+    "step": 13000,
+    "loss": 0.0001336051500402391,
+    "test_acc": 0.003339911947775922,
+    "weight_mean_kappa": 8689.071474042563,
+    "weight_mean_effective_rank": 101.26582715624505
+  },
+  {
+    "step": 13500,
+    "loss": 7.604172424180433e-05,
+    "test_acc": 0.0039471686655533625,
+    "weight_mean_kappa": 3467.207963092904,
+    "weight_mean_effective_rank": 99.74357434693952
+  },
+  {
+    "step": 14000,
+    "loss": 5.9250178310321644e-05,
+    "test_acc": 0.004250797024442083,
+    "weight_mean_kappa": 2361.5788436972693,
+    "weight_mean_effective_rank": 98.24852541128102
+  },
+  {
+    "step": 14500,
+    "loss": 4.926340625388548e-05,
+    "test_acc": 0.005313496280552604,
+    "weight_mean_kappa": 2108.9514854593203,
+    "weight_mean_effective_rank": 96.77220657442892
+  },
+  {
+    "step": 15000,
+    "loss": 3.826882675639354e-05,
+    "test_acc": 0.005617124639441324,
+    "weight_mean_kappa": 2692.04575842136,
+    "weight_mean_effective_rank": 95.31224279213363
+  },
+  {
+    "step": 15500,
+    "loss": 2.8153279345133342e-05,
+    "test_acc": 0.006072567177774404,
+    "weight_mean_kappa": 4405.523744616458,
+    "weight_mean_effective_rank": 93.86895134324146
+  },
+  {
+    "step": 16000,
+    "loss": 2.023923116212245e-05,
+    "test_acc": 0.006376195536663124,
+    "weight_mean_kappa": 9846.69182281931,
+    "weight_mean_effective_rank": 92.44521568770226
+  },
+  {
+    "step": 16500,
+    "loss": 1.7653932445682585e-05,
+    "test_acc": 0.006831638074996205,
+    "weight_mean_kappa": 17776.382972253352,
+    "weight_mean_effective_rank": 91.03319761161771
+  },
+  {
+    "step": 17000,
+    "loss": 1.298623737966409e-05,
+    "test_acc": 0.006831638074996205,
+    "weight_mean_kappa": 15470.788364980886,
+    "weight_mean_effective_rank": 89.64800953917661
+  },
+  {
+    "step": 17500,
+    "loss": 8.581156180298422e-06,
+    "test_acc": 0.0072870806133292845,
+    "weight_mean_kappa": 24923.58058652948,
+    "weight_mean_effective_rank": 88.29808968650525
+  },
+  {
+    "step": 18000,
+    "loss": 7.590239874843974e-06,
+    "test_acc": 0.007590708972218006,
+    "weight_mean_kappa": 18936.514921437953,
+    "weight_mean_effective_rank": 86.97040896486203
+  },
+  {
+    "step": 18500,
+    "loss": 5.24332881468581e-06,
+    "test_acc": 0.007894337331106725,
+    "weight_mean_kappa": 7787.241376815581,
+    "weight_mean_effective_rank": 85.67119708049218
+  },
+  {
+    "step": 19000,
+    "loss": 4.261720278009307e-06,
+    "test_acc": 0.008046151510551085,
+    "weight_mean_kappa": 9441.284974420205,
+    "weight_mean_effective_rank": 84.40057059403003
+  },
+  {
+    "step": 19500,
+    "loss": 3.080808482991415e-06,
+    "test_acc": 0.008349779869439806,
+    "weight_mean_kappa": 10599.502851097352,
+    "weight_mean_effective_rank": 83.15615616591084
+  },
+  {
+    "step": 20000,
+    "loss": 2.3301652163354447e-06,
+    "test_acc": 0.008957036587217247,
+    "weight_mean_kappa": 32177.479230682977,
+    "weight_mean_effective_rank": 81.94936779777719
+  },
+  {
+    "step": 20500,
+    "loss": 1.9147969396726694e-06,
+    "test_acc": 0.008957036587217247,
+    "weight_mean_kappa": 55540.30813957544,
+    "weight_mean_effective_rank": 80.7713004921817
+  },
+  {
+    "step": 21000,
+    "loss": 1.5161916735451086e-06,
+    "test_acc": 0.010019735843327767,
+    "weight_mean_kappa": 50137.070762500174,
+    "weight_mean_effective_rank": 79.63546775224118
+  },
+  {
+    "step": 21500,
+    "loss": 1.2814987258025212e-06,
+    "test_acc": 0.010323364202216486,
+    "weight_mean_kappa": 36161.25096351618,
+    "weight_mean_effective_rank": 78.53572747494076
+  },
+  {
+    "step": 22000,
+    "loss": 9.685751365395845e-07,
+    "test_acc": 0.011386063458327008,
+    "weight_mean_kappa": 16279.320984175269,
+    "weight_mean_effective_rank": 77.4599559482924
+  },
+  {
+    "step": 22500,
+    "loss": 6.332992370516877e-07,
+    "test_acc": 0.011537877637771367,
+    "weight_mean_kappa": 42902.979614457414,
+    "weight_mean_effective_rank": 76.41064321628322
+  },
+  {
+    "step": 23000,
+    "loss": 6.183980190144212e-07,
+    "test_acc": 0.012448762714437529,
+    "weight_mean_kappa": 281813.4242291367,
+    "weight_mean_effective_rank": 75.37905903417818
+  },
+  {
+    "step": 23500,
+    "loss": 4.358589080766251e-07,
+    "test_acc": 0.012904205252770608,
+    "weight_mean_kappa": 371340.2065805669,
+    "weight_mean_effective_rank": 74.31551082333159
+  },
+  {
+    "step": 24000,
+    "loss": 2.793967439629341e-07,
+    "test_acc": 0.013056019432214969,
+    "weight_mean_kappa": 37406.70178183061,
+    "weight_mean_effective_rank": 73.12165332929197
+  },
+  {
+    "step": 24500,
+    "loss": 3.501768901514879e-07,
+    "test_acc": 0.012904205252770608,
+    "weight_mean_kappa": 20603.65703214747,
+    "weight_mean_effective_rank": 71.44269072338943
+  },
+  {
+    "step": 25000,
+    "loss": 0.0004891626886092126,
+    "test_acc": 0.031880977683315624,
+    "weight_mean_kappa": 5094.953543692314,
+    "weight_mean_effective_rank": 75.73195701141499
+  },
+  {
+    "step": 25500,
+    "loss": 0.0005529664922505617,
+    "test_acc": 0.03112190678609382,
+    "weight_mean_kappa": 12989.081170061712,
+    "weight_mean_effective_rank": 75.68106520294926
+  },
+  {
+    "step": 26000,
+    "loss": 0.0008145779138430953,
+    "test_acc": 0.02763018065887354,
+    "weight_mean_kappa": 16904.134142524203,
+    "weight_mean_effective_rank": 75.57608058830674
+  },
+  {
+    "step": 26500,
+    "loss": 0.0006252772873267531,
+    "test_acc": 0.025049339608319416,
+    "weight_mean_kappa": 7234.802149578179,
+    "weight_mean_effective_rank": 75.3045229834774
+  },
+  {
+    "step": 27000,
+    "loss": 0.0007239737315103412,
+    "test_acc": 0.021557613481099136,
+    "weight_mean_kappa": 586852.752500751,
+    "weight_mean_effective_rank": 74.54377795294633
+  },
+  {
+    "step": 27500,
+    "loss": 0.0010607383446767926,
+    "test_acc": 0.016699559738879613,
+    "weight_mean_kappa": 210254.76942441563,
+    "weight_mean_effective_rank": 73.52720314707595
+  },
+  {
+    "step": 28000,
+    "loss": 0.0010404082713648677,
+    "test_acc": 0.01502960376499165,
+    "weight_mean_kappa": 23735.815463007366,
+    "weight_mean_effective_rank": 72.34396505802196
+  },
+  {
+    "step": 28500,
+    "loss": 0.0009006594191305339,
+    "test_acc": 0.01548504630332473,
+    "weight_mean_kappa": 36449.447962357546,
+    "weight_mean_effective_rank": 71.20410112550837
+  },
+  {
+    "step": 29000,
+    "loss": 0.000597713456954807,
+    "test_acc": 0.01609230302110217,
+    "weight_mean_kappa": 4076.0620834368733,
+    "weight_mean_effective_rank": 69.90404991543537
+  },
+  {
+    "step": 29500,
+    "loss": 0.0005500550614669919,
+    "test_acc": 0.016851373918323972,
+    "weight_mean_kappa": 52519.747065876414,
+    "weight_mean_effective_rank": 68.69826318228307
+  },
+  {
+    "step": 30000,
+    "loss": 0.00037022476317360997,
+    "test_acc": 0.017610444815545773,
+    "weight_mean_kappa": 8980.410061367,
+    "weight_mean_effective_rank": 67.57015289455737
+  },
+  {
+    "step": 30500,
+    "loss": 0.0003126847732346505,
+    "test_acc": 0.019280400789433733,
+    "weight_mean_kappa": 68935.60669388765,
+    "weight_mean_effective_rank": 66.49804181555136
+  },
+  {
+    "step": 31000,
+    "loss": 0.00021417319658212364,
+    "test_acc": 0.020494914224988614,
+    "weight_mean_kappa": 23363.68580645743,
+    "weight_mean_effective_rank": 65.50659748222057
+  },
+  {
+    "step": 31500,
+    "loss": 0.00016612681793048978,
+    "test_acc": 0.022468498557765296,
+    "weight_mean_kappa": 23345.579691597373,
+    "weight_mean_effective_rank": 64.57750605432834
+  },
+  {
+    "step": 32000,
+    "loss": 0.00011889081361005083,
+    "test_acc": 0.023986640352208898,
+    "weight_mean_kappa": 74137.43354317792,
+    "weight_mean_effective_rank": 63.740062256961856
+  },
+  {
+    "step": 32500,
+    "loss": 8.384211105294526e-05,
+    "test_acc": 0.02732655229998482,
+    "weight_mean_kappa": 46031.93702193397,
+    "weight_mean_effective_rank": 63.02068820128904
+  },
+  {
+    "step": 33000,
+    "loss": 6.066336572985165e-05,
+    "test_acc": 0.0293001366327615,
+    "weight_mean_kappa": 32441.84056561018,
+    "weight_mean_effective_rank": 62.24701577013838
+  },
+  {
+    "step": 33500,
+    "loss": 4.169408930465579e-05,
+    "test_acc": 0.032336420221648704,
+    "weight_mean_kappa": 20635.329985196222,
+    "weight_mean_effective_rank": 61.66334010563842
+  },
+  {
+    "step": 34000,
+    "loss": 3.9693666622042656e-05,
+    "test_acc": 0.039927129193866706,
+    "weight_mean_kappa": 31356.8947517373,
+    "weight_mean_effective_rank": 60.80362580754829
+  },
+  {
+    "step": 34500,
+    "loss": 2.696865158213768e-05,
+    "test_acc": 0.04524062547441931,
+    "weight_mean_kappa": 17723.517247618078,
+    "weight_mean_effective_rank": 59.891377736832
+  },
+  {
+    "step": 35000,
+    "loss": 2.266056435473729e-05,
+    "test_acc": 0.050250493396083194,
+    "weight_mean_kappa": 14691.419479575308,
+    "weight_mean_effective_rank": 59.01152895338854
+  },
+  {
+    "step": 35500,
+    "loss": 1.3712655345443636e-05,
+    "test_acc": 0.05526036131774708,
+    "weight_mean_kappa": 10719.183261136894,
+    "weight_mean_effective_rank": 58.16219581214673
+  },
+  {
+    "step": 36000,
+    "loss": 1.0952257980534341e-05,
+    "test_acc": 0.05905571580385608,
+    "weight_mean_kappa": 10034.58618880396,
+    "weight_mean_effective_rank": 57.34833188878309
+  },
+  {
+    "step": 36500,
+    "loss": 8.402338607993443e-06,
+    "test_acc": 0.06421739790496432,
+    "weight_mean_kappa": 17071.61810695904,
+    "weight_mean_effective_rank": 56.57247472737146
+  },
+  {
+    "step": 37000,
+    "loss": 5.505956323759165e-06,
+    "test_acc": 0.06770912403218461,
+    "weight_mean_kappa": 40474.328995312266,
+    "weight_mean_effective_rank": 55.83162389613968
+  },
+  {
+    "step": 37500,
+    "loss": 5.865440925845178e-06,
+    "test_acc": 0.07302262031273721,
+    "weight_mean_kappa": 80145.29826866607,
+    "weight_mean_effective_rank": 55.121811146141454
+  },
+  {
+    "step": 38000,
+    "loss": 4.135058134124847e-06,
+    "test_acc": 0.07621071808106877,
+    "weight_mean_kappa": 37366.35347956567,
+    "weight_mean_effective_rank": 54.44864753449492
+  },
+  {
+    "step": 38500,
+    "loss": 3.026791091542691e-06,
+    "test_acc": 0.08015788674662214,
+    "weight_mean_kappa": 24278.93096097434,
+    "weight_mean_effective_rank": 53.80522822753664
+  },
+  {
+    "step": 39000,
+    "loss": 2.1755663510703016e-06,
+    "test_acc": 0.08471231212995294,
+    "weight_mean_kappa": 19140.330899392306,
+    "weight_mean_effective_rank": 53.191158670920885
+  },
+  {
+    "step": 39500,
+    "loss": 1.747158989928721e-06,
+    "test_acc": 0.0871413390010627,
+    "weight_mean_kappa": 15588.542132658951,
+    "weight_mean_effective_rank": 52.605226838340684
+  },
+  {
+    "step": 40000,
+    "loss": 1.1436632121331058e-06,
+    "test_acc": 0.09291027781994839,
+    "weight_mean_kappa": 17186.852278859013,
+    "weight_mean_effective_rank": 52.04830253122165
+  },
+  {
+    "step": 40500,
+    "loss": 9.723000857775332e-07,
+    "test_acc": 0.09564293304994687,
+    "weight_mean_kappa": 21299.97900432996,
+    "weight_mean_effective_rank": 51.50911474347373
+  },
+  {
+    "step": 41000,
+    "loss": 7.916238473626436e-07,
+    "test_acc": 0.09943828753605587,
+    "weight_mean_kappa": 26805.437740298865,
+    "weight_mean_effective_rank": 50.990666472175256
+  },
+  {
+    "step": 41500,
+    "loss": 5.83007761179033e-07,
+    "test_acc": 0.10429634127827539,
+    "weight_mean_kappa": 34209.537389547695,
+    "weight_mean_effective_rank": 50.48932795510573
+  },
+  {
+    "step": 42000,
+    "loss": 4.786996896655182e-07,
+    "test_acc": 0.10459996963716411,
+    "weight_mean_kappa": 50792.667310671524,
+    "weight_mean_effective_rank": 50.00852106281038
+  },
+  {
+    "step": 42500,
+    "loss": 3.818421703272179e-07,
+    "test_acc": 0.10778806740549568,
+    "weight_mean_kappa": 86148.90842459121,
+    "weight_mean_effective_rank": 49.53419079509624
+  },
+  {
+    "step": 43000,
+    "loss": 2.6449558276908647e-07,
+    "test_acc": 0.10976165173827235,
+    "weight_mean_kappa": 16173.665326028726,
+    "weight_mean_effective_rank": 49.060282548847574
+  },
+  {
+    "step": 43500,
+    "loss": 2.1047887344138871e-07,
+    "test_acc": 0.1111279793532716,
+    "weight_mean_kappa": 72800.06497961144,
+    "weight_mean_effective_rank": 48.56851647679806
+  },
+  {
+    "step": 44000,
+    "loss": 2.0675359735378152e-07,
+    "test_acc": 0.10976165173827235,
+    "weight_mean_kappa": 40850.4955918093,
+    "weight_mean_effective_rank": 48.00315633949563
+  },
+  {
+    "step": 44500,
+    "loss": 1.508742428768528e-07,
+    "test_acc": 0.10110824350994382,
+    "weight_mean_kappa": 126379.21786526719,
+    "weight_mean_effective_rank": 47.23442120388584
+  },
+  {
+    "step": 45000,
+    "loss": 0.00017507646407466382,
+    "test_acc": 0.11765598906937907,
+    "weight_mean_kappa": 44080.87353693866,
+    "weight_mean_effective_rank": 53.273275832772704
+  },
+  {
+    "step": 45500,
+    "loss": 0.0003181182546541095,
+    "test_acc": 0.12388037042659784,
+    "weight_mean_kappa": 20731.604471452167,
+    "weight_mean_effective_rank": 53.29884015824833
+  },
+  {
+    "step": 46000,
+    "loss": 0.0004947021952830255,
+    "test_acc": 0.13177470775770456,
+    "weight_mean_kappa": 28472.976063054535,
+    "weight_mean_effective_rank": 53.47368596186471
+  },
+  {
+    "step": 46500,
+    "loss": 0.0004590978496707976,
+    "test_acc": 0.14558979808714134,
+    "weight_mean_kappa": 30739.09365317079,
+    "weight_mean_effective_rank": 53.678865861778625
+  },
+  {
+    "step": 47000,
+    "loss": 0.0005748393014073372,
+    "test_acc": 0.1465006831638075,
+    "weight_mean_kappa": 30117.804487328725,
+    "weight_mean_effective_rank": 53.65417500429999
+  },
+  {
+    "step": 47500,
+    "loss": 0.0007165430579334497,
+    "test_acc": 0.1404281159860331,
+    "weight_mean_kappa": 63803.90006912553,
+    "weight_mean_effective_rank": 53.84862951032168
+  },
+  {
+    "step": 48000,
+    "loss": 0.0008498820243403316,
+    "test_acc": 0.13223015029603766,
+    "weight_mean_kappa": 183046.89907563585,
+    "weight_mean_effective_rank": 54.21296831657193
+  },
+  {
+    "step": 48500,
+    "loss": 0.0005759298801422119,
+    "test_acc": 0.1308638226810384,
+    "weight_mean_kappa": 2725818.674871826,
+    "weight_mean_effective_rank": 54.44556057612377
+  },
+  {
+    "step": 49000,
+    "loss": 0.0004501384973991662,
+    "test_acc": 0.12995293760437224,
+    "weight_mean_kappa": 39274.822794042484,
+    "weight_mean_effective_rank": 54.51383487082126
+  },
+  {
+    "step": 49500,
+    "loss": 0.00034539069747552276,
+    "test_acc": 0.1298011234249279,
+    "weight_mean_kappa": 75213.95720597918,
+    "weight_mean_effective_rank": 54.53378704219114
+  }
+]

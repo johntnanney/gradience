@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gradience"
+version = "0.1.0"
+description = "Spectral diagnostics and restraint-first monitoring for neural network training and LoRA fine-tuning."
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+  "torch",
+  "numpy",
+]
+
+[project.optional-dependencies]
+hf = [
+  "transformers",
+  "peft",
+  "datasets",
+  "accelerate",
+  "safetensors",
+]
+dev = [
+  "pytest",
+  "build",
+  "ruff",
+  "mypy",
+]
+
+[project.scripts]
+gradience = "gradience.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gradience*"]
+
+[tool.setuptools]
+include-package-data = true

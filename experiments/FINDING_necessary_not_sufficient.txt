@@ -1,0 +1,51 @@
+
+================================================================================
+FINDING: Smooth Compression is Necessary but Not Sufficient
+================================================================================
+
+CONTROLLED EXPERIMENT:
+Same architecture, same weight_decay=0.1, different operations.
+
+MULTIPLICATION:
+- Trajectory: Smooth compression (0 positive jumps)
+- κ: Peaked ~12k
+- Result: GROKKED at 33k steps (95% acc)
+
+ADDITION (weight_decay=0.1):
+- Trajectory: Smooth compression (2 positive jumps)  
+- κ: Peaked ~210k
+- Result: DID NOT GROK at 50k steps (13% acc)
+
+ADDITION (original, unknown WD):
+- Trajectory: Oscillatory (18 positive jumps)
+- κ: Exploded to 7M
+- Result: DID NOT GROK at 300k steps (21% acc)
+
+CONCLUSIONS:
+
+1. WEIGHT DECAY EFFECT:
+   - Smooths rank trajectory (reduces oscillation)
+   - Constrains κ explosion
+   - But does not guarantee grokking
+
+2. TASK DIFFICULTY:
+   - Multiplication is "easier" than addition for this architecture
+   - Addition may require: more steps, different architecture, or different hyperparameters
+   - Smooth compression alone doesn't ensure the model finds the right features
+
+3. REFINED METRIC INTERPRETATION:
+   - Smooth compression → NECESSARY for healthy learning
+   - Smooth compression → NOT SUFFICIENT for grokking
+   - κ magnitude → correlates with task difficulty/model capacity mismatch
+   - Oscillation → sign of struggle (not phase transitions)
+
+4. κ AS DIFFICULTY INDICATOR:
+   - Low κ (~10k): Model has capacity headroom
+   - High κ (~100k+): Model is straining
+   - Exploding κ (>1M): Model is fundamentally mismatched to task
+
+IMPLICATION FOR GRADIENCE:
+The telemetry distinguishes:
+- Healthy learning (smooth compression, bounded κ)
+- Struggling learning (oscillation, exploding κ)
+- But cannot predict WHETHER a task will eventually grok

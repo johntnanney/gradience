@@ -1,0 +1,93 @@
+
+================================================================================
+GRADIENCE RESEARCH FINDINGS - CONSOLIDATED SUMMARY
+================================================================================
+Date: January 2026
+Experiments: Grokking (add/mult), CIFAR-10 ResNet, Instability induction
+
+================================================================================
+PART 1: VALIDATED METRICS
+================================================================================
+
+METRIC                  | VALIDATED | INTERPRETATION
+------------------------|-----------|------------------------------------------
+Effective Rank          | ✅ Yes    | Tracks representation complexity
+Rank Compression        | ✅ Yes    | Smooth compression = healthy grokking
+Rank Oscillation        | ✅ Yes    | Indicates struggling/stuck model
+κ (condition number)    | ⚠️ Nuanced| Not instability predictor; tracks strain
+κ Recovery Ratio        | ✅ Yes    | High recovery = healthy (necessary not sufficient)
+Autocorrelation τ       | ✅ Yes    | Spikes at phase transitions
+Variance Ratio          | ✅ Yes    | Amplifies at critical points
+
+================================================================================
+PART 2: KEY FINDINGS
+================================================================================
+
+FINDING 1: Rank Compression as Learning Signature
+- Grokking exhibits 67% rank compression (175 → 58)
+- Smooth compression correlates with successful generalization
+- Oscillation indicates failed compression attempts
+
+FINDING 2: κ Recovery Predicts (But Doesn't Guarantee) Success
+- κ_recovery = κ_max / κ_current
+- Low recovery (<2x) → almost certainly failing
+- High recovery (>5x) → necessary but not sufficient for success
+
+FINDING 3: Phase Transitions Have Statistical Mechanics Signatures
+- Autocorrelation time τ: 1 → 16 → 24 → 1 at generalization event
+- Variance ratio spikes at same point
+- Three independent metrics converge on phase boundaries
+
+FINDING 4: Signatures Are Regime-Specific
+- Grokking: Rank compression, κ recovery matter
+- Standard supervised (CNN): κ ≈ 2, stable rank is healthy
+- Different architectures need different interpretations
+
+FINDING 5: Layer Selection Matters
+- CNNs: Monitor conv layers (κ ≈ 2 healthy), FC is trivial
+- MLPs: All layers informative
+- Metric aggregation must be architecture-aware
+
+================================================================================
+PART 3: PRACTICAL RECOMMENDATIONS
+================================================================================
+
+EARLY STOPPING RULES:
+
+For Grokking/Algorithmic Tasks:
+- KILL if: κ_recovery < 2 at 30% of expected training
+- KILL if: Rank oscillation > 5 sign changes in first 20%
+- CONTINUE if: Smooth compression + κ_recovery > 5
+
+For Standard Supervised Learning:
+- ALERT if: Conv layer κ > 10 (unusual, investigate)
+- HEALTHY if: κ stable at 2-3, rank near full
+- Standard loss-based stopping still applies
+
+For Fine-tuning (from prior work):
+- HEALTHY: Quick complexity plateau ("equilibrium")
+- UNHEALTHY: Vertical complexity spike ("memorization")
+
+================================================================================
+PART 4: LIMITATIONS
+================================================================================
+
+1. κ alone is not predictive of instability
+2. High κ_recovery necessary but not sufficient for success
+3. Hessian estimation breaks on transformer attention layers
+4. Need architecture-specific interpretation guides
+5. Findings validated on small models; large-scale TBD
+
+================================================================================
+PART 5: EXPERIMENT INVENTORY
+================================================================================
+
+| Experiment               | Steps  | Result    | Key Finding              |
+|--------------------------|--------|-----------|--------------------------|
+| Multiplication grok      | 33.5k  | 95.4%     | Smooth compression works |
+| Addition + WD=0.1        | 50k    | 13.0%     | Task harder than mult    |
+| Addition original        | 300k   | 21.0%     | Oscillation = struggling |
+| CIFAR-10 ResNet          | 50 ep  | 83.5%     | Different healthy sig    |
+| Instability induction    | 2k     | No fail   | SGD on random robust     |
+
+================================================================================

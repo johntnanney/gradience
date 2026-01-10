@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Env / secrets
+.env
+.env.*
+*.key
+*.pem
+id_ed25519
+id_rsa
+
+# OS
+.DS_Store
+
+# Run artifacts / logs
+runs/
+wandb/
+*.log
+
+# Weights / checkpoints
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+checkpoint-*/
+
+# Data archives
+data/*.tar.gz
+data/*.gz
+
+# Patch / backup files
+*.bak
+*.bak.*
+data/

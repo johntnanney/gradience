@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-01-06T13:47:50.144819",
+  "experiment": "all",
+  "quick_mode": true,
+  "results": {
+    "rank_collapse": {
+      "status": "error",
+      "error": "No module named 'experiments'"
+    },
+    "optimal_rank": {
+      "status": "error",
+      "error": "No module named 'experiments'"
+    },
+    "alpha_sensitivity": {
+      "status": "error",
+      "error": "No module named 'experiments'"
+    },
+    "task_complexity": {
+      "status": "error",
+      "error": "No module named 'experiments'"
+    },
+    "layer_utilization": {
+      "status": "error",
+      "error": "No module named 'experiments'"
+    }
+  }
+}
