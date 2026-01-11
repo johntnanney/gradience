@@ -40,3 +40,6 @@ data/*.gz
 *.bak
 *.bak.*
 data/
+
+# Smoke / run artifacts
+runs/
