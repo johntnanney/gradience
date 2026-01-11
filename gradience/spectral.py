@@ -1,12 +1,12 @@
 """
 Spectral Analysis Module
 
-Tracks κ̃ (condition number proxy) to monitor training geometry.
+Tracks condition number proxy to monitor training geometry.
 
 The condition number κ(W) = σ_max / σ_min measures sensitivity of matrix
 operations to perturbations. High κ → ill-conditioned → unstable gradients.
 
-Key insight: κ̃ slope often *leads* loss degradation, providing early warning.
+Key insight: condition number slope often leads loss degradation, providing early warning.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import time
 
 
 class RiskLevel(Enum):
-    """Training risk classification based on κ̃ dynamics."""
+    """Training risk classification based on condition number dynamics."""
     STABLE = "STABLE"           # slope < 0.0005: quiescent
     LEARNING = "LEARNING"       # 0.0005-0.002: healthy training
     WARNING = "WARNING"         # 0.002-0.004: elevated risk
@@ -92,7 +92,7 @@ class SpectralAnalyzer:
     Tracks spectral metrics over time and computes derived statistics.
     
     Maintains rolling window for:
-    - κ̃ slope (trend indicator via linear regression)
+    - Condition number slope (trend indicator via linear regression)
     - Volatility (stability indicator via rolling std)
     - Risk assessment (actionable classification)
     
@@ -124,12 +124,12 @@ class SpectralAnalyzer:
     
     def compute_slope(self) -> Optional[float]:
         """
-        Compute κ̃ slope via OLS over the window.
+        Compute condition number slope via OLS over the window.
         
         Returns
         -------
         slope : float or None
-            Δκ̃/Δstep, or None if < 3 observations
+            Δκ/Δstep, or None if < 3 observations
         """
         if len(self._history) < 3:
             return None
@@ -152,12 +152,12 @@ class SpectralAnalyzer:
     
     def compute_volatility(self) -> Optional[float]:
         """
-        Compute κ̃ volatility as rolling standard deviation.
+        Compute condition number volatility as rolling standard deviation.
         
         Returns
         -------
         volatility : float or None
-            std(κ̃) over window, or None if < 3 observations
+            std(κ) over window, or None if < 3 observations
         """
         if len(self._kappa_values) < 3:
             return None
@@ -207,7 +207,7 @@ class SpectralAnalyzer:
             return RiskLevel.STABLE, metrics
     
     def get_current_kappa(self) -> Optional[float]:
-        """Most recent κ̃ value."""
+        """Most recent condition number value."""
         return self._kappa_values[-1] if self._kappa_values else None
     
     def get_telemetry(self) -> Dict[str, Any]:
@@ -268,7 +268,7 @@ def estimate_condition_proxy(
     n_iterations: int = 10,
 ) -> Tuple[float, float, float]:
     """
-    Estimate κ̃ (condition number proxy).
+    Estimate condition number proxy.
     
     Uses power iteration for σ_max and Frobenius heuristic for σ_min.
     

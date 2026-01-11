@@ -5,7 +5,7 @@ Run with:
     python -m gradience.demo --guard --inject-nan
 
 Demonstrates:
-- Spectral monitoring (κ̃ tracking)
+- Spectral monitoring (condition number tracking)
 - Guard system (checkpoint/rollback)
 - Automatic recovery from NaN injection
 """
@@ -208,7 +208,7 @@ def run_demo(
         s = summary.get("spectral", {})
         kappa = s.get("final_kappa")
         print(f"\n📊 Spectral:")
-        print(f"  Final κ̃:  {kappa:.1f}" if kappa else "  Final κ̃:  N/A")
+        print(f"  Final κ:  {kappa:.1f}" if kappa else "  Final κ:  N/A")
         print(f"  Risk:     {s.get('final_risk_level', 'N/A')}")
     
     print("\n📁 Files:")

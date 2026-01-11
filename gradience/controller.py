@@ -75,7 +75,7 @@ class GradienceController:
     Spectral Settings
     -----------------
     spectral_enabled : bool
-        Enable κ̃ tracking
+        Enable condition number tracking
     spectral_interval : int
         Steps between spectral measurements
     
