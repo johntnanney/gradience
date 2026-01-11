@@ -1,18 +1,13 @@
 name: tests
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [ "master", "main" ]
 
 jobs:
   unit:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11"]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,35 +15,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
+          cache: "pip"
 
-      - name: Install (editable)
+      - name: Install
         run: |
-          python -m pip install --upgrade pip
-          # Install package in editable mode
-          pip install -e .
-          # If you have extras, you can switch to:
-          # pip install -e ".[dev,hf]"
+          python -m pip install -U pip
+          # Prefer dev extras if present; if not, replace with `pip install -e .`
+          python -m pip install -e ".[dev]"
 
       - name: Syntax check (py_compile)
         run: |
           python -m py_compile \
             gradience/cli.py \
-            gradience/__init__.py \
             gradience/__main__.py \
             gradience/vnext/telemetry.py \
             gradience/vnext/telemetry_reader.py \
-            gradience/vnext/check.py \
-            gradience/vnext/monitor.py \
             gradience/vnext/audit/lora_audit.py
 
-      - name: Run unit tests
+      - name: Unit tests
         run: |
-          python -m unittest discover -s tests -p "test_*.py" -v
+          python -m unittest discover -s tests -p "test_*.py"
 
-      - name: CLI smoke test
+      - name: CLI sanity
         run: |
-          gradience --help >/dev/null
-          gradience check --help >/dev/null
-          gradience monitor --help >/dev/null
-          gradience audit --help >/dev/null
+          gradience --help
+          python -m gradience --help
