@@ -1157,11 +1157,31 @@ def cmd_audit(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     top_wasteful = int(getattr(args, "top_wasteful", 0) or 0)
-    include_layers = top_wasteful > 0
+    # Include layers if --layers flag is set OR if --top-wasteful is specified
+    include_layers = getattr(args, "layers", False) or top_wasteful > 0
 
     if args.json:
         try:
-            payload = result.to_summary_dict(include_layers=include_layers, topk_layers=top_wasteful if include_layers else None)
+            # When --layers is set, include all layers; otherwise respect top_wasteful
+            if getattr(args, "layers", False):
+                payload = result.to_summary_dict(include_layers=True, topk_layers=None)
+            else:
+                payload = result.to_summary_dict(include_layers=include_layers, topk_layers=top_wasteful if include_layers else None)
+            
+            # Add per-layer rank suggestions if requested
+            suggest_per_layer = getattr(args, "suggest_per_layer", False)
+            if suggest_per_layer:
+                if not include_layers and not getattr(args, "layers", False):
+                    print("Error: --suggest-per-layer requires --layers flag", file=sys.stderr)
+                    sys.exit(1)
+                
+                try:
+                    from gradience.vnext.rank_suggestion import suggest_per_layer_ranks
+                    rank_suggestions = suggest_per_layer_ranks(payload)
+                    payload["rank_suggestions"] = rank_suggestions.to_dict()
+                except Exception as e:
+                    payload["rank_suggestions_error"] = str(e)
+                    
         except Exception:
             # Fallback if result isn't the expected dataclass
             payload = {"error": "unexpected_audit_result_type", "type": str(type(result))}
@@ -1295,6 +1315,16 @@ def main() -> None:
         help="Include top-k singular values per layer in JSON output (cost: small).",
     )
     audit_parser.add_argument("--json", action="store_true", help="Output JSON instead of pretty text")
+    audit_parser.add_argument(
+        "--layers",
+        action="store_true",
+        help="Include per-layer audit rows in --json output (can be large).",
+    )
+    audit_parser.add_argument(
+        "--suggest-per-layer",
+        action="store_true",
+        help="Include per-layer rank suggestions in --json output (requires --layers).",
+    )
     audit_parser.set_defaults(func=cmd_audit)
 
     # monitor

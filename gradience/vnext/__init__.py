@@ -37,6 +37,15 @@ from .audit import (
     audit_lora_state_dict,
 )
 
+# Framework integrations (optional dependencies)
+# Canonical import: from gradience.vnext.integrations.hf import GradienceCallback
+try:
+    from .integrations.hf import GradienceCallback
+    _HF_AVAILABLE = True
+except ImportError:
+    _HF_AVAILABLE = False
+    GradienceCallback = None
+
 __all__ = [
     "TELEMETRY_SCHEMA_VERSION",
     "TaskProfile",
@@ -60,3 +69,7 @@ __all__ = [
     "audit_lora_peft_dir",
     "audit_lora_state_dict",
 ]
+
+# Add HF integration to exports if available
+if _HF_AVAILABLE:
+    __all__.append("GradienceCallback")

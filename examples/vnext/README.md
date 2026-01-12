@@ -1,50 +1,130 @@
-# vNext Toy LoRA Run
+# Gradience vNext Examples
 
-This folder contains a **tiny, cheap** LoRA fine-tune script whose only job is to validate that the canonical Gradience vNext tools work end-to-end.
+Copy-pasteable examples demonstrating Gradience integrations with popular ML frameworks.
 
-It produces:
+## Examples
 
-- a vNext telemetry JSONL (`run.jsonl`)
-- a PEFT adapter directory (`peft/`) for `gradience audit`
-- a minimal `training_args.json` (`training/`) for `gradience check`
+### `hf_trainer_example.py` - Minimal "One Line" Integration ⭐
 
-## Run
+**What it does:**
+- Demonstrates the simplest possible Gradience integration  
+- Trains a tiny model in ~30 seconds on CPU
+- Shows exact next steps: monitor → audit → suggestions
+- Perfect for copy-pasting into blog posts and documentation
 
-From the repo root:
-
+**Usage:**
 ```bash
-python examples/vnext/toy_lora_run.py --out runs/toy_run
+python examples/vnext/hf_trainer_example.py
+# Outputs: ./gradience_example_output/run.jsonl + adapter files
+# Shows: Complete workflow commands to run next
 ```
 
-The defaults are CPU-friendly and should finish quickly.
+**Key features:**
+- ✅ **One line integration**: `callbacks=[GradienceCallback()]`
+- ✅ **Instant gratification**: Runs in 30 seconds on any CPU
+- ✅ **Copy-pasteable**: Blog-ready example with clear next steps
+- ✅ **Educational**: Shows the core value proposition
 
-## Then validate the Gradience CLI
+### `hf_trainer_run.py` - Complete HuggingFace + PEFT Integration
 
+**What it does:**
+- Minimal CPU-friendly training example with HuggingFace Trainer + LoRA
+- Automatically generates Gradience telemetry during training
+- Produces audit-ready PEFT adapters 
+
+**Requirements:**
 ```bash
-gradience check --task sst2 --peft-dir runs/toy_run/peft --training-dir runs/toy_run/training
-gradience monitor runs/toy_run/run.jsonl
-gradience audit --peft-dir runs/toy_run/peft --top-wasteful 10
+pip install transformers datasets peft
 ```
 
-## Make it even cheaper
-
-- Fewer steps:
-  ```bash
-  python examples/vnext/toy_lora_run.py --max-steps 30
-  ```
-
-- Smaller slices:
-  ```bash
-  python examples/vnext/toy_lora_run.py --train-samples 64 --eval-samples 64
-  ```
-
-## Want to see compression recommendations?
-
-Run with an intentionally oversized rank:
-
+**Usage:**
 ```bash
-python examples/vnext/toy_lora_run.py --r 32 --alpha 32
-gradience monitor runs/toy_run/run.jsonl
+# Run the example
+python examples/vnext/hf_trainer_run.py
+
+# Check outputs
+ls hf_example_output/
+# → run.jsonl (telemetry), adapter_config.json, adapter_model.bin
+
+# Audit the trained model
+python -m gradience audit --peft-dir hf_example_output
+
+# Get rank suggestions  
+python -m gradience audit --peft-dir hf_example_output --layers --suggest-per-layer --json
 ```
 
-If the audit shows low utilization, monitor should emit a `compress_rank` recommendation.
+**Key features:**
+- ✅ **Drop-in integration**: Just add `GradienceCallback` to your trainer
+- ✅ **CPU-optimized**: Runs on any machine, no GPU required
+- ✅ **Minimal example**: ~50 lines of copy-pasteable code
+- ✅ **Full workflow**: Training → telemetry → audit → suggestions
+
+**Copy-paste integration:**
+```python
+from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
+
+# Add to your existing trainer
+config = GradienceCallbackConfig(
+    dataset_name="your_dataset",
+    task_profile="your_task_type", 
+    notes="your experiment notes"
+)
+trainer.add_callback(GradienceCallback(config))
+```
+
+## Output Structure
+
+All examples produce this structure:
+```
+{example}_output/
+├── run.jsonl                 # Gradience telemetry (vNext format)
+├── adapter_config.json       # PEFT configuration  
+├── adapter_model.bin         # LoRA weights
+└── trainer_state.json        # Framework training state
+```
+
+## Integration Patterns
+
+### 1. **Minimal Integration** (for existing projects)
+```python
+trainer.add_callback(GradienceCallback())
+# Writes to training_args.output_dir/run.jsonl
+```
+
+### 2. **Custom Configuration**
+```python
+config = GradienceCallbackConfig(
+    output_dir="./my_experiment",
+    dataset_name="glue/cola",
+    task_profile="easy_classification",
+    notes="Testing rank compression"
+)
+trainer.add_callback(GradienceCallback(config))
+```
+
+### 3. **Privacy-conscious**
+```python
+config = GradienceCallbackConfig(
+    telemetry_allow_text=False,     # Redact text fields
+    telemetry_max_str_len=128       # Limit string lengths
+)
+```
+
+## Next Steps
+
+After running examples:
+
+1. **Monitor training**: `python -m gradience monitor {output_dir}/run.jsonl`
+2. **Audit efficiency**: `python -m gradience audit --peft-dir {output_dir}`  
+3. **Get suggestions**: `python -m gradience audit --peft-dir {output_dir} --layers --suggest-per-layer --json`
+4. **Validate compression**: Use `scripts/validate_suggestions.sh`
+
+## Troubleshooting
+
+**Import errors**: Make sure dependencies are installed and you're in the correct environment.
+
+**Memory issues**: Examples are CPU-optimized but you can reduce batch size further if needed.
+
+**Permission errors**: Examples write to `./` - make sure you have write permissions.
+
+**Framework versions**: Examples work with recent versions of transformers/peft. Check compatibility if you see API errors.

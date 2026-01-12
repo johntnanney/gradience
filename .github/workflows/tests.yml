@@ -8,14 +8,17 @@ on:
 jobs:
   unit:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install
@@ -29,9 +32,16 @@ jobs:
           python -m py_compile \
             gradience/cli.py \
             gradience/__main__.py \
+            gradience/__init__.py \
+            gradience/vnext/__init__.py \
             gradience/vnext/telemetry.py \
             gradience/vnext/telemetry_reader.py \
-            gradience/vnext/audit/lora_audit.py
+            gradience/vnext/types.py \
+            gradience/vnext/rank_suggestion.py \
+            gradience/vnext/audit/lora_audit.py \
+            gradience/vnext/policy/check.py \
+            gradience/vnext/integrations/__init__.py \
+            gradience/vnext/integrations/hf.py
 
       - name: Unit tests
         run: |
@@ -41,3 +51,100 @@ jobs:
         run: |
           gradience --help
           python -m gradience --help
+
+      - name: Basic functionality check
+        run: |
+          # Test vNext telemetry reader on fixture
+          python -c "
+          from gradience.vnext.telemetry_reader import TelemetryReader
+          from pathlib import Path
+          fixture = Path('tests/fixtures/vnext_minimal.jsonl')
+          if fixture.exists():
+              reader = TelemetryReader(fixture, strict_schema=True)
+              issues = reader.validate()
+              assert issues == [], f'Fixture validation failed: {issues}'
+              summary = reader.summarize()
+              config = reader.latest_config()
+              print('✅ vNext telemetry reader functional')
+          else:
+              print('⚠️ Test fixture not found, skipping telemetry test')
+          "
+          
+          # Test rank suggestion on minimal data
+          python -c "
+          from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit
+          audit = {
+              'stable_rank_mean': 2.0,
+              'utilization_mean': 0.25,
+              'total_lora_params': 1000,
+              'energy_rank_90_p50': 4.0,
+              'energy_rank_90_p90': 6.0
+          }
+          result = suggest_global_ranks_from_audit(audit)
+          assert result.current_r == 8
+          print('✅ Rank suggestion functional')
+          "
+
+  hf-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install with HF dependencies
+        run: |
+          python -m pip install -U pip
+          # Install base package + HF dependencies for integration tests
+          python -m pip install -e ".[dev]"
+          python -m pip install transformers>=4.20.0 peft>=0.4.0 datasets
+
+      - name: HF integration tests
+        env:
+          GRADIENCE_TEST_HF: "1"
+        run: |
+          python -m unittest tests.test_hf_callback -v
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install -U pip build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Check package
+        run: |
+          twine check dist/*
+
+      - name: Test installation in fresh venv
+        run: |
+          python -m venv test-venv
+          source test-venv/bin/activate
+          pip install -U pip
+          pip install dist/*.whl
+          
+          # Test CLI availability
+          gradience --help
+          python -m gradience --help
+          
+          # Test basic imports
+          python -c "import gradience; print('✅ Package import successful')"
+          python -c "from gradience.vnext.integrations.hf import GradienceCallback; print('✅ HF integration available')"

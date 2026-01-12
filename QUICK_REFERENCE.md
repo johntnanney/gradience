@@ -9,6 +9,18 @@ pip install -e .
 pip install torch transformers peft safetensors datasets
 ```
 
+## HuggingFace Integration
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback
+trainer.add_callback(GradienceCallback())
+```
+
+```bash
+# Try the minimal example
+python examples/vnext/hf_trainer_example.py
+```
+
 ## Device check
 
 ```bash

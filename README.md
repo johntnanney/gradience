@@ -45,6 +45,40 @@ For the toy example + HF/PEFT tooling:
 pip install torch transformers peft safetensors datasets
 ```
 
+## HuggingFace Integration (Recommended)
+
+Add telemetry to your existing trainer with one line:
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback
+
+trainer.add_callback(GradienceCallback())
+# Writes to training_args.output_dir/run.jsonl
+```
+
+**Try it now:**
+```bash
+python examples/vnext/hf_trainer_example.py
+# Trains a tiny model, generates telemetry, shows next steps
+```
+
+For custom configuration:
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
+
+config = GradienceCallbackConfig(
+    dataset_name="your_dataset",
+    task_profile="easy_classification", 
+    notes="experiment notes"
+)
+trainer.add_callback(GradienceCallback(config))
+```
+
+**Examples:**
+- [`hf_trainer_example.py`](examples/vnext/hf_trainer_example.py) - Minimal "one line" integration demo
+- [`hf_trainer_run.py`](examples/vnext/hf_trainer_run.py) - Complete example with detailed configuration
+
 **macOS note:** `--device cuda` requires a CUDA-enabled PyTorch build (typically Linux + NVIDIA GPU). On macOS, use `--device cpu`.
 
 ---
@@ -165,7 +199,7 @@ latest_test = r.latest_eval(split="test")
 
 ## Documentation
 
-- **User manual:** `docs/USER_MANUAL.md`
+- **User manual:** `USER_MANUAL.md`
 - **Quick reference:** `QUICK_REFERENCE.md`
 - **Telemetry contract:** `gradience/vnext/SCHEMA.md`
 - **Examples:** `examples/vnext/`

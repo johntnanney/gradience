@@ -212,10 +212,15 @@ class LoRAAuditResult:
             if topk_layers is not None:
                 # show the most "wasteful" layers first (lowest utilization)
                 layers = sorted(layers, key=lambda x: x.utilization)[:topk_layers]
-            out["layers"] = [l.to_dict() for l in layers]
+            layer_rows = [l.to_dict() for l in layers]
+            out["layer_data"] = {
+                "layer_rows_schema": "v1",
+                "layer_rows": layer_rows
+            }
         # Normalize module_type for layer rows
-        if isinstance(out, dict) and isinstance(out.get('layers'), list):
-            for row in out['layers']:
+        layer_data = out.get('layer_data')
+        if isinstance(layer_data, dict) and isinstance(layer_data.get('layer_rows'), list):
+            for row in layer_data['layer_rows']:
                 if isinstance(row, dict):
                     nm = row.get('name') or row.get('module') or row.get('full_name') or ''
                     row['module_type'] = infer_module_type(str(nm))

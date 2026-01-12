@@ -1,0 +1,25 @@
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [ "master", "main" ]
+  schedule:
+    # Run weekly security scans on main branch
+    - cron: '0 6 * * 1'
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for better leak detection
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for commercial use

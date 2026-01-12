@@ -38,9 +38,71 @@ It should *not* be treated as:
 
 ---
 
-## 2. Installation
+## 2. Quick Start
 
-### 2.1 Install from source (recommended for now)
+### 2.1 HuggingFace Integration (Recommended)
+
+If you're using HuggingFace Trainer, add telemetry with one line:
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    callbacks=[GradienceCallback()]  # ← Add this line
+)
+```
+
+This automatically:
+- ✅ Captures training configuration (model, dataset, LoRA config, hyperparameters)
+- ✅ Logs training metrics (loss, learning rate, evaluation results)  
+- ✅ Writes telemetry to `training_args.output_dir/run.jsonl`
+- ✅ Uses stable schema `gradience.vnext.telemetry/v1`
+
+For custom configuration:
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
+
+config = GradienceCallbackConfig(
+    dataset_name="glue/cola",           # Optional dataset identifier
+    task_profile="easy_classification", # Optional task difficulty
+    notes="Testing rank compression"    # Optional experiment notes
+)
+
+trainer.add_callback(GradienceCallback(config))
+```
+
+### 2.2 Complete Examples
+
+**Minimal demo (recommended first try):**
+```bash
+python examples/vnext/hf_trainer_example.py
+# Shows: one line integration, next steps, complete workflow
+# Outputs: ./gradience_example_output/run.jsonl + adapter files
+```
+
+**Full-featured example:**
+```bash  
+python examples/vnext/hf_trainer_run.py
+# Shows: detailed configuration, custom telemetry settings
+# Outputs: ./hf_example_output/run.jsonl + adapter files  
+```
+
+Both examples:
+- Train tiny models on CPU (no GPU required)
+- Generate telemetry automatically with vNext schema
+- Produce audit-ready PEFT adapters
+- Show complete workflow: train → monitor → audit
+
+---
+
+## 3. Installation
+
+### 3.1 Install from source (recommended for now)
 
 ```bash
 git clone https://github.com/johntnanney/gradience.git

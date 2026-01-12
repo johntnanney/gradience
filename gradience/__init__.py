@@ -1,68 +1,79 @@
 """
-Gradience: Spectral Telemetry for Neural Network Training
+Gradience: Telemetry-first observability for LoRA / PEFT fine-tuning
 
-Core metrics:
-    - Spectral (κ, rank): Shape of learning - conditioning and expressivity
-    - Structural (ρ): Balance of forces - expansion vs regularization
+Gradience is a flight recorder + mechanic for LoRA runs:
+- Flight recorder: emits stable JSONL telemetry (gradience.vnext.telemetry/v1)
+- Mechanic: audits adapters and provides conservative rank compression suggestions
 
-Components:
-    - SpectralAnalyzer: Compute spectral metrics (κ, effective rank, σ_max)
-    - StructuralAnalyzer: Compute muon ratio (ρ = λ × σ_max)
-    - TelemetryWriter: Log metrics to JSONL
-    - Guard: Checkpoint/rollback on training corruption (experimental)
-
-Quick start:
-    from gradience import SpectralAnalyzer, StructuralAnalyzer
+Canonical API:
+    # HuggingFace integration (recommended for most users)
+    from gradience.vnext.integrations.hf import GradienceCallback
+    trainer.add_callback(GradienceCallback())
     
-    # Spectral analysis (shape of learning)
-    spectral = SpectralAnalyzer()
-    metrics = spectral.analyze(model)
-    print(f"κ mean: {metrics['kappa_mean']:.1f}")
-    
-    # Structural analysis (balance of forces)
-    structural = StructuralAnalyzer()
-    metrics = structural.analyze(model, weight_decay=0.01)
-    print(f"ρ (muon ratio): {metrics.muon_ratio:.2f}")
+    # CLI workflow
+    gradience check --task seq_cls --peft-dir my_adapter
+    gradience monitor run.jsonl  
+    gradience audit --peft-dir my_adapter --layers --suggest-per-layer --json
 
-For HuggingFace:
-    from gradience.integrations.huggingface import GradienceCallback
+Legacy components (DEPRECATED) have been moved to docs/legacy/
+For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md
 """
 
 __version__ = "0.2.0"
 
-# Spectral (shape of learning)
+# Current API: vNext components
+# For stable telemetry, use: gradience.vnext.telemetry
+# For HF integration, use: gradience.vnext.integrations.hf
+
+# Legacy components (maintained for backward compatibility, but deprecated)
+import warnings
+
+# Spectral analysis (legacy - for new code use gradience.vnext.audit)
 from gradience.spectral import SpectralAnalyzer
 
-# Structural (balance of forces)
+# Structural analysis (legacy)  
 from gradience.structural import (
-    StructuralAnalyzer, 
+    StructuralAnalyzer,
     StructuralMetrics,
     compute_muon_ratio,
     get_weight_decay_from_optimizer,
 )
 
-# Telemetry
+# Legacy telemetry (for new code use gradience.vnext.telemetry)
 from gradience.telemetry import TelemetryWriter, TelemetryReader
 
-# Guard (experimental)
-from gradience.guard import Guard, GuardConfig, create_guard
+# Deprecated Guard functionality
+def _deprecated_guard_import():
+    warnings.warn(
+        "Guard functionality has been moved to docs/legacy/ and is no longer supported. "
+        "Use gradience.vnext.integrations for framework integration instead.",
+        DeprecationWarning,
+        stacklevel=3
+    )
+    raise ImportError("Guard functionality is deprecated. See docs/legacy/ for archived code.")
+
+# Create placeholder functions that raise deprecation warnings
+def Guard(*args, **kwargs):
+    _deprecated_guard_import()
+
+def GuardConfig(*args, **kwargs):
+    _deprecated_guard_import()
+    
+def create_guard(*args, **kwargs):
+    _deprecated_guard_import()
 
 __all__ = [
-    # Spectral
+    # Current (but legacy) - use gradience.vnext for new code
     "SpectralAnalyzer",
-    
-    # Structural
-    "StructuralAnalyzer",
+    "StructuralAnalyzer", 
     "StructuralMetrics",
     "compute_muon_ratio",
     "get_weight_decay_from_optimizer",
-    
-    # Telemetry
     "TelemetryWriter",
     "TelemetryReader",
     
-    # Guard
+    # Deprecated (will raise ImportError with helpful message)
     "Guard",
-    "GuardConfig", 
+    "GuardConfig",
     "create_guard",
 ]
