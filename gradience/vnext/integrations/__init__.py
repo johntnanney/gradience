@@ -1,3 +1,6 @@
-from .huggingface import GradienceVNextCallback
+"""
+Framework integrations for Gradience vNext.
 
-__all__ = ["GradienceVNextCallback"]
+Keep these optional: importing gradience.vnext should not require HF/PEFT
+unless you explicitly use the integration modules.
+"""
