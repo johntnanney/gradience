@@ -14,6 +14,7 @@ Step 3.1 implementation: Train probe with GradienceCallback
 from __future__ import annotations
 
 import os
+import json
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -103,6 +104,42 @@ def preprocess_function(examples, tokenizer):
     if "label" in examples:
         result["labels"] = examples["label"]
     return result
+
+
+def write_probe_eval_json(
+    probe_dir: Path,
+    eval_results: Dict[str, Any],
+    eval_dataset_size: int,
+    config: Dict[str, Any]
+) -> Path:
+    """
+    Step 3.2: Write probe_r16/eval.json with evaluation results.
+    
+    Args:
+        probe_dir: Directory where eval.json should be written
+        eval_results: Results from trainer.evaluate()
+        eval_dataset_size: Number of evaluation samples used
+        config: Benchmark configuration
+        
+    Returns:
+        Path to the written eval.json file
+    """
+    eval_data = {
+        "accuracy": eval_results["eval_accuracy"],
+        "eval_loss": eval_results.get("eval_loss"),
+        "eval_samples": eval_dataset_size,
+        "seed": config["train"]["seed"],
+        "rank": config["lora"]["probe_r"],
+        "eval_runtime": eval_results.get("eval_runtime"),
+        "eval_samples_per_second": eval_results.get("eval_samples_per_second"),
+        "eval_steps_per_second": eval_results.get("eval_steps_per_second")
+    }
+    
+    eval_path = probe_dir / "eval.json"
+    with open(eval_path, 'w') as f:
+        json.dump(eval_data, f, indent=2, ensure_ascii=False)
+    
+    return eval_path
 
 
 def run_probe_training(
@@ -200,12 +237,15 @@ def run_probe_training(
         accuracy = float((predictions == labels).mean())
         return {"accuracy": accuracy}
     
+    # Setup datasets
+    eval_dataset = tokenized_dataset.get("validation", tokenized_dataset["train"])  # Fallback to train if no validation
+    
     # Setup trainer
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset.get("validation", tokenized_dataset["train"]),  # Fallback to train if no validation
+        eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
@@ -223,6 +263,15 @@ def run_probe_training(
     # Evaluate final model
     eval_results = trainer.evaluate()
     
+    # Step 3.2: Write eval.json
+    eval_dataset_size = len(eval_dataset)
+    eval_json_path = write_probe_eval_json(
+        probe_dir=probe_dir,
+        eval_results=eval_results,
+        eval_dataset_size=eval_dataset_size,
+        config=config
+    )
+    
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -232,6 +281,7 @@ def run_probe_training(
     print(f"Trainable parameters: {trainable_params:,}")
     print(f"Total parameters: {total_params:,}")
     print(f"Telemetry written to: {probe_dir / 'run.jsonl'}")
+    print(f"Evaluation results written to: {eval_json_path}")
     
     # Return results for the bench report
     return {
@@ -275,8 +325,8 @@ def run_bench_protocol(
     print(f"Smoke mode: {smoke}")
     print()
     
-    # Step 3.1: Train probe
-    print("Step 3.1: Training probe adapter...")
+    # Steps 3.1-3.2: Train and evaluate probe
+    print("Step 3.1-3.2: Training and evaluating probe adapter...")
     probe_results = run_probe_training(config_path, output_path, smoke=smoke)
     
     # Prepare report structure
@@ -290,7 +340,9 @@ def run_bench_protocol(
         **probe_results
     }
     
-    print("\nStep 3.1 complete!")
-    print("TODO: Steps 3.2-3.5 (audit → compress → retrain → eval → report)")
+    print("\nSteps 3.1-3.2 complete!")
+    print("  ✅ Probe trained and telemetry written")
+    print("  ✅ Evaluation results written to eval.json")
+    print("TODO: Steps 3.3-3.5 (audit → compress → retrain → eval → report)")
     
     return report
