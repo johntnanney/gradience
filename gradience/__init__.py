@@ -5,21 +5,37 @@ Gradience is a flight recorder + mechanic for LoRA runs:
 - Flight recorder: emits stable JSONL telemetry (gradience.vnext.telemetry/v1)
 - Mechanic: audits adapters and provides conservative rank compression suggestions
 
-Canonical API:
-    # HuggingFace integration (recommended for most users)
+## Public API (Stability Guaranteed)
+
+CLI Commands:
+    gradience check        # Config validation and recommendations
+    gradience monitor      # Live run monitoring and alerts  
+    gradience audit        # Post-hoc LoRA adapter analysis
+
+HuggingFace Integration:
     from gradience.vnext.integrations.hf import GradienceCallback
     trainer.add_callback(GradienceCallback())
-    
-    # CLI workflow
-    gradience check --task seq_cls --peft-dir my_adapter
-    gradience monitor run.jsonl  
-    gradience audit --peft-dir my_adapter --layers --suggest-per-layer --json
+
+Telemetry Schema:
+    gradience.vnext.telemetry/v1 - Stable JSONL schema
+
+Rank Suggestions:
+    from gradience.vnext.rank_suggestion import (
+        suggest_global_ranks_from_audit,
+        suggest_per_layer_ranks,
+        GlobalRankSuggestion,
+        PerLayerRankSuggestionReport,
+    )
+
+## Internal Implementation
+
+Everything else is internal and may change.
 
 Legacy components (DEPRECATED) have been moved to docs/legacy/
-For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md
+For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md, PUBLIC_API.md
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # Current API: vNext components
 # For stable telemetry, use: gradience.vnext.telemetry

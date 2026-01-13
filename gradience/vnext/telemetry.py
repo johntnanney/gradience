@@ -1,8 +1,11 @@
 """
 Gradience vNext telemetry
 
-Canonical JSONL schema (v1)
----------------------------
+Canonical JSONL schema (v1) - PUBLIC API
+-----------------------------------------
+
+⚠️  This telemetry schema is part of the public API with stability guarantees.
+    The schema version and core event structure will remain backward compatible.
 
 Each line is a single JSON object with the following required keys:
 
