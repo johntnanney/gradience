@@ -11,6 +11,18 @@ Design goals:
 
 This module is intentionally "small and boring" so it can be depended on by
 CLI, monitor, notebooks, etc. without pulling in heavy deps.
+
+## Public API
+
+The following are considered public API with stability guarantees:
+- suggest_global_ranks_from_audit()
+- suggest_per_layer_ranks()
+- GlobalRankSuggestion class
+- PerLayerRankSuggestion class
+- PerLayerRankSuggestionReport class
+- DEFAULT_ALLOWED_RANKS constant
+
+All other functions (prefixed with _) are internal and may change.
 """
 
 from __future__ import annotations
@@ -416,3 +428,14 @@ def suggest_per_layer_ranks(
         by_module_type_p90=by_module_type_p90,
         notes=notes,
     )
+
+
+# Public API exports (stability guaranteed)
+__all__ = [
+    "DEFAULT_ALLOWED_RANKS",
+    "GlobalRankSuggestion", 
+    "PerLayerRankSuggestion",
+    "PerLayerRankSuggestionReport",
+    "suggest_global_ranks_from_audit",
+    "suggest_per_layer_ranks",
+]

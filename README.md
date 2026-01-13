@@ -2,12 +2,54 @@
 
 **Telemetry-first observability for LoRA / PEFT fine-tuning.**
 
+## Quick Start (One Line)
+
+```python
+from transformers import Trainer
+from gradience.vnext.integrations.hf import GradienceCallback
+
+trainer = Trainer(..., callbacks=[GradienceCallback()])
+trainer.train()
+
+# Telemetry: <output_dir>/run.jsonl
+```
+
+That's it! Gradience now tracks your training. 
+
+### After Training - Copy & Paste These Commands:
+
+```bash
+# View training summary with recommendations
+gradience monitor <output_dir>/run.jsonl --verbose
+
+# Analyze LoRA adapter efficiency (if using PEFT)
+gradience audit --peft-dir <output_dir>/adapter --layers --json
+
+# Combine telemetry + audit for complete analysis
+gradience audit --peft-dir <output_dir>/adapter --append <output_dir>/run.jsonl
+gradience monitor <output_dir>/run.jsonl --verbose
+```
+
+**Run the complete example:**
+```bash
+python examples/vnext/golden_path.py
+
+# Then analyze it:
+gradience monitor outputs/run.jsonl --verbose
+```
+
+📋 **See [CLI_CHEATSHEET.md](CLI_CHEATSHEET.md) for more copy-paste commands**
+
+---
+
+## What is Gradience?
+
 Gradience is a *flight recorder + mechanic* for LoRA runs:
 
 - **Flight recorder:** emits a stable, line-by-line JSONL telemetry stream (`gradience.vnext.telemetry/v1`)
 - **Mechanic:** reads that telemetry + audits adapters to produce conservative, testable recommendations
 
-The guiding idea is simple: **constrained updates tend to generalize better**, and Gradience helps you detect when you’ve left that regime.
+The guiding idea is simple: **constrained updates tend to generalize better**, and Gradience helps you detect when you've left that regime.
 
 > This release ships the canonical API under `gradience.vnext` and the stable schema `gradience.vnext.telemetry/v1`.
 
@@ -45,41 +87,100 @@ For the toy example + HF/PEFT tooling:
 pip install torch transformers peft safetensors datasets
 ```
 
-## HuggingFace Integration (Recommended)
+## HuggingFace Integration
 
-Add telemetry to your existing trainer with one line:
+The [Quick Start](#quick-start-one-line) above shows the minimal integration. For more control:
 
-```python
-from gradience.vnext.integrations.hf import GradienceCallback
-
-trainer.add_callback(GradienceCallback())
-# Writes to training_args.output_dir/run.jsonl
-```
-
-**Try it now:**
-```bash
-python examples/vnext/hf_trainer_example.py
-# Trains a tiny model, generates telemetry, shows next steps
-```
-
-For custom configuration:
+### Custom Configuration
 
 ```python
+from transformers import Trainer
 from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
 config = GradienceCallbackConfig(
-    dataset_name="your_dataset",
+    output_dir="./my_runs",          # Custom telemetry location
+    filename="experiment.jsonl",     # Custom filename
+    dataset_name="your_dataset",     # Optional metadata
     task_profile="easy_classification", 
-    notes="experiment notes"
+    notes="testing rank 16 vs 32"
 )
-trainer.add_callback(GradienceCallback(config))
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    callbacks=[GradienceCallback(config)]
+)
+trainer.train()
+```
+
+### Try It Now
+
+```bash
+# Minimal integration demo
+python examples/vnext/hf_trainer_example.py
+
+# Complete example with all options
+python examples/vnext/hf_trainer_run.py
 ```
 
 **Examples:**
-- [`hf_trainer_example.py`](examples/vnext/hf_trainer_example.py) - Minimal "one line" integration demo
-- [`hf_trainer_run.py`](examples/vnext/hf_trainer_run.py) - Complete example with detailed configuration
+- [`hf_trainer_example.py`](examples/vnext/hf_trainer_example.py) - Minimal "one line" integration
+- [`hf_trainer_run.py`](examples/vnext/hf_trainer_run.py) - Full configuration example
 
-**macOS note:** `--device cuda` requires a CUDA-enabled PyTorch build (typically Linux + NVIDIA GPU). On macOS, use `--device cpu`.
+**Note:** The callback writes telemetry to `training_args.output_dir/run.jsonl` by default.
+
+---
+
+## Common Workflows (Copy & Paste)
+
+### Standard HuggingFace + PEFT Training
+
+```bash
+# After your trainer.train() completes:
+
+# 1. Quick check - did training go well?
+gradience monitor ./output/run.jsonl
+
+# 2. Detailed analysis with recommendations
+gradience monitor ./output/run.jsonl --verbose
+
+# 3. Check if your LoRA rank is wasteful
+gradience audit --peft-dir ./output/adapter --layers
+
+# 4. Get rank compression suggestions
+gradience audit --peft-dir ./output/adapter --suggest-per-layer --json
+
+# 5. Complete workflow: append audit to telemetry, then analyze
+gradience audit --peft-dir ./output/adapter --append ./output/run.jsonl
+gradience monitor ./output/run.jsonl --verbose
+```
+
+### Pre-flight Config Validation
+
+```bash
+# Before training - validate your config
+gradience check --task text_generation \
+    --peft adapter_config.json \
+    --training training_args.json \
+    --verbose
+
+# Or from output directories
+gradience check --task text_generation \
+    --peft-dir ./peft_config \
+    --training-dir ./trainer_config
+```
+
+### Debugging a Failed Run
+
+```bash
+# Check for gradient explosions, NaN losses, etc.
+gradience monitor failed_run/run.jsonl --verbose --json | \
+    python -m json.tool | grep -A5 "alerts"
+
+# Look for Guard interventions (if enabled)
+grep "GUARD_" failed_run/run.jsonl | head -20
+```
 
 ---
 

@@ -8,6 +8,11 @@ Design goals:
 - Stable, versioned JSONL telemetry schema
 - Typed config + metric snapshots that can be passed between components
 - Backwards compatible: legacy gradience.telemetry remains unchanged
+
+## Public API Components
+
+Only the exports in __all__ are considered public API with stability guarantees.
+Everything else is internal and may change without notice.
 """
 
 from .types import (

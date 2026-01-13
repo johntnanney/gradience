@@ -678,6 +678,67 @@ def _fmt_params(n) -> str:
         return str(int(x))
     return f"{x:.3g}"
 
+
+def _extract_guard_activity(reader: Any) -> Dict[str, Any]:
+    """Extract Guard activity summary from telemetry."""
+    guard_info = {
+        "present": False,
+        "last_action": None,
+        "rollback_count": 0,
+        "snapshot_count": 0,
+        "memory_mb": 0.0,
+        "last_trigger_code": None,
+        "aborted": False,
+        "rollback_occurred": False,
+    }
+    
+    try:
+        # Check for Guard alerts
+        for event in reader.iter_events(event_type="alert"):
+            code = event.get("code", "")
+            if code.startswith("GUARD_"):
+                guard_info["present"] = True
+                
+                if code == "GUARD_TRIGGERED":
+                    guard_info["last_trigger_code"] = code
+                elif code == "GUARD_ROLLBACK":
+                    guard_info["rollback_occurred"] = True
+                elif code in ("GUARD_ABORT", "GUARD_ABORT_NO_SNAPSHOT"):
+                    guard_info["aborted"] = True
+        
+        # Check Guard metrics for latest state and rollback count
+        for event in reader.iter_events(event_type="metrics"):
+            if event.get("kind") == "guard":
+                guard_info["present"] = True
+                metrics = event.get("metrics", {})
+                action = metrics.get("action")
+                
+                if action:
+                    guard_info["last_action"] = action
+                
+                # Track rollback count from any metrics (rollback or abort can have n_rollbacks)
+                if "n_rollbacks" in metrics:
+                    guard_info["rollback_count"] = max(
+                        guard_info["rollback_count"],
+                        metrics.get("n_rollbacks", 0)
+                    )
+                
+                # Latest snapshot info
+                if "snapshot_count" in metrics:
+                    guard_info["snapshot_count"] = metrics["snapshot_count"]
+                if "memory_mb" in metrics:
+                    guard_info["memory_mb"] = metrics["memory_mb"]
+        
+        # If we found any rollback count > 0, mark rollback as occurred
+        if guard_info["rollback_count"] > 0:
+            guard_info["rollback_occurred"] = True
+    
+    except Exception:
+        # If anything fails, return minimal guard_info
+        pass
+    
+    return guard_info
+
 def _print_monitor_result(
     *,
     telemetry_path: Path,
@@ -687,6 +748,7 @@ def _print_monitor_result(
     recs: List[Any],
     issues: List[str],
     verbose: bool = False,
+    guard_activity: Optional[Dict[str, Any]] = None,
 ) -> None:
     print("=" * 72)
     print("GRADIENCE MONITOR")
@@ -820,6 +882,26 @@ def _print_monitor_result(
                     f"  {t:>5}: params={_fmt_params(t_params)}  util={_fmt(t_util, pct=True)}  sr={_fmt(t_sr)}"
                 )
 
+    # Guard activity
+    if guard_activity and guard_activity.get("present"):
+        # In verbose mode, always show Guard activity if present
+        if verbose:
+            print("\nGuard activity:")
+            print(f"  Last action:    {guard_activity.get('last_action', '-')}")
+            print(f"  Rollbacks:      {guard_activity.get('rollback_count', 0)}")
+            if guard_activity.get("last_trigger_code"):
+                print(f"  Last trigger:   {guard_activity['last_trigger_code']}")
+            print(f"  Snapshots:      {guard_activity.get('snapshot_count', 0)}")
+            print(f"  Memory usage:   {_fmt(guard_activity.get('memory_mb', 0))} MB")
+        
+        # In non-verbose mode, only show if rollback occurred or training aborted
+        elif guard_activity.get("rollback_occurred") or guard_activity.get("aborted"):
+            if guard_activity.get("rollback_occurred"):
+                rollback_count = guard_activity.get("rollback_count", 1)
+                print(f"\n⚠ Guard performed {rollback_count} rollback(s) during training")
+            if guard_activity.get("aborted"):
+                print("⚠ Guard aborted rollback attempts (anti-thrash protection)")
+
     # Issues
     if issues:
         print(f"\nTelemetry issues: {len(issues)}")
@@ -941,6 +1023,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
             }
         )
 
+
     # Policy-driven recommendations (config + signals)
     try:
         recs = check_run(config, signals, gap_threshold=float(args.gap_threshold))
@@ -949,6 +1032,42 @@ def cmd_monitor(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     issues = [str(i) for i in getattr(reader, "issues", []) or []]
+
+    # Extract Guard activity from telemetry
+    guard_activity = _extract_guard_activity(reader)
+
+    # Guard alerts (conservative triage advice)
+    if guard_activity and guard_activity.get("present"):
+        # Abort takes precedence over rollback as it's the more serious condition
+        if guard_activity.get("aborted"):
+            alerts.append(
+                {
+                    "severity": "error",
+                    "code": "guard_abort",
+                    "message": "⚠️ EXPERIMENTAL Guard stopped training due to repeated instability. Guard CANNOT fix root causes (data bugs, bad objectives). Investigate underlying issues before re-running. ALWAYS validate with eval.",
+                    "context": {
+                        "last_action": guard_activity.get("last_action"),
+                        "snapshot_count": guard_activity.get("snapshot_count", 0),
+                        "rollback_count": guard_activity.get("rollback_count", 0),
+                        "note": "Guard is experimental and can stop training",
+                    },
+                }
+            )
+        elif guard_activity.get("rollback_occurred"):
+            rollback_count = guard_activity.get("rollback_count", 1)
+            alerts.append(
+                {
+                    "severity": "warning",
+                    "code": "guard_intervention",
+                    "message": f"⚠️ EXPERIMENTAL Guard rolled back adapter weights {rollback_count} time(s). This does NOT fix data bugs or bad objectives. Investigate triggers (grad explosion/NaN), check data pipeline, consider lowering LR. ALWAYS validate with eval.",
+                    "context": {
+                        "rollback_count": rollback_count,
+                        "last_action": guard_activity.get("last_action"),
+                        "snapshot_count": guard_activity.get("snapshot_count", 0),
+                        "note": "Guard is experimental and rolls back weights",
+                    },
+                }
+            )
 
     if args.json:
         payload = {
@@ -970,6 +1089,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
         recs=recs,
         issues=issues,
         verbose=args.verbose,
+        guard_activity=guard_activity,
     )
 
 
