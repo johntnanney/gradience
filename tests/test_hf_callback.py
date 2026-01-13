@@ -11,15 +11,18 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
+# Check if transformers is available
+try:
+    import transformers
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
 
-# Gate all HF tests behind environment flag
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("GRADIENCE_TEST_HF"), 
-    reason="Set GRADIENCE_TEST_HF=1 to run HuggingFace tests"
-)
+# Skip all tests if transformers not available or GRADIENCE_TEST_HF not set
+SKIP_HF_TESTS = not HAS_TRANSFORMERS or not os.environ.get("GRADIENCE_TEST_HF")
 
 
+@unittest.skipIf(SKIP_HF_TESTS, "transformers not installed or GRADIENCE_TEST_HF not set")
 class TestGradienceCallback(unittest.TestCase):
     """Test Gradience HF callback without requiring full transformers setup."""
 
@@ -34,23 +37,11 @@ class TestGradienceCallback(unittest.TestCase):
 
     def test_import_succeeds_with_transformers(self):
         """Test that callback can be imported when transformers is available."""
-        try:
-            from gradience.vnext.integrations.hf import GradienceCallback
-        except ImportError as e:
-            if "transformers" in str(e):
-                pytest.skip("transformers not available")
-            else:
-                raise
+        from gradience.vnext.integrations.hf import GradienceCallback
 
     def test_callback_lifecycle_minimal(self):
         """Test minimal callback lifecycle: instantiate -> train_begin -> log -> evaluate -> train_end."""
-        try:
-            from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
-        except ImportError as e:
-            if "transformers" in str(e):
-                pytest.skip("transformers not available") 
-            else:
-                raise
+        from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
         # Create callback with explicit output dir
         config = GradienceCallbackConfig(
@@ -146,13 +137,7 @@ class TestGradienceCallback(unittest.TestCase):
 
     def test_callback_handles_none_logs_gracefully(self):
         """Test callback handles None logs without crashing."""
-        try:
-            from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
-        except ImportError as e:
-            if "transformers" in str(e):
-                pytest.skip("transformers not available")
-            else:
-                raise
+        from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
         config = GradienceCallbackConfig(output_dir=str(self.output_dir))
         callback = GradienceCallback(config)
@@ -190,13 +175,7 @@ class TestGradienceCallback(unittest.TestCase):
 
     def test_callback_with_minimal_config(self):
         """Test callback works with default GradienceCallbackConfig."""
-        try:
-            from gradience.vnext.integrations.hf import GradienceCallback
-        except ImportError as e:
-            if "transformers" in str(e):
-                pytest.skip("transformers not available") 
-            else:
-                raise
+        from gradience.vnext.integrations.hf import GradienceCallback
 
         # Test default config (no params)
         callback = GradienceCallback()

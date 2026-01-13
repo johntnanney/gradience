@@ -12,16 +12,31 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gradience.vnext.integrations.hf import GradienceCallback
-from tests.helpers.hf_callback_driver import (
-    HFCallbackDriver, 
-    LogEvent,
-    create_grad_explosion_scenario,
-    create_cooldown_scenario,
-    create_max_rollbacks_scenario
-)
+# Check if dependencies are available
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
+try:
+    import transformers
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+
+if HAS_TORCH and HAS_TRANSFORMERS:
+    from gradience.vnext.integrations.hf import GradienceCallback
+    from tests.helpers.hf_callback_driver import (
+        HFCallbackDriver, 
+        LogEvent,
+        create_grad_explosion_scenario,
+        create_cooldown_scenario,
+        create_max_rollbacks_scenario
+    )
 
 
+@unittest.skipUnless(HAS_TORCH and HAS_TRANSFORMERS, "Requires torch and transformers")
 class TestGuardWithDriver(unittest.TestCase):
     """Test Guard functionality using the reusable CPU driver."""
     

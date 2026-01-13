@@ -12,8 +12,29 @@ from typing import Dict, List, Optional, Any, Union
 from unittest.mock import Mock
 from dataclasses import dataclass
 
-import torch
-import torch.nn as nn
+# Check if dependencies are available
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+    # Create dummy classes for imports
+    class torch:
+        @staticmethod
+        def randn(*args):
+            pass
+    class nn:
+        class Module:
+            pass
+        class Parameter:
+            pass
+
+try:
+    import transformers
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
 
 
 # ============================================================================
