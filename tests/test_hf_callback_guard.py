@@ -6,12 +6,26 @@ import unittest
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock
-import torch
-import torch.nn as nn
 
-from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
+# Check if dependencies are available
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
+try:
+    import transformers
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+
+if HAS_TORCH and HAS_TRANSFORMERS:
+    from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
 
+@unittest.skipUnless(HAS_TORCH and HAS_TRANSFORMERS, "Requires torch and transformers")
 class TinyLoRAModel(nn.Module):
     """Minimal model with LoRA-like parameters."""
     def __init__(self):
@@ -21,6 +35,7 @@ class TinyLoRAModel(nn.Module):
         self.base_weight = nn.Parameter(torch.randn(8, 8))
 
 
+@unittest.skipUnless(HAS_TORCH and HAS_TRANSFORMERS, "Requires torch and transformers")
 class TestHFCallbackGuard(unittest.TestCase):
     
     def setUp(self):
