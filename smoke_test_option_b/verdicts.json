@@ -1,0 +1,36 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.7100 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED_SMOKE"
+    },
+    "uniform_p90_control": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.7100 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED_SMOKE"
+    },
+    "per_layer": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.7100 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED_SMOKE"
+    }
+  },
+  "probe_quality_status": "UNDERTRAINED_SMOKE",
+  "summary": {
+    "probe_quality": "FAILED",
+    "probe_accuracy": 0.71,
+    "probe_threshold": 0.75,
+    "recommendations_validated": "N/A",
+    "best_compression": null,
+    "notes": [
+      "Probe undertrained - compression results not reliable (smoke mode: True)"
+    ]
+  }
+}

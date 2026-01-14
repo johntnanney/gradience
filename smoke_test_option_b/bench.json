@@ -1,0 +1,31 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-14T14:10:14.871512",
+  "git_commit": "580448e905cf9780998e407322cfdd3eb6fb41d3",
+  "env": {
+    "python": "3.14.0",
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "peft": "0.18.1",
+    "datasets": "4.4.2",
+    "validation_classification": {}
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "status": "UNDERTRAINED_SMOKE",
+  "probe": {
+    "rank": 16,
+    "params": 1181954,
+    "accuracy": 0.71,
+    "threshold_required": 0.75
+  },
+  "compressed": {},
+  "summary": {
+    "probe_quality": "FAILED",
+    "recommendations_validated": "N/A",
+    "best_compression": null,
+    "notes": [
+      "Probe undertrained - compression results not reliable (smoke mode: True)"
+    ]
+  }
+}
