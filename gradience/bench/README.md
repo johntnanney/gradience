@@ -75,3 +75,10 @@ gradience/bench/
 ├── report.py
 └── README.md
 ```
+## Safe uniform baseline (current)
+
+Current policy-validated safe uniform baseline: **r=20**
+
+⚠️ **TASK/MODEL DEPENDENT** — this baseline is calibrated for a specific benchmark setup.
+Re-run Bench to calibrate for new model/task combinations.
+
