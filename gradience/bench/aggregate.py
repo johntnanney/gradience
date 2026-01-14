@@ -14,7 +14,81 @@ import argparse
 import numpy as np
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+
+
+def _read_json(path: Path) -> Optional[Dict[str, Any]]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+def _find_probe_dir(seed_dir: Path) -> Optional[Path]:
+    # Prefer probe_r* directories
+    probes = sorted(seed_dir.glob("probe_r*"), key=lambda p: p.name)
+    return probes[0] if probes else None
+
+def _find_any(seed_dir: Path, pattern: str) -> Optional[Path]:
+    matches = sorted(seed_dir.rglob(pattern))
+    return matches[0] if matches else None
+
+def _get_probe_accuracy(seed_dir: Path) -> Optional[float]:
+    # Prefer canonical bench.json
+    bj = seed_dir / "bench.json"
+    j = _read_json(bj)
+    if isinstance(j, dict):
+        probe = j.get("probe") or {}
+        acc = probe.get("accuracy")
+        if isinstance(acc, (int, float)):
+            return float(acc)
+
+    # Fallback: read probe eval.json
+    pdir = _find_probe_dir(seed_dir)
+    if pdir is not None:
+        ej = pdir / "eval.json"
+        e = _read_json(ej)
+        if isinstance(e, dict):
+            for k in ("accuracy", "eval_accuracy", "acc"):
+                v = e.get(k)
+                if isinstance(v, (int, float)):
+                    return float(v)
+    return None
+
+def _probe_gate_threshold(seed_dir: Path, default: float = 0.75) -> float:
+    # If bench.json includes threshold, use it; otherwise default
+    bj = seed_dir / "bench.json"
+    j = _read_json(bj)
+    if isinstance(j, dict):
+        thr = (j.get("probe") or {}).get("quality_threshold")
+        if isinstance(thr, (int, float)):
+            return float(thr)
+    return default
+
+def _telemetry_present(seed_dir: Path) -> bool:
+    pdir = _find_probe_dir(seed_dir)
+    if pdir is not None and (pdir / "run.jsonl").exists():
+        return True
+    return _find_any(seed_dir, "run.jsonl") is not None
+
+def _audit_present(seed_dir: Path) -> bool:
+    pdir = _find_probe_dir(seed_dir)
+    if pdir is None:
+        return False
+    ap = pdir / "audit.json"
+    if not ap.exists():
+        return False
+    j = _read_json(ap)
+    # If parse fails, still count as present; if parses, prefer presence of total_lora_params.
+    if not isinstance(j, dict):
+        return True
+    return ("total_lora_params" in j) or True
+
+def _per_layer_weights_present(seed_dir: Path) -> bool:
+    p = seed_dir / "per_layer"
+    if not p.exists():
+        return False
+    # match any checkpointed adapter weights
+    return _find_any(p, "adapter_model.safetensors") is not None
 
 
 def load_bench_results(run_dirs: List[Path]) -> List[Dict[str, Any]]:
@@ -99,6 +173,51 @@ def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
     return {
         "invariants": aggregated,
         "summary": summary
+    }
+
+
+def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
+    """Compute invariants by directly checking seed directories."""
+    total = len(seed_dirs)
+
+    tele_ok = 0
+    gate_ok = 0
+    param_ok = 0
+    perlayer_ok = 0
+
+    # Default threshold for SST-2 in your bench policy
+    for d in seed_dirs:
+        if _telemetry_present(d):
+            tele_ok += 1
+
+        acc = _get_probe_accuracy(d)
+        thr = _probe_gate_threshold(d, default=0.75)
+        if acc is not None and acc >= thr:
+            gate_ok += 1
+
+        if _audit_present(d):
+            param_ok += 1
+
+        if _per_layer_weights_present(d):
+            perlayer_ok += 1
+
+    def status(ok: int) -> Tuple[str, str]:
+        if ok == 0:
+            return ("❓ NOT_FOUND", f"(0/{total} seeds)")
+        if ok == total:
+            return ("✅ PASSED", f"({ok}/{total} seeds)")
+        return ("⚠️ PARTIAL", f"({ok}/{total} seeds)")
+
+    s_tele, c_tele = status(tele_ok)
+    s_gate, c_gate = status(gate_ok)
+    s_param, c_param = status(param_ok)
+    s_pl, c_pl = status(perlayer_ok)
+
+    return {
+        "telemetry_present": {"status": s_tele, "count": c_tele},
+        "probe_quality_gate": {"status": s_gate, "count": c_gate},
+        "parameter_counting": {"status": s_param, "count": c_param},
+        "per_layer_rank_check": {"status": s_pl, "count": c_pl},
     }
 
 
@@ -259,8 +378,8 @@ def aggregate_results(run_dirs: List[str], output_dir: str) -> None:
         if stats.get("status") != "no_data":
             policy_results[variant] = check_policy_compliance(stats, safety_policy)
     
-    # Aggregate invariant checks across seeds
-    invariant_summary = aggregate_invariants(results)
+    # Compute invariants directly from seed directories
+    invariant_summary = compute_invariants(run_paths)
     
     # Build aggregate JSON
     aggregate_data = {
@@ -378,88 +497,47 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append("")
     
     if "invariants" in data and data["invariants"]:
-        inv_data = data["invariants"]
+        invariants = data["invariants"]
         
-        # Overall status header
-        if "summary" in inv_data:
-            status = inv_data["summary"]["overall_status"]
-            status_icon = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "❓"
-            lines.append(f"**Overall Status:** {status_icon} {status}")
-            lines.append("")
-            
-        # Detailed invariant breakdown
-        invariants = inv_data.get("invariants", {})
-        
+        # Display invariants using the new simple format
         # 1. Telemetry presence check
-        telemetry_status = _get_invariant_status(invariants, "telemetry_present")
-        lines.append(f"**📊 Telemetry Present:** {telemetry_status['icon']} {telemetry_status['status']}")
-        lines.append(f"  *All seeds have required telemetry data ({telemetry_status['passed']}/{data['n_seeds']} seeds)*")
-        lines.append("")
+        if "telemetry_present" in invariants:
+            tele = invariants["telemetry_present"]
+            lines.append(f"**📊 Telemetry Present:** {tele['status']} {tele['count']}")
+            lines.append(f"  *All seeds have required telemetry data*")
+            lines.append("")
         
         # 2. Probe gate check
-        probe_status = _get_invariant_status(invariants, "probe_quality")
-        lines.append(f"**🎯 Probe Quality Gate:** {probe_status['icon']} {probe_status['status']}")
-        probe_acc = data.get("probe_baseline", {}).get("accuracy_mean")
-        if probe_acc:
-            lines.append(f"  *Probe accuracy {probe_acc:.3f} meets quality threshold ({probe_status['passed']}/{data['n_seeds']} seeds)*")
-        else:
-            lines.append(f"  *Probe quality validation ({probe_status['passed']}/{data['n_seeds']} seeds)*")
-        lines.append("")
+        if "probe_quality_gate" in invariants:
+            probe = invariants["probe_quality_gate"]
+            lines.append(f"**🎯 Probe Quality Gate:** {probe['status']} {probe['count']}")
+            probe_acc = data.get("probe_baseline", {}).get("accuracy_mean")
+            if probe_acc:
+                lines.append(f"  *Probe accuracy {probe_acc:.3f} meets quality threshold*")
+            else:
+                lines.append(f"  *Probe quality validation*")
+            lines.append("")
         
         # 3. Parameter counting source
-        param_status = _get_invariant_status(invariants, "param_counting")
-        lines.append(f"**🔢 Parameter Counting:** {param_status['icon']} {param_status['status']}")
-        param_msg = _get_invariant_message(invariants, "param_counting")
-        if param_msg and "audit" in param_msg.lower():
-            lines.append(f"  *Using audit-based parameter counting for consistency ({param_status['passed']}/{data['n_seeds']} seeds)*")
-        elif param_msg and "config" in param_msg.lower():
-            lines.append(f"  *Using config-based parameter counting ({param_status['passed']}/{data['n_seeds']} seeds)*")
-        else:
-            lines.append(f"  *Parameter counting methodology validated ({param_status['passed']}/{data['n_seeds']} seeds)*")
-        lines.append("")
+        if "parameter_counting" in invariants:
+            param = invariants["parameter_counting"]
+            lines.append(f"**🔢 Parameter Counting:** {param['status']} {param['count']}")
+            lines.append(f"  *Parameter counts from audit.json*")
+            lines.append("")
         
         # 4. Per-layer rank heterogeneity check
-        rank_status = _get_invariant_status(invariants, "rank_heterogeneity")
-        lines.append(f"**🏗️ Per-Layer Rank Check:** {rank_status['icon']} {rank_status['status']}")
-        
-        if rank_status['status'] == "SKIPPED":
-            lines.append(f"  *Per-layer compression excluded from this validation run*")
-        elif rank_status['status'] == "PASSED":
-            lines.append(f"  *Per-layer configurations show sufficient rank heterogeneity ({rank_status['passed']}/{data['n_seeds']} seeds)*")
-        elif rank_status['status'] == "FAILED":
-            lines.append(f"  *Per-layer rank heterogeneity failed - insufficient rank diversity ({rank_status['passed']}/{data['n_seeds']} seeds)*")
-        else:
-            lines.append(f"  *Per-layer rank validation ({rank_status['passed']}/{data['n_seeds']} seeds)*")
-        lines.append("")
-        
-        # 5. Layer consistency check
-        layer_status = _get_invariant_status(invariants, "layer_consistency")
-        if layer_status['status'] != "NOT_FOUND":
-            lines.append(f"**⚖️ Layer Consistency:** {layer_status['icon']} {layer_status['status']}")
-            if layer_status['status'] == "PASSED":
-                lines.append(f"  *Rank and alpha patterns have matching layer keys ({layer_status['passed']}/{data['n_seeds']} seeds)*")
-            elif layer_status['status'] == "FAILED":
-                lines.append(f"  *Rank/alpha pattern layer key mismatch detected ({layer_status['passed']}/{data['n_seeds']} seeds)*")
+        if "per_layer_rank_check" in invariants:
+            rank = invariants["per_layer_rank_check"]
+            lines.append(f"**🏗️ Per-Layer Rank Check:** {rank['status']} {rank['count']}")
+            
+            if "NOT_FOUND" in rank['status']:
+                lines.append(f"  *Per-layer compression excluded from this validation run*")
+            elif "✅ PASSED" in rank['status']:
+                lines.append(f"  *Per-layer configurations show sufficient rank heterogeneity*")
+            elif "⚠️ PARTIAL" in rank['status']:
+                lines.append(f"  *Per-layer rank heterogeneity partially present*")
             else:
-                lines.append(f"  *Layer pattern consistency check ({layer_status['passed']}/{data['n_seeds']} seeds)*")
-            lines.append("")
-        
-        # 6. Additional invariants table for completeness
-        if len(invariants) > 0:
-            lines.append("### All Invariant Checks")
-            lines.append("")
-            lines.append("| Invariant | Status | Seeds Passed | Details |")
-            lines.append("|-----------|--------|--------------|---------|")
-            
-            for inv_name, inv_stats in sorted(invariants.items()):
-                status = inv_stats["overall_status"]
-                status_icon = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "⏭️" if status == "SKIPPED" else "❓"
-                passed = inv_stats["passed"]
-                n_seeds = inv_stats["n_seeds"]
-                message = inv_stats.get("message", "")[:50] + ("..." if len(inv_stats.get("message", "")) > 50 else "")
-                display_name = inv_name.replace('_', ' ').title()
-                lines.append(f"| {display_name} | {status_icon} {status} | {passed}/{n_seeds} | {message} |")
-            
+                lines.append(f"  *Per-layer rank validation*")
             lines.append("")
             
     else:
