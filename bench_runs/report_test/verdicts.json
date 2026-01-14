@@ -1,0 +1,56 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": 0.0050000000000000044,
+      "param_reduction": 0.0,
+      "verdict": "PASS",
+      "compressed_accuracy": 0.715,
+      "compressed_params": 1181954,
+      "probe_accuracy": 0.71,
+      "probe_params": 1181954
+    },
+    "uniform_p90": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": 0.0050000000000000044,
+      "param_reduction": 0.0,
+      "verdict": "PASS",
+      "compressed_accuracy": 0.715,
+      "compressed_params": 1181954,
+      "probe_accuracy": 0.71,
+      "probe_params": 1181954
+    },
+    "per_layer": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.11955795233993882,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.7,
+      "compressed_params": 1040642,
+      "probe_accuracy": 0.71,
+      "probe_params": 1181954
+    }
+  },
+  "best_compression": {
+    "variant": "uniform_median",
+    "param_reduction": 0.0,
+    "delta_vs_probe": 0.0050000000000000044,
+    "compressed_params": 1181954,
+    "compressed_accuracy": 0.715
+  },
+  "probe_baseline": {
+    "accuracy": 0.71,
+    "params": 1181954
+  },
+  "acc_tolerance": 0.005,
+  "summary": {
+    "total_variants": 3,
+    "completed": 3,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0
+  }
+}

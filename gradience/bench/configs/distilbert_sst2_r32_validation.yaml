@@ -1,0 +1,41 @@
+# Validation config with r=32 probe for more compression headroom
+# Exploring higher rank probe to see more dramatic reduction potential
+
+model:
+  name: distilbert-base-uncased
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 200  # Mini validation budget
+  eval_steps: 50   
+  save_steps: 50   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 42  
+  
+  # Sample sizes 
+  train_samples: 800  # ~200 steps with batch_size=8
+  eval_samples: 200   
+
+lora:
+  probe_r: 32  # Higher probe rank for more headroom
+  alpha: 32
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [2, 4, 8, 16, 32]
+  acc_tolerance: 0.025  # ±2.5% for single-seed mini-validation
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "r32_validation"

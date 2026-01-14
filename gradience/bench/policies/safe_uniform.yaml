@@ -1,0 +1,68 @@
+# Safe Uniform Baseline Policy - Machine-Consumable Export
+# Generated from empirical validation results and VALIDATION_POLICY.md
+
+policy_version: "0.1"
+policy_name: "Safe Uniform Baseline Policy"
+generated_date: "2025-01-14"
+
+scope:
+  model_family: "distilbert"
+  task: "glue/sst2"
+  architecture: "transformer-encoder"
+
+validation:
+  level: "screening_plus"  # Limited seeds but full training budget
+  steps: "500"
+  seeds: 3  # target for Certifiable level
+  current_seeds: 1  # actual validation completed
+
+criteria:
+  # Safe uniform baseline = ≥67% seeds PASS AND worst seed Δ≥-2.5%
+  pass_rate_min: 0.67
+  worst_delta_min: -0.025  # worst case accuracy drop threshold
+  
+recommendations:
+  # Policy-compliant uniform compression ranks
+  primary_uniform_rank: 20  # 25.0% compression, policy-compliant
+  conservative_uniform_rank: 24  # 16.6% compression, ultra-safe
+  avoid_uniform_ranks: [16]  # 0% pass rate, policy violation
+
+empirical_evidence:
+  # Results from completed benchmark validation
+  uniform_r16:
+    seeds_tested: 3
+    pass_rate: 0.0
+    worst_delta: -0.080
+    status: "RISKY"
+  uniform_r20:
+    seeds_tested: 1 
+    pass_rate: 1.0
+    worst_delta: -0.008
+    status: "SAFE"
+  uniform_r24:
+    seeds_tested: 1
+    pass_rate: 1.0
+    worst_delta: 0.004
+    status: "SAFE"
+
+fallback_strategy:
+  # If no uniform baseline meets safety criteria
+  default_recommendation: "per_layer_adaptive"
+  fallback_reason: "No policy-compliant uniform compression found"
+
+limitations:
+  - "Task/model specific: Re-validate for new model families or tasks"
+  - "Validation level: Screening+ (needs multi-seed for Certifiable)"
+  - "Single dataset: Results specific to SST-2, may not generalize"
+  - "Training budget: 500 steps may not reflect longer training scenarios"
+
+next_steps:
+  - "Multi-seed validation (3+ seeds) for Certifiable status"  
+  - "Extended task validation (other GLUE tasks)"
+  - "Model family validation (RoBERTa, BERT variants)"
+  - "Production workload validation"
+
+usage_notes:
+  - "Load this policy in `gradience check` for automated compliance"
+  - "Override policy thresholds based on application requirements"
+  - "Track policy violations and update based on production data"

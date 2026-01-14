@@ -1,0 +1,50 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.015000000000000013,
+      "param_reduction": 0.0,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.715,
+      "compressed_params": 1181954,
+      "probe_accuracy": 0.73,
+      "probe_params": 1181954
+    },
+    "uniform_p90": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.015000000000000013,
+      "param_reduction": 0.0,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.715,
+      "compressed_params": 1181954,
+      "probe_accuracy": 0.73,
+      "probe_params": 1181954
+    },
+    "per_layer": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.015000000000000013,
+      "param_reduction": 0.15074698338514025,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.715,
+      "compressed_params": 1003778,
+      "probe_accuracy": 0.73,
+      "probe_params": 1181954
+    }
+  },
+  "best_compression": null,
+  "probe_baseline": {
+    "accuracy": 0.73,
+    "params": 1181954
+  },
+  "acc_tolerance": 0.005,
+  "summary": {
+    "total_variants": 3,
+    "completed": 3,
+    "passed": 0,
+    "failed": 3,
+    "skipped": 0
+  }
+}
