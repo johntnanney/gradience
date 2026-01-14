@@ -33,6 +33,22 @@ pip install -e .
 python -m gradience.bench.run_bench --help
 ```
 
+## Smoke Mode
+
+Bench supports a **smoke mode** (`--smoke`) for fast pipeline validation:
+
+```bash
+python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output smoke_test --smoke
+```
+
+**Purpose:** Smoke mode is intended to validate the pipeline end-to-end; probe quality gates are reported as `UNDERTRAINED_SMOKE` and do not indicate a failure of Bench itself. This mode uses reduced training steps for faster testing and is not suitable for certification.
+
+**Key Behaviors:**
+- Uses `smoke_max_steps`, `smoke_train_samples`, `smoke_eval_samples` from config
+- Probe failures result in `UNDERTRAINED_SMOKE` status (exit code 0)
+- Results are automatically excluded from aggregation by default
+- Use `--include-smoke` flag in aggregation scripts to include smoke runs explicitly
+
 ## Safe Uniform Baseline Policy
 
 The **Safe Uniform Baseline** is Gradience's default compression recommendation policy:
@@ -56,6 +72,36 @@ The `uniform_p90_control` variant is automatically skipped when the suggested 90
 **Full policy documentation**: [VALIDATION_POLICY.md](/VALIDATION_POLICY.md)  
 **Machine-consumable policy**: `gradience/bench/policies/safe_uniform.yaml`
 
+## Outsider Drill - First-Class Acceptance Test
+
+For release validation, use the **Outsider Drill** to simulate a fresh external user experience:
+
+```bash
+# Full acceptance test (smoke + certification)
+./scripts/outsider_bench_drill.sh v0.3.5
+
+# Custom output directory  
+./scripts/outsider_bench_drill.sh v0.3.5 /tmp/my_test_output
+
+# Fast smoke-only validation (for CI/development)
+./scripts/outsider_bench_drill.sh v0.3.5 /tmp/smoke_test true
+```
+
+**What it validates:**
+- **Fresh Environment**: Clean clone, fresh venv, correct installation from source
+- **Smoke Mode**: Exit code 0 even with undertrained probe (`UNDERTRAINED_SMOKE` status)  
+- **Certification Mode**: Multi-seed validation + aggregate report generation
+- **Aggregation Safety**: Smoke runs excluded from cert aggregation by default
+- **Artifact Packaging**: Timestamped tarball with all results
+
+**Expected Final Line:**
+```
+✅ ACCEPTANCE TEST: PASSED
+   Gradience v0.3.5 is ready for external users
+```
+
+Use this before any release to ensure Gradience provides a smooth experience for external users without tribal knowledge.
+
 ## Status
 
 This directory is the **v0.1 scaffold** (layout + config + reporting utilities).
@@ -75,6 +121,25 @@ gradience/bench/
 ├── report.py
 └── README.md
 ```
+## Reference Results
+
+📁 **Frozen reference results available at:** `gradience/bench/results/distilbert_sst2_v0.1/`
+
+This directory contains canonical aggregate results that can be cited:
+- `bench_aggregate.json` - Machine-readable 3-seed aggregate
+- `bench_aggregate.md` - Human-readable report
+- `env.txt` - Complete environment metadata
+- `CITATION.txt` - Ready-to-use citation
+
+**Key Results:**
+- Model: DistilBERT (distilbert-base-uncased)
+- Task: SST-2 sentiment classification  
+- Compression: uniform_median (61% parameter reduction)
+- Policy compliance: COMPLIANT (100% pass rate, 3/3 seeds)
+- Worst-case accuracy delta: -1.0%
+
+To reproduce: `./scripts/freeze_reference_results.sh v0.1 cpu`
+
 ## Safe uniform baseline (current)
 
 Current policy-validated safe uniform baseline: **r=20**
