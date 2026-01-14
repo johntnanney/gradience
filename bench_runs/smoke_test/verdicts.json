@@ -1,0 +1,57 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.09999999999999998,
+      "param_reduction": 0.37426837254241707,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.685,
+      "compressed_params": 739586,
+      "probe_accuracy": 0.785,
+      "probe_params": 1181954
+    },
+    "uniform_p90_control": {
+      "status": "skipped",
+      "reason": "Control run: suggested rank r=16 equals probe rank (no compression)",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "SKIP"
+    },
+    "per_layer": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.03500000000000003,
+      "param_reduction": 0.07277440577213667,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.75,
+      "compressed_params": 1095938,
+      "probe_accuracy": 0.785,
+      "probe_params": 1181954
+    }
+  },
+  "best_compression": null,
+  "probe_baseline": {
+    "accuracy": 0.785,
+    "params": 1181954
+  },
+  "acc_tolerance": 0.025,
+  "validation_classification": {
+    "level": "screening",
+    "rationale": "Single seed, 200 steps (quick validation only)",
+    "is_multiseed": false,
+    "n_seeds": 1,
+    "max_steps": 200
+  },
+  "summary": {
+    "probe_quality": "PASSED",
+    "probe_accuracy": 0.785,
+    "probe_threshold": 0.75,
+    "total_variants": 3,
+    "completed": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 1,
+    "notes": []
+  }
+}
