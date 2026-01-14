@@ -106,3 +106,12 @@ def classify_validation_level(config):
 - **Future**: May adjust thresholds based on empirical validation experience
 
 *This policy ensures users understand the statistical limitations of their validation results and make appropriate decisions based on the level of rigor achieved.*
+## Safe Uniform Baseline Policy (Bench)
+
+Policy definition (verbatim):
+**≥ 67% seeds PASS AND worst seed Δ ≥ -2.5%**
+
+Current calibrated baselines (DistilBERT + SST-2, Bench v0.1):
+- **Uniform r=20** — primary safe uniform baseline under the policy above.
+- **Uniform r=16** — observed unsafe/unstable in this benchmark setup (fails policy in multi-seed runs).
+
