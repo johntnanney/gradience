@@ -1,0 +1,60 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.125,
+      "param_reduction": 0.5825741148157388,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.67,
+      "compressed_params": 739586,
+      "probe_accuracy": 0.795,
+      "probe_params": 1771778
+    },
+    "uniform_p90": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": 0.0050000000000000044,
+      "param_reduction": 0.0,
+      "verdict": "PASS",
+      "compressed_accuracy": 0.8,
+      "compressed_params": 1771778,
+      "probe_accuracy": 0.795,
+      "probe_params": 1771778
+    },
+    "per_layer": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.18032055934772862,
+      "verdict": "PASS",
+      "compressed_accuracy": 0.785,
+      "compressed_params": 1452290,
+      "probe_accuracy": 0.795,
+      "probe_params": 1771778
+    }
+  },
+  "best_compression": {
+    "variant": "per_layer",
+    "param_reduction": 0.18032055934772862,
+    "delta_vs_probe": -0.010000000000000009,
+    "compressed_params": 1452290,
+    "compressed_accuracy": 0.785
+  },
+  "probe_baseline": {
+    "accuracy": 0.795,
+    "params": 1771778
+  },
+  "acc_tolerance": 0.025,
+  "summary": {
+    "probe_quality": "PASSED",
+    "probe_accuracy": 0.795,
+    "probe_threshold": 0.75,
+    "total_variants": 3,
+    "completed": 3,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0,
+    "notes": []
+  }
+}

@@ -1,0 +1,39 @@
+bench_version: '0.1'
+compression:
+  acc_tolerance: 0.025
+  allowed_ranks:
+  - 2
+  - 4
+  - 8
+  - 16
+  variants_to_test:
+  - per_layer
+lora:
+  alpha: 16
+  dropout: 0.0
+  probe_r: 16
+  target_modules:
+  - q_lin
+  - k_lin
+  - v_lin
+  - out_lin
+model:
+  name: distilbert-base-uncased
+run_type: firstclass_multiseed_test
+runtime:
+  device: cpu
+task:
+  dataset: glue
+  metric: accuracy
+  subset: sst2
+train:
+  eval_samples: 50
+  eval_steps: 25
+  lr: 5.0e-05
+  max_steps: 50
+  per_device_eval_batch_size: 32
+  per_device_train_batch_size: 8
+  save_steps: 25
+  seed: 123
+  train_samples: 200
+  weight_decay: 0.01

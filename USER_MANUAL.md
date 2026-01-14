@@ -462,3 +462,4 @@ Gradience expects a PEFT output directory with:
 - `gradience/vnext/telemetry_reader.py` — TelemetryReader
 - `gradience/vnext/policy/` — recommendation engine
 - `gradience/vnext/audit/` — LoRA auditor
+- `gradience/bench/` — internal validation framework used to calibrate defaults and validate recommendations (see `gradience/bench/README.md`)

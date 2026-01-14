@@ -1,0 +1,1013 @@
+{
+  "audit_timestamp": "2026-01-13T18:09:16.866097",
+  "probe_rank": 32,
+  "seed": 123,
+  "summary": {
+    "total_lora_params": 1179648,
+    "n_layers": 24,
+    "stable_rank_mean": 1.6317248355864429,
+    "stable_rank_median": 1.4485476857298762,
+    "stable_rank_weighted_mean": 1.631724835586443,
+    "effective_rank_mean": 18.143105186010303,
+    "utilization_mean": 0.05099140111207634,
+    "energy_rank_90_p50": 4.5,
+    "energy_rank_90_p90": 17.7,
+    "by_type": {
+      "attn": {
+        "n_layers": 24.0,
+        "params": 1179648.0,
+        "stable_rank_mean": 1.6317248355864429,
+        "utilization_mean": 0.05099140111207634,
+        "energy_rank_90_p50": 4.5,
+        "energy_rank_90_p90": 17.7
+      }
+    },
+    "peft_dir": "bench_runs/uniform_r8_seed123/probe_r32/checkpoint-100",
+    "adapter_config_path": "bench_runs/uniform_r8_seed123/probe_r32/checkpoint-100/adapter_config.json",
+    "adapter_weights_path": "bench_runs/uniform_r8_seed123/probe_r32/checkpoint-100/adapter_model.safetensors",
+    "suggested_r_global_median": 8,
+    "suggested_r_global_90": 32,
+    "delta_sigma_max_scaled_mean": 0.07265757433099033,
+    "delta_sigma_max_scaled_p50": 0.0822525747386067,
+    "delta_sigma_max_scaled_p90": 0.10611213049277497,
+    "delta_frob_norm_scaled_mean": 0.08598034812344559,
+    "delta_frob_norm_scaled_p50": 0.09390828497170718,
+    "delta_frob_norm_scaled_p90": 0.11365808040779193
+  },
+  "suggested_r_global_median": 8,
+  "suggested_r_global_90": 32,
+  "global_suggestions": {
+    "current_r": 32,
+    "suggested_r_median": 8,
+    "suggested_r_p90": 32,
+    "total_lora_params": 1179648,
+    "reduction_ratio_median": 0.75,
+    "reduction_ratio_p90": 0.0,
+    "evidence": {
+      "stable_rank_mean": 1.6317248355864429,
+      "utilization_mean": 0.05099140111207634,
+      "energy_rank_90_p50": 4.5,
+      "energy_rank_90_p90": 17.7,
+      "suggested_r_global_median_input": 8,
+      "suggested_r_global_90_input": 32,
+      "allowed_ranks": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+      ]
+    }
+  },
+  "layers": [
+    {
+      "name": "base_model.model.distilbert.transformer.layer.0.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.0.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.0.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 3.3304885244642284,
+      "effective_rank": 28.096888054202232,
+      "utilization": 0.10407776638950714,
+      "sigma_max": 0.028356448128538516,
+      "frob_sq": 0.002678006357786329,
+      "energy_rank_90": 21,
+      "energy_rank_95": 26,
+      "energy_rank_99": 31,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05174945756031003,
+      "sigma_max_scaled": 0.028356448128538516,
+      "frob_norm_scaled": 0.05174945756031003
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.0.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.0.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.0.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.5114872313374683,
+      "effective_rank": 20.23548731296091,
+      "utilization": 0.047233975979295885,
+      "sigma_max": 0.0680636311712828,
+      "frob_sq": 0.0070022032451999665,
+      "energy_rank_90": 8,
+      "energy_rank_95": 14,
+      "energy_rank_99": 26,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.08367916852598362,
+      "sigma_max_scaled": 0.0680636311712828,
+      "frob_norm_scaled": 0.08367916852598362
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.0.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.0.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 3.1468719283411084,
+      "effective_rank": 27.467775558010995,
+      "utilization": 0.09833974776065964,
+      "sigma_max": 0.02921430204524731,
+      "frob_sq": 0.0026857779162235565,
+      "energy_rank_90": 20,
+      "energy_rank_95": 25,
+      "energy_rank_99": 30,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05182449147095952,
+      "sigma_max_scaled": 0.02921430204524731,
+      "frob_norm_scaled": 0.05182449147095952
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.0.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.0.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.3069141930506647,
+      "effective_rank": 19.25830001009941,
+      "utilization": 0.04084106853283327,
+      "sigma_max": 0.0724249015106868,
+      "frob_sq": 0.006855243742108919,
+      "energy_rank_90": 6,
+      "energy_rank_95": 13,
+      "energy_rank_99": 25,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.0827963993305803,
+      "sigma_max_scaled": 0.0724249015106868,
+      "frob_norm_scaled": 0.0827963993305803
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.1.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.1.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.1.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 2.6144015361584834,
+      "effective_rank": 26.335714237653846,
+      "utilization": 0.0817000480049526,
+      "sigma_max": 0.03296381898205969,
+      "frob_sq": 0.0028408436425146314,
+      "energy_rank_90": 18,
+      "energy_rank_95": 24,
+      "energy_rank_99": 30,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05329956512500483,
+      "sigma_max_scaled": 0.03296381898205969,
+      "frob_norm_scaled": 0.05329956512500483
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.1.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.1.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.1.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.272151612492309,
+      "effective_rank": 17.86172056494348,
+      "utilization": 0.03975473789038465,
+      "sigma_max": 0.08325962927757694,
+      "frob_sq": 0.008818765986327365,
+      "energy_rank_90": 5,
+      "energy_rank_95": 10,
+      "energy_rank_99": 23,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.09390828497170718,
+      "sigma_max_scaled": 0.08325962927757694,
+      "frob_norm_scaled": 0.09390828497170718
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.1.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.1.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 2.0971431655481436,
+      "effective_rank": 25.73694405566619,
+      "utilization": 0.06553572392337949,
+      "sigma_max": 0.03525475925682656,
+      "frob_sq": 0.0026065351515691566,
+      "energy_rank_90": 17,
+      "energy_rank_95": 23,
+      "energy_rank_99": 30,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05105423735175325,
+      "sigma_max_scaled": 0.03525475925682656,
+      "frob_norm_scaled": 0.05105423735175325
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.1.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.1.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1767118704301485,
+      "effective_rank": 16.122923071929478,
+      "utilization": 0.03677224595094214,
+      "sigma_max": 0.09056643348619463,
+      "frob_sq": 0.00965171891609588,
+      "energy_rank_90": 3,
+      "energy_rank_95": 7,
+      "energy_rank_99": 21,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.09824316218493723,
+      "sigma_max_scaled": 0.09056643348619463,
+      "frob_norm_scaled": 0.09824316218493723
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.2.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.2.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.2.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 2.147695259520438,
+      "effective_rank": 24.57578169539306,
+      "utilization": 0.06711547686001369,
+      "sigma_max": 0.03920639806894079,
+      "frob_sq": 0.0033013118339290087,
+      "energy_rank_90": 15,
+      "energy_rank_95": 21,
+      "energy_rank_99": 29,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05745704337963283,
+      "sigma_max_scaled": 0.03920639806894079,
+      "frob_norm_scaled": 0.05745704337963283
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.2.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.2.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.2.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.37067771632587,
+      "effective_rank": 18.306442811557794,
+      "utilization": 0.04283367863518344,
+      "sigma_max": 0.08130921742450711,
+      "frob_sq": 0.009061809218923555,
+      "energy_rank_90": 5,
+      "energy_rank_95": 11,
+      "energy_rank_99": 24,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.0951935355941965,
+      "sigma_max_scaled": 0.08130921742450711,
+      "frob_norm_scaled": 0.0951935355941965
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.2.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.2.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.599771409539795,
+      "effective_rank": 23.60191683778099,
+      "utilization": 0.049992856548118594,
+      "sigma_max": 0.046395803927863966,
+      "frob_sq": 0.0034436209382713435,
+      "energy_rank_90": 13,
+      "energy_rank_95": 20,
+      "energy_rank_99": 28,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.058682373318325695,
+      "sigma_max_scaled": 0.046395803927863966,
+      "frob_norm_scaled": 0.058682373318325695
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.2.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.2.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1419350465792604,
+      "effective_rank": 11.836249537286552,
+      "utilization": 0.03568547020560189,
+      "sigma_max": 0.10404652347882075,
+      "frob_sq": 0.012362222307962887,
+      "energy_rank_90": 2,
+      "energy_rank_95": 3,
+      "energy_rank_99": 13,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.11118553101893648,
+      "sigma_max_scaled": 0.10404652347882075,
+      "frob_norm_scaled": 0.11118553101893648
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.3.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.3.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.3.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.8336685355617448,
+      "effective_rank": 23.34505243606403,
+      "utilization": 0.057302141736304525,
+      "sigma_max": 0.042200793041265054,
+      "frob_sq": 0.0032655930083773954,
+      "energy_rank_90": 13,
+      "energy_rank_95": 18,
+      "energy_rank_99": 28,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05714536733959626,
+      "sigma_max_scaled": 0.042200793041265054,
+      "frob_norm_scaled": 0.05714536733959626
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.3.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.3.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.3.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.4116145549986991,
+      "effective_rank": 17.563453534010517,
+      "utilization": 0.04411295484370935,
+      "sigma_max": 0.08355938493756543,
+      "frob_sq": 0.009856133942498277,
+      "energy_rank_90": 4,
+      "energy_rank_95": 10,
+      "energy_rank_99": 23,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.09927806375276603,
+      "sigma_max_scaled": 0.08355938493756543,
+      "frob_norm_scaled": 0.09927806375276603
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.3.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.3.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.7517999492527514,
+      "effective_rank": 22.65266342758985,
+      "utilization": 0.05474374841414848,
+      "sigma_max": 0.041828487698341486,
+      "frob_sq": 0.0030649884019791464,
+      "energy_rank_90": 12,
+      "energy_rank_95": 18,
+      "energy_rank_99": 27,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.05536233739627642,
+      "sigma_max_scaled": 0.041828487698341486,
+      "frob_norm_scaled": 0.05536233739627642
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.3.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.3.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1622201558742458,
+      "effective_rank": 10.353038198775536,
+      "utilization": 0.03631937987107018,
+      "sigma_max": 0.11094936765045338,
+      "frob_sq": 0.014306653721980159,
+      "energy_rank_90": 2,
+      "energy_rank_95": 2,
+      "energy_rank_99": 10,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.11961042480478096,
+      "sigma_max_scaled": 0.11094936765045338,
+      "frob_norm_scaled": 0.11961042480478096
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.4.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.4.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.4.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.2070717455099558,
+      "effective_rank": 16.690360011934118,
+      "utilization": 0.03772099204718612,
+      "sigma_max": 0.0822525747386067,
+      "frob_sq": 0.008166427056960844,
+      "energy_rank_90": 4,
+      "energy_rank_95": 8,
+      "energy_rank_99": 21,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.09036828568121033,
+      "sigma_max_scaled": 0.0822525747386067,
+      "frob_norm_scaled": 0.09036828568121033
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.4.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.4.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.4.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.605022738281229,
+      "effective_rank": 14.967474600768142,
+      "utilization": 0.050156960571288406,
+      "sigma_max": 0.08436440797838275,
+      "frob_sq": 0.011423513936718237,
+      "energy_rank_90": 2,
+      "energy_rank_95": 5,
+      "energy_rank_99": 20,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.10688083989526953,
+      "sigma_max_scaled": 0.08436440797838275,
+      "frob_norm_scaled": 0.10688083989526953
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.4.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.4.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1265712903666414,
+      "effective_rank": 12.241187316267546,
+      "utilization": 0.03520535282395754,
+      "sigma_max": 0.09601174898763862,
+      "frob_sq": 0.010385022493385007,
+      "energy_rank_90": 2,
+      "energy_rank_95": 3,
+      "energy_rank_99": 14,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.10190693054638142,
+      "sigma_max_scaled": 0.09601174898763862,
+      "frob_norm_scaled": 0.10190693054638142
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.4.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.4.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1472830179741376,
+      "effective_rank": 10.69860277755181,
+      "utilization": 0.0358525943116918,
+      "sigma_max": 0.10611213049277497,
+      "frob_sq": 0.012918159241984098,
+      "energy_rank_90": 2,
+      "energy_rank_95": 3,
+      "energy_rank_99": 10,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.11365808040779193,
+      "sigma_max_scaled": 0.10611213049277497,
+      "frob_norm_scaled": 0.11365808040779193
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.5.attention.k_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.5.attention.k_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.5.attention.k_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.1444666099530516,
+      "effective_rank": 14.324147825062013,
+      "utilization": 0.03576458156103286,
+      "sigma_max": 0.09881262113386732,
+      "frob_sq": 0.01117449655390474,
+      "energy_rank_90": 2,
+      "energy_rank_95": 5,
+      "energy_rank_99": 17,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.10570949131418966,
+      "sigma_max_scaled": 0.09881262113386732,
+      "frob_norm_scaled": 0.10570949131418966
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.5.attention.out_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.5.attention.out_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.5.attention.out_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.5360172243826988,
+      "effective_rank": 13.119088791417187,
+      "utilization": 0.04800053826195934,
+      "sigma_max": 0.08270612142366913,
+      "frob_sq": 0.010506822492162532,
+      "energy_rank_90": 2,
+      "energy_rank_95": 3,
+      "energy_rank_99": 17,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.10250279260665307,
+      "sigma_max_scaled": 0.08270612142366913,
+      "frob_norm_scaled": 0.10250279260665307
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.5.attention.q_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.5.attention.q_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.0339299216705051,
+      "effective_rank": 7.616249956527653,
+      "utilization": 0.032310310052203285,
+      "sigma_max": 0.13124395816661524,
+      "frob_sq": 0.017809418660535842,
+      "energy_rank_90": 1,
+      "energy_rank_95": 1,
+      "energy_rank_99": 6,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.13345193389582574,
+      "sigma_max_scaled": 0.13124395816661524,
+      "frob_norm_scaled": 0.13345193389582574
+    },
+    {
+      "name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+      "module_type": "other",
+      "r": 32,
+      "alpha": 32.0,
+      "a_key": "base_model.model.distilbert.transformer.layer.5.attention.v_lin.lora_A.weight",
+      "b_key": "base_model.model.distilbert.transformer.layer.5.attention.v_lin.lora_B.weight",
+      "a_shape": [
+        32,
+        768
+      ],
+      "b_shape": [
+        768,
+        32
+      ],
+      "params": 49152,
+      "stable_rank": 1.4854808164610533,
+      "effective_rank": 12.427061840793918,
+      "utilization": 0.04642127551440792,
+      "sigma_max": 0.07267832093604194,
+      "frob_sq": 0.007846515165172822,
+      "energy_rank_90": 2,
+      "energy_rank_95": 3,
+      "energy_rank_99": 14,
+      "adapter_scale": 1.0,
+      "frob_norm": 0.08858055748962534,
+      "sigma_max_scaled": 0.07267832093604194,
+      "frob_norm_scaled": 0.08858055748962534
+    }
+  ],
+  "per_layer_suggestions": {
+    "default_r": 8,
+    "rank_pattern": {},
+    "by_module_type_p90": {
+      "other": 8
+    },
+    "notes": "ok (rows=24, used=24, skipped=0, margin=1.0)",
+    "layers": [
+      {
+        "name": "base_model.model.distilbert.transformer.layer.0.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 21.0,
+        "stable_rank": 3.3304885244642284,
+        "utilization": 0.10407776638950714,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.0.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 8.0,
+        "stable_rank": 1.5114872313374683,
+        "utilization": 0.047233975979295885,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 20.0,
+        "stable_rank": 3.1468719283411084,
+        "utilization": 0.09833974776065964,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 6.0,
+        "stable_rank": 1.3069141930506647,
+        "utilization": 0.04084106853283327,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.1.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 18.0,
+        "stable_rank": 2.6144015361584834,
+        "utilization": 0.0817000480049526,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.1.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 5.0,
+        "stable_rank": 1.272151612492309,
+        "utilization": 0.03975473789038465,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 17.0,
+        "stable_rank": 2.0971431655481436,
+        "utilization": 0.06553572392337949,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 3.0,
+        "stable_rank": 1.1767118704301485,
+        "utilization": 0.03677224595094214,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.2.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 15.0,
+        "stable_rank": 2.147695259520438,
+        "utilization": 0.06711547686001369,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.2.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 5.0,
+        "stable_rank": 1.37067771632587,
+        "utilization": 0.04283367863518344,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 13.0,
+        "stable_rank": 1.599771409539795,
+        "utilization": 0.049992856548118594,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.1419350465792604,
+        "utilization": 0.03568547020560189,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.3.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 13.0,
+        "stable_rank": 1.8336685355617448,
+        "utilization": 0.057302141736304525,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.3.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 4.0,
+        "stable_rank": 1.4116145549986991,
+        "utilization": 0.04411295484370935,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 12.0,
+        "stable_rank": 1.7517999492527514,
+        "utilization": 0.05474374841414848,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.1622201558742458,
+        "utilization": 0.03631937987107018,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.4.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 4.0,
+        "stable_rank": 1.2070717455099558,
+        "utilization": 0.03772099204718612,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.4.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.605022738281229,
+        "utilization": 0.050156960571288406,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.1265712903666414,
+        "utilization": 0.03520535282395754,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.1472830179741376,
+        "utilization": 0.0358525943116918,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.5.attention.k_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.1444666099530516,
+        "utilization": 0.03576458156103286,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.5.attention.out_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.5360172243826988,
+        "utilization": 0.04800053826195934,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 1.0,
+        "stable_rank": 1.0339299216705051,
+        "utilization": 0.032310310052203285,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      },
+      {
+        "name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "other",
+        "current_r": 32,
+        "energy_rank_90": 2.0,
+        "stable_rank": 1.4854808164610533,
+        "utilization": 0.04642127551440792,
+        "suggested_r": 8,
+        "reduction_ratio": 0.75
+      }
+    ]
+  },
+  "issues": []
+}

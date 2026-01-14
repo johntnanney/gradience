@@ -10,6 +10,29 @@ Bench is a minimal validation harness for Gradience recommendations.
 4) Eval and compare
 5) Emit a report (JSON + Markdown)
 
+## Safe Uniform Baseline Policy
+
+The **Safe Uniform Baseline** is Gradience's default compression recommendation policy:
+- **Pass Rate**: ≥67% of seeds must pass accuracy tolerance (Δ ≥ -2.5%)
+- **Worst-Case**: The worst-performing seed must have Δ ≥ -2.5%
+
+### Current Validated Baselines (DistilBERT/SST-2)
+
+**Certifiable v0.1 Results** (3 seeds × 500 steps):
+- **uniform_median**: 61% compression, 100% pass rate, worst Δ = -1.0% ✅ POLICY COMPLIANT
+
+**⚠️ TASK/MODEL DEPENDENT**: These baselines are empirically validated for DistilBERT on SST-2. Always validate on your specific task/model combination before production deployment.
+
+### Control Variants
+
+The `uniform_p90_control` variant is automatically skipped when the suggested 90th percentile rank equals the probe rank (no compression possible). Output clearly labels this as:
+```
+"Control run: suggested rank r=32 equals probe rank (no compression)"
+```
+
+**Full policy documentation**: [VALIDATION_POLICY.md](/VALIDATION_POLICY.md)  
+**Machine-consumable policy**: `gradience/bench/policies/safe_uniform.yaml`
+
 ## Status
 
 This directory is the **v0.1 scaffold** (layout + config + reporting utilities).
@@ -21,7 +44,10 @@ The actual train/audit/retrain protocol wiring lands in later commits.
 gradience/bench/
 ├── run_bench.py
 ├── configs/
-│   └── distilbert_sst2.yaml
+│   └── distilbert_sst2*.yaml
+├── policies/
+│   ├── safe_uniform.yaml      # Machine-consumable policy export
+│   └── README.md
 ├── protocol.py
 ├── report.py
 └── README.md

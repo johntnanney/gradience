@@ -1,0 +1,10 @@
+{
+  "accuracy": 0.83,
+  "eval_loss": 0.39222797751426697,
+  "eval_samples": 500,
+  "seed": 42,
+  "rank": 32,
+  "eval_runtime": 2.0627,
+  "eval_samples_per_second": 242.399,
+  "eval_steps_per_second": 7.757
+}

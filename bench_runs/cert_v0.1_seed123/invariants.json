@@ -1,0 +1,54 @@
+{
+  "protocol_invariants": {
+    "probe_quality": {
+      "name": "probe_quality",
+      "status": "PASSED",
+      "probe_accuracy": 0.828,
+      "threshold": 0.75,
+      "message": "Probe accuracy 0.828 meets threshold 0.75"
+    },
+    "rank_heterogeneity": {
+      "name": "rank_heterogeneity",
+      "status": "PASSED",
+      "variant": "per_layer",
+      "distinct_ranks": 4,
+      "min_required": 2,
+      "rank_histogram": {
+        "20": 3,
+        "8": 2,
+        "16": 5,
+        "4": 3
+      },
+      "unique_ranks": [
+        4,
+        8,
+        16,
+        20
+      ],
+      "message": "per_layer has 4 distinct ranks (requires >= 2)"
+    },
+    "layer_consistency": {
+      "name": "layer_consistency",
+      "status": "PASSED",
+      "rank_layers_count": 13,
+      "alpha_layers_count": 13,
+      "layers_match": true,
+      "message": "Layer keys match"
+    },
+    "param_counting": {
+      "name": "param_counting",
+      "status": "WARNING",
+      "param_count_source": "config_calculation",
+      "message": "No audit data available, using config-based calculation"
+    }
+  },
+  "summary": {
+    "total_checks": 4,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "overall_status": "PASSED"
+  },
+  "failures": []
+}

@@ -1,0 +1,44 @@
+# First-class multi-seed configuration
+# Automatically runs 3 seeds and generates bench_aggregate.json + bench_aggregate.md
+
+model:
+  name: distilbert-base-uncased
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 50  # Quick smoke test for first-class feature
+  eval_steps: 25   
+  save_steps: 25   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  
+  # Sample sizes 
+  train_samples: 200  # Small for quick test
+  eval_samples: 50   
+
+lora:
+  probe_r: 16  # Smaller for quick test
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [2, 4, 8, 16]
+  acc_tolerance: 0.025
+  
+  # Multi-seed configuration (enables first-class multi-seed mode)
+  seeds: [42, 123, 456]  # 3 seeds for variance estimation
+  variants_to_test: ["per_layer"]  # Only test the promising variant for speed
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "firstclass_multiseed_test"

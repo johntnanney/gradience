@@ -1,0 +1,35 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.4800 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED"
+    },
+    "uniform_p90": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.4800 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED"
+    },
+    "per_layer": {
+      "status": "undertrained",
+      "reason": "Probe accuracy 0.4800 < threshold 0.7500",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "UNDERTRAINED"
+    }
+  },
+  "summary": {
+    "probe_quality": "FAILED",
+    "probe_accuracy": 0.48,
+    "probe_threshold": 0.75,
+    "recommendations_validated": "N/A",
+    "best_compression": null,
+    "notes": [
+      "Probe undertrained - compression results not reliable"
+    ]
+  }
+}
