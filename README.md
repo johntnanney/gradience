@@ -72,20 +72,40 @@ The guiding idea is simple: **constrained updates tend to generalize better**, a
 
 ---
 
-## Install (from source)
+## Install
+
+### Basic Installation (Core Only)
 
 ```bash
 git clone https://github.com/johntnanney/gradience.git
 cd gradience
-python -m pip install -U pip
-pip install -e .
+pip install -e .  # Core functionality only (torch, numpy, pyyaml)
 ```
 
-For the toy example + HF/PEFT tooling:
+### Installation with Extras (Recommended)
 
 ```bash
-pip install torch transformers peft safetensors datasets
+# For Hugging Face integration (transformers, PEFT, etc.)
+pip install -e ".[hf]"
+
+# For running benchmarks and validation
+pip install -e ".[bench]"
+
+# For development (testing, linting, etc.)
+pip install -e ".[dev]"
+
+# Everything (all optional dependencies)
+pip install -e ".[all]"
 ```
+
+### What's Included in Each Extra
+
+- **`[hf]`**: HuggingFace integration (`transformers`, `peft`, `accelerate`, `safetensors`)
+- **`[bench]`**: Benchmarking suite (`transformers`, `peft`, `datasets`, `safetensors`, `accelerate`)
+- **`[dev]`**: Development tools (`pytest`, `build`, `ruff`, `mypy`)
+- **`[all]`**: All optional dependencies
+
+> 💡 **Note**: PyTorch is always required but left to user choice for CPU/GPU compatibility
 
 ## HuggingFace Integration
 
