@@ -786,6 +786,35 @@ def create_canonical_bench_report(
     validation_classification = verdict_analysis.get("validation_classification", {})
     env_info["validation_classification"] = validation_classification
     
+    # Check if probe was undertrained
+    probe_quality_status = verdict_analysis.get("probe_quality_status")
+    
+    if probe_quality_status in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]:
+        # Create minimal bench.json for undertrained probe
+        probe_data = probe_results.get("probe", {})
+        return {
+            "bench_version": config.get("bench_version", "0.1"),
+            "timestamp": timestamp,
+            "git_commit": git_commit,
+            "env": env_info,
+            "model": config["model"]["name"],
+            "task": f"{config['task']['dataset']}/{config['task']['subset']}",
+            "status": probe_quality_status,
+            "probe": {
+                "rank": probe_data.get("rank"),
+                "params": probe_data.get("params"),
+                "accuracy": probe_data.get("accuracy"),
+                "threshold_required": verdict_analysis.get("summary", {}).get("probe_threshold")
+            },
+            "compressed": {},
+            "summary": {
+                "probe_quality": "FAILED",
+                "recommendations_validated": "N/A",
+                "best_compression": None,
+                "notes": verdict_analysis.get("summary", {}).get("notes", [])
+            }
+        }
+    
     # Extract probe summary metrics from audit
     probe_summary = audit_data.get("summary", {})
     probe_baseline = verdict_analysis["probe_baseline"]
@@ -1268,7 +1297,8 @@ def classify_validation_level(config: Dict[str, Any]) -> Dict[str, str]:
 def compute_verdicts(
     probe_results: Dict[str, Any],
     variant_results: Dict[str, Dict[str, Any]],
-    config: Dict[str, Any]
+    config: Dict[str, Any],
+    smoke: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.6: Compute verdicts for compressed variants.
@@ -1293,7 +1323,13 @@ def compute_verdicts(
         print(f"\n=== PROBE QUALITY GATE FAILED ===")
         print(f"Probe accuracy: {probe_accuracy:.4f}")
         print(f"Required threshold: {probe_quality_threshold:.4f}")
-        print(f"Status: UNDERTRAINED - compression certification not valid")
+        
+        if smoke:
+            print(f"Status: UNDERTRAINED_SMOKE - continuing in smoke mode")
+            status_code = "UNDERTRAINED_SMOKE"
+        else:
+            print(f"Status: UNDERTRAINED - compression certification not valid")
+            status_code = "UNDERTRAINED"
         
         # Return undertrained status for all variants
         verdicts = {}
@@ -1303,18 +1339,19 @@ def compute_verdicts(
                 "reason": f"Probe accuracy {probe_accuracy:.4f} < threshold {probe_quality_threshold:.4f}",
                 "delta_vs_probe": None,
                 "param_reduction": None,
-                "verdict": "UNDERTRAINED"
+                "verdict": status_code
             }
         
         return {
             "verdicts": verdicts,
+            "probe_quality_status": status_code,
             "summary": {
                 "probe_quality": "FAILED",
                 "probe_accuracy": probe_accuracy,
                 "probe_threshold": probe_quality_threshold,
                 "recommendations_validated": "N/A",
                 "best_compression": None,
-                "notes": ["Probe undertrained - compression results not reliable"]
+                "notes": [f"Probe undertrained - compression results not reliable (smoke mode: {smoke})"]
             }
         }
     
@@ -1904,7 +1941,8 @@ def run_bench_protocol(
     verdict_analysis = compute_verdicts(
         probe_results=probe_results,
         variant_results=variant_results,
-        config=config
+        config=config,
+        smoke=smoke
     )
     
     # Write verdict analysis to JSON

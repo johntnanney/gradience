@@ -132,8 +132,19 @@ def validate_args(args: argparse.Namespace) -> None:
         print("Warning: --clean-on-pass is not yet implemented")
 
 
-def check_exit_conditions(report: dict, ci_mode: bool) -> int:
+def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False) -> int:
     """Check exit conditions and return appropriate exit code."""
+    
+    # Check for probe quality issues first
+    probe_quality_status = report.get("status")
+    if probe_quality_status == "UNDERTRAINED_SMOKE":
+        # Smoke mode with undertrained probe - exit gracefully
+        print("\nSmoke test completed with undertrained probe (expected in smoke mode)")
+        return 0
+    elif probe_quality_status == "UNDERTRAINED":
+        # Non-smoke mode with undertrained probe - signal undertrained
+        print("\nProbe undertrained - results not reliable (exit code 2)")
+        return 2
     
     if not ci_mode:
         return 0
@@ -251,9 +262,9 @@ def main() -> int:
         if args.ci and internal_report_path.exists():
             with open(internal_report_path, 'r') as f:
                 internal_report = json.load(f)
-            exit_code = check_exit_conditions(internal_report, args.ci)
+            exit_code = check_exit_conditions(internal_report, args.ci, args.smoke)
         else:
-            exit_code = check_exit_conditions(report, args.ci)
+            exit_code = check_exit_conditions(report, args.ci, args.smoke)
         
         print(f"\nBenchmark complete! Results in: {args.output}")
         return exit_code
