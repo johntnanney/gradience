@@ -104,12 +104,22 @@ Both examples:
 
 ### 3.1 Install from source (recommended for now)
 
+**Option A: Automatic setup (recommended for first-time users)**
+```bash
+git clone https://github.com/johntnanney/gradience.git
+cd gradience
+./scripts/setup_venv.sh
+```
+
+**Option B: Manual setup**
 ```bash
 git clone https://github.com/johntnanney/gradience.git
 cd gradience
 python -m pip install -U pip
 pip install -e .
 ```
+
+> **⚠️ Important:** Always create your virtual environment from the repo root (the directory that contains `pyproject.toml`). This prevents import issues and ensures correct package installation.
 
 ### 2.2 Common runtime dependencies (for HF/PEFT examples)
 ```bash

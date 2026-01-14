@@ -10,6 +10,29 @@ Bench is a minimal validation harness for Gradience recommendations.
 4) Eval and compare
 5) Emit a report (JSON + Markdown)
 
+## Setup
+
+**Prerequisites**: Ensure you have installed Gradience from the repo root directory to avoid import issues:
+
+```bash
+# From the repo root (directory containing pyproject.toml)
+git clone https://github.com/johntnanney/gradience.git
+cd gradience
+
+# Option A: Use the helper script (recommended)
+./scripts/setup_venv.sh
+
+# Option B: Manual installation
+pip install -e .
+```
+
+> **⚠️ Important:** Always install from the repo root (not from `gradience/gradience/`). The helper script automatically validates this for you.
+
+**Quick test:**
+```bash
+python -m gradience.bench.run_bench --help
+```
+
 ## Safe Uniform Baseline Policy
 
 The **Safe Uniform Baseline** is Gradience's default compression recommendation policy:

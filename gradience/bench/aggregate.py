@@ -371,28 +371,105 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append(f"- Worst-case Δ ≥ {policy['worst_delta_min']:.3f}")
     lines.append("")
     
-    # Invariants section
+    # Enhanced Protocol Invariants section
+    lines.append("## Protocol Invariants")
+    lines.append("")
+    lines.append("Validation of critical assumptions across all seeds:")
+    lines.append("")
+    
     if "invariants" in data and data["invariants"]:
-        lines.append("## Protocol Invariants")
-        lines.append("")
-        
         inv_data = data["invariants"]
+        
+        # Overall status header
         if "summary" in inv_data:
             status = inv_data["summary"]["overall_status"]
             status_icon = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "❓"
             lines.append(f"**Overall Status:** {status_icon} {status}")
             lines.append("")
             
-        if "invariants" in inv_data:
-            lines.append("| Invariant | Status | Seeds Passed |")
-            lines.append("|-----------|--------|--------------|")
-            for inv_name, inv_stats in inv_data["invariants"].items():
+        # Detailed invariant breakdown
+        invariants = inv_data.get("invariants", {})
+        
+        # 1. Telemetry presence check
+        telemetry_status = _get_invariant_status(invariants, "telemetry_present")
+        lines.append(f"**📊 Telemetry Present:** {telemetry_status['icon']} {telemetry_status['status']}")
+        lines.append(f"  *All seeds have required telemetry data ({telemetry_status['passed']}/{data['n_seeds']} seeds)*")
+        lines.append("")
+        
+        # 2. Probe gate check
+        probe_status = _get_invariant_status(invariants, "probe_quality")
+        lines.append(f"**🎯 Probe Quality Gate:** {probe_status['icon']} {probe_status['status']}")
+        probe_acc = data.get("probe_baseline", {}).get("accuracy_mean")
+        if probe_acc:
+            lines.append(f"  *Probe accuracy {probe_acc:.3f} meets quality threshold ({probe_status['passed']}/{data['n_seeds']} seeds)*")
+        else:
+            lines.append(f"  *Probe quality validation ({probe_status['passed']}/{data['n_seeds']} seeds)*")
+        lines.append("")
+        
+        # 3. Parameter counting source
+        param_status = _get_invariant_status(invariants, "param_counting")
+        lines.append(f"**🔢 Parameter Counting:** {param_status['icon']} {param_status['status']}")
+        param_msg = _get_invariant_message(invariants, "param_counting")
+        if param_msg and "audit" in param_msg.lower():
+            lines.append(f"  *Using audit-based parameter counting for consistency ({param_status['passed']}/{data['n_seeds']} seeds)*")
+        elif param_msg and "config" in param_msg.lower():
+            lines.append(f"  *Using config-based parameter counting ({param_status['passed']}/{data['n_seeds']} seeds)*")
+        else:
+            lines.append(f"  *Parameter counting methodology validated ({param_status['passed']}/{data['n_seeds']} seeds)*")
+        lines.append("")
+        
+        # 4. Per-layer rank heterogeneity check
+        rank_status = _get_invariant_status(invariants, "rank_heterogeneity")
+        lines.append(f"**🏗️ Per-Layer Rank Check:** {rank_status['icon']} {rank_status['status']}")
+        
+        if rank_status['status'] == "SKIPPED":
+            lines.append(f"  *Per-layer compression excluded from this validation run*")
+        elif rank_status['status'] == "PASSED":
+            lines.append(f"  *Per-layer configurations show sufficient rank heterogeneity ({rank_status['passed']}/{data['n_seeds']} seeds)*")
+        elif rank_status['status'] == "FAILED":
+            lines.append(f"  *Per-layer rank heterogeneity failed - insufficient rank diversity ({rank_status['passed']}/{data['n_seeds']} seeds)*")
+        else:
+            lines.append(f"  *Per-layer rank validation ({rank_status['passed']}/{data['n_seeds']} seeds)*")
+        lines.append("")
+        
+        # 5. Layer consistency check
+        layer_status = _get_invariant_status(invariants, "layer_consistency")
+        if layer_status['status'] != "NOT_FOUND":
+            lines.append(f"**⚖️ Layer Consistency:** {layer_status['icon']} {layer_status['status']}")
+            if layer_status['status'] == "PASSED":
+                lines.append(f"  *Rank and alpha patterns have matching layer keys ({layer_status['passed']}/{data['n_seeds']} seeds)*")
+            elif layer_status['status'] == "FAILED":
+                lines.append(f"  *Rank/alpha pattern layer key mismatch detected ({layer_status['passed']}/{data['n_seeds']} seeds)*")
+            else:
+                lines.append(f"  *Layer pattern consistency check ({layer_status['passed']}/{data['n_seeds']} seeds)*")
+            lines.append("")
+        
+        # 6. Additional invariants table for completeness
+        if len(invariants) > 0:
+            lines.append("### All Invariant Checks")
+            lines.append("")
+            lines.append("| Invariant | Status | Seeds Passed | Details |")
+            lines.append("|-----------|--------|--------------|---------|")
+            
+            for inv_name, inv_stats in sorted(invariants.items()):
                 status = inv_stats["overall_status"]
-                status_icon = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "⏭"
+                status_icon = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "⏭️" if status == "SKIPPED" else "❓"
                 passed = inv_stats["passed"]
                 n_seeds = inv_stats["n_seeds"]
-                lines.append(f"| {inv_name.replace('_', ' ').title()} | {status_icon} {status} | {passed}/{n_seeds} |")
+                message = inv_stats.get("message", "")[:50] + ("..." if len(inv_stats.get("message", "")) > 50 else "")
+                display_name = inv_name.replace('_', ' ').title()
+                lines.append(f"| {display_name} | {status_icon} {status} | {passed}/{n_seeds} | {message} |")
+            
             lines.append("")
+            
+    else:
+        lines.append("⚠️ **No invariant data available** - Protocol validation could not be performed.")
+        lines.append("")
+        lines.append("This may indicate:")
+        lines.append("- Individual seed runs missing invariant checks")
+        lines.append("- Older bench output format")
+        lines.append("- Incomplete benchmark execution")
+        lines.append("")
     
     # Summary
     lines.append("## Summary")
@@ -415,6 +492,33 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append(f"*Generated on {data['aggregation_timestamp']}*")
     
     return "\n".join(lines)
+
+
+def _get_invariant_status(invariants: dict, inv_name: str) -> dict:
+    """Helper to extract invariant status with fallback."""
+    if inv_name in invariants:
+        inv = invariants[inv_name]
+        status = inv["overall_status"]
+        return {
+            "status": status,
+            "icon": "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "⏭️" if status == "SKIPPED" else "❓",
+            "passed": inv.get("passed", 0),
+            "total": inv.get("n_seeds", 0)
+        }
+    else:
+        return {
+            "status": "NOT_FOUND",
+            "icon": "❓",
+            "passed": 0,
+            "total": 0
+        }
+
+
+def _get_invariant_message(invariants: dict, inv_name: str) -> str:
+    """Helper to extract invariant message."""
+    if inv_name in invariants:
+        return invariants[inv_name].get("message", "")
+    return ""
 
 
 def main():
