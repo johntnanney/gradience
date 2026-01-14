@@ -1,0 +1,59 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.6241865515882916,
+      "verdict": "PASS",
+      "compressed_accuracy": 0.822,
+      "compressed_params": 665858,
+      "probe_accuracy": 0.832,
+      "probe_params": 1771778
+    },
+    "uniform_p90_control": {
+      "status": "skipped",
+      "reason": "Control run: suggested rank r=32 equals probe rank (no compression)",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "SKIP"
+    },
+    "per_layer": {
+      "status": "skipped",
+      "reason": "Rank check failed: Failed to check ranks: No such file or directory: bench_runs/cert_v0.1_seed456/per_layer/checkpoint-50/adapter_model.safetensors",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "FAIL"
+    }
+  },
+  "best_compression": {
+    "variant": "uniform_median",
+    "param_reduction": 0.6241865515882916,
+    "delta_vs_probe": -0.010000000000000009,
+    "compressed_params": 665858,
+    "compressed_accuracy": 0.822
+  },
+  "probe_baseline": {
+    "accuracy": 0.832,
+    "params": 1771778
+  },
+  "acc_tolerance": 0.025,
+  "validation_classification": {
+    "level": "screening",
+    "rationale": "Single seed, 500 steps (no variance estimation)",
+    "is_multiseed": false,
+    "n_seeds": 1,
+    "max_steps": 500
+  },
+  "summary": {
+    "probe_quality": "PASSED",
+    "probe_accuracy": 0.832,
+    "probe_threshold": 0.75,
+    "total_variants": 3,
+    "completed": 1,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 1,
+    "notes": []
+  }
+}

@@ -1,0 +1,40 @@
+# Uniform r=16 with extended training: seed 42
+# Testing if longer training can make r=16 safer
+
+model:
+  name: distilbert-base-uncased
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 1000  # 2x extended training budget
+  eval_steps: 100   
+  save_steps: 100   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 42  # Seed 1 of 3
+  
+  train_samples: 3000  # Increased training data
+  eval_samples: 500   
+
+lora:
+  probe_r: 32
+  alpha: 32
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [16]  # Same aggressive compression but more training
+  acc_tolerance: 0.025
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "uniform_r16_extended_seed42"

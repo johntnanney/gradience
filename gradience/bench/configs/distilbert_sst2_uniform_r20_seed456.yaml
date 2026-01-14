@@ -1,0 +1,40 @@
+# Uniform r=20 safety baseline: seed 456
+# Testing middle ground between r=16 (too aggressive) and r=24 (may be conservative)
+
+model:
+  name: distilbert-base-uncased
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 500  # Full training budget for safety validation
+  eval_steps: 100   
+  save_steps: 100   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 456  # Seed 3 of 3
+  
+  train_samples: 2000  # Increased for better training quality
+  eval_samples: 500   
+
+lora:
+  probe_r: 32
+  alpha: 32
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [20]  # Conservative uniform baseline candidate
+  acc_tolerance: 0.025
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "uniform_r20_seed456"

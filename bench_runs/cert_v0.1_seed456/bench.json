@@ -1,0 +1,97 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-14T08:24:32.211465",
+  "git_commit": "ad356baca73715b7015942ba35cd12808c347775",
+  "env": {
+    "python": "3.14.0",
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "peft": "0.18.1",
+    "datasets": "4.4.2",
+    "validation_classification": {
+      "level": "screening",
+      "rationale": "Single seed, 500 steps (no variance estimation)",
+      "is_multiseed": false,
+      "n_seeds": 1,
+      "max_steps": 500
+    }
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "probe": {
+    "rank": 32,
+    "params": 1771778,
+    "accuracy": 0.832,
+    "utilization_mean": 0.04565350339263708,
+    "energy_rank_90_p50": 2.0,
+    "energy_rank_90_p90": 16.4,
+    "suggested_r_global_median": 2,
+    "suggested_r_global_90": 32
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 2,
+      "params": 665858,
+      "accuracy": 0.822,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.6241865515882916,
+      "verdict": "PASS"
+    }
+  },
+  "summary": {
+    "recommendations_validated": "1/1",
+    "best_compression": "uniform_median",
+    "notes": []
+  },
+  "protocol_invariants": {
+    "probe_quality": {
+      "name": "probe_quality",
+      "status": "PASSED",
+      "probe_accuracy": 0.832,
+      "threshold": 0.75,
+      "message": "Probe accuracy 0.832 meets threshold 0.75"
+    },
+    "rank_heterogeneity": {
+      "name": "rank_heterogeneity",
+      "status": "PASSED",
+      "variant": "per_layer",
+      "distinct_ranks": 4,
+      "min_required": 2,
+      "rank_histogram": {
+        "20": 3,
+        "4": 1,
+        "16": 3,
+        "8": 1
+      },
+      "unique_ranks": [
+        4,
+        8,
+        16,
+        20
+      ],
+      "message": "per_layer has 4 distinct ranks (requires >= 2)"
+    },
+    "layer_consistency": {
+      "name": "layer_consistency",
+      "status": "PASSED",
+      "rank_layers_count": 8,
+      "alpha_layers_count": 8,
+      "layers_match": true,
+      "message": "Layer keys match"
+    },
+    "param_counting": {
+      "name": "param_counting",
+      "status": "WARNING",
+      "param_count_source": "config_calculation",
+      "message": "No audit data available, using config-based calculation"
+    }
+  },
+  "invariant_summary": {
+    "total_checks": 4,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "overall_status": "PASSED"
+  }
+}

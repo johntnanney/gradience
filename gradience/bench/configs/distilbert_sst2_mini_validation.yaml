@@ -1,0 +1,41 @@
+# Mini validation config - between smoke and full validation
+# ~200 steps for better signal than smoke but still CPU-friendly
+
+model:
+  name: distilbert-base-uncased
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 200  # 4x smoke for better convergence
+  eval_steps: 50   
+  save_steps: 50   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 42  
+  
+  # Sample sizes 
+  train_samples: 800  # ~200 steps with batch_size=8
+  eval_samples: 200   
+
+lora:
+  probe_r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [2, 4, 8, 16]
+  acc_tolerance: 0.025  # ±2.5% for single-seed mini-validation
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "mini_validation"

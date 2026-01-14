@@ -1,0 +1,49 @@
+# Validation budget config for Gradience Bench
+# More robust than smoke test, but still CPU-friendly
+# ~400 steps per variant for reduced variance
+
+model:
+  name: distilbert-base-uncased
+  device: cpu  # CPU-friendly
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 400  # Increased from 50 for reduced variance
+  eval_steps: 50   # Evaluate every 50 steps
+  save_steps: 50   # Save checkpoints every 50 steps
+  
+  lr: 0.00005  # 5e-5 as proper float (matching original format)
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 42  # Single seed for v0.1 (v0.2 can do multiple)
+  
+  # Sample sizes (custom addition for validation run)
+  train_samples: 1600  # ~400 steps with batch_size=8, 2 passes through data
+  eval_samples: 200   # Use subset of validation for faster eval
+
+lora:
+  probe_r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules:
+    - q_lin
+    - k_lin
+    - v_lin
+    - out_lin
+
+compression:
+  allowed_ranks: [2, 4, 8, 16]
+  acc_tolerance: 0.005  # ±0.5% accuracy tolerance
+
+# Runtime configuration  
+runtime:
+  device: cpu  # Override to use CPU
+
+# Bench metadata
+bench_version: "0.1"
+run_type: "validation"  # More robust than smoke
