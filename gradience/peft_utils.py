@@ -141,6 +141,55 @@ def create_complete_alpha_pattern(
     return complete_pattern
 
 
+def find_adapter_weights_path(variant_dir) -> str:
+    """
+    Robust adapter weight path detection for rank checks and auditing.
+    
+    Uses the following search order to find adapter_model.safetensors:
+    1. <variant_dir>/peft/adapter_model.safetensors
+    2. Newest <variant_dir>/checkpoint-*/adapter_model.safetensors  
+    3. Newest <variant_dir>/**/adapter_model.safetensors
+    
+    Args:
+        variant_dir: Path to variant directory (str or Path-like)
+        
+    Returns:
+        Path to adapter_model.safetensors (as string)
+        
+    Raises:
+        FileNotFoundError: If no adapter_model.safetensors found
+    """
+    from pathlib import Path
+    import os
+    
+    variant_path = Path(variant_dir)
+    
+    # Strategy 1: <variant_dir>/peft/adapter_model.safetensors
+    peft_path = variant_path / "peft" / "adapter_model.safetensors"
+    if peft_path.exists():
+        return str(peft_path)
+    
+    # Strategy 2: Newest checkpoint-*/adapter_model.safetensors
+    checkpoint_dirs = sorted([d for d in variant_path.glob("checkpoint-*") if d.is_dir()], 
+                            key=lambda p: os.path.getmtime(p), reverse=True)
+    
+    for checkpoint_dir in checkpoint_dirs:
+        adapter_path = checkpoint_dir / "adapter_model.safetensors"
+        if adapter_path.exists():
+            return str(adapter_path)
+    
+    # Strategy 3: Newest **/adapter_model.safetensors (any subdirectory)
+    adapter_files = list(variant_path.rglob("adapter_model.safetensors"))
+    if adapter_files:
+        # Sort by modification time, newest first
+        adapter_files.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return str(adapter_files[0])
+    
+    # Nothing found
+    raise FileNotFoundError(f"No adapter_model.safetensors found in {variant_dir} using search order: "
+                          f"1) peft/, 2) checkpoint-*/, 3) any subdirectory")
+
+
 def check_heterogeneous_ranks(adapter_weights_path: str, allowed_ranks: list) -> dict:
     """
     Regression check for per-layer rank patterns.
