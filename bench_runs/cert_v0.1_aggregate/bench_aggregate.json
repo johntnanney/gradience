@@ -1,0 +1,137 @@
+{
+  "bench_version": "0.1",
+  "aggregation_timestamp": "2026-01-14T08:28:42.374963",
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "validation_level": "Certifiable",
+  "n_seeds": 3,
+  "seed_runs": [
+    "bench_runs/cert_v0.1_seed42",
+    "bench_runs/cert_v0.1_seed123",
+    "bench_runs/cert_v0.1_seed456"
+  ],
+  "probe_baseline": {
+    "accuracy_mean": 0.8306666666666667,
+    "accuracy_std": 0.0018856180831641283,
+    "accuracy_min": 0.828,
+    "accuracy_max": 0.832
+  },
+  "variant_results": {
+    "per_layer": {
+      "status": "no_data",
+      "n_seeds": 0
+    },
+    "uniform_median": {
+      "n_seeds": 3,
+      "pass_count": 3,
+      "fail_count": 0,
+      "pass_rate": 1.0,
+      "verdict": "PASS",
+      "accuracy_mean": 0.8226666666666667,
+      "accuracy_std": 0.0024944382578492965,
+      "accuracy_min": 0.82,
+      "accuracy_max": 0.826,
+      "delta_mean": -0.008000000000000007,
+      "delta_std": 0.0016329931618554536,
+      "delta_worst": -0.010000000000000009,
+      "delta_best": -0.006000000000000005,
+      "param_reduction_mean": 0.610315739330774,
+      "param_reduction_std": 0.019616290815712346
+    }
+  },
+  "policy_compliance": {
+    "uniform_median": {
+      "policy_compliant": true,
+      "meets_pass_rate": true,
+      "meets_worst_delta": true,
+      "pass_rate": 1.0,
+      "worst_delta": -0.010000000000000009,
+      "policy": {
+        "name": "Safe Uniform Baseline Policy",
+        "pass_rate_min": 0.67,
+        "worst_delta_min": -0.025
+      }
+    }
+  },
+  "safety_policy": {
+    "name": "Safe Uniform Baseline Policy",
+    "pass_rate_min": 0.67,
+    "worst_delta_min": -0.025
+  },
+  "invariants": {
+    "invariants": {
+      "probe_quality": {
+        "overall_status": "PASSED",
+        "seed_statuses": [
+          "PASSED",
+          "PASSED",
+          "PASSED"
+        ],
+        "n_seeds": 3,
+        "passed": 3,
+        "failed": 0,
+        "warnings": 0,
+        "message": "Probe accuracy 0.832 meets threshold 0.75"
+      },
+      "rank_heterogeneity": {
+        "overall_status": "PASSED",
+        "seed_statuses": [
+          "PASSED",
+          "PASSED",
+          "PASSED"
+        ],
+        "n_seeds": 3,
+        "passed": 3,
+        "failed": 0,
+        "warnings": 0,
+        "message": "per_layer has 4 distinct ranks (requires >= 2)"
+      },
+      "layer_consistency": {
+        "overall_status": "PASSED",
+        "seed_statuses": [
+          "PASSED",
+          "PASSED",
+          "PASSED"
+        ],
+        "n_seeds": 3,
+        "passed": 3,
+        "failed": 0,
+        "warnings": 0,
+        "message": "Layer keys match"
+      },
+      "param_counting": {
+        "overall_status": "WARNING",
+        "seed_statuses": [
+          "WARNING",
+          "WARNING",
+          "WARNING"
+        ],
+        "n_seeds": 3,
+        "passed": 0,
+        "failed": 0,
+        "warnings": 3,
+        "message": "No audit data available, using config-based calculation"
+      }
+    },
+    "summary": {
+      "total_invariants": 4,
+      "all_passed": false,
+      "any_failed": false,
+      "any_warnings": true,
+      "overall_status": "WARNING"
+    }
+  },
+  "summary": {
+    "total_variants": 2,
+    "policy_compliant_variants": 1,
+    "best_compression": {
+      "variant": "uniform_median",
+      "param_reduction": 0.610315739330774,
+      "delta_worst": -0.010000000000000009,
+      "pass_rate": 1.0
+    },
+    "recommendations": [
+      "Use uniform_median for 61.0% compression (policy-compliant)"
+    ]
+  }
+}

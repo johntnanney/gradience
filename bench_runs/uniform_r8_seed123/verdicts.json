@@ -1,0 +1,50 @@
+{
+  "verdicts": {
+    "uniform_median": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.17000000000000004,
+      "param_reduction": 0.4993492412706332,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.62,
+      "compressed_params": 887042,
+      "probe_accuracy": 0.79,
+      "probe_params": 1771778
+    },
+    "uniform_p90": {
+      "status": "evaluated",
+      "reason": null,
+      "delta_vs_probe": -0.17000000000000004,
+      "param_reduction": 0.4993492412706332,
+      "verdict": "FAIL",
+      "compressed_accuracy": 0.62,
+      "compressed_params": 887042,
+      "probe_accuracy": 0.79,
+      "probe_params": 1771778
+    },
+    "per_layer": {
+      "status": "skipped",
+      "reason": "Safety checks failed: No active layers (all ranks are 0)",
+      "delta_vs_probe": null,
+      "param_reduction": null,
+      "verdict": "SKIP"
+    }
+  },
+  "best_compression": null,
+  "probe_baseline": {
+    "accuracy": 0.79,
+    "params": 1771778
+  },
+  "acc_tolerance": 0.025,
+  "summary": {
+    "probe_quality": "PASSED",
+    "probe_accuracy": 0.79,
+    "probe_threshold": 0.75,
+    "total_variants": 3,
+    "completed": 2,
+    "passed": 0,
+    "failed": 2,
+    "skipped": 1,
+    "notes": []
+  }
+}

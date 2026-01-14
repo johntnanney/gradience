@@ -1,0 +1,57 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-13T16:24:08.057543",
+  "git_commit": "ad356baca73715b7015942ba35cd12808c347775",
+  "env": {
+    "python": "3.14.0",
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "peft": "0.18.1",
+    "datasets": "4.4.2"
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "probe": {
+    "rank": 16,
+    "params": 1181954,
+    "accuracy": 0.675,
+    "utilization_mean": 0.17534068994157123,
+    "energy_rank_90_p50": 9.5,
+    "energy_rank_90_p90": 12.0,
+    "suggested_r_global_median": 16,
+    "suggested_r_global_90": 16
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 16,
+      "params": 1181954,
+      "accuracy": 0.715,
+      "delta_vs_probe": 0.039999999999999925,
+      "param_reduction": 0.0,
+      "verdict": "PASS"
+    },
+    "uniform_p90": {
+      "rank": 16,
+      "params": 1181954,
+      "accuracy": 0.715,
+      "delta_vs_probe": 0.039999999999999925,
+      "param_reduction": 0.0,
+      "verdict": "PASS"
+    },
+    "per_layer": {
+      "rank_pattern_nondefault": 9,
+      "params": 739586,
+      "accuracy": 0.705,
+      "delta_vs_probe": 0.029999999999999916,
+      "param_reduction": 0.37426837254241707,
+      "verdict": "PASS"
+    }
+  },
+  "summary": {
+    "recommendations_validated": "3/3",
+    "best_compression": "per_layer",
+    "notes": [
+      "per_layer applied successfully (verified via adapter shapes)"
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-13T18:50:03.809133",
+  "git_commit": "ad356baca73715b7015942ba35cd12808c347775",
+  "env": {
+    "python": "3.14.0",
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "peft": "0.18.1",
+    "datasets": "4.4.2",
+    "validation_classification": {
+      "level": "screening",
+      "rationale": "Single seed, 1000 steps (no variance estimation)",
+      "is_multiseed": false,
+      "n_seeds": 1,
+      "max_steps": 1000
+    }
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "probe": {
+    "rank": 32,
+    "params": 1771778,
+    "accuracy": 0.844,
+    "utilization_mean": 0.04481407220558173,
+    "energy_rank_90_p50": 2.0,
+    "energy_rank_90_p90": 14.0,
+    "suggested_r_global_median": 2,
+    "suggested_r_global_90": 16
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 16,
+      "params": 1181954,
+      "accuracy": 0.834,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.3328994941804222,
+      "verdict": "PASS"
+    },
+    "uniform_p90": {
+      "rank": 16,
+      "params": 1181954,
+      "accuracy": 0.834,
+      "delta_vs_probe": -0.010000000000000009,
+      "param_reduction": 0.3328994941804222,
+      "verdict": "PASS"
+    }
+  },
+  "summary": {
+    "recommendations_validated": "2/2",
+    "best_compression": "uniform_median",
+    "notes": []
+  }
+}

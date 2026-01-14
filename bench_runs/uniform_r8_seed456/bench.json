@@ -1,0 +1,47 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-13T18:11:01.740067",
+  "git_commit": "ad356baca73715b7015942ba35cd12808c347775",
+  "env": {
+    "python": "3.14.0",
+    "torch": "2.9.1",
+    "transformers": "4.57.3",
+    "peft": "0.18.1",
+    "datasets": "4.4.2"
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "probe": {
+    "rank": 32,
+    "params": 1771778,
+    "accuracy": 0.81,
+    "utilization_mean": 0.049978520324953125,
+    "energy_rank_90_p50": 3.0,
+    "energy_rank_90_p90": 16.7,
+    "suggested_r_global_median": 4,
+    "suggested_r_global_90": 32
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 8,
+      "params": 887042,
+      "accuracy": 0.735,
+      "delta_vs_probe": -0.07500000000000007,
+      "param_reduction": 0.4993492412706332,
+      "verdict": "FAIL"
+    },
+    "uniform_p90": {
+      "rank": 8,
+      "params": 887042,
+      "accuracy": 0.735,
+      "delta_vs_probe": -0.07500000000000007,
+      "param_reduction": 0.4993492412706332,
+      "verdict": "FAIL"
+    }
+  },
+  "summary": {
+    "recommendations_validated": "0/2",
+    "best_compression": null,
+    "notes": []
+  }
+}

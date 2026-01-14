@@ -1,0 +1,52 @@
+{
+  "uniform_median": {
+    "variant": "uniform_median",
+    "suggested_r": 4,
+    "actual_r": 16,
+    "rank_pattern": {},
+    "alpha_pattern": {},
+    "config": {
+      "alpha": 16,
+      "dropout": 0.0,
+      "probe_r": 16,
+      "target_modules": [
+        "q_lin",
+        "k_lin",
+        "v_lin",
+        "out_lin"
+      ]
+    },
+    "status": "ready",
+    "reason": null
+  },
+  "uniform_p90": {
+    "variant": "uniform_p90",
+    "suggested_r": 32,
+    "actual_r": 16,
+    "rank_pattern": {},
+    "alpha_pattern": {},
+    "config": {
+      "alpha": 16,
+      "dropout": 0.0,
+      "probe_r": 16,
+      "target_modules": [
+        "q_lin",
+        "k_lin",
+        "v_lin",
+        "out_lin"
+      ]
+    },
+    "status": "ready",
+    "reason": null
+  },
+  "per_layer": {
+    "variant": "per_layer",
+    "suggested_r": 0,
+    "actual_r": 0,
+    "rank_pattern": {},
+    "alpha_pattern": {},
+    "config": null,
+    "status": "SKIPPED",
+    "reason": "Safety checks failed: No active layers (all ranks are 0)"
+  }
+}

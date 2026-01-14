@@ -1,0 +1,211 @@
+{
+  "bench_version": "0.1",
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "config_path": "gradience/bench/configs/distilbert_sst2.yaml",
+  "output_dir": "bench_runs/fix4_test",
+  "smoke_mode": true,
+  "probe": {
+    "rank": 16,
+    "params": 1181954,
+    "total_params": 68136964,
+    "accuracy": 0.655,
+    "eval_loss": 0.6803839206695557,
+    "output_dir": "bench_runs/fix4_test/probe_r16"
+  },
+  "compression_configs": {
+    "uniform_median": {
+      "variant": "uniform_median",
+      "suggested_r": 16,
+      "actual_r": 16,
+      "rank_pattern": {},
+      "alpha_pattern": {},
+      "config": {
+        "probe_r": 16,
+        "alpha": 16,
+        "dropout": 0.0,
+        "target_modules": [
+          "q_lin",
+          "k_lin",
+          "v_lin",
+          "out_lin"
+        ]
+      },
+      "status": "ready",
+      "reason": null
+    },
+    "uniform_p90": {
+      "variant": "uniform_p90",
+      "suggested_r": 16,
+      "actual_r": 16,
+      "rank_pattern": {},
+      "alpha_pattern": {},
+      "config": {
+        "probe_r": 16,
+        "alpha": 16,
+        "dropout": 0.0,
+        "target_modules": [
+          "q_lin",
+          "k_lin",
+          "v_lin",
+          "out_lin"
+        ]
+      },
+      "status": "ready",
+      "reason": null
+    },
+    "per_layer": {
+      "variant": "per_layer",
+      "suggested_r": 9,
+      "actual_r": 9,
+      "rank_pattern": {
+        "base_model.model.distilbert.transformer.layer.1.attention.v_lin": 8,
+        "base_model.model.distilbert.transformer.layer.2.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.3.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.4.attention.out_lin": 8,
+        "base_model.model.distilbert.transformer.layer.4.attention.q_lin": 8,
+        "base_model.model.distilbert.transformer.layer.4.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.5.attention.out_lin": 8,
+        "base_model.model.distilbert.transformer.layer.5.attention.q_lin": 8,
+        "base_model.model.distilbert.transformer.layer.5.attention.v_lin": 8
+      },
+      "alpha_pattern": {
+        "base_model.model.distilbert.transformer.layer.1.attention.v_lin": 8,
+        "base_model.model.distilbert.transformer.layer.2.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.3.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.4.attention.out_lin": 8,
+        "base_model.model.distilbert.transformer.layer.4.attention.q_lin": 8,
+        "base_model.model.distilbert.transformer.layer.4.attention.v_lin": 4,
+        "base_model.model.distilbert.transformer.layer.5.attention.out_lin": 8,
+        "base_model.model.distilbert.transformer.layer.5.attention.q_lin": 8,
+        "base_model.model.distilbert.transformer.layer.5.attention.v_lin": 8
+      },
+      "config": {
+        "probe_r": null,
+        "alpha": null,
+        "dropout": 0.0,
+        "target_modules": [
+          "q_lin",
+          "k_lin",
+          "v_lin",
+          "out_lin"
+        ],
+        "rank_pattern": {
+          "base_model.model.distilbert.transformer.layer.1.attention.v_lin": 8,
+          "base_model.model.distilbert.transformer.layer.2.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.3.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.4.attention.out_lin": 8,
+          "base_model.model.distilbert.transformer.layer.4.attention.q_lin": 8,
+          "base_model.model.distilbert.transformer.layer.4.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.5.attention.out_lin": 8,
+          "base_model.model.distilbert.transformer.layer.5.attention.q_lin": 8,
+          "base_model.model.distilbert.transformer.layer.5.attention.v_lin": 8
+        },
+        "alpha_pattern": {
+          "base_model.model.distilbert.transformer.layer.1.attention.v_lin": 8,
+          "base_model.model.distilbert.transformer.layer.2.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.3.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.4.attention.out_lin": 8,
+          "base_model.model.distilbert.transformer.layer.4.attention.q_lin": 8,
+          "base_model.model.distilbert.transformer.layer.4.attention.v_lin": 4,
+          "base_model.model.distilbert.transformer.layer.5.attention.out_lin": 8,
+          "base_model.model.distilbert.transformer.layer.5.attention.q_lin": 8,
+          "base_model.model.distilbert.transformer.layer.5.attention.v_lin": 8
+        }
+      },
+      "status": "ready",
+      "reason": null
+    }
+  },
+  "variants": {
+    "uniform_median": {
+      "variant": "uniform_median",
+      "status": "completed",
+      "reason": null,
+      "rank": 16,
+      "params": 1181954,
+      "total_params": 68136964,
+      "accuracy": 0.715,
+      "eval_loss": 0.6812777519226074,
+      "output_dir": "bench_runs/fix4_test/uniform_median_r16"
+    },
+    "uniform_p90": {
+      "variant": "uniform_p90",
+      "status": "completed",
+      "reason": null,
+      "rank": 16,
+      "params": 1181954,
+      "total_params": 68136964,
+      "accuracy": 0.715,
+      "eval_loss": 0.6812777519226074,
+      "output_dir": "bench_runs/fix4_test/uniform_p90_r16"
+    },
+    "per_layer": {
+      "variant": "per_layer",
+      "status": "completed",
+      "reason": null,
+      "rank": 9,
+      "params": 1052930,
+      "total_params": 68007940,
+      "accuracy": 0.72,
+      "eval_loss": 0.6815041899681091,
+      "output_dir": "bench_runs/fix4_test/per_layer"
+    }
+  },
+  "verdicts": {
+    "verdicts": {
+      "uniform_median": {
+        "status": "evaluated",
+        "reason": null,
+        "delta_vs_probe": 0.05999999999999994,
+        "param_reduction": 0.0,
+        "verdict": "PASS",
+        "compressed_accuracy": 0.715,
+        "compressed_params": 1181954,
+        "probe_accuracy": 0.655,
+        "probe_params": 1181954
+      },
+      "uniform_p90": {
+        "status": "evaluated",
+        "reason": null,
+        "delta_vs_probe": 0.05999999999999994,
+        "param_reduction": 0.0,
+        "verdict": "PASS",
+        "compressed_accuracy": 0.715,
+        "compressed_params": 1181954,
+        "probe_accuracy": 0.655,
+        "probe_params": 1181954
+      },
+      "per_layer": {
+        "status": "evaluated",
+        "reason": null,
+        "delta_vs_probe": 0.06499999999999995,
+        "param_reduction": 0.10916160865820501,
+        "verdict": "PASS",
+        "compressed_accuracy": 0.72,
+        "compressed_params": 1052930,
+        "probe_accuracy": 0.655,
+        "probe_params": 1181954
+      }
+    },
+    "best_compression": {
+      "variant": "per_layer",
+      "param_reduction": 0.10916160865820501,
+      "delta_vs_probe": 0.06499999999999995,
+      "compressed_params": 1052930,
+      "compressed_accuracy": 0.72
+    },
+    "probe_baseline": {
+      "accuracy": 0.655,
+      "params": 1181954
+    },
+    "acc_tolerance": 0.005,
+    "summary": {
+      "total_variants": 3,
+      "completed": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    }
+  }
+}
