@@ -13,17 +13,41 @@ dependencies = [
   "torch",
   "numpy",
   "pyyaml",
-  "transformers",
-  "peft",
-  "datasets",
 ]
 
 [project.optional-dependencies]
+# Hugging Face integration - for using Gradience with transformers/PEFT
 hf = [
+  "transformers",
+  "peft",
   "accelerate",
   "safetensors",
 ]
+
+# Benchmarking suite - for running compression validation benchmarks
+bench = [
+  "transformers",
+  "peft", 
+  "datasets",
+  "safetensors",
+  "accelerate",
+]
+
+# Development tools - for contributors
 dev = [
+  "pytest",
+  "build",
+  "ruff",
+  "mypy",
+]
+
+# All optional dependencies for full functionality
+all = [
+  "transformers",
+  "peft",
+  "datasets", 
+  "accelerate",
+  "safetensors",
   "pytest",
   "build",
   "ruff",
