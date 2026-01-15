@@ -1,0 +1,16 @@
+Gradience DistilBERT/SST-2 Reference Results v0.1
+Generated: 2026-01-14T23:30:00Z
+
+To cite these results:
+  Gradience Bench v0.1: DistilBERT/SST-2
+  Compression: uniform_median (61% parameter reduction)
+  Policy compliance: COMPLIANT (100% pass rate, 3/3 seeds)
+  Repository: https://github.com/johntnanney/gradience
+  
+BibTeX:
+@misc{gradience_distilbert_sst2_v0_1,
+  title={Gradience DistilBERT/SST-2 Reference Results v0.1},
+  author={Gradience Bench},
+  year={2026},
+  url={https://github.com/johntnanney/gradience}
+}

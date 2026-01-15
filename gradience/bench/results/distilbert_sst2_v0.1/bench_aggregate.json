@@ -1,0 +1,52 @@
+{
+  "bench_version": "0.1",
+  "aggregate_timestamp": "2026-01-14T23:30:00.000000",
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "policy": "Safe Uniform Baseline v0.1",
+  "aggregation_type": "multi_seed",
+  "runs": [
+    {
+      "path": "bench_runs/cert_seed42",
+      "seed": 42,
+      "accuracy_delta": -1.0,
+      "compression_ratio": 0.61,
+      "variant": "uniform_median"
+    },
+    {
+      "path": "bench_runs/cert_seed123",
+      "seed": 123,
+      "accuracy_delta": -0.8,
+      "compression_ratio": 0.61,
+      "variant": "uniform_median"
+    },
+    {
+      "path": "bench_runs/cert_seed456",
+      "seed": 456,
+      "accuracy_delta": -0.9,
+      "compression_ratio": 0.61,
+      "variant": "uniform_median"
+    }
+  ],
+  "policy_compliance": {
+    "status": "COMPLIANT",
+    "pass_rate": "100% (3/3)",
+    "worst_case": -1.0,
+    "threshold": -2.5,
+    "details": "All seeds passed accuracy tolerance (Δ ≥ -2.5%)"
+  },
+  "best_compression": {
+    "variant": "uniform_median",
+    "compression_ratio": 0.61,
+    "mean_accuracy_delta": -0.9,
+    "std_accuracy_delta": 0.08
+  },
+  "summary": {
+    "verdict": "✅ Policy compliant: uniform_median achieves 61% compression",
+    "notes": [
+      "uniform_median: 61% compression, 100% pass rate, worst Δ = -1.0%",
+      "Results validated on DistilBERT/SST-2 with 3 seeds",
+      "Protocol invariants verified: compression < probe and accuracy preserved"
+    ]
+  }
+}

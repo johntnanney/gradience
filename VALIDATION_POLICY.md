@@ -111,7 +111,15 @@ def classify_validation_level(config):
 Policy definition (verbatim):
 **≥ 67% seeds PASS AND worst seed Δ ≥ -2.5%**
 
-Current calibrated baselines (DistilBERT + SST-2, Bench v0.1):
+### Reference Results
+
+📁 **Canonical reference results:** `gradience/bench/results/distilbert_sst2_v0.1/`
+
+Validated baselines (DistilBERT + SST-2, Bench v0.1):
+- **uniform_median**: 61% compression, 100% pass rate, worst Δ = -1.0% ✅ POLICY COMPLIANT
+- See frozen artifacts in `gradience/bench/results/distilbert_sst2_v0.1/` for complete results
+
+Current calibrated baselines:
 - **Uniform r=20** — primary safe uniform baseline under the policy above.
 - **Uniform r=16** — observed unsafe/unstable in this benchmark setup (fails policy in multi-seed runs).
 
