@@ -232,8 +232,50 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
 
 
 def preprocess_function(examples, tokenizer):
-    """Tokenize the examples and preserve labels."""
-    result = tokenizer(examples["sentence"], truncation=True, padding=True, max_length=128)
+    """Tokenize the examples and preserve labels.
+    
+    Handles both single-text tasks (SST-2) and paired-text tasks (QNLI, RTE, etc).
+    """
+    # Detect task type based on available fields
+    if "question" in examples and "sentence" in examples:
+        # QNLI and similar paired tasks
+        result = tokenizer(
+            examples["question"], 
+            examples["sentence"],
+            truncation=True, 
+            padding=True, 
+            max_length=128
+        )
+    elif "sentence" in examples:
+        # SST-2 and similar single-text tasks
+        result = tokenizer(
+            examples["sentence"], 
+            truncation=True, 
+            padding=True, 
+            max_length=128
+        )
+    elif "sentence1" in examples and "sentence2" in examples:
+        # MNLI, RTE and similar paired sentence tasks
+        result = tokenizer(
+            examples["sentence1"],
+            examples["sentence2"],
+            truncation=True,
+            padding=True,
+            max_length=128
+        )
+    else:
+        # Fallback: try to guess the text field
+        text_keys = [k for k in examples.keys() if "text" in k.lower() or "sentence" in k.lower()]
+        if text_keys:
+            result = tokenizer(
+                examples[text_keys[0]], 
+                truncation=True, 
+                padding=True, 
+                max_length=128
+            )
+        else:
+            raise ValueError(f"Could not identify text field(s) in dataset. Available keys: {list(examples.keys())}")
+    
     # Make sure labels are preserved
     if "label" in examples:
         result["labels"] = examples["label"]
