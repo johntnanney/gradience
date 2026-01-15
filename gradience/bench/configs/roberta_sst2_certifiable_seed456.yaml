@@ -1,0 +1,42 @@
+# Bench v0.1 Certifiable Standard: RoBERTa on SST-2, seed 456
+# Cross-model validation: RoBERTa vs DistilBERT on same task
+# Spec: RoBERTa+SST-2, r=32 probe, per_layer+safe_uniform_r20+uniform_r24, 3 seeds, 500 steps
+
+model:
+  name: roberta-base
+
+task:
+  dataset: glue
+  subset: sst2
+  metric: accuracy
+  
+train:
+  max_steps: 500  # Certifiable standard training budget
+  eval_steps: 100   
+  save_steps: 100   
+  
+  lr: 0.00005  
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+  weight_decay: 0.01
+  seed: 456  # Seed 3 of 3
+  
+  train_samples: 2000  # Full training quality for certifiable status
+  eval_samples: 500   
+
+lora:
+  probe_r: 32  # Certifiable standard probe rank
+  alpha: 32
+  dropout: 0.0
+  target_modules: ["query", "value"]  # RoBERTa-specific target modules
+
+compression:
+  # Certifiable variants: per_layer (adaptive) + safe_uniform_r20 + conservative_r24
+  allowed_ranks: [2, 4, 8, 16, 20, 24, 32]
+  acc_tolerance: 0.025
+
+runtime:
+  device: cpu
+
+bench_version: "0.1"
+run_type: "roberta_sst2_certifiable_v0.1_seed456"
