@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 import numpy as np
 
-def load_bench_result(bench_dir):
+def load_bench_result(bench_dir, skip_smoke=True):
     """Load results from a bench.json file."""
     bench_path = Path(bench_dir) / "bench.json"
     if not bench_path.exists():
@@ -18,7 +18,14 @@ def load_bench_result(bench_dir):
         return None
     
     with open(bench_path) as f:
-        return json.load(f)
+        result = json.load(f)
+    
+    # Check if this is a smoke run
+    if skip_smoke and result.get("status") == "UNDERTRAINED_SMOKE":
+        print(f"Info: Skipping smoke run {Path(bench_dir).name}")
+        return None
+        
+    return result
 
 def extract_key_metrics(result):
     """Extract key metrics for aggregation."""
