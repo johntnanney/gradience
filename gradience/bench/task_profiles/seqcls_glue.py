@@ -104,7 +104,7 @@ class GLUESequenceClassificationProfile:
             logging_steps=train_config.get("logging_steps", 50),
             eval_steps=train_config.get("eval_steps", 100),
             save_steps=train_config.get("save_steps", 100),
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             save_strategy="no",  # Don't save checkpoints
             load_best_model_at_end=False,
             dataloader_drop_last=False,
