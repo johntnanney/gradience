@@ -127,20 +127,22 @@ class GSM8KCausalLMProfile:
             logging_steps=train_config.get("logging_steps", 10),
             eval_steps=train_config.get("eval_steps", 500),
             save_steps=train_config.get("save_steps", 500),
-            evaluation_strategy="steps" if "validation" in tokenized_ds else "no",
+            eval_strategy="no",  # Disable in-training eval to prevent crashes
+            do_eval=False,  # Explicitly disable evaluation
             save_strategy=train_config.get("save_strategy", "no"),
             load_best_model_at_end=False,
             dataloader_drop_last=False,
             seed=train_config.get("seed", 42),
             report_to=[],  # Disable wandb/tensorboard
             bf16=True if train_config.get("torch_dtype") == "bf16" else False,
+            remove_unused_columns=False,  # Prevent column removal issues
         )
         
         return Trainer(
             model=model,
             args=training_args,
             train_dataset=tokenized_ds["train"],
-            eval_dataset=tokenized_ds.get("validation"),
+            eval_dataset=None,  # Disable eval dataset to prevent crashes
             data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
             callbacks=callbacks or [],
         )
