@@ -43,3 +43,4 @@ data/
 
 # Smoke / run artifacts
 runs/
+bench_runs/

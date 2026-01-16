@@ -91,9 +91,16 @@ def _per_layer_weights_present(seed_dir: Path) -> bool:
     return _find_any(p, "adapter_model.safetensors") is not None
 
 
-def load_bench_results(run_dirs: List[Path]) -> List[Dict[str, Any]]:
-    """Load bench.json from each run directory."""
+def load_bench_results(run_dirs: List[Path], skip_smoke: bool = True) -> List[Dict[str, Any]]:
+    """Load bench.json from each run directory.
+    
+    Args:
+        run_dirs: List of run directories to process
+        skip_smoke: If True, skip UNDERTRAINED_SMOKE runs (default for certification)
+    """
     results = []
+    skipped_smoke = []
+    
     for run_dir in run_dirs:
         bench_json = run_dir / "bench.json"
         verdicts_json = run_dir / "verdicts.json"
@@ -105,6 +112,12 @@ def load_bench_results(run_dirs: List[Path]) -> List[Dict[str, Any]]:
         with open(bench_json) as f:
             bench_data = json.load(f)
             
+        # Check if this is a smoke run
+        status = bench_data.get("status", "")
+        if skip_smoke and status == "UNDERTRAINED_SMOKE":
+            skipped_smoke.append(run_dir.name)
+            continue
+            
         # Also load verdicts for more detailed info
         if verdicts_json.exists():
             with open(verdicts_json) as f:
@@ -112,6 +125,9 @@ def load_bench_results(run_dirs: List[Path]) -> List[Dict[str, Any]]:
                 bench_data["verdicts"] = verdicts_data.get("verdicts", {})
                 
         results.append(bench_data)
+    
+    if skipped_smoke:
+        print(f"Info: Skipped {len(skipped_smoke)} smoke runs for certification analysis: {skipped_smoke}")
     
     return results
 
@@ -312,15 +328,15 @@ def check_policy_compliance(variant_stats: Dict[str, Any], policy: Dict[str, Any
     }
 
 
-def aggregate_results(run_dirs: List[str], output_dir: str) -> None:
+def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool = False) -> None:
     """Main aggregation function."""
     # Convert to Path objects
     run_paths = [Path(run_dir) for run_dir in run_dirs]
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     
-    # Load all results
-    results = load_bench_results(run_paths)
+    # Load all results (skip smoke runs by default for certification)
+    results = load_bench_results(run_paths, skip_smoke=not include_smoke)
     
     if not results:
         print("Error: No valid results found!")
@@ -603,9 +619,11 @@ def main():
     parser = argparse.ArgumentParser(description="Aggregate multi-seed bench results")
     parser.add_argument("runs", nargs="+", help="Paths to run directories")
     parser.add_argument("--output", "-o", required=True, help="Output directory for aggregate results")
+    parser.add_argument("--include-smoke", action="store_true", 
+                       help="Include UNDERTRAINED_SMOKE runs (default: skip for certification)")
     
     args = parser.parse_args()
-    aggregate_results(args.runs, args.output)
+    aggregate_results(args.runs, args.output, include_smoke=args.include_smoke)
 
 
 if __name__ == "__main__":
