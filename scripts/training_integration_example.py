@@ -48,7 +48,7 @@ class HuggingFaceTrainingConfig:
             "weight_decay": kwargs.get("weight_decay", 0.01),
             
             # Evaluation and logging
-            "evaluation_strategy": "epoch",
+            "eval_strategy": "epoch",
             "save_strategy": "epoch",
             "logging_steps": kwargs.get("logging_steps", 100),
             "load_best_model_at_end": True,
