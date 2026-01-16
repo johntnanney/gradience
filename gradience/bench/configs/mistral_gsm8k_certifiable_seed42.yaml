@@ -1,0 +1,61 @@
+# Bench v0.2 Certifiable Standard: Mistral + GSM8K, seed 42
+# Extension from classification to generation with response-only loss
+# Spec: Mistral-7B + GSM8K, r=32 probe, per_layer+safe_uniform+conservative variants
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm   # NEW: "seqcls" vs "causal_lm"
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm  # NEW: tells Bench which data+eval pipeline to use
+  
+  # Evaluation control
+  eval_max_samples: 500
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  
+  # Probe gate (task-specific)
+  probe_gate:
+    metric: exact_match            # NEW: metric name
+    min_value: 0.15               # calibrated for GSM8K
+
+training:
+  max_steps: 1500
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 10
+  eval_steps: 500
+  save_strategy: "no"   # strongly recommended for 7B runs
+  report_to: "none"
+  seed: 42
+  
+  train_samples: 2000  # Reduced for tractable training
+
+lora:
+  probe_r: 32  # Certifiable standard probe rank
+  alpha: 64
+  dropout: 0.05
+  target_modules: ["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"]
+
+compression:
+  # Certifiable variants: per_layer (adaptive) + safe_uniform_r20 + conservative_r24
+  allowed_ranks: [2, 4, 8, 16, 20, 24, 32]
+  acc_tolerance: 0.025
+
+runtime:
+  device: cuda
+  
+run_type: "mistral_gsm8k_certifiable_v0.1_seed42"
+seed: 42

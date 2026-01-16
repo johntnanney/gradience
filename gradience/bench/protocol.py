@@ -44,6 +44,7 @@ from gradience.peft_utils import (
 )
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
 from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
+from .task_profiles import get_task_profile_from_config
 
 
 def _get_probe_quality_threshold(task_name: str) -> float:
@@ -79,12 +80,15 @@ def load_config(config_path: str | Path) -> Dict[str, Any]:
 
 
 def setup_dataset(config: Dict[str, Any], smoke: bool = False):
-    """Load and prepare dataset based on config."""
+    """Load and prepare dataset based on config using task profile."""
     if not HAS_TRAINING_DEPS:
         raise ImportError("Training dependencies not available (transformers, datasets, peft)")
     
-    task_config = config["task"]
-    dataset = load_dataset(task_config["dataset"], task_config["subset"])
+    # Get task profile for this configuration
+    task_profile = get_task_profile_from_config(config)
+    
+    # Load dataset using task profile
+    dataset = task_profile.load(config)
     
     # Apply smoke test limits if requested
     if smoke:
@@ -92,18 +96,9 @@ def setup_dataset(config: Dict[str, Any], smoke: bool = False):
         train_samples = runtime.get("smoke_train_samples", 200)
         eval_samples = runtime.get("smoke_eval_samples", 200)
         
-        dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_samples)))
-        if "validation" in dataset:
-            dataset["validation"] = dataset["validation"].select(range(min(len(dataset["validation"]), eval_samples)))
-    else:
-        # For non-smoke runs, check if train config specifies sample limits
-        train_config = config.get("train", {})
-        train_samples = train_config.get("train_samples")
-        eval_samples = train_config.get("eval_samples")
-        
-        if train_samples and "train" in dataset:
+        if "train" in dataset:
             dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_samples)))
-        if eval_samples and "validation" in dataset:
+        if "validation" in dataset:
             dataset["validation"] = dataset["validation"].select(range(min(len(dataset["validation"]), eval_samples)))
     
     return dataset
@@ -114,23 +109,53 @@ def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
     if not HAS_TRAINING_DEPS:
         raise ImportError("Training dependencies not available (transformers, peft)")
     
-    model_name = config["model"]["name"]
+    model_config = config["model"]
+    model_name = model_config["name"]
+    model_type = model_config.get("type", "seqcls")  # Default to sequence classification
     lora_config = config["lora"]
     
-    # Load tokenizer and model
+    # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        num_labels=2,  # SST-2 is binary classification
-        torch_dtype=torch.float32 if device == "cpu" else torch.float16
-    )
+    # Determine torch dtype
+    torch_dtype_str = model_config.get("torch_dtype", "auto")
+    if torch_dtype_str == "bf16":
+        torch_dtype = torch.bfloat16 if device != "cpu" else torch.float32
+    elif torch_dtype_str == "fp16":
+        torch_dtype = torch.float16 if device != "cpu" else torch.float32
+    else:
+        torch_dtype = torch.float32 if device == "cpu" else torch.float16
+    
+    # Load model based on type
+    if model_type == "causal_lm":
+        from transformers import AutoModelForCausalLM
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch_dtype,
+            device_map="auto" if device == "cuda" else None
+        )
+        
+        # Configure for training
+        if model_config.get("gradient_checkpointing", False):
+            model.gradient_checkpointing_enable()
+        if not model_config.get("use_cache", True):  # use_cache=False during training
+            model.config.use_cache = False
+            
+        task_type = TaskType.CAUSAL_LM
+    else:
+        # Default to sequence classification
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name,
+            num_labels=2,  # Default binary classification
+            torch_dtype=torch_dtype
+        )
+        task_type = TaskType.SEQ_CLS
     
     # Setup LoRA
     peft_config = LoraConfig(
-        task_type=TaskType.SEQ_CLS,
+        task_type=task_type,
         inference_mode=False,
         r=lora_config["probe_r"],
         lora_alpha=lora_config["alpha"],
@@ -231,55 +256,8 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
     return tokenizer, model
 
 
-def preprocess_function(examples, tokenizer):
-    """Tokenize the examples and preserve labels.
-    
-    Handles both single-text tasks (SST-2) and paired-text tasks (QNLI, RTE, etc).
-    """
-    # Detect task type based on available fields
-    if "question" in examples and "sentence" in examples:
-        # QNLI and similar paired tasks
-        result = tokenizer(
-            examples["question"], 
-            examples["sentence"],
-            truncation=True, 
-            padding=True, 
-            max_length=128
-        )
-    elif "sentence" in examples:
-        # SST-2 and similar single-text tasks
-        result = tokenizer(
-            examples["sentence"], 
-            truncation=True, 
-            padding=True, 
-            max_length=128
-        )
-    elif "sentence1" in examples and "sentence2" in examples:
-        # MNLI, RTE and similar paired sentence tasks
-        result = tokenizer(
-            examples["sentence1"],
-            examples["sentence2"],
-            truncation=True,
-            padding=True,
-            max_length=128
-        )
-    else:
-        # Fallback: try to guess the text field
-        text_keys = [k for k in examples.keys() if "text" in k.lower() or "sentence" in k.lower()]
-        if text_keys:
-            result = tokenizer(
-                examples[text_keys[0]], 
-                truncation=True, 
-                padding=True, 
-                max_length=128
-            )
-        else:
-            raise ValueError(f"Could not identify text field(s) in dataset. Available keys: {list(examples.keys())}")
-    
-    # Make sure labels are preserved
-    if "label" in examples:
-        result["labels"] = examples["label"]
-    return result
+# Legacy preprocess_function moved to task profiles
+# This function is kept for backward compatibility but deprecated
 
 
 def write_probe_eval_json(
@@ -300,8 +278,11 @@ def write_probe_eval_json(
     Returns:
         Path to the written eval.json file
     """
+    # Support both accuracy (seqcls) and exact_match (causal_lm) 
+    accuracy = eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match", 0.0)
+    
     eval_data = {
-        "accuracy": eval_results["eval_accuracy"],
+        "accuracy": accuracy,
         "eval_loss": eval_results.get("eval_loss"),
         "eval_samples": eval_dataset_size,
         "seed": config["train"]["seed"],
@@ -310,6 +291,14 @@ def write_probe_eval_json(
         "eval_samples_per_second": eval_results.get("eval_samples_per_second"),
         "eval_steps_per_second": eval_results.get("eval_steps_per_second")
     }
+    
+    # Add task-specific metrics
+    if "eval_exact_match" in eval_results:
+        eval_data["exact_match"] = eval_results["eval_exact_match"]
+    if "eval_correct" in eval_results:
+        eval_data["correct"] = eval_results["eval_correct"]
+    if "eval_total" in eval_results:
+        eval_data["total"] = eval_results["eval_total"]
     
     eval_path = probe_dir / "eval.json"
     with open(eval_path, 'w') as f:
@@ -448,44 +437,21 @@ def run_probe_training(
     # Setup model and tokenizer
     tokenizer, model = setup_model_and_tokenizer(config, device=device)
     
-    # Preprocess dataset
-    tokenized_dataset = dataset.map(
-        lambda examples: preprocess_function(examples, tokenizer),
-        batched=True,
-        remove_columns=[col for col in dataset["train"].column_names if col not in ["labels", "label"]]
-    )
+    # Get task profile and preprocess dataset
+    task_profile = get_task_profile_from_config(config)
+    tokenized_dataset = task_profile.tokenize(dataset, tokenizer, config)
     
-    # Setup training arguments
+    # Apply smoke test limits to training config
     train_config = config["train"]
     runtime_config = config.get("runtime", {})
     
-    max_steps = train_config["max_steps"]
     if smoke:
         max_steps = runtime_config.get("smoke_max_steps", 50)
-    
-    training_args = TrainingArguments(
-        output_dir=str(probe_dir),
-        num_train_epochs=1,  # We use max_steps instead
-        max_steps=max_steps,
-        per_device_train_batch_size=train_config["per_device_train_batch_size"],
-        per_device_eval_batch_size=train_config["per_device_eval_batch_size"],
-        eval_steps=train_config["eval_steps"],
-        eval_strategy="steps",  # Updated from evaluation_strategy
-        save_steps=train_config["eval_steps"],
-        learning_rate=train_config["lr"],
-        weight_decay=train_config["weight_decay"],
-        logging_dir=str(probe_dir / "logs"),
-        logging_steps=10,
-        seed=train_config["seed"],
-        data_seed=train_config["seed"],
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_accuracy",
-        report_to=[],  # Disable wandb/tensorboard
-        remove_unused_columns=False,
-    )
-    
-    # Setup data collator
-    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+        # Create modified config for smoke test
+        modified_config = config.copy()
+        modified_config["train"] = train_config.copy()
+        modified_config["train"]["max_steps"] = max_steps
+        config = modified_config
     
     # Setup Gradience callback
     # Optional: pass dataset/task info for richer telemetry if available
@@ -504,41 +470,32 @@ def run_probe_training(
     
     gradience_callback = GradienceCallback(callback_config)
     
-    # Compute metrics function
-    def compute_metrics(eval_pred):
-        predictions, labels = eval_pred
-        predictions = predictions.argmax(axis=-1)
-        accuracy = float((predictions == labels).mean())
-        return {"accuracy": accuracy}
-    
-    # Setup datasets
-    eval_dataset = tokenized_dataset.get("validation", tokenized_dataset["train"])  # Fallback to train if no validation
-    
-    # Setup trainer
-    trainer = Trainer(
+    # Build trainer using task profile
+    trainer = task_profile.build_trainer(
         model=model,
-        args=training_args,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=eval_dataset,
         tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=compute_metrics,
-        callbacks=[gradience_callback],
+        tokenized_ds=tokenized_dataset,
+        cfg=config,
+        callbacks=[gradience_callback]
     )
+    
+    # Update trainer output dir to probe directory
+    trainer.args.output_dir = str(probe_dir)
+    trainer.args.logging_dir = str(probe_dir / "logs")
     
     # Train the model
     print(f"Starting probe training (r={config['lora']['probe_r']})...")
     print(f"Output dir: {probe_dir}")
-    print(f"Max steps: {max_steps}")
+    print(f"Max steps: {trainer.args.max_steps}")
     print(f"Device: {device}")
     
     trainer.train()
     
-    # Evaluate final model
-    eval_results = trainer.evaluate()
+    # Evaluate final model using task profile
+    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
     
     # Step 3.2: Write eval.json
-    eval_dataset_size = len(eval_dataset)
+    eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
     eval_json_path = write_probe_eval_json(
         probe_dir=probe_dir,
         eval_results=eval_results,
@@ -1357,11 +1314,12 @@ def compute_verdicts(
     probe_accuracy = probe_results["probe"]["accuracy"]
     probe_params = probe_results["probe"]["params"]
     
-    # Probe quality gating - check if probe is sufficiently trained
-    task_name = config.get("task", {}).get("subset", "unknown")
-    probe_quality_threshold = _get_probe_quality_threshold(task_name)
+    # Probe quality gating using task profile
+    task_profile = get_task_profile_from_config(config)
+    probe_passed, gate_info = task_profile.probe_gate({"eval_accuracy": probe_accuracy}, config)
+    probe_quality_threshold = gate_info["threshold"]
     
-    if probe_accuracy < probe_quality_threshold:
+    if not probe_passed:
         print(f"\n=== PROBE QUALITY GATE FAILED ===")
         print(f"Probe accuracy: {probe_accuracy:.4f}")
         print(f"Required threshold: {probe_quality_threshold:.4f}")

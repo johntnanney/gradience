@@ -1,0 +1,61 @@
+# Bench v0.1 Screening: Mistral + GSM8K, seed 42
+# Fast screening version for pipeline validation
+# Spec: Mistral-7B + GSM8K, r=32 probe, reduced training
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm
+  
+  # Evaluation control
+  eval_max_samples: 200  # Reduced for screening
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  
+  # Probe gate (task-specific) - lower threshold for screening
+  probe_gate:
+    metric: exact_match
+    min_value: 0.10  # Lower threshold for screening
+
+training:
+  max_steps: 300  # Reduced for screening
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 1.0e-4
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 10
+  eval_steps: 150
+  save_strategy: "no"
+  report_to: "none"
+  seed: 42
+  
+  train_samples: 500  # Reduced for screening
+
+lora:
+  probe_r: 32
+  alpha: 64
+  dropout: 0.05
+  target_modules: ["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"]
+
+compression:
+  # Screening variants: per_layer + one uniform variant
+  allowed_ranks: [8, 16, 24, 32]
+  acc_tolerance: 0.025
+
+runtime:
+  device: cuda
+  
+run_type: "mistral_gsm8k_screening_v0.1_seed42"
+seed: 42
