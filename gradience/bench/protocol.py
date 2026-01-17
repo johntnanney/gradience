@@ -47,6 +47,60 @@ from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, sug
 from .task_profiles import get_task_profile_from_config
 
 
+def _unwrap_model_for_save(trainer, model):
+    # Try accelerator unwrap first (works with device_map / accelerate wrapping)
+    if trainer is not None and hasattr(trainer, "accelerator"):
+        try:
+            return trainer.accelerator.unwrap_model(model)
+        except Exception:
+            pass
+    # Common wrapper case
+    if hasattr(model, "module"):
+        return model.module
+    return model
+
+def _save_peft_adapter_only(trainer, model, output_dir: str | Path, *, label: str = "adapter") -> Path:
+    """
+    Save PEFT adapter weights/config to output_dir.
+
+    Critical invariant:
+      - Never save a full base model here (7B would be catastrophic).
+      - If the model is not a PEFT model, raise loudly.
+    """
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    m = _unwrap_model_for_save(trainer, model)
+
+    # Guardrail: only PEFT models should pass
+    if not hasattr(m, "peft_config"):
+        raise RuntimeError(
+            f"Bench expected a PEFT model but got {type(m)}. Refusing to save full model. ({label})"
+        )
+
+    # Save adapter weights/config (small)
+    try:
+        m.save_pretrained(out, safe_serialization=True)
+    except TypeError:
+        # Older peft versions may not accept safe_serialization
+        m.save_pretrained(out)
+
+    # Sanity: ensure audit inputs exist
+    cfg = out / "adapter_config.json"
+    if not cfg.exists():
+        raise RuntimeError(f"Adapter save succeeded but adapter_config.json missing at: {cfg} ({label})")
+
+    # adapter_model.* name differs by serializer; prefer safetensors but accept either
+    safetensors_path = out / "adapter_model.safetensors"
+    bin_path = out / "adapter_model.bin"
+    if not safetensors_path.exists() and not bin_path.exists():
+        raise RuntimeError(
+            f"Adapter save succeeded but adapter_model.(safetensors|bin) missing in: {out} ({label})"
+        )
+
+    return out
+
+
 def _get_probe_quality_threshold(task_name: str) -> float:
     """
     Get task-specific minimum probe accuracy threshold for compression certification.
@@ -490,6 +544,9 @@ def run_probe_training(
     print(f"Device: {device}")
     
     trainer.train()
+
+    # Ensure adapter exists on disk for audit (save_strategy may be "no")
+    _save_peft_adapter_only(trainer, model, probe_dir, label="probe")
     
     # Evaluate final model using task profile
     eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
@@ -504,6 +561,11 @@ def run_probe_training(
     )
     
     # Step 3.3: Run audit and write audit.json
+    # Guard: ensure adapter weights exist before auditing
+    probe_dir_path = Path(probe_dir)
+    if not (probe_dir_path / "adapter_config.json").exists():
+        raise RuntimeError(f"Probe adapter_config.json missing at {probe_dir_path}. Cannot audit.")
+    
     print("Running LoRA audit...")
     audit_json_path = run_probe_audit(
         probe_dir=probe_dir,
@@ -1127,6 +1189,9 @@ def run_compressed_variant_training(
     print(f"Device: {device}")
     
     trainer.train()
+
+    # Ensure adapter exists on disk for audit (save_strategy may be "no")
+    _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
     
     # Evaluate final model
     eval_results = trainer.evaluate()

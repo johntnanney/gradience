@@ -26,6 +26,8 @@ jobs:
           python -m pip install -U pip
           # Prefer dev extras if present; if not, replace with `pip install -e .`
           python -m pip install -e ".[dev]"
+          # Add dependencies for bench protocol and GSM8K tests
+          python -m pip install datasets transformers>=4.20.0 peft>=0.4.0
 
       - name: Syntax check (py_compile)
         run: |
