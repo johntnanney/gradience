@@ -393,8 +393,12 @@ def run_probe_audit(
     # Convert audit result to dict for JSON serialization
     audit_summary = audit_result.to_summary_dict()
     
+    # Add the probe rank to the audit summary for rank suggestion
+    probe_rank = config["lora"]["probe_r"]
+    audit_summary["current_r"] = probe_rank
+    
     # Debug: Check if summary has required fields
-    print(f"Debug: audit_summary has stable_rank_mean={audit_summary.get('stable_rank_mean')}, utilization_mean={audit_summary.get('utilization_mean')}")
+    print(f"Debug: audit_summary has stable_rank_mean={audit_summary.get('stable_rank_mean')}, utilization_mean={audit_summary.get('utilization_mean')}, current_r={audit_summary.get('current_r')}")
     
     # Generate additional global rank suggestions
     try:
