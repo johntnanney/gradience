@@ -26,6 +26,8 @@ jobs:
           python -m pip install -U pip
           # Prefer dev extras if present; if not, replace with `pip install -e .`
           python -m pip install -e ".[dev]"
+          # Add datasets dependency for bench protocol tests
+          python -m pip install datasets
 
       - name: Syntax check (py_compile)
         run: |
