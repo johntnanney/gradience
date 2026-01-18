@@ -595,7 +595,7 @@ def run_probe_training(
             "params": trainable_params,
             "total_params": total_params,
             "accuracy": eval_results["eval_accuracy"],
-            "eval_loss": eval_results["eval_loss"],
+            "eval_loss": eval_results.get("eval_loss"),
             "output_dir": str(probe_dir)
         }
     }
@@ -1246,7 +1246,7 @@ def run_compressed_variant_training(
                 "params": trainable_params,
                 "total_params": total_params,
                 "accuracy": eval_results["eval_accuracy"],
-                "eval_loss": eval_results["eval_loss"],
+                "eval_loss": eval_results.get("eval_loss"),
                 "output_dir": str(variant_dir),
                 "rank_check": rank_check_result
             }
@@ -1270,7 +1270,7 @@ def run_compressed_variant_training(
         "params": trainable_params,
         "total_params": total_params,
         "accuracy": eval_results["eval_accuracy"],
-        "eval_loss": eval_results["eval_loss"],
+        "eval_loss": eval_results.get("eval_loss"),
         "output_dir": str(variant_dir)
     }
     
