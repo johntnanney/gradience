@@ -1118,44 +1118,21 @@ def run_compressed_variant_training(
     # Setup model and tokenizer with compressed configuration
     tokenizer, model = setup_compressed_model_and_tokenizer(config, compression_config, device=device)
     
-    # Preprocess dataset
-    tokenized_dataset = dataset.map(
-        lambda examples: preprocess_function(examples, tokenizer),
-        batched=True,
-        remove_columns=[col for col in dataset["train"].column_names if col not in ["labels", "label"]]
-    )
+    # Get task profile and preprocess dataset
+    task_profile = get_task_profile_from_config(config)
+    tokenized_dataset = task_profile.tokenize(dataset, tokenizer, config)
     
-    # Setup training arguments
+    # Apply smoke test limits to training config
     train_config = config["train"]
     runtime_config = config.get("runtime", {})
     
-    max_steps = train_config["max_steps"]
     if smoke:
         max_steps = runtime_config.get("smoke_max_steps", 50)
-    
-    training_args = TrainingArguments(
-        output_dir=str(variant_dir),
-        num_train_epochs=1,  # We use max_steps instead
-        max_steps=max_steps,
-        per_device_train_batch_size=train_config["per_device_train_batch_size"],
-        per_device_eval_batch_size=train_config["per_device_eval_batch_size"],
-        eval_steps=train_config["eval_steps"],
-        eval_strategy="steps",
-        save_steps=train_config["eval_steps"],
-        learning_rate=train_config["lr"],
-        weight_decay=train_config["weight_decay"],
-        logging_dir=str(variant_dir / "logs"),
-        logging_steps=10,
-        seed=train_config["seed"],
-        data_seed=train_config["seed"],
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_accuracy",
-        report_to=[],  # Disable wandb/tensorboard
-        remove_unused_columns=False,
-    )
-    
-    # Setup data collator
-    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+        # Create modified config for smoke test
+        modified_config = config.copy()
+        modified_config["train"] = train_config.copy()
+        modified_config["train"]["max_steps"] = max_steps
+        config = modified_config
     
     # Setup Gradience callback
     callback_config = GradienceCallbackConfig(
@@ -1164,27 +1141,18 @@ def run_compressed_variant_training(
     )
     gradience_callback = GradienceCallback(callback_config)
     
-    # Compute metrics function
-    def compute_metrics(eval_pred):
-        predictions, labels = eval_pred
-        predictions = predictions.argmax(axis=-1)
-        accuracy = float((predictions == labels).mean())
-        return {"accuracy": accuracy}
-    
-    # Setup datasets
-    eval_dataset = tokenized_dataset.get("validation", tokenized_dataset["train"])
-    
-    # Setup trainer
-    trainer = Trainer(
+    # Build trainer using task profile
+    trainer = task_profile.build_trainer(
         model=model,
-        args=training_args,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=eval_dataset,
         tokenizer=tokenizer,
-        data_collator=data_collator,
-        compute_metrics=compute_metrics,
-        callbacks=[gradience_callback],
+        tokenized_ds=tokenized_dataset,
+        cfg=config,
+        callbacks=[gradience_callback]
     )
+    
+    # Update trainer output dir to variant directory
+    trainer.args.output_dir = str(variant_dir)
+    trainer.args.logging_dir = str(variant_dir / "logs")
     
     # Train the model
     print(f"Starting {variant_name} training (r={actual_r})...")
@@ -1197,11 +1165,11 @@ def run_compressed_variant_training(
     # Ensure adapter exists on disk for audit (save_strategy may be "no")
     _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
     
-    # Evaluate final model
-    eval_results = trainer.evaluate()
+    # Evaluate final model using task profile
+    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
     
-    # Write eval.json for this variant
-    eval_dataset_size = len(eval_dataset)
+    # Write eval.json for this variant  
+    eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
     eval_json_path = write_probe_eval_json(
         probe_dir=variant_dir,
         eval_results=eval_results,
