@@ -1126,6 +1126,7 @@ def run_compressed_variant_training(
     train_config = config["train"]
     runtime_config = config.get("runtime", {})
     
+    max_steps = train_config.get("max_steps", 1500)
     if smoke:
         max_steps = runtime_config.get("smoke_max_steps", 50)
         # Create modified config for smoke test
