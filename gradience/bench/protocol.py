@@ -611,7 +611,11 @@ def run_probe_training(
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
     print(f"Probe training complete!")
-    print(f"Final accuracy: {eval_results['eval_accuracy']:.4f}")
+    
+    # Support both accuracy (seqcls) and exact_match (causal_lm) metrics
+    accuracy = eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match", 0.0)
+    print(f"Final accuracy: {accuracy:.4f}")
+    
     print(f"Trainable parameters: {trainable_params:,}")
     print(f"Total parameters: {total_params:,}")
     print(f"Telemetry written to: {probe_dir / 'run.jsonl'}")
@@ -624,7 +628,7 @@ def run_probe_training(
             "rank": config["lora"]["probe_r"],
             "params": trainable_params,
             "total_params": total_params,
-            "accuracy": eval_results["eval_accuracy"],
+            "accuracy": accuracy,
             "eval_loss": eval_results.get("eval_loss"),
             "output_dir": str(probe_dir)
         }
@@ -1393,7 +1397,14 @@ def compute_verdicts(
     
     # Probe quality gating using task profile
     task_profile = get_task_profile_from_config(config)
-    probe_passed, gate_info = task_profile.probe_gate({"eval_accuracy": probe_accuracy}, config)
+    
+    # Load the original probe evaluation results for probe_gate
+    probe_rank = config["lora"]["probe_r"]
+    probe_eval_path = output_path / f"probe_r{probe_rank}" / "eval.json"
+    with open(probe_eval_path, 'r') as f:
+        probe_eval_results = json.load(f)
+    
+    probe_passed, gate_info = task_profile.probe_gate(probe_eval_results, config)
     probe_quality_threshold = gate_info["threshold"]
     
     if not probe_passed:
