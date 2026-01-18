@@ -227,20 +227,50 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
     if not HAS_TRAINING_DEPS:
         raise ImportError("Training dependencies not available (transformers, peft)")
     
-    model_name = config["model"]["name"]
+    model_config = config["model"]
+    model_name = model_config["name"]
+    model_type = model_config.get("type", "seqcls")
     base_lora_config = config["lora"]
     variant_config = compression_config["config"]
     
-    # Load tokenizer and model
+    # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        num_labels=2,  # SST-2 is binary classification
-        torch_dtype=torch.float32 if device == "cpu" else torch.float16
-    )
+    # Determine torch dtype
+    torch_dtype_str = model_config.get("torch_dtype", "auto")
+    if torch_dtype_str == "bf16":
+        torch_dtype = torch.bfloat16 if device != "cpu" else torch.float32
+    elif torch_dtype_str == "fp16":
+        torch_dtype = torch.float16 if device != "cpu" else torch.float32
+    else:
+        torch_dtype = torch.float32 if device == "cpu" else torch.float16
+    
+    # Load model based on type
+    if model_type == "causal_lm":
+        from transformers import AutoModelForCausalLM
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch_dtype,
+            device_map="auto" if device == "cuda" else None
+        )
+        
+        # Configure for training
+        if model_config.get("gradient_checkpointing", False):
+            model.gradient_checkpointing_enable()
+        if not model_config.get("use_cache", True):
+            model.config.use_cache = False
+            
+        task_type = TaskType.CAUSAL_LM
+    else:
+        # Default to sequence classification
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name,
+            num_labels=2,  # Default binary classification
+            torch_dtype=torch_dtype
+        )
+        task_type = TaskType.SEQ_CLS
     
     # Setup compressed LoRA configuration
     if compression_config["variant"] == "per_layer":
@@ -285,7 +315,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         min_rank = min(full_rank_pattern.values())
         
         peft_config = LoraConfig(
-            task_type=TaskType.SEQ_CLS,
+            task_type=task_type,
             inference_mode=False,
             r=min_rank,  # Use min rank as default
             lora_alpha=min_rank,  # Use min alpha as default
@@ -297,7 +327,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
     else:
         # Uniform configuration (uniform_median, uniform_p90)
         peft_config = LoraConfig(
-            task_type=TaskType.SEQ_CLS,
+            task_type=task_type,
             inference_mode=False,
             r=variant_config["probe_r"],
             lora_alpha=variant_config["alpha"],
@@ -714,18 +744,27 @@ def generate_compression_configs(
     else:
         rank_pattern = per_layer_suggestions["rank_pattern"]
         
-        # Safety checks
+        # Clamp ranks to probe rank and allowed ranks
+        clamped_rank_pattern = {}
+        for module_name, suggested_r in rank_pattern.items():
+            # First clamp to probe rank
+            clamped_r = min(suggested_r, probe_rank)
+            # Then round to nearest allowed rank
+            if clamped_r in allowed_ranks:
+                clamped_rank_pattern[module_name] = clamped_r
+            else:
+                # Find nearest allowed rank that doesn't exceed probe rank
+                valid_allowed_ranks = [r for r in allowed_ranks if r <= probe_rank]
+                if valid_allowed_ranks:
+                    clamped_rank_pattern[module_name] = max([r for r in valid_allowed_ranks if r <= clamped_r] or [min(valid_allowed_ranks)])
+                else:
+                    clamped_rank_pattern[module_name] = 0
+        
+        # Update rank_pattern with clamped values
+        rank_pattern = clamped_rank_pattern
+        
+        # Safety checks after clamping
         issues = []
-        
-        # Check 1: All suggested ranks in allowed ranks
-        for module_name, suggested_r in rank_pattern.items():
-            if suggested_r not in allowed_ranks:
-                issues.append(f"Module {module_name} suggested rank {suggested_r} not in allowed_ranks {allowed_ranks}")
-        
-        # Check 2: No rank > probe rank
-        for module_name, suggested_r in rank_pattern.items():
-            if suggested_r > probe_rank:
-                issues.append(f"Module {module_name} suggested rank {suggested_r} > probe rank {probe_rank}")
         
         # Check 3: At least 1 adapted layer (not all zero/inactive)
         active_layers = [r for r in rank_pattern.values() if r > 0]
