@@ -1378,6 +1378,7 @@ def compute_verdicts(
     probe_results: Dict[str, Any],
     variant_results: Dict[str, Dict[str, Any]],
     config: Dict[str, Any],
+    output_path: Path,
     smoke: bool = False
 ) -> Dict[str, Any]:
     """
@@ -2030,6 +2031,7 @@ def run_bench_protocol(
         probe_results=probe_results,
         variant_results=variant_results,
         config=config,
+        output_path=output_path,
         smoke=smoke
     )
     
