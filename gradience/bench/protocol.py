@@ -379,10 +379,13 @@ def write_probe_eval_json(
     # Add task-specific metrics
     if "eval_exact_match" in eval_results:
         eval_data["exact_match"] = eval_results["eval_exact_match"]
+        eval_data["eval_exact_match"] = eval_results["eval_exact_match"]  # Preserve original key for probe_gate
     if "eval_correct" in eval_results:
         eval_data["correct"] = eval_results["eval_correct"]
+        eval_data["eval_correct"] = eval_results["eval_correct"]  # Preserve original key for probe_gate
     if "eval_total" in eval_results:
         eval_data["total"] = eval_results["eval_total"]
+        eval_data["eval_total"] = eval_results["eval_total"]  # Preserve original key for probe_gate
     
     eval_path = probe_dir / "eval.json"
     with open(eval_path, 'w') as f:
