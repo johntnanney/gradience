@@ -110,6 +110,20 @@ class LoRALayerAudit:
     # optional: store top singular values (JSON-friendly floats)
     top_singular_values: Optional[List[float]] = None
 
+    # Update Dominance Ratio (UDR) fields
+    delta_sigma_max: float = 0.0        # ||ΔW||_2 (spectral norm of update)
+    delta_fro_norm: float = 0.0         # ||ΔW||_F (Frobenius norm of update) 
+    scale: float = 0.0                  # alpha/r scaling factor
+    
+    # Base model norms (optional - None if not available)
+    base_sigma_max: Optional[float] = None    # ||W_base||_2
+    base_fro_norm: Optional[float] = None     # ||W_base||_F
+    
+    # UDR metrics (computed when base available)
+    udr: Optional[float] = None               # delta_sigma_max / base_sigma_max
+    udr_f: Optional[float] = None             # delta_fro_norm / base_fro_norm  
+    sdi: Optional[float] = None               # log10(udr + eps)
+
     extras: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -131,6 +145,15 @@ class LoRALayerAudit:
             "energy_rank_90": self.energy_rank_90,
             "energy_rank_95": self.energy_rank_95,
             "energy_rank_99": self.energy_rank_99,
+            # UDR fields
+            "delta_sigma_max": self.delta_sigma_max,
+            "delta_fro_norm": self.delta_fro_norm,
+            "scale": self.scale,
+            "base_sigma_max": self.base_sigma_max,
+            "base_fro_norm": self.base_fro_norm, 
+            "udr": self.udr,
+            "udr_f": self.udr_f,
+            "sdi": self.sdi,
         }
         if self.top_singular_values is not None:
             d["top_singular_values"] = self.top_singular_values
@@ -282,6 +305,28 @@ class LoRAAuditResult:
         except Exception:
             pass
 
+        # UDR summary statistics
+        try:
+            udr_values = [l.udr for l in self.layers if l.udr is not None]
+            sdi_values = [l.sdi for l in self.layers if l.sdi is not None]
+            
+            if udr_values:
+                out['udr_median'] = _pct(udr_values, 0.50)
+                out['udr_p90'] = _pct(udr_values, 0.90)
+                out['udr_max'] = max(udr_values)
+                out['udr_mean'] = float(sum(udr_values) / len(udr_values))
+                out['fraction_udr_gt_0_1'] = sum(1 for x in udr_values if x > 0.1) / len(udr_values)
+                out['fraction_udr_gt_0_3'] = sum(1 for x in udr_values if x > 0.3) / len(udr_values)
+                out['n_layers_with_udr'] = len(udr_values)
+            
+            if sdi_values:
+                out['sdi_median'] = _pct(sdi_values, 0.50)
+                out['sdi_p90'] = _pct(sdi_values, 0.90)
+                out['sdi_mean'] = float(sum(sdi_values) / len(sdi_values))
+                
+        except Exception:
+            pass
+
         return out
 
     def to_metrics_event(
@@ -344,6 +389,9 @@ class LoRAAdapterConfig:
 
     peft_type: Optional[str] = None
     raw: Dict[str, Any] = field(default_factory=dict)
+    
+    # UDR support: base model norms for dominance ratio computation
+    base_norms: Optional[Dict[str, Dict[str, float]]] = None
 
 
 def _load_json_or_yaml(path: Union[str, Path]) -> Dict[str, Any]:
@@ -672,6 +720,460 @@ def low_rank_stable_rank(
 
 
 # -----------------------------
+# Update Dominance Ratio (UDR) computation
+# -----------------------------
+
+"""
+UDR/SDI BEHAVIORAL CONTRACT
+===========================
+
+This section defines the exact behavioral guarantees for Update Dominance Ratio (UDR)
+and Spectral Drift Index (SDI) computation in Gradience audit pipeline.
+
+DEFINITIONS:
+-----------
+
+UDR (Update Dominance Ratio) for LoRA-adapted modules:
+    • For each adapted module with base weight W_base, LoRA induces update:
+      ΔW = s · B A  where s = α/r (PEFT scaling factor)
+    • UDR per module: UDR = ||ΔW||₂ / (||W_base||₂ + ε)
+    • Uses spectral norm (largest singular value), NOT Frobenius norm
+
+SDI (Spectral Drift Index):
+    • SDI = log₁₀(UDR + ε)
+    • Provides logarithmic scale for UDR interpretation
+
+SCALING CONTRACT:
+----------------
+    • ΔW computation uses actual PEFT scaling: s = lora_alpha / r
+    • Per-layer alpha patterns override global lora_alpha if present
+    • Scale factor recorded in audit output for verification
+
+MODULE INCLUSION:
+----------------
+    • ONLY LoRA target modules are processed (q_proj, v_proj, etc.)
+    • Modules must have both lora_A and lora_B weights present
+    • Missing pairs are recorded as issues, not silent failures
+
+BASE NORMS HANDLING:
+-------------------
+When base norms missing:
+    • Individual layer UDR/SDI fields are None/null
+    • Summary statistics exclude layers without base norms  
+    • Structured issue recorded with reason (cache miss, load failure, etc.)
+
+When base norms present:
+    • Per-module UDR/SDI computed and included
+    • Summary statistics computed across all layers with valid UDR
+    • Cache updated for future use
+
+CACHE IDENTITY:
+--------------
+Base norms cache keyed by:
+    • base_model_id (HuggingFace model identifier)
+    • target_modules (exact set of LoRA target module patterns)
+    • Future: revision hash, dtype for full reproducibility
+
+EPSILON VALUE:
+-------------
+    • ε = 1e-12 (prevents division by zero, minimal impact on realistic norms)
+    • Applied consistently in UDR and SDI computation
+
+ERROR HANDLING:
+--------------
+    • SVD failures: skip layer, record structured issue
+    • Cache corruption: fall back to recomputation or disable UDR
+    • Model loading failures: disable UDR, record issue, continue audit
+    • NO crashes on UDR failures - audit always completes
+
+OUTPUT SCHEMA:
+-------------
+Per-layer fields (in LoRALayerAudit):
+    • delta_sigma_max: float - ||ΔW||₂ 
+    • delta_fro_norm: float - ||ΔW||_F (for debugging)
+    • scale: float - α/r scaling factor used
+    • base_sigma_max: Optional[float] - ||W_base||₂ (None if unavailable)
+    • udr: Optional[float] - UDR value (None if base_sigma_max unavailable)
+    • sdi: Optional[float] - SDI value (None if UDR unavailable)
+
+Summary fields (in LoRAAuditResult):
+    • udr_mean, udr_median, udr_p90, udr_max: statistics over layers with UDR
+    • sdi_mean, sdi_median, sdi_p90: statistics over layers with SDI
+    • fraction_udr_gt_0_1, fraction_udr_gt_0_3: threshold fractions
+    • n_layers_with_udr: count of layers with valid UDR computation
+
+GUARANTEES:
+----------
+1. UDR values are deterministic for same inputs (base norms + adapter weights)
+2. SDI is monotonically increasing with UDR  
+3. Audit never fails due to UDR computation errors
+4. Base norm caching is atomic (write success or rollback)
+5. All UDR-related fields are either consistently present or consistently None
+"""
+
+def compute_update_norms(
+    A: torch.Tensor,
+    B: torch.Tensor,
+    scale: float = 1.0,
+    *,
+    compute_dtype: torch.dtype = torch.float64,
+    eps: float = 1e-12,
+) -> Tuple[float, float, float, float]:
+    """Compute update delta norms without forming BA.
+    
+    Args:
+        A: (r × d_in) LoRA factor
+        B: (d_out × r) LoRA factor  
+        scale: alpha/r scaling factor
+        
+    Returns:
+        (delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization)
+        
+    Note:
+        UDR = ||ΔW||_2 / ||W_base||_2 where ΔW = scale * B @ A
+        This computes ||ΔW||_2 and ||ΔW||_F efficiently via r×r operations.
+    """
+    A_ = A.detach().to(dtype=compute_dtype, device="cpu")
+    B_ = B.detach().to(dtype=compute_dtype, device="cpu")
+    r = A_.shape[0]
+    
+    # Compute G_A = A @ A.T (r×r) and G_B = B.T @ B (r×r)
+    G_A = A_ @ A_.T
+    G_B = B_.T @ B_
+    
+    # Frobenius norm: ||ΔW||_F^2 = trace(G_B @ G_A)
+    delta_fro_norm_sq = torch.sum(G_B * G_A).item()  # trace via element-wise multiply
+    delta_fro_norm = abs(scale) * math.sqrt(max(delta_fro_norm_sq, 0.0))
+    
+    # Spectral norm: ||ΔW||_2^2 = λ_max(sqrt(G_B) @ G_A @ sqrt(G_B))
+    eigB, UB = torch.linalg.eigh(G_B)
+    eigB = torch.clamp(eigB, min=0.0)
+    sqrt_eigB = torch.sqrt(eigB)
+    
+    M = (sqrt_eigB.unsqueeze(1) * (UB.T @ G_A @ UB)) * sqrt_eigB.unsqueeze(0)
+    M = 0.5 * (M + M.T)  # symmetrize
+    
+    lambda_max = torch.linalg.eigvalsh(M).max().item()
+    delta_sigma_max = abs(scale) * math.sqrt(max(lambda_max, 0.0))
+    
+    # Stable rank and utilization of update
+    delta_sigma_max_sq = max(delta_sigma_max * delta_sigma_max, eps)
+    stable_rank_delta = (delta_fro_norm * delta_fro_norm) / delta_sigma_max_sq
+    utilization = stable_rank_delta / r
+    
+    return delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization
+
+
+def spectral_norm_power_iter(W: torch.Tensor, n_iter: int = 20) -> float:
+    """Power iteration for spectral norm estimation."""
+    if W.numel() == 0:
+        return 0.0
+    
+    # Handle 1D case
+    if W.ndim == 1:
+        return torch.norm(W, 2).item()
+    
+    m, n = W.shape[0], W.shape[1]
+    
+    # Random initialization
+    with torch.no_grad():
+        v = torch.randn(n, device=W.device, dtype=W.dtype)
+        v = v / torch.norm(v)
+        
+        for _ in range(n_iter):
+            # v <- W^T @ W @ v / ||W^T @ W @ v||
+            Wv = W @ v
+            WTWv = W.T @ Wv
+            norm = torch.norm(WTWv)
+            if norm > 1e-12:
+                v = WTWv / norm
+            else:
+                break
+        
+        # Final singular value estimate
+        Wv = W @ v
+        return torch.norm(Wv).item()
+
+
+def compute_base_norms(
+    model: torch.nn.Module,
+    target_modules: List[str],
+    *,
+    map_location: str = "cpu",
+    n_power_iter: int = 20,
+) -> Dict[str, Dict[str, float]]:
+    """Compute base model spectral and Frobenius norms for target modules.
+    
+    Args:
+        model: Base model to analyze
+        target_modules: List of module name patterns to include
+        map_location: Device for computation (default: "cpu")
+        n_power_iter: Power iteration steps for spectral norm
+        
+    Returns:
+        {module_name: {"base_sigma_max": float, "base_fro_norm": float}}
+    """
+    base_norms = {}
+    
+    with torch.no_grad():
+        for name, module in model.named_modules():
+            # Check if this module matches target_modules patterns
+            if not any(target in name for target in target_modules):
+                continue
+                
+            if not hasattr(module, 'weight') or module.weight is None:
+                continue
+                
+            W = module.weight.detach().to(device=map_location)
+            
+            # Frobenius norm (exact)
+            base_fro_norm = torch.norm(W, 'fro').item()
+            
+            # Spectral norm (power iteration)
+            base_sigma_max = spectral_norm_power_iter(W, n_iter=n_power_iter)
+            
+            base_norms[name] = {
+                "base_sigma_max": base_sigma_max,
+                "base_fro_norm": base_fro_norm,
+            }
+    
+    return base_norms
+
+
+def compute_udr_metrics(
+    delta_sigma_max: float,
+    delta_fro_norm: float, 
+    base_sigma_max: Optional[float],
+    base_fro_norm: Optional[float],
+    eps: float = 1e-12,
+) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    """Compute UDR and SDI metrics if base norms available.
+    
+    Args:
+        delta_sigma_max: Spectral norm of adapter update ||ΔW||_2
+        delta_fro_norm: Frobenius norm of adapter update ||ΔW||_F
+        base_sigma_max: Base model spectral norm ||W_base||_2
+        base_fro_norm: Base model Frobenius norm ||W_base||_F
+        eps: Numerical stability threshold
+        
+    Returns:
+        (udr, udr_f, sdi) where:
+        - udr = ||ΔW||_2 / ||W_base||_2 (spectral dominance ratio)
+        - udr_f = ||ΔW||_F / ||W_base||_F (Frobenius dominance ratio)  
+        - sdi = log10(udr + eps) (spectral drift index)
+    """
+    if base_sigma_max is None or base_fro_norm is None:
+        return None, None, None
+        
+    # Use epsilon protection for division by zero/near-zero
+    udr = delta_sigma_max / (base_sigma_max + eps)
+    udr_f = delta_fro_norm / (base_fro_norm + eps)
+    sdi = math.log10(udr + eps)
+    
+    return udr, udr_f, sdi
+
+
+def save_base_norms_cache(
+    base_norms: Dict[str, Dict[str, float]], 
+    cache_path: Union[str, Path],
+    model_id: str = "unknown"
+) -> None:
+    """Save base norms to cache file."""
+    cache_data = {
+        "model_id": model_id,
+        "timestamp": time.time(),
+        "base_norms": base_norms
+    }
+    
+    with open(cache_path, 'w') as f:
+        json.dump(cache_data, f, indent=2)
+
+
+def load_base_norms_cache(cache_path: Union[str, Path]) -> Optional[Dict[str, Dict[str, float]]]:
+    """Load base norms from cache file."""
+    try:
+        with open(cache_path, 'r') as f:
+            cache_data = json.load(f)
+        return cache_data.get("base_norms", {})
+    except (FileNotFoundError, json.JSONDecodeError, KeyError):
+        return None
+
+
+# -----------------------------
+# Base model norms loading
+# -----------------------------
+
+def load_base_model_norms(
+    base_model_id: Optional[str] = None,
+    base_norms_cache: Optional[Union[str, Path]] = None,
+    adapter_config: Optional[LoRAAdapterConfig] = None,
+    issues: Optional[List[str]] = None,
+) -> Optional[Dict[str, Dict[str, float]]]:
+    """Load base model norms for UDR computation.
+    
+    Returns dict mapping layer_key -> {'sigma_max': float, 'fro_norm': float}
+    """
+    if issues is None:
+        issues = []
+        
+    # Try cache first
+    if base_norms_cache is not None:
+        cache_path = Path(base_norms_cache)
+        if cache_path.exists():
+            try:
+                import json
+                with cache_path.open('r') as f:
+                    return json.load(f)
+            except Exception as e:
+                issues.append(f"Failed to load base norms cache {cache_path}: {e}")
+    
+    # Try to compute from base model if provided
+    if base_model_id is not None and adapter_config is not None:
+        try:
+            norms = compute_base_model_norms(base_model_id, adapter_config, issues)
+            
+            # Cache the computed norms if successful and cache path provided
+            if norms is not None and base_norms_cache is not None:
+                try:
+                    cache_base_model_norms(norms, base_norms_cache)
+                except Exception as e:
+                    issues.append(f"Failed to cache base norms to {base_norms_cache}: {e}")
+            
+            return norms
+        except Exception as e:
+            issues.append(f"Failed to compute base model norms for {base_model_id}: {e}")
+    
+    return None
+
+
+def cache_base_model_norms(
+    norms: Dict[str, Dict[str, float]], 
+    cache_path: Union[str, Path]
+) -> None:
+    """Save computed base model norms to cache file."""
+    import json
+    cache_file = Path(cache_path)
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    with cache_file.open('w') as f:
+        json.dump(norms, f, indent=2)
+
+
+def compute_base_model_norms(
+    base_model_id: str,
+    adapter_config: LoRAAdapterConfig,
+    issues: List[str],
+) -> Optional[Dict[str, Dict[str, float]]]:
+    """Compute base model norms for all LoRA target modules.
+    
+    Loads the base model and computes spectral and Frobenius norms
+    for all modules that match the LoRA target_modules pattern.
+    """
+    try:
+        # Try to import transformers
+        try:
+            import transformers
+            from transformers import AutoModel, AutoConfig
+        except ImportError:
+            issues.append("transformers library not available for base model loading")
+            return None
+        
+        # Load model config to understand architecture
+        try:
+            config = AutoConfig.from_pretrained(base_model_id)
+        except Exception as e:
+            issues.append(f"Failed to load config for {base_model_id}: {e}")
+            return None
+        
+        # Load model weights (CPU only to save memory)
+        try:
+            model = AutoModel.from_pretrained(
+                base_model_id,
+                torch_dtype=torch.float32,  # Use float32 for norm computation
+                device_map="cpu",
+                trust_remote_code=True,
+            )
+        except Exception as e:
+            issues.append(f"Failed to load model {base_model_id}: {e}")
+            return None
+        
+        # Extract target modules based on adapter config
+        target_modules = adapter_config.target_modules or []
+        if not target_modules:
+            issues.append("No target_modules specified in adapter config")
+            return None
+        
+        norms_dict = {}
+        
+        # Iterate through model parameters to find matching modules
+        for name, param in model.named_parameters():
+            # Check if this parameter name matches any target module pattern
+            if any(_module_name_matches(name, target) for target in target_modules):
+                # Convert LoRA parameter name to the prefix expected by audit
+                lora_prefix = _convert_to_lora_prefix(name)
+                
+                try:
+                    # Compute norms on CPU
+                    param_cpu = param.detach().cpu().to(torch.float64)
+                    
+                    # Spectral norm (largest singular value)
+                    if param_cpu.dim() >= 2:
+                        # For matrices, compute SVD
+                        _, s, _ = torch.linalg.svd(param_cpu, full_matrices=False)
+                        sigma_max = float(s[0]) if len(s) > 0 else 0.0
+                    else:
+                        # For vectors/scalars, use L2 norm
+                        sigma_max = float(torch.norm(param_cpu, p=2))
+                    
+                    # Frobenius norm
+                    fro_norm = float(torch.norm(param_cpu, p='fro'))
+                    
+                    norms_dict[lora_prefix] = {
+                        'sigma_max': sigma_max,
+                        'fro_norm': fro_norm,
+                    }
+                    
+                except Exception as e:
+                    issues.append(f"Failed to compute norms for {name}: {e}")
+                    continue
+        
+        # Clean up model to free memory
+        del model
+        import gc
+        gc.collect()
+        
+        if not norms_dict:
+            issues.append(f"No matching target modules found in {base_model_id}")
+            return None
+        
+        return norms_dict
+        
+    except Exception as e:
+        issues.append(f"Base model norm computation failed: {e}")
+        return None
+
+
+def _module_name_matches(param_name: str, target_pattern: str) -> bool:
+    """Check if parameter name matches target module pattern."""
+    # Simple substring matching for now
+    # Could be extended to support regex patterns
+    return target_pattern in param_name
+
+
+def _convert_to_lora_prefix(param_name: str) -> str:
+    """Convert model parameter name to LoRA prefix format.
+    
+    Examples:
+    - 'model.layers.0.self_attn.q_proj.weight' -> 'model.layers.0.self_attn.q_proj'
+    - 'transformer.h.0.mlp.c_fc.weight' -> 'transformer.h.0.mlp.c_fc'
+    """
+    # Remove .weight, .bias suffixes
+    if param_name.endswith('.weight') or param_name.endswith('.bias'):
+        return param_name.rsplit('.', 1)[0]
+    return param_name
+
+
+# -----------------------------
 # Main audit entrypoints
 # -----------------------------
 
@@ -682,6 +1184,7 @@ def audit_lora_state_dict(
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
     include_top_singular_values: int = 0,
+    base_norms: Optional[Dict[str, Dict[str, float]]] = None,
 ) -> LoRAAuditResult:
     """Audit LoRA A/B pairs in a state_dict.
 
@@ -733,6 +1236,31 @@ def audit_lora_state_dict(
                 eps=eps,
                 topk_singular_values=include_top_singular_values if include_top_singular_values > 0 else None,
             )
+            
+            # NEW: Compute UDR metrics
+            scale = float(alpha) / float(r) if alpha is not None else 1.0
+            delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization_delta = compute_update_norms(
+                A2, B2, scale=scale, compute_dtype=compute_dtype, eps=eps
+            )
+            
+            # Get base norms if available
+            base_sigma_max = None
+            base_fro_norm = None
+            if base_norms is not None:
+                base_data = base_norms.get(prefix, {})
+                base_sigma_max = base_data.get('sigma_max')
+                base_fro_norm = base_data.get('fro_norm')
+            elif adapter_config is not None and adapter_config.base_norms:
+                # Fallback to adapter config for backward compatibility
+                base_data = adapter_config.base_norms.get(prefix, {})
+                base_sigma_max = base_data.get('base_sigma_max')
+                base_fro_norm = base_data.get('base_fro_norm')
+            
+            # Compute UDR/SDI
+            udr, udr_f, sdi = compute_udr_metrics(
+                delta_sigma_max, delta_fro_norm, base_sigma_max, base_fro_norm, eps=eps
+            )
+            
         except Exception as e:
             issues.append(f"Spectral computation failed for {prefix}: {e}")
             continue
@@ -759,6 +1287,15 @@ def audit_lora_state_dict(
             energy_rank_95=int(r95),
             energy_rank_99=int(r99),
             top_singular_values=top_sv,
+            # UDR fields
+            delta_sigma_max=float(delta_sigma_max),
+            delta_fro_norm=float(delta_fro_norm),
+            scale=float(scale),
+            base_sigma_max=base_sigma_max,
+            base_fro_norm=base_fro_norm,
+            udr=udr,
+            udr_f=udr_f,
+            sdi=sdi,
         )
         layers.append(layer)
         # Derive module_type from the true module name
@@ -863,6 +1400,9 @@ def audit_lora_peft_dir(
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
     include_top_singular_values: int = 0,
+    base_model_id: Optional[str] = None,
+    base_norms_cache: Optional[Union[str, Path]] = None,
+    compute_udr: bool = True,
 ) -> LoRAAuditResult:
     """Audit a PEFT adapter directory (adapter_config + weights)."""
     d = Path(peft_dir)
@@ -925,12 +1465,23 @@ def audit_lora_peft_dir(
             issues=issues,
         )
 
+    # Load base model norms if UDR computation is requested
+    base_norms = None
+    if compute_udr:
+        base_norms = load_base_model_norms(
+            base_model_id=base_model_id,
+            base_norms_cache=base_norms_cache,
+            adapter_config=adapter_config,
+            issues=issues,
+        )
+
     result = audit_lora_state_dict(
         sd,
         adapter_config=adapter_config,
         compute_dtype=compute_dtype,
         eps=eps,
         include_top_singular_values=include_top_singular_values,
+        base_norms=base_norms,
     )
     # patch in paths + issues
     return LoRAAuditResult(

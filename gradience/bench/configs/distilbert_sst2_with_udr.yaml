@@ -1,0 +1,41 @@
+# Sample Bench config with UDR instrumentation enabled
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2"
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 200
+  eval_steps: 50
+  lr: 0.00005
+  weight_decay: 0.0
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+
+lora:
+  probe_r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [1,2,4,8,16,32]
+  acc_tolerance: 0.005
+
+# UDR instrumentation configuration
+audit:
+  base_model: "distilbert-base-uncased"           # Enable UDR computation
+  # base_norms_cache: "/workspace/cache/base_norms" # Optional: custom cache location
+  # compute_udr: false                             # Optional: disable UDR
+
+runtime:
+  device: "cpu"
+  smoke_max_steps: 50
+  smoke_train_samples: 200
+  smoke_eval_samples: 200

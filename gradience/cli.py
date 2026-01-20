@@ -1226,6 +1226,9 @@ def cmd_audit(args: argparse.Namespace) -> None:
             adapter_weights_path=getattr(args, "weights", None),
             map_location="cpu",
             include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
+            base_model_id=getattr(args, "base_model", None),
+            base_norms_cache=getattr(args, "base_norms_cache", None),
+            compute_udr=not getattr(args, "no_udr", False),
         )
         # --- audit --append support ---
         if getattr(args, "append", None):
@@ -1444,6 +1447,24 @@ def main() -> None:
         "--suggest-per-layer",
         action="store_true",
         help="Include per-layer rank suggestions in --json output (requires --layers).",
+    )
+    # UDR/SDI support
+    audit_parser.add_argument(
+        "--base-model",
+        type=str,
+        default=None,
+        help="Base model ID or path for UDR computation (e.g., 'microsoft/DialoGPT-medium')",
+    )
+    audit_parser.add_argument(
+        "--base-norms-cache",
+        type=str,
+        default=None,
+        help="Path to save/load base model norms cache (speeds up repeated audits)",
+    )
+    audit_parser.add_argument(
+        "--no-udr",
+        action="store_true",
+        help="Skip UDR computation even if base model available",
     )
     audit_parser.set_defaults(func=cmd_audit)
 

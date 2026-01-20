@@ -261,6 +261,9 @@ gradience monitor <run.jsonl> [--verbose] [--json]
 # Audit a PEFT adapter directory
 gradience audit --peft-dir <dir> [--top-wasteful N] [--json]
 
+# Audit with Update Dominance Ratio (UDR) metrics
+gradience audit --peft-dir <dir> --base-model <model_name> [--json]
+
 # Append audit stats into an existing run JSONL
 gradience audit --peft-dir <dir> --append <run.jsonl>
 ```
