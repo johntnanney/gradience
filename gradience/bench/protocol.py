@@ -420,8 +420,24 @@ def run_probe_audit(
         audit_dir = probe_dir
         print(f"No checkpoint subdirectories found, using probe_dir: {audit_dir}")
     
+    # Check for UDR configuration  
+    audit_config = config.get("audit", {})
+    base_model_id = audit_config.get("base_model") or config["model"]["name"]
+    base_norms_cache = audit_config.get("base_norms_cache")
+    compute_udr = audit_config.get("compute_udr", True) and base_model_id is not None
+    
+    if compute_udr:
+        print(f"Running audit with UDR computation using base model: {base_model_id}")
+    else:
+        print("Running audit without UDR computation")
+    
     # Run audit on the PEFT directory containing adapter files
-    audit_result = audit_lora_peft_dir(audit_dir)
+    audit_result = audit_lora_peft_dir(
+        audit_dir,
+        base_model_id=base_model_id if compute_udr else None,
+        base_norms_cache=base_norms_cache,
+        compute_udr=compute_udr
+    )
     
     # Convert audit result to dict for JSON serialization
     audit_summary = audit_result.to_summary_dict()
@@ -985,6 +1001,34 @@ def create_canonical_bench_report(
     if best_compression_variant == "per_layer":
         notes.append("per_layer applied successfully (verified via adapter shapes)")
     
+    # Extract UDR instrumentation if available
+    udr_instrumentation = {}
+    if probe_summary.get("n_layers_with_udr", 0) > 0:
+        udr_instrumentation = {
+            "udr_median": probe_summary.get("udr_median"),
+            "udr_p90": probe_summary.get("udr_p90"),
+            "udr_max": probe_summary.get("udr_max"),
+            "fraction_udr_gt_0_3": probe_summary.get("fraction_udr_gt_0_3"),
+            "n_layers_with_udr": probe_summary.get("n_layers_with_udr")
+        }
+        
+        # Add top-5 modules by UDR for debugging value
+        audit_layers = audit_data.get("layers", [])
+        if audit_layers:
+            # Sort layers by UDR, take top 5
+            layers_with_udr = [l for l in audit_layers if l.get("udr") is not None]
+            layers_with_udr.sort(key=lambda x: x["udr"], reverse=True)
+            top_5_modules = [
+                {
+                    "name": layer["name"], 
+                    "udr": round(layer["udr"], 4),
+                    "rank": layer.get("r", "unknown")
+                } 
+                for layer in layers_with_udr[:5]
+            ]
+            if top_5_modules:
+                udr_instrumentation["top_modules"] = top_5_modules
+    
     # Build the canonical report
     report = {
         "bench_version": config.get("bench_version", "0.1"),
@@ -1010,6 +1054,12 @@ def create_canonical_bench_report(
             "notes": notes
         }
     }
+    
+    # Add UDR instrumentation as separate section if available
+    if udr_instrumentation:
+        report["instrumentation"] = {
+            "udr": udr_instrumentation
+        }
     
     return report
 
