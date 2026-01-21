@@ -51,7 +51,33 @@ for seed in "${SEEDS[@]}"; do
     mkdir -p "$seed_output"
     
     # Update config with current seed
-    sed "s/seeds: \[42, 43, 44\]/seed: $seed/" "$CONFIG_FILE" > "${seed_output}/config_seed${seed}.yaml"
+    # Copy the base config and add seed field in train section
+    cp "$CONFIG_FILE" "${seed_output}/config_seed${seed}.yaml"
+    
+    # Add seed to train section using yq or python
+    python3 -c "
+import yaml
+import sys
+
+# Load config
+with open('${seed_output}/config_seed${seed}.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+# Set seed in train section
+if 'train' not in config:
+    config['train'] = {}
+config['train']['seed'] = $seed
+
+# Remove seeds list if it exists
+if 'seeds' in config.get('train', {}):
+    del config['train']['seeds']
+
+# Write back
+with open('${seed_output}/config_seed${seed}.yaml', 'w') as f:
+    yaml.safe_dump(config, f, default_flow_style=False)
+
+print(f'✓ Set seed {$seed} in config')
+"
     
     # Run the benchmark
     echo "Starting gradience bench for seed $seed..."
