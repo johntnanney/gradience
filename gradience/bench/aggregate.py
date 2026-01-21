@@ -32,7 +32,8 @@ def _find_any(seed_dir: Path, pattern: str) -> Optional[Path]:
     matches = sorted(seed_dir.rglob(pattern))
     return matches[0] if matches else None
 
-def _get_probe_accuracy(seed_dir: Path) -> Optional[float]:
+def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
+    """Get probe accuracy and metric key used."""
     # Prefer canonical bench.json
     bj = seed_dir / "bench.json"
     j = _read_json(bj)
@@ -40,7 +41,7 @@ def _get_probe_accuracy(seed_dir: Path) -> Optional[float]:
         probe = j.get("probe") or {}
         acc = probe.get("accuracy")
         if isinstance(acc, (int, float)):
-            return float(acc)
+            return float(acc), "accuracy"
 
     # Fallback: read probe eval.json
     pdir = _find_probe_dir(seed_dir)
@@ -48,21 +49,39 @@ def _get_probe_accuracy(seed_dir: Path) -> Optional[float]:
         ej = pdir / "eval.json"
         e = _read_json(ej)
         if isinstance(e, dict):
-            for k in ("accuracy", "eval_accuracy", "acc"):
+            # Prefer exact_match for GSM8K, accuracy for others
+            for k in ("eval_exact_match", "exact_match", "eval_accuracy", "accuracy", "acc"):
                 v = e.get(k)
                 if isinstance(v, (int, float)):
-                    return float(v)
-    return None
+                    return float(v), k
+    return None, "unknown"
 
-def _probe_gate_threshold(seed_dir: Path, default: float = 0.75) -> float:
-    # If bench.json includes threshold, use it; otherwise default
+def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float:
+    """Get probe quality threshold based on task and metric."""
+    # Check if bench.json includes explicit threshold
     bj = seed_dir / "bench.json"
     j = _read_json(bj)
     if isinstance(j, dict):
+        # New machine-readable format
+        if "probe_quality_gate" in j:
+            return j["probe_quality_gate"].get("min_value", 0.1)
+        
+        # Legacy format
         thr = (j.get("probe") or {}).get("quality_threshold")
         if isinstance(thr, (int, float)):
             return float(thr)
-    return default
+        
+        # Task-based defaults
+        task_name = j.get("task", {}).get("dataset", "").lower()
+        if "gsm8k" in task_name and "exact_match" in metric_key:
+            return 0.10  # GSM8K screening threshold
+        elif "sst2" in task_name or "sst-2" in task_name:
+            return 0.75  # SST-2 threshold
+    
+    # Fallback defaults
+    if "exact_match" in metric_key:
+        return 0.10  # Default for exact match tasks
+    return 0.75  # Default for accuracy tasks
 
 def _telemetry_present(seed_dir: Path) -> bool:
     pdir = _find_probe_dir(seed_dir)
@@ -201,14 +220,25 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
     param_ok = 0
     perlayer_ok = 0
 
-    # Default threshold for SST-2 in your bench policy
     for d in seed_dirs:
         if _telemetry_present(d):
             tele_ok += 1
 
-        acc = _get_probe_accuracy(d)
-        thr = _probe_gate_threshold(d, default=0.75)
-        if acc is not None and acc >= thr:
+        # Check for machine-readable probe quality gate first
+        bj = d / "bench.json"
+        probe_gate_passed = False
+        bench_data = _read_json(bj)
+        
+        if isinstance(bench_data, dict) and "probe_quality_gate" in bench_data:
+            # Use new machine-readable format
+            probe_gate_passed = bench_data["probe_quality_gate"].get("passed", False)
+        else:
+            # Fallback to computing from eval data
+            acc, metric_key = _get_probe_accuracy(d)
+            thr = _probe_gate_threshold(d, metric_key)
+            probe_gate_passed = acc is not None and acc >= thr
+        
+        if probe_gate_passed:
             gate_ok += 1
 
         if _audit_present(d):
