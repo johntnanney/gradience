@@ -3,9 +3,12 @@
 # beyond simple compression through controlled comparison with shuffled variant
 
 # Fixed Experimental Invariants (DO NOT CHANGE)
-model_id: "mistralai/Mistral-7B-v0.1"
+model:
+  name: "mistralai/Mistral-7B-v0.1"
+  type: "causal_lm"
 task: 
   dataset: "gsm8k"
+  subset: "main"
   profile: "gsm8k_causal_lm"
   
 train:
