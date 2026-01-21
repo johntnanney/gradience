@@ -1,0 +1,164 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2024-01-15T10:30:45.123456",
+  "git_commit": "a1b2c3d4e5f6789012345678901234567890abcd",
+  "env": {
+    "python_version": "3.10.12",
+    "python_implementation": "CPython",
+    "platform": "Linux-5.15.0-91-generic-x86_64-with-glibc2.35",
+    "architecture": "64bit",
+    "hostname": "gpu-node-01",
+    "torch_version": "2.1.0+cu118",
+    "transformers_version": "4.35.2",
+    "peft_version": "0.7.1",
+    "datasets_version": "2.14.6",
+    "accelerate_version": "0.25.0",
+    "safetensors_version": "0.4.1",
+    "numpy_version": "1.24.3",
+    "cuda_available": true,
+    "cuda_version": "11.8",
+    "cudnn_version": 8700,
+    "cuda_device_count": 1,
+    "gpu_devices": [
+      {
+        "device_id": 0,
+        "name": "NVIDIA GeForce RTX 4090",
+        "total_memory": 25757220864,
+        "major": 8,
+        "minor": 9,
+        "multi_processor_count": 128
+      }
+    ],
+    "current_cuda_device": 0,
+    "cuda_memory_allocated": 2147483648,
+    "cuda_memory_reserved": 4294967296,
+    "environment_variables": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "HF_HOME": "/workspace/hf_cache/hf_home",
+      "TORCH_HOME": "/workspace/torch_cache"
+    },
+    "git_commit": "a1b2c3d4e5f6789012345678901234567890abcd",
+    "git_tag": "v0.4.4",
+    "model_info": {
+      "model_id": "microsoft/DialoGPT-small",
+      "revision": "f6d5bc5e5cd1c5a8e2e8b8f5b7b6e3d5c6a1d9e7",
+      "last_modified": "2023-10-15T14:22:31.000Z"
+    },
+    "dataset_info": {
+      "dataset_id": "gsm8k",
+      "revision": "b6c6b8e2c3a5f7e8e9d4c2b1a9e8f7d6c5b4a3e2",
+      "last_modified": "2023-09-20T09:15:42.000Z",
+      "split_sizes": {
+        "train": 7473,
+        "test": 1319
+      },
+      "requested_split": "train"
+    },
+    "validation_classification": {
+      "level": "smoke",
+      "confidence": "medium",
+      "rationale": "Single seed run with minimal evaluation"
+    }
+  },
+  "model": "microsoft/DialoGPT-small",
+  "task": "gsm8k/main",
+  "probe_quality_gate": {
+    "metric_key": "eval_exact_match",
+    "metric_value": 0.2156,
+    "min_value": 0.15,
+    "passed": true
+  },
+  "probe": {
+    "rank": 16,
+    "params": 442368,
+    "accuracy": 0.2156,
+    "utilization_mean": 0.7234,
+    "energy_rank_90_p50": 6.8,
+    "energy_rank_90_p90": 11.2,
+    "suggested_r_global_median": 8,
+    "suggested_r_global_90": 12
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 8,
+      "params": 221184,
+      "accuracy": 0.2089,
+      "delta_vs_probe": -0.0067,
+      "param_reduction": 0.5,
+      "verdict": "PASS"
+    },
+    "uniform_p90": {
+      "rank": 12,
+      "params": 331776,
+      "accuracy": 0.2134,
+      "delta_vs_probe": -0.0022,
+      "param_reduction": 0.25,
+      "verdict": "PASS"
+    }
+  },
+  "summary": {
+    "recommendations_validated": true,
+    "best_compression": {
+      "variant": "uniform_median",
+      "param_reduction": 0.5,
+      "accuracy_retention": 0.969
+    },
+    "notes": [
+      "Probe quality gate passed (0.216 ≥ 0.15)",
+      "Both compression variants achieved PASS verdict",
+      "Median rank suggestion (r=8) provides 50% parameter reduction",
+      "Conservative compression maintains 96.9% of probe accuracy"
+    ]
+  },
+  "config_metadata": {
+    "primary_metric_key": "eval_exact_match",
+    "config_hash": "a7f3e8c9b2d15f47",
+    "embedded_config": {
+      "bench_version": "0.1",
+      "model": {
+        "name": "microsoft/DialoGPT-small",
+        "type": "causal_lm"
+      },
+      "task": {
+        "dataset": "gsm8k",
+        "subset": "main",
+        "profile": "gsm8k_causal_lm",
+        "eval_max_samples": 100,
+        "probe_gate": {
+          "metric": "exact_match",
+          "min_value": 0.15
+        }
+      },
+      "lora": {
+        "probe_r": 16,
+        "alpha": 16,
+        "target_modules": [
+          "c_attn",
+          "c_proj"
+        ],
+        "dropout": 0.1
+      },
+      "train": {
+        "train_samples": 500,
+        "batch_size": 4,
+        "learning_rate": 0.0001,
+        "num_epochs": 3,
+        "seed": 42,
+        "save_steps": 100,
+        "eval_steps": 50,
+        "logging_steps": 10
+      }
+    }
+  },
+  "protocol_invariants": {
+    "probe_quality_gate": {
+      "status": "PASSED",
+      "message": "Probe accuracy 0.216 meets minimum threshold 0.15"
+    },
+    "compression_validation": {
+      "status": "COMPLETED",
+      "variants_tested": 2,
+      "variants_passed": 2
+    }
+  }
+}

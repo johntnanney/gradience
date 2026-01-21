@@ -348,8 +348,71 @@ latest_test = r.latest_eval(split="test")
 
 ---
 
+## API stability
+
+Gradience is an applied research codebase with a strong preference for **reproducible outputs** over frozen internals.
+To keep things usable without blocking refactors, we define "stable surfaces" in tiers.
+
+### ✅ Stable (public API)
+
+These are the interfaces we aim to keep backward-compatible across minor releases (and will call out loudly if we break):
+
+**Command-line interfaces**
+- `gradience audit ...`
+- `gradience monitor ...`
+- `python -m gradience.bench.run_bench --config <yaml> --output <dir>`
+- `python -m gradience.bench.aggregate <run_dir>... --output <dir>`
+
+**Bench config schema**
+- The top-level structure and semantics of Bench YAML configs (e.g., `model`, `task`, `lora`, `train`, `compression`, `runtime`, `seed`).
+
+**Canonical artifacts (schema + meaning of core keys)**
+- `audit.json`
+- `bench.json`, `bench.md`
+- `bench_aggregate.json`, `bench_aggregate.md`
+
+We may add new fields freely, but we avoid renaming/removing core keys without a clear migration path.
+
+**Python wrappers**
+- `gradience.api` (thin wrappers around the stable CLI/module entrypoints).
+  If you want to call Gradience from Python, prefer this module over importing internal utilities.
+
+### 🟨 Provisional (public, but may evolve)
+
+These are intended for external use, but may change as we learn what's actually needed:
+
+- `gradience.vnext.integrations.hf.GradienceCallback` (Hugging Face Trainer integration)
+- `gradience.bench.task_profiles.*` (task/model routing and evaluation abstraction)
+
+We'll document changes in release notes, but we reserve the right to adjust these interfaces more aggressively than the "Stable" tier.
+
+### 🧪 Experimental (opt-in, not guaranteed)
+
+- Anything under `gradience/vnext/experimental/*` (e.g., Guard prototypes)
+- Features labeled experimental in docstrings/README
+
+These may change, move, or be removed without notice. Use only if you're willing to validate behavior yourself.
+
+### 🚫 Internal (no compatibility promise)
+
+Everything else is internal implementation detail, including (but not limited to):
+- `gradience.bench.protocol` and helper functions
+- low-level spectral utilities and telemetry plumbing
+
+If you import these directly, you're depending on internals and should expect breakage.
+
+### Reproducibility tip
+
+For published results, pin a tag:
+- `pip install git+https://github.com/johntnanney/gradience.git@vX.Y.Z`
+
+and cite the corresponding `bench_aggregate.json/md` artifacts.
+
+---
+
 ## Documentation
 
+- **API stability guide:** `docs/api_stability.md` (stable interfaces and migration patterns)
 - **User manual:** `USER_MANUAL.md`
 - **Quick reference:** `QUICK_REFERENCE.md`
 - **Telemetry contract:** `gradience/vnext/SCHEMA.md`

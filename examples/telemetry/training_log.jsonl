@@ -1,0 +1,23 @@
+{"timestamp": "2024-01-15T10:30:45.123Z", "event": "training_start", "data": {"model": "microsoft/DialoGPT-small", "dataset": "gsm8k", "lora_config": {"r": 16, "alpha": 16, "target_modules": ["c_attn", "c_proj"]}, "train_samples": 500, "seed": 42}}
+{"timestamp": "2024-01-15T10:30:47.234Z", "event": "model_loaded", "data": {"model_size_mb": 118, "trainable_params": 442368, "total_params": 117232384, "trainable_percentage": 0.377}}
+{"timestamp": "2024-01-15T10:30:50.456Z", "event": "dataset_loaded", "data": {"train_samples": 500, "eval_samples": 100, "avg_input_length": 156, "avg_output_length": 89}}
+{"timestamp": "2024-01-15T10:31:02.789Z", "event": "step_metrics", "data": {"step": 10, "epoch": 1, "loss": 2.8456, "learning_rate": 0.0001, "grad_norm": 1.234, "examples_per_second": 12.5, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:31:15.012Z", "event": "step_metrics", "data": {"step": 20, "epoch": 1, "loss": 2.6789, "learning_rate": 0.0001, "grad_norm": 0.987, "examples_per_second": 13.1, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:31:27.345Z", "event": "step_metrics", "data": {"step": 30, "epoch": 1, "loss": 2.5123, "learning_rate": 0.0001, "grad_norm": 0.876, "examples_per_second": 12.8, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:31:45.678Z", "event": "eval_start", "data": {"step": 50, "eval_samples": 100}}
+{"timestamp": "2024-01-15T10:32:12.901Z", "event": "eval_metrics", "data": {"step": 50, "eval_loss": 2.4567, "eval_exact_match": 0.18, "eval_samples": 100, "eval_runtime": 27.223, "eval_samples_per_second": 3.67}}
+{"timestamp": "2024-01-15T10:32:25.234Z", "event": "step_metrics", "data": {"step": 60, "epoch": 1, "loss": 2.3456, "learning_rate": 0.0001, "grad_norm": 0.765, "examples_per_second": 12.9, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:32:37.567Z", "event": "step_metrics", "data": {"step": 70, "epoch": 1, "loss": 2.2789, "learning_rate": 0.0001, "grad_norm": 0.698, "examples_per_second": 13.2, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:33:45.890Z", "event": "epoch_complete", "data": {"epoch": 1, "train_loss": 2.4123, "train_samples": 500, "epoch_runtime": 103.667}}
+{"timestamp": "2024-01-15T10:34:02.123Z", "event": "step_metrics", "data": {"step": 80, "epoch": 2, "loss": 2.1567, "learning_rate": 0.0001, "grad_norm": 0.634, "examples_per_second": 13.0, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:34:45.456Z", "event": "eval_start", "data": {"step": 100, "eval_samples": 100}}
+{"timestamp": "2024-01-15T10:35:11.789Z", "event": "eval_metrics", "data": {"step": 100, "eval_loss": 2.2345, "eval_exact_match": 0.21, "eval_samples": 100, "eval_runtime": 26.333, "eval_samples_per_second": 3.80}}
+{"timestamp": "2024-01-15T10:35:23.012Z", "event": "checkpoint_saved", "data": {"step": 100, "checkpoint_path": "./checkpoint-100", "checkpoint_size_mb": 1.2}}
+{"timestamp": "2024-01-15T10:36:30.345Z", "event": "epoch_complete", "data": {"epoch": 2, "train_loss": 2.1234, "train_samples": 500, "epoch_runtime": 88.222}}
+{"timestamp": "2024-01-15T10:37:45.678Z", "event": "step_metrics", "data": {"step": 150, "epoch": 3, "loss": 1.9876, "learning_rate": 0.0001, "grad_norm": 0.523, "examples_per_second": 13.4, "gpu_memory_used_mb": 8192}}
+{"timestamp": "2024-01-15T10:38:45.901Z", "event": "eval_start", "data": {"step": 150, "eval_samples": 100}}
+{"timestamp": "2024-01-15T10:39:10.234Z", "event": "eval_metrics", "data": {"step": 150, "eval_loss": 2.0123, "eval_exact_match": 0.24, "eval_samples": 100, "eval_runtime": 24.333, "eval_samples_per_second": 4.11}}
+{"timestamp": "2024-01-15T10:39:22.567Z", "event": "checkpoint_saved", "data": {"step": 150, "checkpoint_path": "./checkpoint-150", "checkpoint_size_mb": 1.2}}
+{"timestamp": "2024-01-15T10:40:15.890Z", "event": "epoch_complete", "data": {"epoch": 3, "train_loss": 1.9567, "train_samples": 500, "epoch_runtime": 85.222}}
+{"timestamp": "2024-01-15T10:40:30.123Z", "event": "training_complete", "data": {"total_steps": 188, "total_epochs": 3, "final_loss": 1.9567, "final_eval_exact_match": 0.24, "total_runtime": 600.0, "avg_examples_per_second": 13.1, "best_eval_exact_match": 0.24, "best_eval_step": 150}}
+{"timestamp": "2024-01-15T10:40:35.456Z", "event": "model_saved", "data": {"output_dir": "./lora_adapter", "adapter_size_mb": 1.2, "save_runtime": 5.333}}

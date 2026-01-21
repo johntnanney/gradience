@@ -1,0 +1,64 @@
+# Gradience Bench Configuration - GLUE SST-2
+# Sentiment classification benchmark
+
+bench_version: "0.1"
+
+# Model configuration
+model:
+  name: "distilbert-base-uncased"  # Fast BERT model
+  type: "seqcls"                   # Sequence classification
+
+# Task configuration
+task:
+  dataset: "glue"
+  subset: "sst2"
+  profile: "seqcls_glue"
+  eval_max_samples: 500  # Reasonable sample size
+  probe_gate:
+    metric: "accuracy"
+    min_value: 0.80     # High threshold for SST-2
+
+# LoRA configuration  
+lora:
+  probe_r: 16          # Initial probe rank
+  alpha: 16            # LoRA alpha
+  target_modules:      # BERT attention modules
+    - "query"
+    - "key"  
+    - "value"
+    - "dense"
+  dropout: 0.1
+
+# Training configuration
+train:
+  train_samples: 2000    # Good coverage
+  batch_size: 16         # Efficient for classification
+  learning_rate: 2e-4    # Slightly higher for classification
+  num_epochs: 5          # More epochs for convergence
+  seed: 42
+  save_steps: 200
+  eval_steps: 100
+  logging_steps: 20
+  max_length: 128        # Short text classification
+
+# Bench protocol
+bench:
+  compression_variants:
+    - "uniform_median"     # Conservative compression
+    - "uniform_p90"        # Safer compression  
+    - "per_layer"          # Layer-specific (if beneficial)
+  validation_level: "standard"  # Full validation
+  enable_per_layer: true        # Enable layer analysis
+  
+# Multi-seed configuration (optional)
+multi_seed:
+  enabled: true
+  seeds: [42, 43, 44]    # 3 seeds for statistical confidence
+  parallel: false        # Run sequentially to avoid resource conflicts
+
+# Output configuration
+output:
+  save_artifacts: true
+  save_telemetry: true
+  markdown_report: true
+  detailed_logs: true

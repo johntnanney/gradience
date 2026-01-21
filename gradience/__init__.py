@@ -67,6 +67,9 @@ from gradience.structural import (
 # Legacy telemetry (for new code use gradience.vnext.telemetry)
 from gradience.telemetry import TelemetryWriter, TelemetryReader
 
+# Stable public API (thin wrappers around CLI/module entrypoints)
+from gradience import api
+
 # Deprecated Guard functionality
 def _deprecated_guard_import():
     warnings.warn(
@@ -88,6 +91,9 @@ def create_guard(*args, **kwargs):
     _deprecated_guard_import()
 
 __all__ = [
+    # Stable public API
+    "api",
+    
     # Current (but legacy) - use gradience.vnext for new code
     "SpectralAnalyzer",
     "StructuralAnalyzer", 

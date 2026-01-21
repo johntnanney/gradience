@@ -42,6 +42,14 @@ test-quick: ## Run tests without coverage (faster)
 		python3 -m pytest tests/ -q; \
 	fi
 
+test-smoke: ## Run CPU-only smoke tests (no GPU required, ~6 seconds)
+	@echo "💨 Running CPU smoke tests..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && python scripts/run_ci_smoke_tests.py --timing; \
+	else \
+		python3 scripts/run_ci_smoke_tests.py --timing; \
+	fi
+
 lint: ## Run linting checks only
 	@echo "🔍 Running linting checks..."
 	@if [ -f .venv/bin/activate ]; then \

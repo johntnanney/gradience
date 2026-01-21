@@ -842,35 +842,83 @@ def generate_compression_configs(
 
 
 def gather_environment_info() -> Dict[str, Any]:
-    """Gather environment information for the bench report."""
+    """Gather comprehensive environment information for self-describing bench reports."""
+    import platform
+    import os
+    
     env_info = {
-        "python": sys.version.split()[0],
+        "python_version": sys.version.split()[0],
+        "python_implementation": platform.python_implementation(),
+        "platform": platform.platform(),
+        "architecture": platform.architecture()[0],
+        "hostname": platform.node(),
     }
     
-    # Get package versions
+    # Package versions
+    packages = ["torch", "transformers", "peft", "datasets", "accelerate", "safetensors", "numpy"]
+    for package in packages:
+        try:
+            module = __import__(package)
+            env_info[f"{package}_version"] = module.__version__
+        except ImportError:
+            env_info[f"{package}_version"] = "not_installed"
+        except AttributeError:
+            env_info[f"{package}_version"] = "version_unavailable"
+    
+    # PyTorch and CUDA information
     try:
         import torch
-        env_info["torch"] = torch.__version__
+        env_info["torch_version"] = torch.__version__
+        env_info["cuda_available"] = torch.cuda.is_available()
+        
+        if torch.cuda.is_available():
+            env_info["cuda_version"] = torch.version.cuda
+            env_info["cudnn_version"] = torch.backends.cudnn.version()
+            env_info["cuda_device_count"] = torch.cuda.device_count()
+            
+            # GPU information
+            gpu_info = []
+            for i in range(torch.cuda.device_count()):
+                props = torch.cuda.get_device_properties(i)
+                gpu_info.append({
+                    "device_id": i,
+                    "name": props.name,
+                    "total_memory": props.total_memory,
+                    "major": props.major,
+                    "minor": props.minor,
+                    "multi_processor_count": props.multi_processor_count
+                })
+            env_info["gpu_devices"] = gpu_info
+            
+            # Current device and memory
+            if torch.cuda.current_device() is not None:
+                current_device = torch.cuda.current_device()
+                env_info["current_cuda_device"] = current_device
+                env_info["cuda_memory_allocated"] = torch.cuda.memory_allocated(current_device)
+                env_info["cuda_memory_reserved"] = torch.cuda.memory_reserved(current_device)
+        else:
+            env_info["cuda_version"] = None
+            env_info["gpu_devices"] = []
+            
     except ImportError:
-        env_info["torch"] = "not_installed"
+        env_info["torch_version"] = "not_installed"
+        env_info["cuda_available"] = False
+        env_info["cuda_version"] = None
+        env_info["gpu_devices"] = []
     
-    try:
-        import transformers
-        env_info["transformers"] = transformers.__version__
-    except ImportError:
-        env_info["transformers"] = "not_installed"
+    # Environment variables that affect reproducibility
+    relevant_env_vars = [
+        "CUDA_VISIBLE_DEVICES", "HF_HOME", "HF_HUB_CACHE", "HF_DATASETS_CACHE",
+        "TORCH_HOME", "TRANSFORMERS_CACHE", "TOKENIZERS_PARALLELISM",
+        "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"
+    ]
     
-    try:
-        import peft
-        env_info["peft"] = peft.__version__
-    except ImportError:
-        env_info["peft"] = "not_installed"
-    
-    try:
-        import datasets
-        env_info["datasets"] = datasets.__version__
-    except ImportError:
-        env_info["datasets"] = "not_installed"
+    env_vars = {}
+    for var in relevant_env_vars:
+        value = os.environ.get(var)
+        if value is not None:
+            env_vars[var] = value
+    env_info["environment_variables"] = env_vars
     
     return env_info
 
@@ -891,6 +939,149 @@ def get_git_commit() -> Optional[str]:
     return None
 
 
+def get_git_tag() -> Optional[str]:
+    """Get the current git tag or 'dirty' if there are uncommitted changes."""
+    try:
+        # Check if working directory is dirty
+        result = subprocess.run(
+            ["git", "diff", "--quiet"],
+            capture_output=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            return "dirty"
+        
+        # Check if there are staged changes
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            capture_output=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            return "dirty"
+        
+        # Get the exact tag for current commit
+        result = subprocess.run(
+            ["git", "describe", "--exact-match", "--tags"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+        
+        # If no exact tag, get the most recent tag with distance
+        result = subprocess.run(
+            ["git", "describe", "--tags", "--abbrev=7"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+            
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        pass
+    return None
+
+
+def get_hf_model_revision(model_id: str) -> Optional[Dict[str, str]]:
+    """Get the revision hash for a HuggingFace model."""
+    try:
+        from huggingface_hub import model_info
+        info = model_info(model_id)
+        return {
+            "model_id": model_id,
+            "revision": info.sha,
+            "last_modified": info.lastModified.isoformat() if info.lastModified else None
+        }
+    except Exception:
+        return {
+            "model_id": model_id,
+            "revision": "unknown",
+            "last_modified": None
+        }
+
+
+def get_dataset_revision(dataset_id: str, split: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Get the revision hash and split information for a HuggingFace dataset."""
+    try:
+        from huggingface_hub import dataset_info
+        from datasets import load_dataset_builder
+        
+        # Get dataset info from hub
+        info = dataset_info(dataset_id)
+        
+        # Get split sizes
+        builder = load_dataset_builder(dataset_id)
+        split_info = {}
+        if hasattr(builder, 'info') and hasattr(builder.info, 'splits'):
+            for split_name, split_details in builder.info.splits.items():
+                split_info[split_name] = split_details.num_examples
+        
+        return {
+            "dataset_id": dataset_id,
+            "revision": info.sha,
+            "last_modified": info.lastModified.isoformat() if info.lastModified else None,
+            "split_sizes": split_info,
+            "requested_split": split
+        }
+    except Exception as e:
+        return {
+            "dataset_id": dataset_id,
+            "revision": "unknown",
+            "last_modified": None,
+            "split_sizes": {},
+            "requested_split": split,
+            "error": str(e)
+        }
+
+
+def extract_model_dataset_info(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract model and dataset information from the bench config."""
+    metadata = {}
+    
+    # Extract model information
+    model_id = config.get("model_id")
+    if model_id:
+        metadata["model_info"] = get_hf_model_revision(model_id)
+    
+    # Extract dataset information
+    dataset_config = config.get("dataset", {})
+    if isinstance(dataset_config, dict):
+        dataset_id = dataset_config.get("name")
+        split = dataset_config.get("split")
+        if dataset_id:
+            metadata["dataset_info"] = get_dataset_revision(dataset_id, split)
+    
+    return metadata
+
+
+def get_primary_metric_key(config: Dict[str, Any]) -> str:
+    """Determine the primary evaluation metric based on the task configuration."""
+    task_config = config.get("task", {})
+    dataset_name = task_config.get("dataset", "").lower()
+    
+    # Dataset-specific metric mappings
+    if dataset_name == "gsm8k":
+        return "eval_exact_match"
+    elif dataset_name in ["glue", "cola", "sst2", "mrpc", "qqp", "mnli", "qnli", "rte", "wnli"]:
+        return "eval_accuracy"
+    else:
+        # Default fallback
+        return "eval_accuracy"
+
+
+def create_config_hash(config: Dict[str, Any]) -> str:
+    """Create a stable hash of the configuration for reference."""
+    import hashlib
+    import json
+    
+    # Create a stable string representation
+    config_str = json.dumps(config, sort_keys=True, separators=(',', ':'))
+    return hashlib.sha256(config_str.encode()).hexdigest()[:16]
+
+
 def create_canonical_bench_report(
     probe_results: Dict[str, Any],
     variant_results: Dict[str, Dict[str, Any]],
@@ -907,7 +1098,16 @@ def create_canonical_bench_report(
     # Gather metadata
     timestamp = datetime.datetime.now().isoformat()
     git_commit = get_git_commit()
+    git_tag = get_git_tag()
     env_info = gather_environment_info()
+    
+    # Add git information to environment
+    env_info["git_commit"] = git_commit
+    env_info["git_tag"] = git_tag
+    
+    # Extract model and dataset revision information
+    model_dataset_metadata = extract_model_dataset_info(config)
+    env_info.update(model_dataset_metadata)
     
     # Add validation classification to environment info
     validation_classification = verdict_analysis.get("validation_classification", {})
@@ -945,6 +1145,11 @@ def create_canonical_bench_report(
                 "recommendations_validated": "N/A",
                 "best_compression": None,
                 "notes": verdict_analysis.get("summary", {}).get("notes", [])
+            },
+            "config_metadata": {
+                "primary_metric_key": get_primary_metric_key(config),
+                "config_hash": create_config_hash(config),
+                "embedded_config": config  # Complete configuration for reproducibility
             }
         }
     
@@ -1063,6 +1268,11 @@ def create_canonical_bench_report(
             "recommendations_validated": recommendations_validated,
             "best_compression": best_compression_variant,
             "notes": notes
+        },
+        "config_metadata": {
+            "primary_metric_key": get_primary_metric_key(config),
+            "config_hash": create_config_hash(config),
+            "embedded_config": config  # Complete configuration for reproducibility
         }
     }
     
@@ -1756,6 +1966,8 @@ def create_multi_seed_aggregated_report(
         "seeds": [r.get("env", {}).get("seed", "unknown") for r in seed_reports],
         "model": base_report["model"],
         "task": base_report["task"],
+        "env": base_report.get("env", {}),  # Use environment from first report
+        "git_commit": base_report.get("git_commit"),  # Use git info from first report
         "probe": {
             "rank": base_report["probe"]["rank"],
             "accuracy": {
@@ -1775,7 +1987,8 @@ def create_multi_seed_aggregated_report(
             "passing_variants": len(passing_variants),
             "defensible_claims": True,
             "statistical_power": "sufficient" if len(seed_reports) >= 3 else "limited"
-        }
+        },
+        "config_metadata": base_report.get("config_metadata", {})  # Use config metadata from first report
     }
     
     return aggregated_report

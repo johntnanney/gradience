@@ -7,46 +7,124 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
 
-# Env / secrets
+# Virtual environments
+.venv/
+.env/
+venv/
+env/
+ENV/
+
+# Environment / secrets
 .env
 .env.*
 *.key
 *.pem
 id_ed25519
 id_rsa
+.secret*
 
 # OS
 .DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Icon?
 
-# Run artifacts / logs
-runs/
-wandb/
-*.log
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.jupyter/
 
-# Weights / checkpoints
+# HuggingFace / ML caches
+hf_cache/
+.cache/huggingface/
+torch_cache/
+.cache/torch/
+gradience_cache/
+transformers_cache/
+datasets_cache/
+.cache/datasets/
+
+# Model artifacts / weights
 *.safetensors
 *.bin
 *.pt
 *.pth
 *.ckpt
+*.h5
+*.pickle
+*.pkl
 checkpoint-*/
+pytorch_model.bin
+model.safetensors
+adapter_model.*
 
-# Data archives and large files
+# Bench artifacts / outputs
+bench_runs*/
+bench_output*/
+runs/
+output/
+outputs/
+results/
+artifacts/
+logs/
+*.log
+wandb/
+
+# Data and archives
+data/
+dataset/
+datasets/
 *.tar
 *.tar.gz
 *.tgz
 *.zip
 *.rar
 *.7z
-data/*.tar.gz
-data/*.gz
+*.csv
+*.json.gz
+*.parquet
 
-# Patch / backup files
+# Temporary and backup files
+*.tmp
+*.temp
 *.bak
 *.bak.*
-data/
+*.backup
+*~
+.#*
+\#*#
 
-# Smoke / run artifacts
-runs/
-bench_runs/
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+test_output/
+test_results/
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Exceptions for example fixtures (these should be included)
+!examples/
+!examples/**/*.json
+!examples/**/*.jsonl
+!examples/**/*.safetensors
+!examples/**/*.bin
+!examples/**/*.yaml
+!examples/**/*.md

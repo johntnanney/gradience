@@ -1,0 +1,168 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2024-01-15T12:45:30.987654Z",
+  "aggregation_type": "multi_seed",
+  "n_seeds": 3,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "model": "microsoft/DialoGPT-small",
+  "task": "gsm8k/main",
+  "env": {
+    "python_version": "3.10.12",
+    "torch_version": "2.1.0+cu118",
+    "cuda_available": true,
+    "gpu_devices": [
+      {
+        "device_id": 0,
+        "name": "NVIDIA GeForce RTX 4090",
+        "total_memory": 25757220864
+      }
+    ],
+    "git_commit": "a1b2c3d4e5f6789012345678901234567890abcd",
+    "git_tag": "v0.4.4"
+  },
+  "git_commit": "a1b2c3d4e5f6789012345678901234567890abcd",
+  "probe": {
+    "rank": 16,
+    "accuracy": {
+      "mean": 0.2089,
+      "std": 0.0123,
+      "values": [
+        0.2156,
+        0.2034,
+        0.2078
+      ]
+    },
+    "params": {
+      "mean": 442368.0,
+      "std": 0.0
+    }
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 8,
+      "accuracy": {
+        "mean": 0.2012,
+        "std": 0.0098,
+        "values": [
+          0.2089,
+          0.1967,
+          0.198
+        ]
+      },
+      "delta_vs_probe": {
+        "mean": -0.0077,
+        "std": 0.0034,
+        "values": [
+          -0.0067,
+          -0.0067,
+          -0.0098
+        ]
+      },
+      "param_reduction": {
+        "mean": 0.5,
+        "std": 0.0,
+        "values": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "pass_rate": 1.0,
+      "verdict_distribution": {
+        "PASS": 3,
+        "FAIL": 0
+      }
+    },
+    "uniform_p90": {
+      "rank": 12,
+      "accuracy": {
+        "mean": 0.2056,
+        "std": 0.0089,
+        "values": [
+          0.2134,
+          0.2001,
+          0.2033
+        ]
+      },
+      "delta_vs_probe": {
+        "mean": -0.0033,
+        "std": 0.0028,
+        "values": [
+          -0.0022,
+          -0.0033,
+          -0.0045
+        ]
+      },
+      "param_reduction": {
+        "mean": 0.25,
+        "std": 0.0,
+        "values": [
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "pass_rate": 1.0,
+      "verdict_distribution": {
+        "PASS": 3,
+        "FAIL": 0
+      }
+    }
+  },
+  "summary": {
+    "best_compression": {
+      "variant": "uniform_median",
+      "param_reduction_mean": 0.5,
+      "param_reduction_std": 0.0,
+      "delta_vs_probe_mean": -0.0077,
+      "delta_vs_probe_std": 0.0034,
+      "pass_rate": 1.0
+    },
+    "total_variants": 2,
+    "passing_variants": 2,
+    "defensible_claims": true,
+    "statistical_power": "sufficient",
+    "confidence_level": "high",
+    "notes": [
+      "All 3 seeds achieved probe quality gate (mean=0.209, std=0.012)",
+      "Uniform median compression (r=8) shows consistent 50% parameter reduction",
+      "Conservative compression maintains 96.3% ± 1.6% of probe accuracy",
+      "Statistical significance achieved with n=3 seeds",
+      "Both compression variants reliable across all seeds"
+    ]
+  },
+  "config_metadata": {
+    "primary_metric_key": "eval_exact_match",
+    "config_hash": "a7f3e8c9b2d15f47",
+    "embedded_config": {
+      "bench_version": "0.1",
+      "model": {
+        "name": "microsoft/DialoGPT-small",
+        "type": "causal_lm"
+      },
+      "task": {
+        "dataset": "gsm8k",
+        "subset": "main",
+        "profile": "gsm8k_causal_lm"
+      },
+      "lora": {
+        "probe_r": 16,
+        "alpha": 16
+      },
+      "train": {
+        "train_samples": 500,
+        "batch_size": 4,
+        "num_epochs": 3,
+        "seeds": [
+          42,
+          43,
+          44
+        ]
+      }
+    }
+  }
+}

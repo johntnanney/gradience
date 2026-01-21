@@ -1,0 +1,52 @@
+# Gradience Bench Configuration - GSM8K Smoke Test
+# Quick 5-minute bench run for testing and CI
+
+bench_version: "0.1"
+
+# Model configuration
+model:
+  name: "microsoft/DialoGPT-small"  # Small model for fast testing
+  type: "causal_lm"
+
+# Task configuration  
+task:
+  dataset: "gsm8k"
+  subset: "main"
+  profile: "gsm8k_causal_lm"
+  eval_max_samples: 100  # Limit for speed
+  probe_gate:
+    metric: "exact_match"
+    min_value: 0.15  # Conservative threshold
+
+# LoRA configuration
+lora:
+  probe_r: 16  # Rank for initial probe
+  alpha: 16    # LoRA scaling parameter
+  target_modules: ["c_attn", "c_proj"]  # DialoGPT attention modules
+  dropout: 0.1
+  
+# Training configuration
+train:
+  train_samples: 500      # Small sample for speed
+  batch_size: 4           # Memory-conservative
+  learning_rate: 1e-4     # Standard LoRA LR
+  num_epochs: 3           # Quick training
+  seed: 42                # Reproducible
+  save_steps: 100         # Checkpoint frequency
+  eval_steps: 50          # Evaluation frequency  
+  logging_steps: 10       # Logging frequency
+  max_length: 512         # Token limit
+  
+# Bench protocol
+bench:
+  compression_variants:
+    - "uniform_median"    # Test median rank suggestion
+    - "uniform_p90"       # Test conservative suggestion
+  validation_level: "smoke"  # Quick validation
+  enable_per_layer: false    # Skip for speed
+
+# Output configuration
+output:
+  save_artifacts: true
+  save_telemetry: true
+  markdown_report: true
