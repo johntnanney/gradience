@@ -927,6 +927,12 @@ def create_canonical_bench_report(
             "model": config["model"]["name"],
             "task": f"{config['task']['dataset']}/{config['task']['subset']}",
             "status": probe_quality_status,
+            "probe_quality_gate": {
+                "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
+                "metric_value": probe_data.get("accuracy"),
+                "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
+                "passed": False
+            },
             "probe": {
                 "rank": probe_data.get("rank"),
                 "params": probe_data.get("params"),
@@ -1037,6 +1043,12 @@ def create_canonical_bench_report(
         "env": env_info,
         "model": config["model"]["name"],
         "task": f"{config['task']['dataset']}/{config['task']['subset']}",
+        "probe_quality_gate": {
+            "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
+            "metric_value": probe_results["probe"]["accuracy"],
+            "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
+            "passed": verdict_analysis.get("probe_quality_status") not in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]
+        },
         "probe": {
             "rank": probe_results["probe"]["rank"],
             "params": probe_results["probe"]["params"],
@@ -1047,7 +1059,6 @@ def create_canonical_bench_report(
             "suggested_r_global_median": probe_summary.get("suggested_r_global_median"),
             "suggested_r_global_90": probe_summary.get("suggested_r_global_90")
         },
-        "compressed": compressed,
         "summary": {
             "recommendations_validated": recommendations_validated,
             "best_compression": best_compression_variant,
@@ -1060,6 +1071,18 @@ def create_canonical_bench_report(
         report["instrumentation"] = {
             "udr": udr_instrumentation
         }
+    
+    # Add protocol invariants for aggregation
+    probe_gate_data = report["probe_quality_gate"]
+    report["protocol_invariants"] = {
+        "probe_quality_gate": {
+            "status": "PASSED" if probe_gate_data["passed"] else "FAILED",
+            "message": f"Probe {probe_gate_data['metric_key']} {probe_gate_data['metric_value']:.4f} {'≥' if probe_gate_data['passed'] else '<'} {probe_gate_data['min_value']:.4f}",
+            "metric_key": probe_gate_data["metric_key"],
+            "metric_value": probe_gate_data["metric_value"],
+            "min_value": probe_gate_data["min_value"]
+        }
+    }
     
     return report
 
