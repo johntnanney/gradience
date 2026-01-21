@@ -33,7 +33,13 @@ def _find_any(seed_dir: Path, pattern: str) -> Optional[Path]:
     return matches[0] if matches else None
 
 def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
-    """Get probe accuracy and metric key used."""
+    """Get probe accuracy and metric key used.
+    
+    Automatic fallback hierarchy:
+    1. Try bench.json probe.accuracy (canonical format)
+    2. Try probe_r*/eval.json (direct eval results) 
+    3. Try any eval.json in probe_r* subdirectories (backup search)
+    """
     # Prefer canonical bench.json
     bj = seed_dir / "bench.json"
     j = _read_json(bj)
@@ -43,7 +49,7 @@ def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
         if isinstance(acc, (int, float)):
             return float(acc), "accuracy"
 
-    # Fallback: read probe eval.json
+    # Fallback: automatically read probe_r*/eval.json
     pdir = _find_probe_dir(seed_dir)
     if pdir is not None:
         ej = pdir / "eval.json"
@@ -54,6 +60,17 @@ def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
                 v = e.get(k)
                 if isinstance(v, (int, float)):
                     return float(v), k
+        
+        # Additional fallback: try to find any eval.json in subdirectories
+        eval_files = list(pdir.rglob("eval.json"))
+        for eval_file in eval_files:
+            e = _read_json(eval_file)
+            if isinstance(e, dict):
+                for k in ("eval_exact_match", "exact_match", "eval_accuracy", "accuracy", "acc"):
+                    v = e.get(k)
+                    if isinstance(v, (int, float)):
+                        return float(v), k
+    
     return None, "unknown"
 
 def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float:
@@ -71,8 +88,13 @@ def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float
         if isinstance(thr, (int, float)):
             return float(thr)
         
-        # Task-based defaults
-        task_name = j.get("task", {}).get("dataset", "").lower()
+        # Task-based defaults - handle both dict and string formats
+        task = j.get("task", {})
+        if isinstance(task, dict):
+            task_name = task.get("dataset", "").lower()
+        else:
+            task_name = str(task).lower()
+        
         if "gsm8k" in task_name and "exact_match" in metric_key:
             return 0.10  # GSM8K screening threshold
         elif "sst2" in task_name or "sst-2" in task_name:
@@ -233,10 +255,18 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
             # Use new machine-readable format
             probe_gate_passed = bench_data["probe_quality_gate"].get("passed", False)
         else:
-            # Fallback to computing from eval data
+            # Automatic fallback: read probe_r*/eval.json when gate metadata missing
             acc, metric_key = _get_probe_accuracy(d)
-            thr = _probe_gate_threshold(d, metric_key)
-            probe_gate_passed = acc is not None and acc >= thr
+            if acc is not None:
+                thr = _probe_gate_threshold(d, metric_key)
+                probe_gate_passed = acc >= thr
+            else:
+                # Final fallback: check if probe_r* directory exists but eval.json is missing/corrupted
+                probe_dir = _find_probe_dir(d)
+                if probe_dir is not None:
+                    # Directory exists but no usable eval data - mark as NOT_FOUND
+                    pass  # probe_gate_passed remains False
+                # If no probe directory at all, also mark as NOT_FOUND
         
         if probe_gate_passed:
             gate_ok += 1
