@@ -74,36 +74,60 @@ The guiding idea is simple: **constrained updates tend to generalize better**, a
 
 ## Install
 
-### Basic Installation (Core Only)
+### 📦 Recommended Setup (Contributors & Users)
+
+**One canonical path - boring and predictable:**
 
 ```bash
 git clone https://github.com/johntnanney/gradience.git
 cd gradience
-pip install -e .  # Core functionality only (torch, numpy, pyyaml)
+
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -U pip
+pip install -e ".[hf,dev]"
 ```
 
-### Installation with Extras (Recommended)
+This gives you:
+- ✅ **HuggingFace integration**: `transformers`, `peft`, `datasets`, `accelerate`, `safetensors` 
+- ✅ **Development tools**: `pytest`, `ruff`, `mypy`, `pre-commit`
+- ✅ **Core functionality**: `torch`, `numpy`, `pyyaml`
+
+### Alternative Installation Options
 
 ```bash
-# For Hugging Face integration (transformers, PEFT, etc.)
+# Minimal core only (torch, numpy, pyyaml)
+pip install -e .
+
+# HuggingFace integration only
 pip install -e ".[hf]"
 
-# For running benchmarks and validation
+# Benchmarking suite
 pip install -e ".[bench]"
 
-# For development (testing, linting, etc.)
-pip install -e ".[dev]"
-
-# Everything (all optional dependencies)
+# Everything (all dependencies)  
 pip install -e ".[all]"
+
+# Fast downloads (add hf_transfer)
+pip install -e ".[hf,fast]"
+```
+
+### 🚀 Quick Development Setup
+
+```bash
+# Use Makefile for convenience
+make setup        # Creates venv and installs [hf,dev]
+make verify-version  # Verify installation
 ```
 
 ### What's Included in Each Extra
 
-- **`[hf]`**: HuggingFace integration (`transformers`, `peft`, `accelerate`, `safetensors`)
-- **`[bench]`**: Benchmarking suite (`transformers`, `peft`, `datasets`, `safetensors`, `accelerate`)
-- **`[dev]`**: Development tools (`pytest`, `build`, `ruff`, `mypy`)
-- **`[all]`**: All optional dependencies
+- **`[hf]`**: HuggingFace integration (`transformers>=4.35.0`, `peft>=0.7.0`, `datasets>=2.14.0`, `accelerate>=0.20.0`, `safetensors>=0.4.0`, `sentencepiece`, `protobuf`)
+- **`[bench]`**: Benchmarking suite (includes `[hf]` + `scikit-learn`, `pandas`)
+- **`[dev]`**: Development tools (`pytest>=7.0.0`, `pytest-cov`, `ruff>=0.1.0`, `mypy>=1.5.0`, `pre-commit>=3.0.0`, `build`, `twine`)
+- **`[fast]`**: Performance enhancement (`hf_transfer>=0.1.4` for faster downloads)
+- **`[all]`**: Everything above combined
 
 > 💡 **Note**: PyTorch is always required but left to user choice for CPU/GPU compatibility
 

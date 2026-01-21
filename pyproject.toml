@@ -18,40 +18,63 @@ dependencies = [
 [project.optional-dependencies]
 # Hugging Face integration - for using Gradience with transformers/PEFT
 hf = [
-  "transformers",
-  "peft",
-  "accelerate",
-  "safetensors",
+  "transformers>=4.35.0",
+  "peft>=0.7.0",
+  "datasets>=2.14.0",
+  "accelerate>=0.20.0",
+  "safetensors>=0.4.0",
+  "sentencepiece>=0.1.99",  # For tokenizers
+  "protobuf>=3.20.0",       # For tokenizers
 ]
 
 # Benchmarking suite - for running compression validation benchmarks
 bench = [
-  "transformers",
-  "peft", 
-  "datasets",
-  "safetensors",
-  "accelerate",
+  "transformers>=4.35.0",
+  "peft>=0.7.0", 
+  "datasets>=2.14.0",
+  "safetensors>=0.4.0",
+  "accelerate>=0.20.0",
+  "sentencepiece>=0.1.99",
+  "protobuf>=3.20.0",
+  "scikit-learn>=1.3.0",   # For metrics
+  "pandas>=2.0.0",         # For data analysis
 ]
 
 # Development tools - for contributors
 dev = [
-  "pytest",
-  "build",
-  "ruff",
-  "mypy",
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",     # Coverage reporting
+  "build>=0.10.0",         # Package building
+  "ruff>=0.1.0",           # Linting and formatting
+  "mypy>=1.5.0",           # Type checking
+  "pre-commit>=3.0.0",     # Git hooks
+  "twine>=4.0.0",          # Package publishing
+]
+
+# Fast downloading (optional performance enhancement)
+fast = [
+  "hf_transfer>=0.1.4",    # Faster HuggingFace downloads
 ]
 
 # All optional dependencies for full functionality
 all = [
-  "transformers",
-  "peft",
-  "datasets", 
-  "accelerate",
-  "safetensors",
-  "pytest",
-  "build",
-  "ruff",
-  "mypy",
+  "transformers>=4.35.0",
+  "peft>=0.7.0",
+  "datasets>=2.14.0", 
+  "accelerate>=0.20.0",
+  "safetensors>=0.4.0",
+  "sentencepiece>=0.1.99",
+  "protobuf>=3.20.0",
+  "scikit-learn>=1.3.0",
+  "pandas>=2.0.0",
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",
+  "build>=0.10.0",
+  "ruff>=0.1.0",
+  "mypy>=1.5.0",
+  "pre-commit>=3.0.0",
+  "twine>=4.0.0",
+  "hf_transfer>=0.1.4",
 ]
 
 [project.scripts]

@@ -1,36 +1,80 @@
 # Gradience Development Makefile
-.PHONY: verify-version install test lint clean help
+.PHONY: setup verify-version install test lint format clean help
 
 help: ## Show this help message
 	@echo "Gradience Development Commands:"
 	@echo "================================"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
+setup: ## Complete development setup (creates venv, installs [hf,dev])
+	@echo "🚀 Setting up Gradience development environment..."
+	@python3 -m venv .venv
+	@. .venv/bin/activate && pip install -U pip && pip install -e ".[hf,dev]"
+	@echo "✅ Setup complete! Activate with: source .venv/bin/activate"
+
 verify-version: ## Verify version consistency across all sources
 	@echo "🔍 Verifying version consistency..."
 	@python3 scripts/verify_version.py
 
-install: ## Install package in development mode
-	@echo "📦 Installing Gradience in development mode..."
-	@pip3 install -e .
+install: ## Install package in development mode ([hf,dev] extras)
+	@echo "📦 Installing Gradience with [hf,dev] extras..."
+	@pip3 install -e ".[hf,dev]"
 
-test: ## Run tests
+test: ## Run tests with coverage
 	@echo "🧪 Running tests..."
-	@python3 -m pytest tests/ -v
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && python -m pytest tests/ -v --cov=gradience --cov-report=term-missing; \
+	else \
+		python3 -m pytest tests/ -v --cov=gradience --cov-report=term-missing; \
+	fi
 
-lint: ## Run linting checks
+test-quick: ## Run tests without coverage (faster)
+	@echo "🧪 Running tests (quick)..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && python -m pytest tests/ -q; \
+	else \
+		python3 -m pytest tests/ -q; \
+	fi
+
+lint: ## Run linting checks only
 	@echo "🔍 Running linting checks..."
-	@python3 -m ruff check gradience/
-	@python3 -m mypy gradience/
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && ruff check . && mypy gradience/; \
+	else \
+		python3 -m ruff check . && python3 -m mypy gradience/; \
+	fi
 
-clean: ## Clean build artifacts
+format: ## Format code with ruff
+	@echo "🎨 Formatting code..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && ruff format .; \
+	else \
+		python3 -m ruff format .; \
+	fi
+
+format-check: ## Check code formatting without making changes
+	@echo "🎨 Checking code format..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && ruff format --check .; \
+	else \
+		python3 -m ruff format --check .; \
+	fi
+
+clean: ## Clean build artifacts and caches
 	@echo "🧹 Cleaning build artifacts..."
 	@rm -rf build/ dist/ *.egg-info/
 	@find . -name "*.pyc" -delete
 	@find . -name "__pycache__" -delete
+	@find . -name ".pytest_cache" -exec rm -rf {} +
+	@find . -name ".coverage" -delete
+	@find . -name ".mypy_cache" -exec rm -rf {} +
 
-# Development workflow
+# Development workflows
 dev-install: install verify-version ## Install and verify for development
+	@echo "✅ Development installation complete!"
+
+check: lint format-check test-quick ## Run all code quality checks
+	@echo "✅ All checks passed!"
 
 # Release workflow  
 pre-release: verify-version test lint ## Run all checks before release
