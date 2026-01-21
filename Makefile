@@ -1,5 +1,5 @@
 # Gradience Development Makefile
-.PHONY: setup verify-version install test lint format clean help
+.PHONY: setup setup-cache verify-version install test lint format clean help
 
 help: ## Show this help message
 	@echo "Gradience Development Commands:"
@@ -11,6 +11,12 @@ setup: ## Complete development setup (creates venv, installs [hf,dev])
 	@python3 -m venv .venv
 	@. .venv/bin/activate && pip install -U pip && pip install -e ".[hf,dev]"
 	@echo "✅ Setup complete! Activate with: source .venv/bin/activate"
+	@echo ""
+	@echo "💡 Consider running 'make setup-cache' to configure storage"
+
+setup-cache: ## Configure cache directories to prevent disk space issues
+	@echo "🗂️  Configuring cache environment..."
+	@bash scripts/setup_cache_env.sh
 
 verify-version: ## Verify version consistency across all sources
 	@echo "🔍 Verifying version consistency..."

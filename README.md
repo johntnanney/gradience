@@ -118,8 +118,11 @@ pip install -e ".[hf,fast]"
 ```bash
 # Use Makefile for convenience
 make setup        # Creates venv and installs [hf,dev]
+make setup-cache  # Configure storage (prevents "disk quota exceeded")
 make verify-version  # Verify installation
 ```
+
+> 💾 **Storage tip**: Run `make setup-cache` to prevent disk space issues in cloud environments. See [docs/storage_and_caching.md](docs/storage_and_caching.md) for details.
 
 ### What's Included in Each Extra
 
