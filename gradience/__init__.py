@@ -35,7 +35,16 @@ Legacy components (DEPRECATED) have been moved to docs/legacy/
 For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md, PUBLIC_API.md
 """
 
-__version__ = "0.3.0"
+try:
+    from importlib.metadata import version
+    __version__ = version("gradience")
+except ImportError:
+    # Fallback for Python < 3.8
+    from importlib_metadata import version
+    __version__ = version("gradience")
+except Exception:
+    # Fallback for development installs
+    __version__ = "0.4.1"
 
 # Current API: vNext components
 # For stable telemetry, use: gradience.vnext.telemetry

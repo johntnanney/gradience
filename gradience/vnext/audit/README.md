@@ -97,6 +97,20 @@ gradience audit --peft-dir /path/to/adapter --no-udr
 }
 ```
 
+### UDR/SDI Interpretation
+
+**What it measures:**
+- Relative update magnitude vs base: UDR = ||ΔW||₂ / ||W_base||₂ 
+- How much the adapter changes weights compared to their original scale
+
+**What "UDR missing" means:**
+- Base model mismatch (wrong model ID/revision)
+- Offline mode (no `--base-model` specified)  
+- Cache issues (unwritable cache directory, corrupted cache files)
+
+**How to sanity check:**
+- If `n_layers_with_udr == 0` and you expected it > 0 → you likely used the wrong base model ID/revision
+
 ### Requirements
 
 - Base model norms computation requires `transformers` library
