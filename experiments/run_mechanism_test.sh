@@ -51,11 +51,11 @@ for seed in "${SEEDS[@]}"; do
     mkdir -p "$seed_output"
     
     # Update config with current seed
-    sed "s/seed: .*/seed: $seed/" "$CONFIG_FILE" > "${seed_output}/config_seed${seed}.yaml"
+    sed "s/seeds: \[42, 43, 44\]/seed: $seed/" "$CONFIG_FILE" > "${seed_output}/config_seed${seed}.yaml"
     
     # Run the benchmark
     echo "Starting gradience bench for seed $seed..."
-    python3 -m gradience.cli bench \
+    python3 -m gradience.bench.run_bench \
         --config "${seed_output}/config_seed${seed}.yaml" \
         --output "$seed_output" \
         --verbose \
