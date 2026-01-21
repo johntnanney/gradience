@@ -27,12 +27,12 @@ train:
   # Experimental seeds for multi-seed runs
   seeds: [42, 43, 44]  # Three seeds for statistical power
   
-# Probe Configuration (Step 1)
-probe:
-  r: 64  # Fixed probe rank
-  lora_alpha: 32
+# LoRA Configuration (expected by protocol)
+lora:
+  probe_r: 64  # Fixed probe rank
+  alpha: 32
+  dropout: 0.1
   target_modules: ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-  lora_dropout: 0.1
 
 # Compression Configuration (Steps 2-4)
 compression:
