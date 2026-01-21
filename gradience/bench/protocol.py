@@ -273,7 +273,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         task_type = TaskType.SEQ_CLS
     
     # Setup compressed LoRA configuration
-    if compression_config["variant"] == "per_layer":
+    if compression_config["variant"] in ["per_layer", "per_layer_shuffled"]:
         # Per-layer configuration with rank_pattern
         # 
         # IMPORTANT: Current approach for PEFT compatibility (as of PEFT 0.18.1)
@@ -663,6 +663,40 @@ def round_to_allowed_ranks(suggested_r: int, allowed_ranks: list[int]) -> int:
     return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
 
 
+def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: int) -> Dict[str, int]:
+    """
+    Create a shuffled control by redistributing ranks across different modules.
+    
+    This is the key scientific control: if audit-guided placement matters,
+    per_layer should outperform per_layer_shuffled. If any heterogeneity
+    is enough, they should perform similarly.
+    
+    Args:
+        original_rank_pattern: Dict mapping module names to ranks
+        seed: Random seed for deterministic shuffling
+        
+    Returns:
+        Dict with same module names but redistributed rank values
+    """
+    import random
+    
+    # Extract module names and rank values
+    module_names = list(original_rank_pattern.keys())
+    rank_values = list(original_rank_pattern.values())
+    
+    # Create deterministic shuffle using seed + offset
+    rng = random.Random(seed + 10000)  # Fixed offset for reproducibility
+    
+    # Shuffle the rank values while keeping module names fixed
+    shuffled_ranks = rank_values.copy()
+    rng.shuffle(shuffled_ranks)
+    
+    # Recombine: same modules, redistributed ranks
+    shuffled_pattern = dict(zip(module_names, shuffled_ranks))
+    
+    return shuffled_pattern
+
+
 def generate_compression_configs(
     probe_dir: Path,
     config: Dict[str, Any]
@@ -837,6 +871,60 @@ def generate_compression_configs(
                 "status": "ready",
                 "reason": None
             }
+
+    # D) per_layer_shuffled (control for mechanism testing)
+    # Create shuffled control only if we have a successful per_layer variant
+    if ("per_layer" in compression_configs and 
+        compression_configs["per_layer"]["status"] == "ready"):
+        
+        original_rank_pattern = compression_configs["per_layer"]["rank_pattern"]
+        shuffled_rank_pattern = _create_shuffled_rank_pattern(
+            original_rank_pattern, 
+            seed=config.get("train", {}).get("seed", 42)
+        )
+        
+        # Create alpha pattern matching the shuffled ranks
+        shuffled_alpha_pattern = {}
+        for module_name, suggested_r in shuffled_rank_pattern.items():
+            if suggested_r > 0:  # Only for active modules
+                shuffled_alpha_pattern[module_name] = suggested_r
+        
+        # Normalize patterns
+        shuffled_rank_pattern = normalize_rank_pattern(shuffled_rank_pattern)
+        shuffled_alpha_pattern = normalize_alpha_pattern(shuffled_alpha_pattern)
+        
+        compression_configs["per_layer_shuffled"] = {
+            "variant": "per_layer_shuffled",
+            "suggested_r": len(shuffled_rank_pattern),
+            "actual_r": len([r for r in shuffled_rank_pattern.values() if r > 0]),
+            "rank_pattern": shuffled_rank_pattern,
+            "alpha_pattern": shuffled_alpha_pattern,
+            # Attach same audit metadata for consistency
+            "_audit_layers": audit_data.get("layers", []),
+            "_probe_rank": probe_rank,
+            "_shuffle_seed": config.get("train", {}).get("seed", 42) + 10000,  # Deterministic offset
+            "config": {
+                **lora_config,
+                "rank_pattern": shuffled_rank_pattern,
+                "alpha_pattern": shuffled_alpha_pattern,
+                "probe_r": None,  
+                "alpha": None,
+            },
+            "status": "ready",
+            "reason": "Shuffled control for audit-guided per-layer variant"
+        }
+    else:
+        # No per_layer to shuffle
+        compression_configs["per_layer_shuffled"] = {
+            "variant": "per_layer_shuffled",
+            "suggested_r": None,
+            "actual_r": None,
+            "rank_pattern": {},
+            "alpha_pattern": {},
+            "config": None,
+            "status": "SKIPPED",
+            "reason": "No per-layer variant to create shuffled control from"
+        }
     
     return compression_configs
 
@@ -1163,7 +1251,7 @@ def create_canonical_bench_report(
         if result["status"] == "completed":
             verdict_info = verdict_analysis["verdicts"][variant_name]
             
-            if variant_name == "per_layer":
+            if variant_name in ["per_layer", "per_layer_shuffled"]:
                 # Count non-default ranks in the pattern from compression_configs
                 compression_config = compression_configs.get(variant_name, {})
                 rank_pattern = compression_config.get("rank_pattern", {})
@@ -1211,6 +1299,8 @@ def create_canonical_bench_report(
     notes = []
     if best_compression_variant == "per_layer":
         notes.append("per_layer applied successfully (verified via adapter shapes)")
+    elif best_compression_variant == "per_layer_shuffled":
+        notes.append("per_layer_shuffled control applied successfully")
     
     # Extract UDR instrumentation if available
     udr_instrumentation = {}
@@ -1350,6 +1440,8 @@ def create_markdown_report(
         # Format variant name for display
         if variant_name == "per_layer":
             variant_display = "`per_layer`"
+        elif variant_name == "per_layer_shuffled":
+            variant_display = "`per_layer_shuffled`"
         elif variant_name == "uniform_median":
             variant_display = "`uniform_median`"
         elif variant_name == "uniform_p90":
@@ -1513,14 +1605,14 @@ def run_compressed_variant_training(
     
     # Regression check for per-layer variants: verify heterogeneous ranks are applied
     rank_check_result = None
-    if compression_config.get("variant") == "per_layer":
+    if compression_config.get("variant") in ["per_layer", "per_layer_shuffled"]:
         from gradience.peft_utils import find_adapter_weights_path
         
         try:
             adapter_weights_path = find_adapter_weights_path(variant_dir)
             allowed_ranks = config["compression"]["allowed_ranks"]
             
-            print(f"Running per-layer rank heterogeneity check...")
+            print(f"Running {compression_config.get('variant')} rank heterogeneity check...")
             print(f"  Found adapter weights at: {adapter_weights_path}")
             rank_check_result = check_heterogeneous_ranks(str(adapter_weights_path), allowed_ranks)
         except FileNotFoundError as e:
@@ -2045,6 +2137,8 @@ def create_multi_seed_markdown_report(
         # Format variant name for display
         if variant_name == "per_layer":
             variant_display = "`per_layer`"
+        elif variant_name == "per_layer_shuffled":
+            variant_display = "`per_layer_shuffled`"
         elif variant_name == "uniform_median":
             variant_display = "`uniform_median`"
         elif variant_name == "uniform_p90":

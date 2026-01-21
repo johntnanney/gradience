@@ -1,0 +1,87 @@
+# Mechanism Testing Experiment Configuration
+# Goal: Test if audit-guided per-layer rank patterns behave like adaptive regularization
+# beyond simple compression through controlled comparison with shuffled variant
+
+# Fixed Experimental Invariants (DO NOT CHANGE)
+model_id: "mistralai/Mistral-7B-v0.1"
+task: 
+  dataset: "gsm8k"
+  profile: "gsm8k_causal_lm"
+  
+train:
+  # Fixed training parameters across all variants
+  max_steps: 1200
+  learning_rate: 3e-4
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 1
+  warmup_steps: 120
+  logging_steps: 50
+  eval_steps: 300
+  save_steps: 600
+  train_samples: 7473  # Full GSM8K training set
+  eval_samples: 500    # Subset for evaluation
+  
+  # Experimental seeds for multi-seed runs
+  seeds: [42, 43, 44]  # Three seeds for statistical power
+  
+# Probe Configuration (Step 1)
+probe:
+  r: 64  # Fixed probe rank
+  lora_alpha: 32
+  target_modules: ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  lora_dropout: 0.1
+
+# Compression Configuration (Steps 2-4)
+compression:
+  # Allowed ranks for compression variants
+  allowed_ranks: [1, 2, 4, 8, 16, 32, 64]
+  
+  # Enabled variants for mechanism testing
+  # probe: baseline
+  # per_layer: audit-guided heterogeneous ranks
+  # per_layer_shuffled: shuffled control (same rank multiset, different assignment)
+  variants:
+    - "probe" 
+    - "per_layer"
+    - "per_layer_shuffled"
+    
+  # Disable other variants to focus on mechanism test
+  # uniform_median: false  
+  # uniform_p90: false
+
+# Environment Configuration
+env:
+  output_base_dir: "experiments/mechanism_test_results"
+  torch_dtype: "bfloat16"
+  device_map: "auto"
+  max_memory_per_gpu: "14GB"  # Adjust based on available GPU memory
+  
+# Scientific Hypothesis Testing
+hypothesis:
+  # H0: audit-guided placement provides no benefit beyond heterogeneity
+  #     (per_layer ≈ per_layer_shuffled performance)
+  # H1: audit-guided placement provides real benefit 
+  #     (per_layer > per_layer_shuffled performance)
+  
+  primary_metric: "exact_match"
+  significance_level: 0.05
+  
+  # Success criteria (to be implemented in analysis)
+  thresholds:
+    # Compression efficacy: per_layer must outperform probe baseline
+    min_compression_benefit: 0.02  # 2% minimum improvement over probe
+    
+    # Mechanism test: per_layer should outperform shuffled control
+    min_mechanism_benefit: 0.01   # 1% minimum improvement over shuffled
+    
+    # Statistical power requirements
+    min_effect_size: 0.5          # Cohen's d for practical significance
+    min_confidence_interval: 0.95 # 95% CI for estimates
+
+# Metadata Tracking
+metadata:
+  experiment_name: "mechanism_test_mistral7b_gsm8k"
+  description: "Test whether audit-guided per-layer ranks behave like adaptive regularization"
+  researcher: "automated_experiment"
+  created_date: "2025-01-21"
+  bench_version: "0.5.0"
