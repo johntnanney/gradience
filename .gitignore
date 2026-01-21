@@ -32,7 +32,13 @@ wandb/
 *.ckpt
 checkpoint-*/
 
-# Data archives
+# Data archives and large files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
 data/*.tar.gz
 data/*.gz
 
