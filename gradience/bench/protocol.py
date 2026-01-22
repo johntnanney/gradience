@@ -1645,7 +1645,21 @@ def run_compressed_variant_training(
             print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
     
     print(f"{variant_name} training complete!")
-    print(f"Final accuracy: {eval_results['eval_accuracy']:.4f}")
+    
+    # Find the accuracy metric (different names for different tasks)
+    accuracy_key = None
+    accuracy_value = None
+    for key in ["eval_accuracy", "eval_exact_match", "accuracy"]:
+        if key in eval_results:
+            accuracy_key = key
+            accuracy_value = eval_results[key]
+            break
+    
+    if accuracy_value is not None:
+        print(f"Final {accuracy_key}: {accuracy_value:.4f}")
+    else:
+        print(f"Available metrics: {list(eval_results.keys())}")
+    
     print(f"Trainable parameters: {trainable_params:,}")
     print(f"Total parameters: {total_params:,}")
     print(f"Telemetry written to: {variant_dir / 'run.jsonl'}")
