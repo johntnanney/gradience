@@ -362,8 +362,8 @@ def write_probe_eval_json(
     Returns:
         Path to the written eval.json file
     """
-    # Support both accuracy (seqcls) and exact_match (causal_lm) 
-    accuracy = eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match", 0.0)
+    # Use robust metric extraction with fallback
+    accuracy = _extract_accuracy_with_fallback(eval_results)
     
     eval_data = {
         "accuracy": accuracy,
@@ -631,8 +631,9 @@ def run_probe_training(
     
     print(f"Probe training complete!")
     
-    # Support both accuracy (seqcls) and exact_match (causal_lm) metrics
-    accuracy = eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match", 0.0)
+    # Get task profile for robust metric extraction
+    task_profile = get_task_profile_from_config(config)
+    accuracy = _extract_accuracy_with_fallback(eval_results, task_profile)
     print(f"Final accuracy: {accuracy:.4f}")
     
     print(f"Trainable parameters: {trainable_params:,}")
@@ -1160,6 +1161,36 @@ def get_primary_metric_key(config: Dict[str, Any]) -> str:
         return "eval_accuracy"
 
 
+def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=None) -> float:
+    """
+    Extract accuracy metric from evaluation results with robust fallback.
+    
+    Priority:
+    1. task_profile.primary_metric_key (if available)
+    2. Fallback sequence: eval_accuracy, eval_exact_match, accuracy, exact_match
+    
+    Args:
+        eval_results: Dictionary of evaluation metrics
+        task_profile: TaskProfile instance (optional)
+        
+    Returns:
+        float: Accuracy value (0.0 if not found)
+    """
+    # Try task profile primary metric key first
+    if task_profile and hasattr(task_profile, 'primary_metric_key'):
+        primary_key = task_profile.primary_metric_key
+        if primary_key in eval_results:
+            return eval_results[primary_key]
+    
+    # Fallback sequence
+    fallback_keys = ["eval_accuracy", "eval_exact_match", "accuracy", "exact_match"]
+    for key in fallback_keys:
+        if key in eval_results:
+            return eval_results[key]
+    
+    return 0.0
+
+
 def create_config_hash(config: Dict[str, Any]) -> str:
     """Create a stable hash of the configuration for reference."""
     import hashlib
@@ -1635,7 +1666,7 @@ def run_compressed_variant_training(
                 "rank": actual_r,
                 "params": trainable_params,
                 "total_params": total_params,
-                "accuracy": eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match") or eval_results.get("accuracy", 0.0),
+                "accuracy": _extract_accuracy_with_fallback(eval_results, task_profile),
                 "eval_loss": eval_results.get("eval_loss"),
                 "output_dir": str(variant_dir),
                 "rank_check": rank_check_result
@@ -1646,19 +1677,17 @@ def run_compressed_variant_training(
     
     print(f"{variant_name} training complete!")
     
-    # Find the accuracy metric (different names for different tasks)
-    accuracy_key = None
-    accuracy_value = None
-    for key in ["eval_accuracy", "eval_exact_match", "accuracy"]:
-        if key in eval_results:
-            accuracy_key = key
-            accuracy_value = eval_results[key]
-            break
+    # Get task profile for robust metric extraction
+    task_profile = get_task_profile_from_config(config)
+    accuracy_value = _extract_accuracy_with_fallback(eval_results, task_profile)
     
-    if accuracy_value is not None:
-        print(f"Final {accuracy_key}: {accuracy_value:.4f}")
+    if accuracy_value > 0.0:
+        metric_key = getattr(task_profile, 'primary_metric_key', 'eval_accuracy')
+        print(f"Final {metric_key}: {accuracy_value:.4f}")
     else:
+        print(f"Warning: No accuracy metric found in evaluation results")
         print(f"Available metrics: {list(eval_results.keys())}")
+        accuracy_value = 0.0
     
     print(f"Trainable parameters: {trainable_params:,}")
     print(f"Total parameters: {total_params:,}")
@@ -1673,7 +1702,7 @@ def run_compressed_variant_training(
         "rank": actual_r,
         "params": trainable_params,
         "total_params": total_params,
-        "accuracy": eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match") or eval_results.get("accuracy", 0.0),
+        "accuracy": _extract_accuracy_with_fallback(eval_results, task_profile),
         "eval_loss": eval_results.get("eval_loss"),
         "output_dir": str(variant_dir)
     }
