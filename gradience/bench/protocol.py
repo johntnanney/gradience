@@ -1385,6 +1385,7 @@ def create_canonical_bench_report(
             "suggested_r_global_median": probe_summary.get("suggested_r_global_median"),
             "suggested_r_global_90": probe_summary.get("suggested_r_global_90")
         },
+        "compressed": compressed,
         "summary": {
             "recommendations_validated": recommendations_validated,
             "best_compression": best_compression_variant,
@@ -1414,6 +1415,9 @@ def create_canonical_bench_report(
             "min_value": probe_gate_data["min_value"]
         }
     }
+    
+    # Schema normalization: ensure "compressed" field is always present
+    report.setdefault("compressed", {})
     
     return report
 
