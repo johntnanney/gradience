@@ -1635,7 +1635,7 @@ def run_compressed_variant_training(
                 "rank": actual_r,
                 "params": trainable_params,
                 "total_params": total_params,
-                "accuracy": eval_results["eval_accuracy"],
+                "accuracy": eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match") or eval_results.get("accuracy", 0.0),
                 "eval_loss": eval_results.get("eval_loss"),
                 "output_dir": str(variant_dir),
                 "rank_check": rank_check_result
@@ -1673,7 +1673,7 @@ def run_compressed_variant_training(
         "rank": actual_r,
         "params": trainable_params,
         "total_params": total_params,
-        "accuracy": eval_results["eval_accuracy"],
+        "accuracy": eval_results.get("eval_accuracy") or eval_results.get("eval_exact_match") or eval_results.get("accuracy", 0.0),
         "eval_loss": eval_results.get("eval_loss"),
         "output_dir": str(variant_dir)
     }
