@@ -1436,7 +1436,7 @@ def create_markdown_report(
     task = canonical_report["task"]
     timestamp = canonical_report["timestamp"]
     probe_data = canonical_report["probe"]
-    compressed_data = canonical_report["compressed"]
+    compressed_data = canonical_report.get("compressed", {}) or {}
     summary = canonical_report["summary"]
     
     # Extract validation classification
@@ -2016,14 +2016,16 @@ def create_multi_seed_aggregated_report(
     # Get all variant names from all reports
     all_variant_names = set()
     for report in seed_reports:
-        all_variant_names.update(report["compressed"].keys())
+        compressed_data = report.get("compressed", {}) or {}
+        all_variant_names.update(compressed_data.keys())
     
     for variant_name in all_variant_names:
         # Collect data for this variant across all seeds
         variant_results = []
         for report in seed_reports:
-            if variant_name in report["compressed"]:
-                variant_data = report["compressed"][variant_name]
+            compressed_data = report.get("compressed", {}) or {}
+            if variant_name in compressed_data:
+                variant_data = compressed_data[variant_name]
                 if variant_data.get("accuracy") is not None:  # Only include successful runs
                     variant_results.append(variant_data)
         
@@ -2146,7 +2148,7 @@ def create_multi_seed_markdown_report(
     n_seeds = aggregated_report["n_seeds"]
     timestamp = aggregated_report["timestamp"]
     probe_data = aggregated_report["probe"]
-    compressed_data = aggregated_report["compressed"]
+    compressed_data = aggregated_report.get("compressed", {}) or {}
     summary = aggregated_report["summary"]
     
     # Extract validation level from aggregated report
