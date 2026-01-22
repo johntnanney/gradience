@@ -146,6 +146,11 @@ def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False)
         print("\nProbe undertrained - results not reliable (exit code 2)")
         return 2
     
+    # Smoke mode always exits 0 (wiring check, not performance test)
+    if smoke_mode:
+        print("\nSmoke test completed - wiring check successful")
+        return 0
+        
     if not ci_mode:
         return 0
     
