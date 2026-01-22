@@ -149,7 +149,7 @@ class GLUESequenceClassificationProfile:
         task_name = cfg["task"]["subset"]
         threshold = self._get_probe_quality_threshold(task_name)
         
-        accuracy = probe_eval["eval_accuracy"]
+        accuracy = probe_eval.get("eval_accuracy") or probe_eval.get("eval_exact_match") or probe_eval.get("accuracy", 0.0)
         passed = accuracy >= threshold
         
         gate_info = {
