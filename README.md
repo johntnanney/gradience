@@ -47,12 +47,11 @@ gradience monitor outputs/run.jsonl --verbose
 **Want to see the gain audit functionality in action?**
 
 ```bash
-make demo-gain-audit
-# or
-./scripts/demo_gain_audit.sh
+make demo-gain-audit        # Quick demo (~30 seconds)
+make sensitivity-check      # Prove it's not printing nonsense (~60 seconds)
 ```
 
-This runs a fast smoke test and shows:
+**Quick demo** runs a fast smoke test and shows:
 - **Update magnitude**: Mean ||ΔW||_F and ||ΔW||_2 across all LoRA modules
 - **Top 5 layers by energy**: Which transformer layers have the highest adaptation energy
 - **Energy concentration**: HHI concentration index and distribution assessment
@@ -75,6 +74,17 @@ Energy Concentration:
 • Top-1 layers (10%): 19.5% of energy
 • Concentration index (HHI): 0.169
 • ✅ Well distributed adaptation
+```
+
+**Sensitivity check** proves the metrics respond to known changes (r=4 vs r=16):
+```
+Mathematical Sensitivity Check:
+===============================
+Frobenius sensitivity: ✅ RESPONSIVE (|122.8%| > 5%)
+Spectral sensitivity: ✅ RESPONSIVE (|112.7%| > 5%)
+Overall sensitivity: ✅ METRICS ARE SENSITIVE
+
+✅ CONCLUSION: Metrics are mathematically sensitive to rank changes
 ```
 
 ---
