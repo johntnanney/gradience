@@ -4,6 +4,48 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.7.1] - 2026-01-26
+
+### Added - LoRA Gain Audit Complete Implementation
+
+**🎯 Lean Playbook Implementation Complete**
+
+Comprehensive LoRA gain/magnitude audit functionality following the 4-step lean playbook for maximum adoption:
+
+#### Step 1: Blessed Demo Command
+- `make demo-gain-audit` - Single command demo (~30 seconds)
+- Shows mean magnitudes, top layers, and concentration analysis
+- Runs fastest CPU config (DistilBERT SST2 mini smoke)
+
+#### Step 2: Sensitivity Validation  
+- `make sensitivity-check` - Proves metrics respond to known changes (~60 seconds)
+- Mathematical validation: >100% magnitude changes for rank variations
+- Confirms metrics compute real, responsive values vs static/cached data
+
+#### Step 3: Human Interpretability
+- New `## Magnitude diagnostics (LoRA ΔW)` section in bench.md
+- Answers key questions in <30 seconds:
+  - "Which layers did most adapting?" → Top 5 layers by energy
+  - "Is adaptation concentrated?" → HHI index with plain English interpretation
+
+#### Step 4: Power User Utilities
+- `scripts/inspect_audit.py` - Standalone inspector with glob pattern support
+- No jq dependency, handles any audit.json nesting structure
+
+### Technical Features
+- **Math utilities**: Efficient LoRA ΔW norm computation without materializing ΔW matrices
+- **Composition analysis**: Energy concentration using Herfindahl-Hirschman Index (HHI)
+- **Complete integration**: audit.json → bench.json → bench.md pipeline
+- **Config flag**: `audit.enable_composition_analysis` (default: true)
+
+Sample output:
+```
+📈 Gain Audit Results
+Update Magnitude: ||ΔW||_F: 0.017, ||ΔW||_2: 0.012
+Top Layers: Layer 4 (18.9%), Layer 3 (17.0%), Layer 2 (16.9%)
+Concentration: HHI 0.168 → ✅ Well distributed adaptation
+```
+
 ## [0.6.0] - 2025-01-26
 
 This is an operationally significant release focused on production reliability and infrastructure robustness for cloud deployments, particularly RunPod environments. The primary goal is to eliminate "it worked on my pod" failures and reduce support load through better defaults and diagnostics.
