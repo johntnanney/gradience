@@ -73,12 +73,96 @@ def render_markdown(report: Dict[str, Any]) -> str:
         lines.append(f"| `{k}` | {params} | {acc} | {delta} | {red} | {verdict} |")
 
     lines.append("")
+    
+    # Magnitude diagnostics section
+    # Try instrumentation first (for v0.1 schema), then fallback to top-level
+    instrumentation = report.get("instrumentation", {})
+    composition = instrumentation.get("composition", {}) or report.get("composition", {})
+    gain_summary = report.get("summary", {}).get("gain", {})
+    global_gain = report.get("global", {}).get("gain", {})
+    
+    # Check if composition analysis was enabled
+    has_composition = bool(composition)
+    
+    if gain_summary or global_gain:
+        lines.append("## Magnitude diagnostics (LoRA ΔW)")
+        lines.append("")
+        
+        # Overall magnitude metrics
+        delta_fro_mean = gain_summary.get("delta_fro_mean")
+        delta_op_mean = gain_summary.get("delta_op_mean")
+        if delta_fro_mean is not None or delta_op_mean is not None:
+            lines.append("### Update magnitude")
+            lines.append("")
+            if delta_fro_mean is not None:
+                lines.append(f"- **Mean ||ΔW||_F:** {delta_fro_mean:.6f}")
+            if delta_op_mean is not None:
+                lines.append(f"- **Mean ||ΔW||_2:** {delta_op_mean:.6f}")
+            lines.append("")
+        
+        # Top 5 layers by energy concentration (if composition analysis enabled)
+        if has_composition and composition.get("top_k", {}).get("layers"):
+            lines.append("### Top 5 layers by Δ energy")
+            lines.append("")
+            top_layers = composition["top_k"]["layers"][:5]  # Ensure max 5
+            total_energy = composition.get("energy_total_fro2", 0)
+            
+            for i, layer_info in enumerate(top_layers, 1):
+                layer_num = layer_info["layer"]
+                share = layer_info["share"]
+                energy = layer_info["energy_fro2"]
+                lines.append(f"{i}. **Layer {layer_num}:** {share:.1%} ({energy:.6f})")
+            lines.append("")
+        
+        # Top 5 modules by Frobenius norm
+        top_modules = global_gain.get("top_modules_by_delta_fro", [])
+        if top_modules:
+            lines.append("### Top 5 modules by ||ΔW||_F")
+            lines.append("")
+            for i, module_info in enumerate(top_modules[:5], 1):  # Ensure max 5
+                module_name = module_info["module"]
+                delta_fro = module_info["delta_fro"]
+                layer_num = module_info.get("layer", "?")
+                # Shorten long module names for readability
+                short_name = module_name.split(".")[-2:] if "." in module_name else [module_name]
+                short_name = ".".join(short_name)
+                lines.append(f"{i}. **{short_name}** (L{layer_num}): {delta_fro:.6f}")
+            lines.append("")
+        
+        # Energy concentration summary (if composition analysis enabled)
+        if has_composition:
+            top_10pct_share = composition.get("top_10pct", {}).get("share")
+            concentration_index = composition.get("concentration_index")
+            if top_10pct_share is not None or concentration_index is not None:
+                lines.append("### Energy concentration")
+                lines.append("")
+                if top_10pct_share is not None:
+                    n_layers = composition.get("top_10pct", {}).get("n", 0)
+                    lines.append(f"- **Top-{n_layers} layers (10%):** {top_10pct_share:.1%} of energy")
+                if concentration_index is not None:
+                    lines.append(f"- **Concentration index (HHI):** {concentration_index:.3f}")
+                    # Simple interpretation
+                    if concentration_index > 0.4:
+                        lines.append("- 🚨 **Highly concentrated** adaptation")
+                    elif concentration_index > 0.25:
+                        lines.append("- ⚠️ **Moderately concentrated** adaptation")
+                    else:
+                        lines.append("- ✅ **Well distributed** adaptation")
+                lines.append("")
+        elif gain_summary or global_gain:
+            # Show note that composition analysis was disabled
+            lines.append("### Energy concentration")
+            lines.append("")
+            lines.append("- *Composition analysis disabled in config (audit.enable_composition_analysis: false)*")
+            lines.append("")
+
     summary = report.get("summary", {}) or {}
     if summary:
         lines.append("## Summary")
         lines.append("")
         for k, v in summary.items():
-            lines.append(f"- **{k}:** {v}")
+            if k != "gain":  # Skip gain summary as it's already shown above
+                lines.append(f"- **{k}:** {v}")
         lines.append("")
 
     return "\n".join(lines)

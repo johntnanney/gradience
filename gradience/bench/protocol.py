@@ -482,6 +482,15 @@ def run_probe_audit(
             allowed_ranks=config.get("compression", {}).get("allowed_ranks", [1, 2, 4, 8, 16, 32])
         )
     
+    # Compute gain metrics
+    from gradience.vnext.audit.lora_audit import compute_gain_metrics
+    
+    # Check if composition analysis is enabled (default: true)
+    audit_config = config.get("audit", {})
+    enable_composition = audit_config.get("enable_composition_analysis", True)
+    
+    gain_metrics = compute_gain_metrics(audit_result.layers)
+    
     # Prepare comprehensive audit data
     audit_data = {
         # Audit metadata
@@ -490,7 +499,10 @@ def run_probe_audit(
         "seed": config["train"]["seed"],
         
         # Summary statistics (includes suggested_r_global_median, suggested_r_global_90)
-        "summary": audit_summary,
+        "summary": {
+            **audit_summary,
+            "gain": gain_metrics["summary"]
+        },
         
         # Global rank suggestions (required) - using audit summary values
         "suggested_r_global_median": audit_summary.get("suggested_r_global_median"),
@@ -506,6 +518,24 @@ def run_probe_audit(
             "reduction_ratio_p90": global_suggestions.reduction_ratio_p90,
             "evidence": global_suggestions.evidence
         },
+        
+        # Per-module gain metrics
+        "per_module": {
+            "gain": gain_metrics["per_module"]
+        },
+        
+        # Per-layer gain metrics
+        "per_layer": {
+            "gain": gain_metrics["per_layer"]
+        },
+        
+        # Global gain metrics
+        "global": {
+            "gain": gain_metrics["global"]
+        },
+        
+        # Composition analysis (energy concentration across layers) - optional
+        **({"composition": gain_metrics.get("composition", {})} if enable_composition else {}),
         
         # Per-layer analysis (your 1.3/1.4 work)
         "layers": [layer.to_dict() for layer in audit_result.layers],
@@ -1251,7 +1281,21 @@ def create_canonical_bench_report(
     if probe_quality_status in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]:
         # Create minimal bench.json for undertrained probe
         probe_data = probe_results.get("probe", {})
-        return {
+        
+        # Add instrumentation sections if available (even for undertrained probes)
+        instrumentation = {}
+        
+        # UDR instrumentation (if present)
+        udr_instrumentation = audit_data.get("udr_instrumentation")
+        if udr_instrumentation:
+            instrumentation["udr"] = udr_instrumentation
+        
+        # Composition analysis (if enabled in config)
+        composition_data = audit_data.get("composition")
+        if composition_data:
+            instrumentation["composition"] = composition_data
+        
+        minimal_report = {
             "bench_version": config.get("bench_version", "0.1"),
             "timestamp": timestamp,
             "git_commit": git_commit,
@@ -1284,6 +1328,12 @@ def create_canonical_bench_report(
                 "embedded_config": config  # Complete configuration for reproducibility
             }
         }
+        
+        # Add instrumentation if available
+        if instrumentation:
+            minimal_report["instrumentation"] = instrumentation
+        
+        return minimal_report
     
     # Extract probe summary metrics from audit
     probe_summary = audit_data.get("summary", {})
@@ -1411,11 +1461,26 @@ def create_canonical_bench_report(
         }
     }
     
-    # Add UDR instrumentation as separate section if available
+    # Add instrumentation sections if available
+    instrumentation = {}
+    
+    # UDR instrumentation
     if udr_instrumentation:
-        report["instrumentation"] = {
-            "udr": udr_instrumentation
-        }
+        instrumentation["udr"] = udr_instrumentation
+    
+    # Composition analysis (if enabled in config)
+    composition_data = audit_data.get("composition")
+    if composition_data:
+        instrumentation["composition"] = composition_data
+    
+    # Gain metrics summary
+    gain_summary = audit_data.get("summary", {}).get("gain")
+    if gain_summary:
+        instrumentation["gain"] = gain_summary
+    
+    # Add instrumentation section if we have any data
+    if instrumentation:
+        report["instrumentation"] = instrumentation
     
     # Add protocol invariants for aggregation
     probe_gate_data = report["probe_quality_gate"]
@@ -1451,6 +1516,7 @@ def create_markdown_report(
     probe_data = canonical_report["probe"]
     compressed_data = canonical_report.get("compressed", {}) or {}
     summary = canonical_report["summary"]
+    instrumentation = canonical_report.get("instrumentation", {})
     
     # Extract validation classification
     validation_classification = canonical_report.get("env", {}).get("validation_classification", {})
@@ -1524,7 +1590,67 @@ def create_markdown_report(
 - **FAIL** means accuracy dropped more than the tolerance threshold
 - You should still validate these results on your real workload before deployment
 - Parameter reduction shows the percentage decrease in trainable LoRA parameters
+"""
 
+    # Add magnitude diagnostics if instrumentation data is available
+    composition = instrumentation.get("composition", {})
+    gain_summary = instrumentation.get("gain", {})
+    
+    if gain_summary or composition:
+        md_content += """
+## Magnitude diagnostics (LoRA ΔW)
+
+"""
+        
+        # Overall magnitude metrics
+        if gain_summary:
+            delta_fro_mean = gain_summary.get("delta_fro_mean")
+            delta_op_mean = gain_summary.get("delta_op_mean")
+            if delta_fro_mean is not None or delta_op_mean is not None:
+                md_content += "### Update magnitude\n\n"
+                if delta_fro_mean is not None:
+                    md_content += f"- **Mean ||ΔW||_F:** {delta_fro_mean:.6f}\n"
+                if delta_op_mean is not None:
+                    md_content += f"- **Mean ||ΔW||_2:** {delta_op_mean:.6f}\n"
+                md_content += "\n"
+        
+        # Top 5 layers by energy concentration (if composition analysis available)
+        if composition and composition.get("top_k", {}).get("layers"):
+            md_content += "### Top 5 layers by Δ energy\n\n"
+            top_layers = composition["top_k"]["layers"][:5]  # Ensure max 5
+            
+            for i, layer_info in enumerate(top_layers, 1):
+                layer_num = layer_info["layer"]
+                share = layer_info["share"]
+                energy = layer_info["energy_fro2"]
+                md_content += f"{i}. **Layer {layer_num}:** {share:.1%} ({energy:.6f})\n"
+            md_content += "\n"
+        
+        # Energy concentration summary (if composition analysis available)
+        if composition:
+            top_10pct_share = composition.get("top_10pct", {}).get("share")
+            concentration_index = composition.get("concentration_index")
+            if top_10pct_share is not None or concentration_index is not None:
+                md_content += "### Energy concentration\n\n"
+                if top_10pct_share is not None:
+                    n_layers = composition.get("top_10pct", {}).get("n", 0)
+                    md_content += f"- **Top-{n_layers} layers (10%):** {top_10pct_share:.1%} of energy\n"
+                if concentration_index is not None:
+                    md_content += f"- **Concentration index (HHI):** {concentration_index:.3f}\n"
+                    # Simple interpretation
+                    if concentration_index > 0.4:
+                        md_content += "- 🚨 **Highly concentrated** adaptation\n"
+                    elif concentration_index > 0.25:
+                        md_content += "- ⚠️ **Moderately concentrated** adaptation\n"
+                    else:
+                        md_content += "- ✅ **Well distributed** adaptation\n"
+                md_content += "\n"
+        elif gain_summary:
+            # Show note that composition analysis was disabled
+            md_content += "### Energy concentration\n\n"
+            md_content += "- *Composition analysis disabled in config (audit.enable_composition_analysis: false)*\n\n"
+
+    md_content += f"""
 ## Summary
 
 - **Recommendations validated:** {summary["recommendations_validated"]}
