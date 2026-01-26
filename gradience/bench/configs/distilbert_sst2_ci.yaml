@@ -32,3 +32,6 @@ runtime:
   smoke_max_steps: 50
   smoke_train_samples: 200
   smoke_eval_samples: 200
+  # Artifact hygiene - keep evidence, don't hoard weights
+  keep_adapter_weights: false
+  keep_checkpoints: false

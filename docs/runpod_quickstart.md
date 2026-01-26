@@ -6,7 +6,7 @@
 
 ```bash
 # 1. Configure cache directories FIRST (prevents disk quota issues)
-source /workspace/gradience/scripts/setup_cache_env.sh
+source /workspace/gradience/scripts/runpod/env.sh
 
 # 2. Standard setup
 cd /workspace
@@ -45,10 +45,11 @@ make verify-version
 df -h /root
 df -h /workspace
 
-# Quick cache fix if you forgot to run setup_cache_env.sh
+# Quick cache fix if you forgot to run env.sh
+export HF_HOME=/workspace/hf_cache/hf_home
 export HF_HUB_CACHE=/workspace/hf_cache/hub
 export HF_DATASETS_CACHE=/workspace/hf_cache/datasets
-mkdir -p /workspace/hf_cache/{hub,datasets}
+mkdir -p /workspace/hf_cache/{hf_home,hub,datasets}
 
 # Clean up if /root/ already filled up
 rm -rf /root/.cache/huggingface/*
@@ -62,7 +63,7 @@ Add to your RunPod startup script or `.bashrc`:
 ```bash
 # Add this to /root/.bashrc for automatic setup
 if [ -d "/workspace/gradience" ]; then
-    source /workspace/gradience/scripts/setup_cache_env.sh
+    source /workspace/gradience/scripts/runpod/env.sh
 fi
 ```
 
@@ -74,8 +75,9 @@ fi
 du -sh /root/.cache/* | sort -hr
 
 # Emergency: move existing cache to workspace  
-mkdir -p /workspace/hf_cache/hub
-mv /root/.cache/huggingface/hub/* /workspace/hf_cache/hub/ 2>/dev/null || true
+mkdir -p /workspace/hf_cache/{hf_home,hub,datasets}
+mv /root/.cache/huggingface/* /workspace/hf_cache/hf_home/ 2>/dev/null || true
+export HF_HOME=/workspace/hf_cache/hf_home
 export HF_HUB_CACHE=/workspace/hf_cache/hub
 ```
 
@@ -85,14 +87,17 @@ export HF_HUB_CACHE=/workspace/hf_cache/hub
 env | grep -E "HF_|TORCH_" 
 
 # Must set BEFORE importing transformers
+export HF_HOME=/workspace/hf_cache/hf_home
 export HF_HUB_CACHE=/workspace/hf_cache/hub
+export HF_DATASETS_CACHE=/workspace/hf_cache/datasets
 python -c "import transformers; ..."  # Now uses correct cache
 ```
 
 ### Jupyter notebook not respecting cache variables
-```bash
+```python
 # Set in notebook cell BEFORE any imports
 import os
+os.environ['HF_HOME'] = '/workspace/hf_cache/hf_home'
 os.environ['HF_HUB_CACHE'] = '/workspace/hf_cache/hub'
 os.environ['HF_DATASETS_CACHE'] = '/workspace/hf_cache/datasets'
 

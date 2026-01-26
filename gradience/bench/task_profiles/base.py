@@ -20,6 +20,7 @@ class TaskProfile(Protocol):
     
     name: str
     primary_metric: str
+    primary_metric_key: str
     
     def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
         """

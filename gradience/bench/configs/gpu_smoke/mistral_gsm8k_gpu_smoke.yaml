@@ -1,0 +1,70 @@
+# GPU smoke test - fast validation of full GPU pipeline
+# Tests: model loading, training, audit, compression, evaluation in ~minutes
+# Small dataset, minimal steps, but covers all pipeline components
+
+bench_version: "0.1"
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm
+  eval_max_samples: 64  # Small eval set for speed
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  probe_gate:
+    metric: exact_match
+    min_value: 0.05  # Lower threshold for smoke test
+
+train:
+  seed: 42
+  max_steps: 20                          # Ultra-fast smoke test
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 0.0001
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 10
+  eval_steps: 20                         # Evaluate at end only  
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 32                      # Tiny training set
+  eval_samples: 64                       # Small eval set
+
+lora:
+  probe_r: 16                            # Smaller rank for speed
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+compression:
+  allowed_ranks: [4, 8, 16]              # Fewer ranks for speed
+  acc_tolerance: 0.05                    # Relaxed tolerance for smoke test
+
+audit:
+  compute_udr: false                     # Skip UDR for speed (as requested)
+
+runtime:
+  device: cuda                           # GPU required
+  # Artifact hygiene - keep evidence, don't hoard weights
+  keep_adapter_weights: false
+  keep_checkpoints: false
+
+run_type: "gpu_smoke_test"

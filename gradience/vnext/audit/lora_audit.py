@@ -124,6 +124,10 @@ class LoRALayerAudit:
     udr_f: Optional[float] = None             # delta_fro_norm / base_fro_norm  
     sdi: Optional[float] = None               # log10(udr + eps)
 
+    # Relative perturbation metrics (computed from in-memory base weights when available)
+    rel_delta_fro: Optional[float] = None     # ||ΔW||_F / ||W_base||_F (in-memory)
+    rel_delta_op: Optional[float] = None      # ||ΔW||_2 / ||W_base||_2 (in-memory)
+
     extras: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -154,6 +158,9 @@ class LoRALayerAudit:
             "udr": self.udr,
             "udr_f": self.udr_f,
             "sdi": self.sdi,
+            # Relative perturbation fields
+            "rel_delta_fro": self.rel_delta_fro,
+            "rel_delta_op": self.rel_delta_op,
         }
         if self.top_singular_values is not None:
             d["top_singular_values"] = self.top_singular_values
@@ -324,6 +331,17 @@ class LoRAAuditResult:
                 out['sdi_p90'] = _pct(sdi_values, 0.90)
                 out['sdi_mean'] = float(sum(sdi_values) / len(sdi_values))
                 
+        except Exception:
+            pass
+
+        # Gain metrics
+        try:
+            gain_metrics = compute_gain_metrics(self.layers)
+            out['gain'] = gain_metrics['summary']
+            out['per_module_gain'] = gain_metrics['per_module']
+            out['per_layer_gain'] = gain_metrics['per_layer']
+            out['global_gain'] = gain_metrics['global']
+            out['composition'] = gain_metrics['composition']  # Add composition analysis
         except Exception:
             pass
 
@@ -720,6 +738,214 @@ def low_rank_stable_rank(
 
 
 # -----------------------------
+# Gain Metrics Computation
+# -----------------------------
+
+def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
+    """Compute gain/magnitude metrics across all layers.
+    
+    Returns gain metrics organized by:
+    - per_module: Individual module metrics
+    - per_layer: Layer-wise aggregated metrics  
+    - global: Global statistics and rankings
+    - summary: High-level summary statistics
+    """
+    if not layers:
+        return {
+            "per_module": [],
+            "per_layer": [],
+            "global": {
+                "top_modules_by_delta_fro": [],
+                "top_modules_by_rel_delta_fro": [],
+                "energy_concentration": {
+                    "top_k_layers_share": 0.0,
+                    "top_10pct_layers_share": 0.0
+                }
+            },
+            "summary": {
+                "delta_fro_mean": 0.0,
+                "delta_op_mean": 0.0,
+                "rel_delta_fro_mean": None,
+                "top_layers_by_delta_fro": [],
+                "energy_concentration_top10pct": 0.0
+            }
+        }
+    
+    # Extract layer numbers from module names
+    def extract_layer_num(name: str) -> int:
+        """Extract layer number from module name like 'model.layers.17.self_attn.q_proj'"""
+        try:
+            parts = name.split('.')
+            for i, part in enumerate(parts):
+                if part in ('layers', 'layer') and i + 1 < len(parts):
+                    return int(parts[i + 1])
+                if 'layer.' in part:
+                    return int(part.split('.')[1])
+            return 0
+        except (ValueError, IndexError):
+            return 0
+    
+    # Per-module gain metrics  
+    per_module_metrics = []
+    for layer in layers:
+        # Use existing computed norms (already scaled with alpha/r)
+        delta_fro = layer.delta_fro_norm  # Frobenius norm ||ΔW||_F
+        delta_op = layer.delta_sigma_max  # Spectral norm ||ΔW||_2
+        
+        # Use relative perturbation metrics (computed from in-memory weights when available)
+        # Fall back to UDR-style relative metrics if in-memory not available
+        rel_delta_fro = layer.rel_delta_fro
+        rel_delta_op = layer.rel_delta_op
+        
+        # Fallback: use UDR-style computation if in-memory relative not available
+        if rel_delta_fro is None and layer.base_fro_norm is not None and layer.base_fro_norm > 0:
+            rel_delta_fro = delta_fro / layer.base_fro_norm
+        if rel_delta_op is None and layer.base_sigma_max is not None and layer.base_sigma_max > 0:
+            rel_delta_op = delta_op / layer.base_sigma_max
+        
+        layer_num = extract_layer_num(layer.name)
+        
+        per_module_metrics.append({
+            "module": layer.name,
+            "layer": layer_num,
+            "r": layer.r,
+            "scaling": layer.scale,
+            "delta_fro": float(delta_fro),
+            "delta_op": float(delta_op),
+            "rel_delta_fro": float(rel_delta_fro) if rel_delta_fro is not None else None,
+            "rel_delta_op": float(rel_delta_op) if rel_delta_op is not None else None
+        })
+    
+    # Per-layer aggregated metrics (sum across modules in same layer)
+    layer_aggregates = {}
+    for module in per_module_metrics:
+        layer_num = module["layer"]
+        if layer_num not in layer_aggregates:
+            layer_aggregates[layer_num] = {
+                "layer": layer_num,
+                "delta_fro_sq_sum": 0.0,
+                "delta_fro_sum": 0.0,
+                "rel_delta_fro_sq_sum": None,
+                "count": 0,
+                "rel_count": 0
+            }
+        
+        agg = layer_aggregates[layer_num]
+        agg["delta_fro_sq_sum"] += module["delta_fro"] ** 2
+        agg["delta_fro_sum"] += module["delta_fro"]
+        agg["count"] += 1
+        
+        if module["rel_delta_fro"] is not None:
+            if agg["rel_delta_fro_sq_sum"] is None:
+                agg["rel_delta_fro_sq_sum"] = 0.0
+            agg["rel_delta_fro_sq_sum"] += module["rel_delta_fro"] ** 2
+            agg["rel_count"] += 1
+    
+    per_layer_metrics = []
+    for layer_num in sorted(layer_aggregates.keys()):
+        agg = layer_aggregates[layer_num]
+        per_layer_metrics.append({
+            "layer": layer_num,
+            "delta_fro_sq_sum": agg["delta_fro_sq_sum"],
+            "delta_fro_sum": agg["delta_fro_sum"],
+            "rel_delta_fro_sq_sum": agg["rel_delta_fro_sq_sum"]
+        })
+    
+    # Global metrics and rankings
+    
+    # Sort modules by delta_fro (Frobenius norm)
+    modules_by_delta_fro = sorted(per_module_metrics, 
+                                  key=lambda x: x["delta_fro"], reverse=True)
+    top_modules_by_delta_fro = [
+        {"module": m["module"], "layer": m["layer"], "delta_fro": m["delta_fro"]} 
+        for m in modules_by_delta_fro[:10]
+    ]
+    
+    # Sort modules by relative delta_fro (if available)
+    modules_with_rel = [m for m in per_module_metrics if m["rel_delta_fro"] is not None]
+    top_modules_by_rel_delta_fro = []
+    if modules_with_rel:
+        modules_by_rel_delta_fro = sorted(modules_with_rel, 
+                                          key=lambda x: x["rel_delta_fro"], reverse=True)
+        top_modules_by_rel_delta_fro = [
+            {"module": m["module"], "layer": m["layer"], "rel_delta_fro": m["rel_delta_fro"]} 
+            for m in modules_by_rel_delta_fro[:10]
+        ]
+    
+    # Composition-style energy concentration analysis
+    from .gain_metrics import compute_layer_energy_concentration
+    
+    # Build module energy dict for concentration analysis
+    module_energies = {}
+    for module in per_module_metrics:
+        module_energies[module["module"]] = module["delta_fro"] ** 2  # Use squared Frobenius norm as energy
+    
+    # Compute comprehensive concentration metrics
+    concentration_analysis = compute_layer_energy_concentration(
+        module_energies, 
+        top_k=5  # Analyze top-5 layers
+    )
+    
+    # Extract simple metrics for backward compatibility
+    if concentration_analysis["top_10pct"]["n"] > 0:
+        top_10pct_layers_share = concentration_analysis["top_10pct"]["share"]
+        top_k_layers_share = concentration_analysis["top_k"]["share"]
+    else:
+        top_10pct_layers_share = 0.0
+        top_k_layers_share = 0.0
+    
+    # Summary statistics
+    delta_fro_values = [m["delta_fro"] for m in per_module_metrics]
+    delta_op_values = [m["delta_op"] for m in per_module_metrics]
+    rel_delta_fro_values = [m["rel_delta_fro"] for m in per_module_metrics 
+                            if m["rel_delta_fro"] is not None]
+    rel_delta_op_values = [m["rel_delta_op"] for m in per_module_metrics 
+                           if m["rel_delta_op"] is not None]
+    
+    delta_fro_mean = sum(delta_fro_values) / len(delta_fro_values) if delta_fro_values else 0.0
+    delta_op_mean = sum(delta_op_values) / len(delta_op_values) if delta_op_values else 0.0
+    rel_delta_fro_mean = (sum(rel_delta_fro_values) / len(rel_delta_fro_values) 
+                          if rel_delta_fro_values else None)
+    rel_delta_op_mean = (sum(rel_delta_op_values) / len(rel_delta_op_values) 
+                         if rel_delta_op_values else None)
+    
+    # Top layers by delta_fro (for summary)
+    top_layers_by_delta_fro = []
+    if per_layer_metrics:
+        layers_by_energy = sorted(per_layer_metrics, 
+                                  key=lambda x: x["delta_fro_sq_sum"], reverse=True)
+        top_layers_by_delta_fro = [
+            {"layer": l["layer"], "delta_fro_sq_sum": l["delta_fro_sq_sum"]}
+            for l in layers_by_energy[:5]
+        ]
+    
+    return {
+        "per_module": per_module_metrics,
+        "per_layer": per_layer_metrics,
+        "composition": concentration_analysis,  # Full composition analysis
+        "global": {
+            "top_modules_by_delta_fro": top_modules_by_delta_fro,
+            "top_modules_by_rel_delta_fro": top_modules_by_rel_delta_fro,
+            "energy_concentration": {
+                "top_k_layers_share": float(top_k_layers_share),
+                "top_10pct_layers_share": float(top_10pct_layers_share)
+            }
+        },
+        "summary": {
+            "delta_fro_mean": float(delta_fro_mean),
+            "delta_op_mean": float(delta_op_mean), 
+            "rel_delta_fro_mean": float(rel_delta_fro_mean) if rel_delta_fro_mean is not None else None,
+            "rel_delta_op_mean": float(rel_delta_op_mean) if rel_delta_op_mean is not None else None,
+            "top_layers_by_delta_fro": top_layers_by_delta_fro,
+            "energy_concentration_top10pct": float(top_10pct_layers_share),
+            # Availability indicators
+            "relative_available": len(rel_delta_fro_values) > 0 or len(rel_delta_op_values) > 0,
+            "n_modules_with_relative": max(len(rel_delta_fro_values), len(rel_delta_op_values))
+        }
+    }
+
+
+# -----------------------------
 # Update Dominance Ratio (UDR) computation
 # -----------------------------
 
@@ -833,33 +1059,16 @@ def compute_update_norms(
         UDR = ||ΔW||_2 / ||W_base||_2 where ΔW = scale * B @ A
         This computes ||ΔW||_2 and ||ΔW||_F efficiently via r×r operations.
     """
-    A_ = A.detach().to(dtype=compute_dtype, device="cpu")
-    B_ = B.detach().to(dtype=compute_dtype, device="cpu")
-    r = A_.shape[0]
+    from .gain_metrics import compute_lora_norms, compute_lora_stable_rank
     
-    # Compute G_A = A @ A.T (r×r) and G_B = B.T @ B (r×r)
-    G_A = A_ @ A_.T
-    G_B = B_.T @ B_
+    # Use optimized utility functions
+    delta_fro_norm, delta_sigma_max = compute_lora_norms(
+        A, B, scale, compute_dtype=compute_dtype, eps=eps
+    )
     
-    # Frobenius norm: ||ΔW||_F^2 = trace(G_B @ G_A)
-    delta_fro_norm_sq = torch.sum(G_B * G_A).item()  # trace via element-wise multiply
-    delta_fro_norm = abs(scale) * math.sqrt(max(delta_fro_norm_sq, 0.0))
-    
-    # Spectral norm: ||ΔW||_2^2 = λ_max(sqrt(G_B) @ G_A @ sqrt(G_B))
-    eigB, UB = torch.linalg.eigh(G_B)
-    eigB = torch.clamp(eigB, min=0.0)
-    sqrt_eigB = torch.sqrt(eigB)
-    
-    M = (sqrt_eigB.unsqueeze(1) * (UB.T @ G_A @ UB)) * sqrt_eigB.unsqueeze(0)
-    M = 0.5 * (M + M.T)  # symmetrize
-    
-    lambda_max = torch.linalg.eigvalsh(M).max().item()
-    delta_sigma_max = abs(scale) * math.sqrt(max(lambda_max, 0.0))
-    
-    # Stable rank and utilization of update
-    delta_sigma_max_sq = max(delta_sigma_max * delta_sigma_max, eps)
-    stable_rank_delta = (delta_fro_norm * delta_fro_norm) / delta_sigma_max_sq
-    utilization = stable_rank_delta / r
+    stable_rank_delta, utilization, r = compute_lora_stable_rank(
+        A, B, scale, compute_dtype=compute_dtype, eps=eps
+    )
     
     return delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization
 
@@ -1173,6 +1382,22 @@ def _convert_to_lora_prefix(param_name: str) -> str:
     return param_name
 
 
+def _convert_lora_prefix_to_base_weight_key(lora_prefix: str) -> str:
+    """Convert LoRA module prefix to base model parameter key.
+    
+    Examples:
+    - 'model.layers.0.self_attn.q_proj' -> 'model.layers.0.self_attn.q_proj.weight'
+    - 'base_model.model.layers.0.self_attn.q_proj' -> 'model.layers.0.self_attn.q_proj.weight'
+    """
+    # Remove common PEFT prefixes
+    prefix = lora_prefix
+    if prefix.startswith('base_model.'):
+        prefix = prefix[len('base_model.'):]
+    
+    # Add .weight suffix (most common case)
+    return f"{prefix}.weight"
+
+
 # -----------------------------
 # Main audit entrypoints
 # -----------------------------
@@ -1185,8 +1410,19 @@ def audit_lora_state_dict(
     eps: float = 1e-12,
     include_top_singular_values: int = 0,
     base_norms: Optional[Dict[str, Dict[str, float]]] = None,
+    base_model_weights: Optional[Dict[str, torch.Tensor]] = None,
 ) -> LoRAAuditResult:
     """Audit LoRA A/B pairs in a state_dict.
+
+    Args:
+        state_dict: LoRA adapter state dict
+        adapter_config: Optional adapter configuration
+        compute_dtype: Data type for internal computation
+        eps: Numerical stability threshold
+        include_top_singular_values: Number of top singular values to store
+        base_norms: Pre-computed base model norms (for UDR)
+        base_model_weights: Optional in-memory base model weights for relative perturbation.
+                           Only used if already loaded, never triggers model loading.
 
     adapter_config is optional; we infer per-layer r from shapes regardless.
     """
@@ -1261,6 +1497,37 @@ def audit_lora_state_dict(
                 delta_sigma_max, delta_fro_norm, base_sigma_max, base_fro_norm, eps=eps
             )
             
+            # Compute relative perturbation metrics from in-memory base weights (safe)
+            rel_delta_fro = None
+            rel_delta_op = None
+            if base_model_weights is not None:
+                base_weight_key = _convert_lora_prefix_to_base_weight_key(prefix)
+                base_weight = base_model_weights.get(base_weight_key)
+                
+                if base_weight is not None:
+                    try:
+                        from .gain_metrics import compute_lora_norms
+                        
+                        # Compute base model norms from in-memory weights
+                        base_weight_cpu = base_weight.detach().to(dtype=compute_dtype, device="cpu")
+                        base_fro_in_memory = torch.norm(base_weight_cpu, p='fro').item()
+                        
+                        # Spectral norm via SVD (safe for in-memory computation)
+                        if base_weight_cpu.dim() >= 2:
+                            _, s, _ = torch.linalg.svd(base_weight_cpu, full_matrices=False)
+                            base_spec_in_memory = s[0].item() if s.numel() > 0 else 0.0
+                        else:
+                            base_spec_in_memory = base_fro_in_memory
+                        
+                        # Compute relative perturbation ratios
+                        if base_fro_in_memory > eps:
+                            rel_delta_fro = delta_fro_norm / base_fro_in_memory
+                        if base_spec_in_memory > eps:
+                            rel_delta_op = delta_sigma_max / base_spec_in_memory
+                            
+                    except Exception as e:
+                        issues.append(f"Failed to compute relative perturbation for {prefix}: {e}")
+            
         except Exception as e:
             issues.append(f"Spectral computation failed for {prefix}: {e}")
             continue
@@ -1296,6 +1563,9 @@ def audit_lora_state_dict(
             udr=udr,
             udr_f=udr_f,
             sdi=sdi,
+            # Relative perturbation fields (computed from in-memory base weights)
+            rel_delta_fro=rel_delta_fro,
+            rel_delta_op=rel_delta_op,
         )
         layers.append(layer)
         # Derive module_type from the true module name
@@ -1403,6 +1673,7 @@ def audit_lora_peft_dir(
     base_model_id: Optional[str] = None,
     base_norms_cache: Optional[Union[str, Path]] = None,
     compute_udr: bool = True,
+    base_model_weights: Optional[Dict[str, torch.Tensor]] = None,
 ) -> LoRAAuditResult:
     """Audit a PEFT adapter directory (adapter_config + weights)."""
     d = Path(peft_dir)
@@ -1482,6 +1753,7 @@ def audit_lora_peft_dir(
         eps=eps,
         include_top_singular_values=include_top_singular_values,
         base_norms=base_norms,
+        base_model_weights=base_model_weights,
     )
     # patch in paths + issues
     return LoRAAuditResult(

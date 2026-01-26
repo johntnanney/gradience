@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[hf,dev]"
+    
+    - name: Run linting
+      run: |
+        ruff check gradience/ tests/ --output-format=github
+    
+    - name: Run type checking
+      run: |
+        mypy gradience/ --ignore-missing-imports
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --tb=short --cov=gradience --cov-report=xml
+    
+    - name: Run CPU bench smoke test
+      run: |
+        python -m gradience.bench.run_bench \
+          --config gradience/bench/configs/distilbert_sst2_ci.yaml \
+          --output ci_smoke_test \
+          --ci \
+          --smoke
+    
+    - name: Validate bench artifacts
+      run: |
+        # Check that essential files were created
+        test -f ci_smoke_test/bench.json || (echo "❌ bench.json not found" && exit 1)
+        test -f ci_smoke_test/bench.md || (echo "❌ bench.md not found" && exit 1)
+        test -f ci_smoke_test/runs.json || (echo "❌ runs.json not found" && exit 1)
+        
+        # Validate JSON structure
+        python -c "
+        import json
+        with open('ci_smoke_test/bench.json') as f:
+            bench = json.load(f)
+        
+        # Check required keys
+        required_keys = ['config', 'audit', 'compression', 'results']
+        for key in required_keys:
+            assert key in bench, f'Missing key: {key}'
+        
+        # Check that variants were generated
+        assert 'variants' in bench['results'], 'No variants in results'
+        assert len(bench['results']['variants']) > 0, 'No variants generated'
+        
+        print('✅ bench.json structure valid')
+        print(f'✅ Generated {len(bench[\"results\"][\"variants\"])} compressed variants')
+        "
+        
+        echo "✅ CPU bench smoke test passed"
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.python-version == '3.11'
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  lint-configs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install PyYAML
+      run: pip install pyyaml
+    
+    - name: Validate YAML configs
+      run: |
+        python -c "
+        import yaml
+        from pathlib import Path
+        
+        configs_dir = Path('gradience/bench/configs')
+        errors = []
+        
+        for yaml_file in configs_dir.rglob('*.yaml'):
+            try:
+                with open(yaml_file) as f:
+                    config = yaml.safe_load(f)
+                
+                # Basic validation
+                if not isinstance(config, dict):
+                    errors.append(f'{yaml_file}: not a dict')
+                    continue
+                
+                # Check required top-level keys for bench configs
+                if yaml_file.parent.name != 'policies':  # Skip policy files
+                    required_keys = ['model', 'task', 'train', 'lora']
+                    for key in required_keys:
+                        if key not in config:
+                            errors.append(f'{yaml_file}: missing required key {key}')
+                
+                print(f'✅ {yaml_file.relative_to(configs_dir)}')
+                
+            except yaml.YAMLError as e:
+                errors.append(f'{yaml_file}: YAML error - {e}')
+            except Exception as e:
+                errors.append(f'{yaml_file}: {e}')
+        
+        if errors:
+            print(f'❌ Found {len(errors)} config validation errors:')
+            for error in errors:
+                print(f'  {error}')
+            exit(1)
+        else:
+            print(f'✅ All {len(list(configs_dir.rglob(\"*.yaml\")))} config files valid')
+        "

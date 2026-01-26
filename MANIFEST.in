@@ -1,0 +1,40 @@
+# Include package metadata and documentation
+include README.md
+include CONTRIBUTING.md
+include LICENSE*
+include CHANGELOG.md
+include pyproject.toml
+
+# Include all YAML configuration files in bench configs
+recursive-include gradience/bench/configs *.yaml *.yml
+
+# Include all markdown documentation in the bench package
+recursive-include gradience/bench *.md
+
+# Include all markdown documentation in vnext package  
+recursive-include gradience/vnext *.md
+
+# Include task profiles and policies
+recursive-include gradience/bench/task_profiles *
+recursive-include gradience/bench/policies *.yaml *.yml *.md
+
+# Include any JSON schema files
+recursive-include gradience *.json
+
+# Include all runner scripts for benchmarking and RunPod
+recursive-include scripts *.sh *.py
+
+# Include scripts that are part of the package (if any)
+recursive-include gradience/bench/scripts *.sh *.py
+
+# Exclude development and cache files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.egg-info/*
+global-exclude __pycache__/*
+global-exclude .git/*
+global-exclude .pytest_cache/*
+global-exclude *.log
+global-exclude *~
+global-exclude *.bak
+global-exclude .DS_Store
