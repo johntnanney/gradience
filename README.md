@@ -42,6 +42,43 @@ gradience monitor outputs/run.jsonl --verbose
 
 ---
 
+## 🎯 Quick Demo: LoRA Gain Audit (v0.7.0)
+
+**Want to see the gain audit functionality in action?**
+
+```bash
+make demo-gain-audit
+# or
+./scripts/demo_gain_audit.sh
+```
+
+This runs a fast smoke test and shows:
+- **Update magnitude**: Mean ||ΔW||_F and ||ΔW||_2 across all LoRA modules
+- **Top 5 layers by energy**: Which transformer layers have the highest adaptation energy
+- **Energy concentration**: HHI concentration index and distribution assessment
+
+**Sample output:**
+```
+📈 Gain Audit Results
+====================
+
+Update Magnitude:
+• Mean ||ΔW||_F: 0.017447
+• Mean ||ΔW||_2: 0.011840
+
+Top 5 Layers by Δ Energy:
+1. Layer 5: 19.5% (0.001435)
+2. Layer 4: 18.4% (0.001351)
+3. Layer 3: 17.1% (0.001256)
+
+Energy Concentration:
+• Top-1 layers (10%): 19.5% of energy
+• Concentration index (HHI): 0.169
+• ✅ Well distributed adaptation
+```
+
+---
+
 ## 🌙 RunPod Quickstart
 
 **TL;DR**: Prevent cache filling `/root/` and corrupted downloads.
@@ -151,6 +188,7 @@ pip install -e ".[hf,fast]"
 make setup        # Creates venv and installs [hf,dev]
 make setup-cache  # Configure storage (prevents "disk quota exceeded")
 make verify-version  # Verify installation
+make demo-gain-audit  # Demo LoRA gain audit functionality (v0.7.0)
 ```
 
 > 💾 **Storage tip**: Run `make setup-cache` to prevent disk space issues in cloud environments. See [docs/storage_and_caching.md](docs/storage_and_caching.md) for details.

@@ -1,5 +1,5 @@
 # Gradience Development Makefile
-.PHONY: setup setup-cache verify-version install test lint format clean help
+.PHONY: setup setup-cache verify-version install test lint format clean help demo-gain-audit
 
 help: ## Show this help message
 	@echo "Gradience Development Commands:"
@@ -86,6 +86,10 @@ clean: ## Clean build artifacts and caches
 # Development workflows
 dev-install: install verify-version ## Install and verify for development
 	@echo "✅ Development installation complete!"
+
+demo-gain-audit: ## Demo the LoRA gain audit functionality (v0.7.0)
+	@echo "🎯 Running LoRA gain audit demo..."
+	@./scripts/demo_gain_audit.sh
 
 check: lint format-check test-quick ## Run all code quality checks
 	@echo "✅ All checks passed!"
