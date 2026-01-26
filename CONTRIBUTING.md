@@ -65,6 +65,49 @@ make check
 | `make test-quick` | Fast tests without coverage | ~30s |
 | `make test` | Full test suite with coverage | ~2-5min |
 
+### Running Tests
+
+```bash
+# Run all unit tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ --cov=gradience --cov-report=html
+
+# Run specific test categories  
+pytest tests/test_basic_functionality.py -v  # Basic imports/configs
+pytest tests/test_udr_opt_in_policy.py -v   # UDR policy enforcement
+
+# Local CI simulation (full validation)
+python test_ci_locally.py
+```
+
+### GPU Testing
+
+```bash
+# Quick GPU smoke test (~3-5 minutes)
+scripts/bench/run_gpu_smoke.sh
+
+# Manual GPU smoke test
+python -m gradience.bench.run_bench \
+  --config gradience/bench/configs/gpu_smoke/mistral_gsm8k_gpu_smoke.yaml \
+  --output test_output \
+  --smoke
+
+# Validate output files exist
+ls test_output/  # Should contain: bench.json, bench.md, runs.json
+```
+
+### CPU Testing (CI-Safe)
+
+```bash
+# CPU smoke test (safe for GitHub Actions)
+python -m gradience.bench.run_bench \
+  --config gradience/bench/configs/distilbert_sst2_ci.yaml \
+  --output test_output \
+  --smoke --ci
+```
+
 ### Before Submitting PRs
 
 ```bash
@@ -103,6 +146,80 @@ python -m gradience.bench \
 
 # Check the bench.json artifact
 cat bench_output/bench.json
+```
+
+## 🗂️ File and Artifact Hygiene
+
+### ❌ DO NOT COMMIT
+
+**Never commit these files/directories:**
+
+```bash
+# Cache directories (potentially gigabytes)
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# HuggingFace cache (multi-GB)
+hf_cache/
+hf_home/
+hub/
+datasets/
+transformers_cache/  # deprecated location
+
+# Model artifacts (hundreds of MB)
+*.safetensors
+*.bin
+adapter_model.*
+pytorch_model.*
+
+# Training artifacts  
+checkpoints/
+ckpts_*/
+snapshots_*/
+*.log
+nohup.out
+
+# RunPod session artifacts
+_pid.txt
+_exit_code.txt  
+STAGE.txt
+*.swp
+*.swo
+.bash_history
+.python_history
+
+# Temporary outputs
+test_output/
+ci_test_output/
+bench_output_*/
+```
+
+Our `.gitignore` catches most of these, but be vigilant about:
+- Large model files (check `git status` before committing)
+- Personal RunPod session artifacts
+- Accidentally staged log files
+
+### ✅ DO COMMIT
+
+**Always include these in bug reports and PRs:**
+
+```bash
+# Configuration files
+*.yaml
+*.yml
+
+# Scientific evidence (small JSON files)
+bench.json           # Aggregated benchmark results
+bench.md            # Human-readable report  
+runs.json           # Individual run metadata
+audit.json          # LoRA audit summary
+
+# Documentation and scripts
+docs/
+scripts/
+*.md
 ```
 
 ## 📝 Code Style & Standards
@@ -226,6 +343,53 @@ diff before/bench.json after/bench.json
   ```
 ```
 
+## 🐛 Bug Reports
+
+### Required Files
+
+When reporting bugs, attach these files (they're small and contain scientific evidence):
+
+1. **bench.json** - Aggregated results with metrics
+2. **bench.md** - Human-readable benchmark report
+3. **audit.json** - LoRA audit summary (if UDR enabled)
+4. **Config file** - The exact YAML config used
+5. **Last 200 log lines**:
+   ```bash
+   tail -n 200 nohup.log > last_200_lines.txt
+   # or from tmux session
+   tail -n 200 your_log_file.txt > last_200_lines.txt
+   ```
+
+### Environment Info
+
+Include this diagnostic output:
+
+```bash
+# Python and package versions
+python --version
+pip list | grep -E "(torch|transformers|gradience|peft)"
+
+# GPU info (if relevant)
+nvidia-smi
+
+# Disk space
+df -h /workspace /root
+
+# HF cache status  
+echo "HF_HOME: $HF_HOME"
+echo "HF_HUB_CACHE: $HF_HUB_CACHE"
+ls -la $HF_HOME/hub/ | head -5  # Sample cache contents
+```
+
+### RunPod Issues
+
+For RunPod-specific issues, see [`docs/runpod.md`](docs/runpod.md) first. Include:
+
+- Pod type and region
+- Disk layout (`df -h /workspace /root`)
+- Whether you ran `source scripts/runpod/env.sh`
+- Contents of `_exit_code.txt` (if using no-tmux runner)
+
 ## 🐛 Debugging
 
 ### Common Issues
@@ -256,6 +420,16 @@ rm -rf ~/.cache/huggingface/
 # Or use configured cache
 make setup-cache
 ```
+
+### Preflight Validation
+
+Run the built-in preflight check before reporting issues:
+
+```bash
+python -c "from gradience.bench.protocol import run_bench_preflight_check; run_bench_preflight_check()"
+```
+
+This validates PyTorch devices, disk space, HF cache health, and environment variables.
 
 ### Performance Debugging
 

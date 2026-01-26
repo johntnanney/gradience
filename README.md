@@ -42,6 +42,37 @@ gradience monitor outputs/run.jsonl --verbose
 
 ---
 
+## 🌙 RunPod Quickstart
+
+**TL;DR**: Prevent cache filling `/root/` and corrupted downloads.
+
+```bash
+# Essential first step - prevents 90% of RunPod issues
+source scripts/runpod/env.sh
+
+# Then run gradience normally  
+python -m gradience.bench.run_bench --config your_config.yaml --output results
+```
+
+### Common Issues & Fixes
+
+**💾 "No space left on device" during model download**
+```bash
+# One-line fix: redirect cache to /workspace/
+source scripts/runpod/env.sh
+```
+
+**🔧 "Safetensors incomplete metadata" errors**
+```bash
+# Delete corrupted model cache
+rm -rf ~/.cache/huggingface/hub/models--*model-name*
+# Or nuke entire cache: rm -rf ~/.cache/huggingface/
+```
+
+📖 **Complete RunPod guide:** [docs/runpod.md](docs/runpod.md)
+
+---
+
 ## What is Gradience?
 
 Gradience is a *flight recorder + mechanic* for LoRA runs:
