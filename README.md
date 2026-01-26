@@ -87,6 +87,13 @@ Overall sensitivity: ✅ METRICS ARE SENSITIVE
 ✅ CONCLUSION: Metrics are mathematically sensitive to rank changes
 ```
 
+**Power user inspection** - quick one-liner for audit.json:
+```bash
+python3 scripts/inspect_audit.py /path/to/probe_r16/audit.json
+# or with glob pattern
+python3 scripts/inspect_audit.py "/tmp/*/probe_r*/audit.json"
+```
+
 ---
 
 ## 🌙 RunPod Quickstart
@@ -199,6 +206,7 @@ make setup        # Creates venv and installs [hf,dev]
 make setup-cache  # Configure storage (prevents "disk quota exceeded")
 make verify-version  # Verify installation
 make demo-gain-audit  # Demo LoRA gain audit functionality (v0.7.0)
+make sensitivity-check # Prove gain metrics respond to rank changes
 ```
 
 > 💾 **Storage tip**: Run `make setup-cache` to prevent disk space issues in cloud environments. See [docs/storage_and_caching.md](docs/storage_and_caching.md) for details.
