@@ -56,6 +56,13 @@ multi_seed:
   seeds: [42, 43, 44]    # 3 seeds for statistical confidence
   parallel: false        # Run sequentially to avoid resource conflicts
 
+# Audit configuration  
+audit:
+  enable_composition_analysis: true   # Enable layer energy concentration analysis (default: true)
+  # compute_udr: false                # Requires base_model to be set
+  # base_model: "distilbert-base-uncased"  # For UDR computation
+  # base_norms_cache: null            # Optional cache path
+
 # Output configuration
 output:
   save_artifacts: true

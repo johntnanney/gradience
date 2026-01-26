@@ -19,6 +19,7 @@ class GSM8KCausalLMProfile:
     
     name = "gsm8k_causal_lm"
     primary_metric = "exact_match"
+    primary_metric_key = "eval_exact_match"
     
     def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
         """Load GSM8K dataset."""
@@ -203,11 +204,10 @@ class GSM8KCausalLMProfile:
         accuracy = correct / total if total > 0 else 0.0
         
         return {
-            "eval_exact_match": accuracy,
-            "eval_accuracy": accuracy,  # Alias for compatibility
-            "eval_correct": correct,
-            "eval_total": total,
-            "eval_samples": total,
+            "eval_exact_match": float(accuracy),
+            "eval_samples": int(total),
+            "eval_correct": int(correct),
+            "eval_total": int(total),
         }
     
     def probe_gate(self, probe_eval: Dict[str, Any], cfg: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:

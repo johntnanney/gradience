@@ -42,6 +42,91 @@ gradience monitor outputs/run.jsonl --verbose
 
 ---
 
+## 🎯 Quick Demo: LoRA Gain Audit (v0.7.0)
+
+**Want to see the gain audit functionality in action?**
+
+```bash
+make demo-gain-audit        # Quick demo (~30 seconds)
+make sensitivity-check      # Prove it's not printing nonsense (~60 seconds)
+```
+
+**Quick demo** runs a fast smoke test and shows:
+- **Update magnitude**: Mean ||ΔW||_F and ||ΔW||_2 across all LoRA modules
+- **Top 5 layers by energy**: Which transformer layers have the highest adaptation energy
+- **Energy concentration**: HHI concentration index and distribution assessment
+
+**Sample output:**
+```
+📈 Gain Audit Results
+====================
+
+Update Magnitude:
+• Mean ||ΔW||_F: 0.017447
+• Mean ||ΔW||_2: 0.011840
+
+Top 5 Layers by Δ Energy:
+1. Layer 5: 19.5% (0.001435)
+2. Layer 4: 18.4% (0.001351)
+3. Layer 3: 17.1% (0.001256)
+
+Energy Concentration:
+• Top-1 layers (10%): 19.5% of energy
+• Concentration index (HHI): 0.169
+• ✅ Well distributed adaptation
+```
+
+**Sensitivity check** proves the metrics respond to known changes (r=4 vs r=16):
+```
+Mathematical Sensitivity Check:
+===============================
+Frobenius sensitivity: ✅ RESPONSIVE (|122.8%| > 5%)
+Spectral sensitivity: ✅ RESPONSIVE (|112.7%| > 5%)
+Overall sensitivity: ✅ METRICS ARE SENSITIVE
+
+✅ CONCLUSION: Metrics are mathematically sensitive to rank changes
+```
+
+**Power user inspection** - quick one-liner for audit.json:
+```bash
+python3 scripts/inspect_audit.py /path/to/probe_r16/audit.json
+# or with glob pattern
+python3 scripts/inspect_audit.py "/tmp/*/probe_r*/audit.json"
+```
+
+---
+
+## 🌙 RunPod Quickstart
+
+**TL;DR**: Prevent cache filling `/root/` and corrupted downloads.
+
+```bash
+# Essential first step - prevents 90% of RunPod issues
+source scripts/runpod/env.sh
+
+# Then run gradience normally  
+python -m gradience.bench.run_bench --config your_config.yaml --output results
+```
+
+### Common Issues & Fixes
+
+**💾 "No space left on device" during model download**
+```bash
+# One-line fix: redirect cache to /workspace/
+source scripts/runpod/env.sh
+```
+
+**🔧 "Safetensors incomplete metadata" errors**
+```bash
+# Delete corrupted model cache
+rm -rf ~/.cache/huggingface/hub/models--*model-name*
+# Or nuke entire cache: rm -rf ~/.cache/huggingface/
+```
+
+📖 **Complete RunPod guide:** [docs/runpod.md](docs/runpod.md)
+
+---
+
 ## What is Gradience?
 
 Gradience is a *flight recorder + mechanic* for LoRA runs:
@@ -120,6 +205,8 @@ pip install -e ".[hf,fast]"
 make setup        # Creates venv and installs [hf,dev]
 make setup-cache  # Configure storage (prevents "disk quota exceeded")
 make verify-version  # Verify installation
+make demo-gain-audit  # Demo LoRA gain audit functionality (v0.7.0)
+make sensitivity-check # Prove gain metrics respond to rank changes
 ```
 
 > 💾 **Storage tip**: Run `make setup-cache` to prevent disk space issues in cloud environments. See [docs/storage_and_caching.md](docs/storage_and_caching.md) for details.

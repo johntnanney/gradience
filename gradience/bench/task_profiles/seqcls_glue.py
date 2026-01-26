@@ -17,6 +17,7 @@ class GLUESequenceClassificationProfile:
     
     name = "seqcls_glue"
     primary_metric = "accuracy"
+    primary_metric_key = "eval_accuracy"
     
     def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
         """Load GLUE dataset from config."""
@@ -123,7 +124,9 @@ class GLUESequenceClassificationProfile:
     
     def evaluate(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                 tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:
-        """Evaluate sequence classification model."""
+        """Evaluate sequence classification model and return consistent eval_accuracy."""
+        import numpy as np
+        
         train_config = cfg["train"]
         
         # Create minimal trainer for evaluation
@@ -141,7 +144,27 @@ class GLUESequenceClassificationProfile:
             data_collator=DataCollatorWithPadding(tokenizer),
         )
         
-        return trainer.evaluate()
+        # Use trainer.predict() to get logits and labels for accuracy computation
+        predictions = trainer.predict(tokenized_ds["validation"])
+        
+        # Compute accuracy from logits and labels
+        logits = predictions.predictions
+        labels = predictions.label_ids
+        
+        # Get predicted classes (argmax of logits)
+        pred_classes = np.argmax(logits, axis=1)
+        
+        # Compute accuracy
+        accuracy = (pred_classes == labels).mean()
+        num_samples = len(labels)
+        num_correct = (pred_classes == labels).sum()
+        
+        return {
+            "eval_accuracy": float(accuracy),
+            "eval_samples": int(num_samples),
+            "eval_correct": int(num_correct),
+            "eval_loss": float(predictions.metrics.get("test_loss", 0.0)),
+        }
     
     def probe_gate(self, probe_eval: Dict[str, Any], cfg: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Check if probe meets accuracy threshold."""

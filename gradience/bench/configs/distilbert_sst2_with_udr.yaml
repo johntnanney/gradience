@@ -30,9 +30,9 @@ compression:
 
 # UDR instrumentation configuration
 audit:
-  base_model: "distilbert-base-uncased"           # Enable UDR computation
+  base_model: "distilbert-base-uncased"           # Explicit base model required
+  compute_udr: true                              # Explicit opt-in required
   # base_norms_cache: "/workspace/cache/base_norms" # Optional: custom cache location
-  # compute_udr: false                             # Optional: disable UDR
 
 runtime:
   device: "cpu"

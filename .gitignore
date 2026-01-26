@@ -44,7 +44,7 @@ Icon?
 *~
 .jupyter/
 
-# HuggingFace / ML caches
+# HuggingFace / ML caches (including RunPod patterns)
 hf_cache/
 .cache/huggingface/
 torch_cache/
@@ -53,6 +53,12 @@ gradience_cache/
 transformers_cache/
 datasets_cache/
 .cache/datasets/
+# RunPod cache locations from our scripts
+/workspace/hf_cache/
+**/hf_cache/hub/
+**/hf_cache/datasets/
+**/hf_cache/torch/
+**/hf_cache/hf_home/
 
 # Model artifacts / weights
 *.safetensors
@@ -77,8 +83,22 @@ outputs/
 results/
 artifacts/
 logs/
+logs*/
 *.log
 wandb/
+# RunPod and nohup runner artifacts
+nohup.out
+nohup.log
+**/nohup.log
+**/_pid.txt
+**/STAGE.txt
+**/_exit_code.txt
+**/_nohup_wrapper.sh
+# GPU smoke test outputs
+**/gpu_smoke_*
+# Additional bench patterns
+experiment*/
+eval_results/
 
 # Data and archives
 data/
@@ -103,6 +123,12 @@ datasets/
 *~
 .#*
 \#*#
+# RunPod session artifacts
+.bash_history
+.python_history
+.viminfo
+.tmux.conf
+.screenrc
 
 # Jupyter notebooks checkpoints
 .ipynb_checkpoints/
