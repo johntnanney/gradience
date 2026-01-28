@@ -2117,6 +2117,24 @@ def cmd_audit(args: argparse.Namespace) -> None:
             else:
                 payload = result.to_summary_dict(include_layers=include_layers, topk_layers=top_wasteful if include_layers else None)
             
+            # Ensure n_layers_with_udr is present when UDR is enabled via CLI args
+            # Only add this if UDR computation was actually enabled AND attempted
+            # Note: --no-udr explicitly disables UDR, so respect that flag strictly
+            if (not getattr(args, "no_udr", False) and 
+                getattr(args, "base_model", None) and  # Only when base_model provided (not just cache)
+                "n_layers_with_udr" not in payload):
+                # Check if any UDR-related data exists to determine if UDR was attempted
+                layers = getattr(result, "layers", [])
+                has_udr_data = any(
+                    getattr(l, 'udr', None) is not None or 
+                    getattr(l, 'base_sigma_max', None) is not None or
+                    getattr(l, 'base_fro_norm', None) is not None
+                    for l in layers
+                )
+                if has_udr_data:
+                    udr_count = sum(1 for l in layers if getattr(l, 'udr', None) is not None)
+                    payload["n_layers_with_udr"] = udr_count
+            
             # Add per-layer rank suggestions if requested
             suggest_per_layer = getattr(args, "suggest_per_layer", False)
             if suggest_per_layer:

@@ -226,6 +226,9 @@ class LoRAAuditResult:
     by_type: Dict[str, Dict[str, float]]
     layers: List[LoRALayerAudit]
 
+    # UDR computation tracking (must be mutable to set after creation)
+    _udr_enabled: bool = field(default=False, init=False, repr=False, compare=False)
+
     # Per-policy global suggestions (Step 5) - DEPRECATED: Use policies.global_statistics
     policy_global_suggestions: Optional[Dict[str, Dict[str, float]]] = None
     
@@ -346,14 +349,8 @@ class LoRAAuditResult:
             udr_values = [l.udr for l in self.layers if l.udr is not None]
             sdi_values = [l.sdi for l in self.layers if l.sdi is not None]
             
-            # Check if UDR computation was attempted by looking for base norms data
-            # If base_norms was None, UDR computation was disabled
-            udr_attempted = any(
-                hasattr(l, 'base_sigma_max') and l.base_sigma_max is not None 
-                for l in self.layers
-            )
-            
-            if udr_attempted:
+            # Check if UDR computation was enabled at audit time
+            if self._udr_enabled:
                 # Always emit n_layers_with_udr for API consistency when UDR is enabled
                 out['n_layers_with_udr'] = len(udr_values)
             
@@ -2134,7 +2131,7 @@ def audit_lora_peft_dir(
         rank_policies=rank_policies,
     )
     # patch in paths + issues
-    return LoRAAuditResult(
+    audit_result = LoRAAuditResult(
         peft_dir=str(d),
         adapter_config_path=str(cfg_path) if cfg_path else None,
         adapter_weights_path=str(w_path),
@@ -2153,3 +2150,8 @@ def audit_lora_peft_dir(
         policies=result.policies,
         issues=(issues + result.issues),
     )
+    
+    # Set UDR enablement flag for schema consistency (frozen dataclass workaround)
+    object.__setattr__(audit_result, '_udr_enabled', compute_udr)
+    
+    return audit_result
