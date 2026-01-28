@@ -1,7 +1,10 @@
 """
-Compatibility shim.
+Compatibility alias.
 
-Some legacy bench/UDR code paths and tests expect `import protocol` to work.
-Map that to the canonical implementation in `gradience.bench.protocol`.
+Ensures `import protocol` returns the *same module object* as `gradience.bench.protocol`,
+so mocks/patching are consistent across environments.
 """
-from gradience.bench.protocol import *  # noqa: F401,F403
+import sys as _sys
+from gradience.bench import protocol as _protocol
+
+_sys.modules[__name__] = _protocol
