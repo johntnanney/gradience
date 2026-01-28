@@ -84,16 +84,16 @@ def test_bench_udr_config_parsing():
             # Reset mock
             mock_audit.reset_mock()
             
-            # Test 2: Config without audit section should use model name and defaults
+            # Test 2: Config without audit section should disable UDR (opt-in policy)
             print("🔍 Testing config without UDR section...")
             audit_path = protocol.run_probe_audit(probe_dir, config_without_udr)
             
-            # Verify audit was called with model name as base_model
+            # Verify audit was called with UDR disabled (opt-in policy)
             mock_audit.assert_called_with(
                 probe_dir,
-                base_model_id="distilbert-base-uncased",
+                base_model_id=None,
                 base_norms_cache=None,
-                compute_udr=True
+                compute_udr=False
             )
             
             print("✅ Config parsing tests passed")

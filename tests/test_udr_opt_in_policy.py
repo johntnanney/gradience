@@ -87,8 +87,7 @@ class TestUDROptInPolicy:
         return probe_dir
 
     @patch('gradience.bench.protocol.audit_lora_peft_dir')
-    @patch('gradience.bench.protocol.train_lora_variant') 
-    def test_default_no_audit_section_udr_disabled(self, mock_train, mock_audit):
+    def test_default_no_audit_section_udr_disabled(self, mock_audit):
         """Test default behavior: no audit section → compute_udr is false."""
         mock_audit.return_value = MagicMock()
         mock_audit.return_value.to_summary_dict.return_value = {
@@ -105,9 +104,6 @@ class TestUDROptInPolicy:
             
             # This should not attempt to load a base model
             try:
-                # Mock the training to just create minimal outputs
-                mock_train.return_value = (0.85, {"accuracy": 0.85})
-                
                 # Run the audit portion (this would be called within run_bench_protocol)
                 from gradience.bench.protocol import audit_lora_peft_dir
                 

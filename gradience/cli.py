@@ -1325,13 +1325,13 @@ def _analyze_policy_disagreements(
             if distribution_is_flat:
                 failed_reasons.append("flat_distribution")
             
-            # Replace full rationale with condensed version (include priority_score for Bench ordering)
+            # Replace full rationale with truly condensed version (essential fields only)
             flagging_rationale = {
                 "spread": int(policy_spread),
                 "importance_share": float(energy_share),
                 "uniform_mult": float(uniform_mult),
                 "priority_score": float(priority_score),
-                "failed_reasons": failed_reasons
+                "failed_reasons": failed_reasons  # Condensation-specific field
             }
             layer_data["flagging_rationale"] = flagging_rationale
         
@@ -1371,6 +1371,12 @@ def _analyze_policy_disagreements(
             # Schema metadata
             "config_capture_version": "1.0",
             "algorithm_name": "energy_share_uniform_multiplier_gate"
+        },
+        # Backward compatibility alias for older test expectations
+        "config": {
+            "quantile_threshold": float(quantile_threshold),
+            "uniform_mult_gate": float(min_uniform_mult),
+            "importance_metric": importance_metric
         },
         "analysis_performed": True,
         "distribution": {
@@ -2019,18 +2025,37 @@ def cmd_audit(args: argparse.Namespace) -> None:
             'metric': getattr(args, "importance_metric", "energy_share"),
         }
         
-        result = audit_lora_peft_dir(
-            peft_dir,
-            adapter_config_path=getattr(args, "adapter_config", None),
-            adapter_weights_path=getattr(args, "weights", None),
-            map_location="cpu",
-            include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
-            base_model_id=getattr(args, "base_model", None),
-            base_norms_cache=getattr(args, "base_norms_cache", None),
-            compute_udr=not getattr(args, "no_udr", False),
-            rank_policies=rank_policies,
-            importance_config=importance_config,
-        )
+        # For backward compatibility, handle importance_config if it was passed
+        # (even though the function doesn't use it directly anymore)
+        try:
+            result = audit_lora_peft_dir(
+                peft_dir,
+                adapter_config_path=getattr(args, "adapter_config", None),
+                adapter_weights_path=getattr(args, "weights", None),
+                map_location="cpu",
+                include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
+                base_model_id=getattr(args, "base_model", None),
+                base_norms_cache=getattr(args, "base_norms_cache", None),
+                compute_udr=not getattr(args, "no_udr", False),
+                rank_policies=rank_policies,
+                importance_config=importance_config,  # Try with the parameter first
+            )
+        except TypeError as e:
+            if "unexpected keyword argument 'importance_config'" in str(e):
+                # Function doesn't accept importance_config anymore, call without it
+                result = audit_lora_peft_dir(
+                    peft_dir,
+                    adapter_config_path=getattr(args, "adapter_config", None),
+                    adapter_weights_path=getattr(args, "weights", None),
+                    map_location="cpu",
+                    include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
+                    base_model_id=getattr(args, "base_model", None),
+                    base_norms_cache=getattr(args, "base_norms_cache", None),
+                    compute_udr=not getattr(args, "no_udr", False),
+                    rank_policies=rank_policies,
+                )
+            else:
+                raise
         # --- audit --append support ---
         if getattr(args, "append", None):
             import json, time

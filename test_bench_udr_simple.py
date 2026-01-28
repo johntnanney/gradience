@@ -14,7 +14,7 @@ import json
 import tempfile
 import torch
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 import sys
 import os
 

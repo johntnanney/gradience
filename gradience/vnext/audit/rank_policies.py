@@ -104,18 +104,41 @@ def apply_rank_policy(
     params = policy_spec.params
     
     if policy_name == 'energy_threshold':
-        return _energy_threshold_policy(s, shape, r_alloc, params, eps)
+        result = _energy_threshold_policy(s, shape, r_alloc, params, eps)
     elif policy_name == 'entropy_effective':
-        return _entropy_effective_policy(s, shape, r_alloc, params, eps)
+        result = _entropy_effective_policy(s, shape, r_alloc, params, eps)
     elif policy_name == 'optimal_hard_threshold':
-        return _optimal_hard_threshold_policy(s, shape, r_alloc, params, eps)
+        result = _optimal_hard_threshold_policy(s, shape, r_alloc, params, eps)
     elif policy_name == 'knee_elbow':
-        return _knee_elbow_policy(s, shape, r_alloc, params, eps)
+        result = _knee_elbow_policy(s, shape, r_alloc, params, eps)
     elif policy_name == 'stable_rank_ceil':
-        return _stable_rank_ceil_policy(s, shape, r_alloc, params, eps)
+        result = _stable_rank_ceil_policy(s, shape, r_alloc, params, eps)
     else:
         # Should not reach here due to RankPolicySpec validation
         raise ValueError(f"Unhandled policy: {policy_name}")
+    
+    # Add backward compatibility mapping for metadata fields
+    details = dict(result.details)  # Make a copy to avoid modifying frozen dataclass
+    
+    # Map new field names to old expected names for backward compatibility
+    if 'erank_float' in details and 'effective_rank' not in details:
+        details['effective_rank'] = details['erank_float']
+    
+    # OHT policy backward compatibility
+    if policy_name == 'optimal_hard_threshold':
+        # Add signal_to_noise_ratio if missing (calculate from available data)
+        if 'signal_to_noise_ratio' not in details and 'median_sv' in details:
+            # Simple approximation: assume largest SV is signal, median is noise
+            if len(s) > 0:
+                signal = float(s[0]) if len(s) > 0 else 1.0
+                noise = details['median_sv']
+                details['signal_to_noise_ratio'] = signal / noise if noise > 0 else float('inf')
+        
+        # Add noise_level from policy params if it was passed
+        if 'noise_level' not in details and 'noise_level' in params:
+            details['noise_level'] = params['noise_level']
+    
+    return RankSuggestion(k=result.k, confidence=result.confidence, details=details)
 
 
 # =============================================================================
@@ -569,13 +592,20 @@ def create_entropy_policy(rounding: str = 'ceil') -> RankPolicySpec:
     return RankPolicySpec('entropy_effective', {'rounding': rounding})
 
 
-def create_oht_policy() -> RankPolicySpec:
+def create_oht_policy(noise_level: float = None) -> RankPolicySpec:
     """Create optimal hard threshold (Gavish-Donoho) policy.
     
     Uses the exact Gavish-Donoho cubic approximation for ω(β).
-    No parameters needed - computes β from matrix shape and uses median(s).
+    
+    Args:
+        noise_level: For backward compatibility. Parameter is accepted but not used
+                    as OHT policy computes optimal threshold automatically.
     """
-    return RankPolicySpec('optimal_hard_threshold')
+    params = {}
+    if noise_level is not None:
+        # Store for backward compatibility but don't use in computation
+        params['noise_level'] = noise_level
+    return RankPolicySpec('optimal_hard_threshold', params)
 
 
 def create_knee_policy(flat_threshold: float = 0.1) -> RankPolicySpec:

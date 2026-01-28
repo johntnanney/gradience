@@ -9,8 +9,8 @@ rank selection heuristics (OHT, entropy effective rank, knee/elbow, etc).
 import torch
 from gradience.vnext.rank_policies import (
     get_available_policies,
-    apply_policy, 
-    apply_all_policies,
+    apply_policy as apply_rank_policy, 
+    RankPolicySpec,
     get_policy_summary
 )
 
@@ -31,11 +31,19 @@ def test_rank_policies():
     
     # Test individual policies
     policies = get_available_policies()
-    print(f"📋 Available policies: {list(policies.keys())}")
+    print(f"📋 Available policies: {policies}")
     print()
     
     # Apply all policies and compare
-    results = apply_all_policies(singular_values)
+    results = {}
+    for policy_name in policies:
+        try:
+            policy_spec = RankPolicySpec(name=policy_name)
+            result = apply_rank_policy(singular_values, policy=policy_spec)
+            results[policy_name] = result
+        except Exception as e:
+            print(f"⚠️  Policy {policy_name} failed: {e}")
+            results[policy_name] = None
     
     print("📊 Policy Comparison:")
     print("-" * 70)

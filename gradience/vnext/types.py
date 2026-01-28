@@ -49,6 +49,15 @@ class Severity(str, Enum):
     CRITICAL = "critical"
 
 
+class EventType(str, Enum):
+    """Event types for telemetry (backward compatibility)."""
+    
+    AUDIT = "audit"
+    TRAIN = "train"
+    EVAL = "eval"
+    ERROR = "error"
+
+
 # ---------------------------------------------------------------------------
 # Config snapshots
 # ---------------------------------------------------------------------------

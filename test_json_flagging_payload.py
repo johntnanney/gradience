@@ -109,22 +109,44 @@ def test_json_flagging_rationale():
         rationale = layer_data['flagging_rationale']
         
         print(f"\nLayer: {layer_name}")
-        print(f"  Spread: {rationale['spread']} (threshold: {rationale['spread_threshold']:.1f})")
-        print(f"  Meets spread threshold: {rationale['meets_spread_threshold']}")
-        print(f"  Importance share: {rationale['importance_share']:.3f}")
-        print(f"  Uniform multiplier: {rationale['uniform_mult']:.2f}× (threshold: {rationale['uniform_mult_threshold']:.1f}×)")
-        print(f"  Meets uniform mult threshold: {rationale['meets_uniform_mult_threshold']}")
         
-        if rationale['meets_quantile_threshold'] is not None:
-            print(f"  Meets quantile threshold: {rationale['meets_quantile_threshold']}")
+        # Handle both full and condensed rationale formats
+        spread_threshold = rationale.get('spread_threshold', 'N/A')
+        threshold_str = f"{spread_threshold:.1f}" if isinstance(spread_threshold, (int, float)) else str(spread_threshold)
+        print(f"  Spread: {rationale['spread']} (threshold: {threshold_str})")
+        
+        if 'meets_spread_threshold' in rationale:
+            print(f"  Meets spread threshold: {rationale['meets_spread_threshold']}")
+        
+        print(f"  Importance share: {rationale['importance_share']:.3f}")
+        
+        uniform_mult_threshold = rationale.get('uniform_mult_threshold', 'N/A')
+        threshold_str = f"{uniform_mult_threshold:.1f}×" if isinstance(uniform_mult_threshold, (int, float)) else str(uniform_mult_threshold)
+        print(f"  Uniform multiplier: {rationale['uniform_mult']:.2f}× (threshold: {threshold_str})")
+        
+        if 'meets_uniform_mult_threshold' in rationale:
+            print(f"  Meets uniform mult threshold: {rationale['meets_uniform_mult_threshold']}")
+        
+        # Handle quantile threshold (may be in condensed or full format)
+        meets_quantile = rationale.get('meets_quantile_threshold')
+        if meets_quantile is not None:
+            print(f"  Meets quantile threshold: {meets_quantile}")
             energy_threshold = rationale.get('energy_quantile_threshold', 0.0)
             print(f"  Energy quantile threshold: {energy_threshold:.3f}")
         else:
-            print(f"  Quantile check: N/A (flat distribution)")
+            print(f"  Quantile check: N/A (flat distribution or condensed format)")
         
-        print(f"  Passed gate: {rationale['passed_gate']}")
-        print(f"  Flagged as high-impact: {rationale['flagged_as_high_impact']}")
-        print(f"  K values: {rationale['k_values']} (policies: {', '.join(rationale['policies'])})")
+        # These fields may not be in condensed format
+        if 'passed_gate' in rationale:
+            print(f"  Passed gate: {rationale['passed_gate']}")
+        if 'flagged_as_high_impact' in rationale:
+            print(f"  Flagged as high-impact: {rationale['flagged_as_high_impact']}")
+        if 'k_values' in rationale and 'policies' in rationale:
+            print(f"  K values: {rationale['k_values']} (policies: {', '.join(rationale['policies'])})")
+        
+        # Show condensed-specific info if present
+        if 'failed_reasons' in rationale:
+            print(f"  Failed reasons: {rationale['failed_reasons']}")
     
     # Show just the flagged layers
     print(f"\n🎯 High-Impact Flagged Layers:")

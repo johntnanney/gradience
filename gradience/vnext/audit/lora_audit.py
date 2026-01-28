@@ -133,6 +133,16 @@ class LoRALayerAudit:
 
     extras: Dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def layer_name(self) -> str:
+        """Compatibility alias for name attribute."""
+        return self.name
+    
+    @property
+    def policy_rank_suggestions(self):
+        """Compatibility alias for rank_suggestions attribute."""
+        return self.rank_suggestions
+
     def to_dict(self) -> Dict[str, Any]:
         d = {
             "name": self.name,
@@ -336,6 +346,17 @@ class LoRAAuditResult:
             udr_values = [l.udr for l in self.layers if l.udr is not None]
             sdi_values = [l.sdi for l in self.layers if l.sdi is not None]
             
+            # Check if UDR computation was attempted by looking for base norms data
+            # If base_norms was None, UDR computation was disabled
+            udr_attempted = any(
+                hasattr(l, 'base_sigma_max') and l.base_sigma_max is not None 
+                for l in self.layers
+            )
+            
+            if udr_attempted:
+                # Always emit n_layers_with_udr for API consistency when UDR is enabled
+                out['n_layers_with_udr'] = len(udr_values)
+            
             if udr_values:
                 out['udr_median'] = _pct(udr_values, 0.50)
                 out['udr_p90'] = _pct(udr_values, 0.90)
@@ -343,7 +364,6 @@ class LoRAAuditResult:
                 out['udr_mean'] = float(sum(udr_values) / len(udr_values))
                 out['fraction_udr_gt_0_1'] = sum(1 for x in udr_values if x > 0.1) / len(udr_values)
                 out['fraction_udr_gt_0_3'] = sum(1 for x in udr_values if x > 0.3) / len(udr_values)
-                out['n_layers_with_udr'] = len(udr_values)
             
             if sdi_values:
                 out['sdi_median'] = _pct(sdi_values, 0.50)
@@ -1384,13 +1404,16 @@ def compute_base_model_norms(
     """Compute base model norms for all LoRA target modules.
     
     Loads the base model and computes spectral and Frobenius norms
-    for all modules that match the LoRA target_modules pattern.
+    for all 2D weight matrices that match the LoRA target_modules pattern.
+    
+    Uses state_dict-based extraction to capture all architectures
+    (nn.Linear, Conv1D, etc.) without module type filtering.
     """
     try:
         # Try to import transformers
         try:
             import transformers
-            from transformers import AutoModel, AutoConfig
+            from transformers import AutoModelForCausalLM, AutoConfig
         except ImportError:
             issues.append("transformers library not available for base model loading")
             return None
@@ -1402,9 +1425,9 @@ def compute_base_model_norms(
             issues.append(f"Failed to load config for {base_model_id}: {e}")
             return None
         
-        # Load model weights (CPU only to save memory)
+        # Load model weights (CPU only to save memory) - use AutoModelForCausalLM for GPT-2
         try:
-            model = AutoModel.from_pretrained(
+            model = AutoModelForCausalLM.from_pretrained(
                 base_model_id,
                 torch_dtype=torch.float32,  # Use float32 for norm computation
                 device_map="cpu",
@@ -1422,36 +1445,46 @@ def compute_base_model_norms(
         
         norms_dict = {}
         
-        # Iterate through model parameters to find matching modules
-        for name, param in model.named_parameters():
+        # STATE_DICT-based approach: iterate through all 2D weight matrices
+        for param_name, param in model.state_dict().items():
+            # Only process weight matrices (skip biases, embeddings, etc.)
+            if not param_name.endswith(".weight"):
+                continue
+            if getattr(param, "ndim", None) != 2:
+                continue
+                
             # Check if this parameter name matches any target module pattern
-            if any(_module_name_matches(name, target) for target in target_modules):
-                # Convert LoRA parameter name to the prefix expected by audit
-                lora_prefix = _convert_to_lora_prefix(name)
+            if any(_module_name_matches(param_name, target) for target in target_modules):
+                # Convert to module name (remove .weight suffix)
+                module_name = _convert_to_lora_prefix(param_name)
                 
                 try:
-                    # Compute norms on CPU
+                    # Compute norms on CPU with proper tensor handling
                     param_cpu = param.detach().cpu().to(torch.float64)
                     
-                    # Spectral norm (largest singular value)
-                    if param_cpu.dim() >= 2:
-                        # For matrices, compute SVD
+                    # Spectral norm (largest singular value) 
+                    try:
                         _, s, _ = torch.linalg.svd(param_cpu, full_matrices=False)
                         sigma_max = float(s[0]) if len(s) > 0 else 0.0
-                    else:
-                        # For vectors/scalars, use L2 norm
+                    except Exception as svd_e:
+                        # Fallback: use matrix norm if SVD fails
                         sigma_max = float(torch.norm(param_cpu, p=2))
+                        issues.append(f"SVD failed for {param_name}, using L2 norm: {svd_e}")
                     
                     # Frobenius norm
                     fro_norm = float(torch.norm(param_cpu, p='fro'))
                     
-                    norms_dict[lora_prefix] = {
-                        'sigma_max': sigma_max,
-                        'fro_norm': fro_norm,
-                    }
+                    # Only store non-zero norms (avoid division by zero in UDR)
+                    if fro_norm > 1e-12:
+                        norms_dict[module_name] = {
+                            'sigma_max': sigma_max,
+                            'fro_norm': fro_norm,
+                        }
+                    else:
+                        issues.append(f"Skipping {param_name}: zero norm detected")
                     
                 except Exception as e:
-                    issues.append(f"Failed to compute norms for {name}: {e}")
+                    issues.append(f"Failed to compute norms for {param_name}: {e}")
                     continue
         
         # Clean up model to free memory
@@ -1460,7 +1493,7 @@ def compute_base_model_norms(
         gc.collect()
         
         if not norms_dict:
-            issues.append(f"No matching target modules found in {base_model_id}")
+            issues.append(f"No matching target modules found in {base_model_id} for patterns: {target_modules}")
             return None
         
         return norms_dict
@@ -1488,6 +1521,28 @@ def _convert_to_lora_prefix(param_name: str) -> str:
     if param_name.endswith('.weight') or param_name.endswith('.bias'):
         return param_name.rsplit('.', 1)[0]
     return param_name
+
+
+def _canonicalize_module_name(name: str) -> str:
+    """Canonicalize module name for consistent matching between adapter and base model.
+    
+    Removes common PEFT prefixes and suffixes to enable consistent lookups.
+    
+    Examples:
+    - 'base_model.model.transformer.h.0.attn.c_attn' -> 'transformer.h.0.attn.c_attn'
+    - 'base_model.transformer.h.0.attn.c_attn.weight' -> 'transformer.h.0.attn.c_attn'
+    - 'model.transformer.h.0.attn.c_attn' -> 'transformer.h.0.attn.c_attn'
+    """
+    # Remove common PEFT prefixes
+    for prefix in ("base_model.model.", "base_model.", "model."):
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+    
+    # Remove .weight suffix if present
+    if name.endswith(".weight"):
+        name = name[:-len(".weight")]
+    
+    return name
 
 
 def _convert_lora_prefix_to_base_weight_key(lora_prefix: str) -> str:
@@ -1594,7 +1649,14 @@ def audit_lora_state_dict(
             base_sigma_max = None
             base_fro_norm = None
             if base_norms is not None:
-                base_data = base_norms.get(prefix, {})
+                # Try both canonical and original prefix for flexible lookup
+                canonical_prefix = _canonicalize_module_name(prefix)
+                base_data = base_norms.get(canonical_prefix, {})
+                
+                # If canonical lookup failed, try with original prefix
+                if not base_data:
+                    base_data = base_norms.get(prefix, {})
+                    
                 base_sigma_max = base_data.get('sigma_max')
                 base_fro_norm = base_data.get('fro_norm')
             elif adapter_config is not None and adapter_config.base_norms:
