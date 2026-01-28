@@ -105,6 +105,20 @@ Examples:
         help="Verbose output"
     )
     
+    # Candidate control options
+    parser.add_argument(
+        "--full-mode",
+        action="store_true",
+        help="Full mode: test all policy variants (default: fast mode with energy_p90, knee_p90, erank_p90)"
+    )
+    
+    parser.add_argument(
+        "--max-candidates",
+        type=int,
+        default=4,
+        help="Maximum number of compression candidates to test (default: 4)"
+    )
+    
     return parser
 
 
@@ -220,6 +234,10 @@ def main() -> int:
     print(f"Output: {args.output}")
     print(f"Smoke mode: {args.smoke}")
     print(f"CI mode: {args.ci}")
+    if args.full_mode:
+        print(f"Mode: FULL (all policies, max {args.max_candidates} candidates)")
+    else:
+        print("Mode: FAST (energy_p90, knee_p90, erank_p90 only)")
     if args.device:
         print(f"Device override: {args.device}")
     print()
@@ -247,7 +265,9 @@ def main() -> int:
                     config_path=temp_config_path,
                     output_dir=args.output,
                     smoke=args.smoke,
-                    ci=args.ci
+                    ci=args.ci,
+                    fast_mode=not args.full_mode,
+                    max_candidates=args.max_candidates
                 )
             finally:
                 # Clean up temporary config
@@ -258,7 +278,9 @@ def main() -> int:
                 config_path=args.config,
                 output_dir=args.output,
                 smoke=args.smoke,
-                ci=args.ci
+                ci=args.ci,
+                fast_mode=not args.full_mode,
+                max_candidates=args.max_candidates
             )
         
         # For CI mode, we need access to the internal verdicts

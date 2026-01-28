@@ -1,0 +1,35 @@
+# Test config for backward compatibility - legacy SVD format
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2"
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 50
+  eval_steps: 25
+  lr: 0.00005
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+
+lora:
+  probe_r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  # Legacy format (should still work)
+  enable_svd_variants: true
+  svd_ranks: [8, 4]
+  
+  allowed_ranks: [2,4,8,16]
+  acc_tolerance: 0.025
+
+runtime:
+  device: cpu

@@ -1,0 +1,286 @@
+{
+  "bench_version": "0.1",
+  "timestamp": "2026-01-26T15:53:59.049893",
+  "git_commit": "33f7159d88ee47b6dc23d4eba57abcf41c1079c3",
+  "env": {
+    "python_version": "3.14.0",
+    "python_implementation": "CPython",
+    "platform": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "architecture": "64bit",
+    "hostname": "iMac.local",
+    "torch_version": "2.9.1",
+    "transformers_version": "4.57.3",
+    "peft_version": "0.18.1",
+    "datasets_version": "4.4.2",
+    "accelerate_version": "1.12.0",
+    "safetensors_version": "0.7.0",
+    "numpy_version": "2.4.1",
+    "cuda_available": false,
+    "cuda_version": null,
+    "gpu_devices": [],
+    "environment_variables": {},
+    "git_commit": "33f7159d88ee47b6dc23d4eba57abcf41c1079c3",
+    "git_tag": "v0.7.0",
+    "validation_classification": {
+      "level": "screening",
+      "rationale": "Single seed, 200 steps (quick validation only)",
+      "is_multiseed": false,
+      "n_seeds": 1,
+      "max_steps": 200
+    }
+  },
+  "model": "distilbert-base-uncased",
+  "task": "glue/sst2",
+  "probe_quality_gate": {
+    "metric_key": "eval_accuracy",
+    "metric_value": 0.79,
+    "min_value": 0.75,
+    "passed": true
+  },
+  "probe": {
+    "rank": 16,
+    "params": 1181954,
+    "accuracy": 0.79,
+    "utilization_mean": 0.08314024734774451,
+    "energy_rank_90_p50": 1.0,
+    "energy_rank_90_p90": 8.0,
+    "suggested_r_global_median": 1,
+    "suggested_r_global_90": 8
+  },
+  "compressed": {
+    "uniform_median": {
+      "rank": 2,
+      "params": 665858,
+      "accuracy": 0.59,
+      "delta_vs_probe": -0.20000000000000007,
+      "param_reduction": 0.43664643463281994,
+      "verdict": "FAIL"
+    },
+    "uniform_p90": {
+      "rank": 8,
+      "params": 887042,
+      "accuracy": 0.73,
+      "delta_vs_probe": -0.06000000000000005,
+      "param_reduction": 0.24951224836161134,
+      "verdict": "FAIL"
+    },
+    "per_layer": {
+      "rank_pattern_nondefault": 7,
+      "params": 1108226,
+      "accuracy": 0.785,
+      "delta_vs_probe": -0.0050000000000000044,
+      "param_reduction": 0.062378062090402864,
+      "verdict": "PASS",
+      "rank_check": {
+        "passed": true,
+        "unique_ranks": [
+          4,
+          8,
+          16
+        ],
+        "rank_histogram": {
+          "16": 19,
+          "8": 3,
+          "4": 2
+        },
+        "total_modules": 24
+      }
+    },
+    "per_layer_shuffled": {
+      "rank_pattern_nondefault": 7,
+      "params": 1108226,
+      "accuracy": 0.775,
+      "delta_vs_probe": -0.015000000000000013,
+      "param_reduction": 0.062378062090402864,
+      "verdict": "PASS",
+      "rank_check": {
+        "passed": true,
+        "unique_ranks": [
+          4,
+          8,
+          16
+        ],
+        "rank_histogram": {
+          "16": 19,
+          "8": 3,
+          "4": 2
+        },
+        "total_modules": 24
+      }
+    }
+  },
+  "summary": {
+    "recommendations_validated": "2/4",
+    "best_compression": "per_layer",
+    "notes": [
+      "per_layer applied successfully (verified via adapter shapes)"
+    ]
+  },
+  "config_metadata": {
+    "primary_metric_key": "eval_accuracy",
+    "config_hash": "a2b826646a598de9",
+    "embedded_config": {
+      "model": {
+        "name": "distilbert-base-uncased"
+      },
+      "task": {
+        "dataset": "glue",
+        "subset": "sst2",
+        "metric": "accuracy"
+      },
+      "train": {
+        "max_steps": 200,
+        "eval_steps": 50,
+        "save_steps": 50,
+        "lr": 5e-05,
+        "per_device_train_batch_size": 8,
+        "per_device_eval_batch_size": 32,
+        "weight_decay": 0.01,
+        "seed": 42,
+        "train_samples": 800,
+        "eval_samples": 200
+      },
+      "lora": {
+        "probe_r": 16,
+        "alpha": 16,
+        "dropout": 0.0,
+        "target_modules": [
+          "q_lin",
+          "k_lin",
+          "v_lin",
+          "out_lin"
+        ]
+      },
+      "compression": {
+        "allowed_ranks": [
+          2,
+          4,
+          8,
+          16
+        ],
+        "acc_tolerance": 0.025
+      },
+      "runtime": {
+        "device": "cpu"
+      },
+      "bench_version": "0.1",
+      "run_type": "mini_validation"
+    }
+  },
+  "instrumentation": {
+    "composition": {
+      "energy_total_fro2": 0.47427246592749905,
+      "layers": [
+        {
+          "layer": 0,
+          "energy_fro2": 0.042679689289791226,
+          "share": 0.08998981040639954
+        },
+        {
+          "layer": 1,
+          "energy_fro2": 0.05733117862227216,
+          "share": 0.12088236771273213
+        },
+        {
+          "layer": 2,
+          "energy_fro2": 0.062480889429018305,
+          "share": 0.13174049500602805
+        },
+        {
+          "layer": 3,
+          "energy_fro2": 0.09270735834066299,
+          "share": 0.19547278199960896
+        },
+        {
+          "layer": 4,
+          "energy_fro2": 0.09312131302013398,
+          "share": 0.19634560239128285
+        },
+        {
+          "layer": 5,
+          "energy_fro2": 0.12595203722562043,
+          "share": 0.2655689424839485
+        }
+      ],
+      "top_k": {
+        "k": 5,
+        "share": 0.9100101895936005,
+        "layers": [
+          {
+            "layer": 5,
+            "energy_fro2": 0.12595203722562043,
+            "share": 0.2655689424839485
+          },
+          {
+            "layer": 4,
+            "energy_fro2": 0.09312131302013398,
+            "share": 0.19634560239128285
+          },
+          {
+            "layer": 3,
+            "energy_fro2": 0.09270735834066299,
+            "share": 0.19547278199960896
+          },
+          {
+            "layer": 2,
+            "energy_fro2": 0.062480889429018305,
+            "share": 0.13174049500602805
+          },
+          {
+            "layer": 1,
+            "energy_fro2": 0.05733117862227216,
+            "share": 0.12088236771273213
+          }
+        ]
+      },
+      "top_10pct": {
+        "n": 1,
+        "share": 0.2655689424839485,
+        "layers": [
+          5
+        ]
+      },
+      "concentration_index": 0.18735433811835436
+    },
+    "gain": {
+      "delta_fro_mean": 0.13140544594479076,
+      "delta_op_mean": 0.12239629124978035,
+      "rel_delta_fro_mean": null,
+      "rel_delta_op_mean": null,
+      "top_layers_by_delta_fro": [
+        {
+          "layer": 5,
+          "delta_fro_sq_sum": 0.12595203722562043
+        },
+        {
+          "layer": 4,
+          "delta_fro_sq_sum": 0.09312131302013398
+        },
+        {
+          "layer": 3,
+          "delta_fro_sq_sum": 0.09270735834066299
+        },
+        {
+          "layer": 2,
+          "delta_fro_sq_sum": 0.062480889429018305
+        },
+        {
+          "layer": 1,
+          "delta_fro_sq_sum": 0.05733117862227216
+        }
+      ],
+      "energy_concentration_top10pct": 0.2655689424839485,
+      "relative_available": false,
+      "n_modules_with_relative": 0
+    }
+  },
+  "protocol_invariants": {
+    "probe_quality_gate": {
+      "status": "PASSED",
+      "message": "Probe eval_accuracy 0.7900 ≥ 0.7500",
+      "metric_key": "eval_accuracy",
+      "metric_value": 0.79,
+      "min_value": 0.75
+    }
+  }
+}

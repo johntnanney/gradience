@@ -72,6 +72,25 @@ gradience audit --peft-dir adapter --layers --suggest-per-layer --json
 gradience audit --peft-dir adapter --append run.jsonl
 ```
 
+## LoRA Compression (SVD Truncation)
+
+```bash
+# Basic truncation (rank 16 → 8)
+gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8
+
+# With specific alpha scaling mode
+gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8 --alpha-mode keep_ratio
+
+# High compression with detailed report
+gradience truncate --peft-dir adapter_r16 --out-dir adapter_r4 --rank 4 --verbose --report compression_report.json
+
+# Different data types
+gradience truncate --peft-dir adapter --out-dir adapter_bf16 --rank 8 --dtype bf16
+
+# JSON output for automation
+gradience truncate --peft-dir adapter --out-dir compressed --rank 6 --json
+```
+
 ## Debug Commands
 
 ```bash
@@ -129,6 +148,23 @@ tail -5 failed/run.jsonl | jq '.'
 grep -E "nan|inf" failed/run.jsonl
 ```
 
+### Compressing Adapter After Training
+
+```bash
+# Your training produced ./results/adapter with r=16
+# Compress to r=8 for faster inference
+gradience truncate --peft-dir ./results/adapter --out-dir ./results/adapter_compressed --rank 8
+
+# Check compression quality
+# Input rank: 16
+# Output rank: 8  
+# Mean retained energy: 87.3%
+# LoRA parameter reduction: 589,824 → 294,912 (2.0x)
+
+# Use compressed adapter in inference
+# (Same API as original - drop-in replacement)
+```
+
 ## Pro Tips
 
 1. **Always use `--verbose`** for human analysis
@@ -136,6 +172,9 @@ grep -E "nan|inf" failed/run.jsonl
 3. **Combine audit + monitor** for complete picture
 4. **Use `--append`** to merge audit into telemetry
 5. **Check task type** matches your problem (`text_generation` vs `seq_cls`)
+6. **Audit before truncating** - understand rank utilization first
+7. **Use `keep_ratio`** alpha mode for consistent scaling behavior
+8. **Save truncation reports** with `--report` for reproducibility
 
 ## Environment Variables
 

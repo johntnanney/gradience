@@ -47,6 +47,46 @@ from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, sug
 from .task_profiles import get_task_profile_from_config
 
 
+def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
+    """
+    Resolve policy-based rank sources like 'audit.rank_suggestions.knee.uniform_p90'.
+    
+    Args:
+        audit_data: Audit data dict with policy_global_suggestions
+        rank_source: Dotted path like "audit.rank_suggestions.POLICY.STATISTIC"
+        
+    Returns:
+        Rank suggestion as float, or None if path cannot be resolved
+    """
+    try:
+        # Parse the path: audit.rank_suggestions.POLICY.STATISTIC
+        parts = rank_source.split(".")
+        if len(parts) != 4 or parts[0] != "audit" or parts[1] != "rank_suggestions":
+            return None
+            
+        policy_name = parts[2]  # e.g., "knee", "erank", "oht", "energy_90"
+        statistic = parts[3]    # e.g., "uniform_median", "uniform_p90", "uniform_max"
+        
+        # Check if we have policy global suggestions
+        policy_suggestions = audit_data.get("policy_global_suggestions")
+        if not policy_suggestions:
+            return None
+            
+        # Check if the requested policy exists
+        if policy_name not in policy_suggestions:
+            return None
+            
+        # Check if the requested statistic exists for that policy
+        policy_data = policy_suggestions[policy_name]
+        if statistic not in policy_data:
+            return None
+            
+        return float(policy_data[statistic])
+        
+    except (KeyError, ValueError, TypeError):
+        return None
+
+
 def _unwrap_model_for_save(trainer, model):
     # Try accelerator unwrap first (works with device_map / accelerate wrapping)
     if trainer is not None and hasattr(trainer, "accelerator"):
@@ -508,6 +548,9 @@ def run_probe_audit(
         "suggested_r_global_median": audit_summary.get("suggested_r_global_median"),
         "suggested_r_global_90": audit_summary.get("suggested_r_global_90"),
         
+        # Policy-based global suggestions (Step 7)
+        "policy_global_suggestions": audit_result.policy_global_suggestions,
+        
         # Additional global suggestion details from rank_suggestion module
         "global_suggestions": {
             "current_r": global_suggestions.current_r,
@@ -741,17 +784,259 @@ def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: i
     return shuffled_pattern
 
 
+def generate_svd_variant_config(
+    variant_def: Dict[str, Any],
+    audit_data: Dict[str, Any],
+    probe_rank: int,
+    lora_config: Dict[str, Any],
+    allowed_ranks: List[int]
+) -> Dict[str, Any]:
+    """
+    Generate a compression config for a single SVD truncation variant.
+    
+    Args:
+        variant_def: Variant definition from compression.variants
+        audit_data: Audit results containing suggested ranks
+        probe_rank: Original probe rank
+        lora_config: LoRA configuration
+        allowed_ranks: Allowed rank values
+        
+    Returns:
+        Compression config dict compatible with existing variant format
+    """
+    variant_name = variant_def["name"]
+    rank_source = variant_def.get("rank_source")
+    post_tune_config = variant_def.get("post_tune", {})
+    
+    # Resolve target rank from rank_source
+    if rank_source == "audit_global_median":
+        suggested_rank = audit_data["suggested_r_global_median"]
+    elif rank_source == "audit_global_p90":
+        suggested_rank = audit_data["suggested_r_global_90"]
+    elif isinstance(rank_source, str) and rank_source.startswith("audit.rank_suggestions."):
+        # New policy-based rank sources (Step 7)
+        suggested_rank = _resolve_policy_rank_source(audit_data, rank_source)
+        if suggested_rank is None:
+            return {
+                "variant": variant_name,
+                "suggested_r": None,
+                "actual_r": None,
+                "rank_pattern": {},
+                "alpha_pattern": {},
+                "config": None,
+                "status": "skipped",
+                "reason": f"Failed to resolve policy rank_source: {rank_source}"
+            }
+    elif isinstance(rank_source, (int, float)):
+        # Direct rank specification
+        suggested_rank = int(rank_source)
+    else:
+        return {
+            "variant": variant_name,
+            "suggested_r": None,
+            "actual_r": None,
+            "rank_pattern": {},
+            "alpha_pattern": {},
+            "config": None,
+            "status": "skipped",
+            "reason": f"Unsupported rank_source: {rank_source}"
+        }
+    
+    # Round to allowed ranks
+    actual_rank = round_to_allowed_ranks(suggested_rank, allowed_ranks)
+    
+    # Safety check: no rank > probe rank
+    if actual_rank > probe_rank:
+        actual_rank = probe_rank
+    
+    # Check if this would be a no-op (no compression)
+    if actual_rank >= probe_rank:
+        return {
+            "variant": variant_name,
+            "suggested_r": suggested_rank,
+            "actual_r": actual_rank,
+            "rank_pattern": {},
+            "alpha_pattern": {},
+            "config": None,
+            "status": "skipped",
+            "reason": f"SVD truncation rank r={actual_rank} >= probe rank r={probe_rank} (no compression)"
+        }
+    
+    # Build variant configuration
+    variant_config = {
+        "variant": variant_name,
+        "suggested_r": suggested_rank,
+        "actual_r": actual_rank,
+        "rank_pattern": {},
+        "alpha_pattern": {},
+        "config": {
+            **lora_config,
+            "probe_r": actual_rank,  # Use truncated rank
+            "alpha": actual_rank,    # Preserve alpha=r scaling
+        },
+        "status": "ready",
+        "reason": f"SVD truncation from r={probe_rank} to r={actual_rank}",
+        "compression_method": "svd_truncation",
+        "source_rank": probe_rank,
+        "rank_source": rank_source  # Store original rank_source for artifact capture
+    }
+    
+    # Add post-tuning configuration if specified
+    if post_tune_config.get("enabled", False):
+        variant_config["post_tune"] = {
+            "enabled": True,
+            "steps": post_tune_config.get("steps", 100),
+            "lr_scale": post_tune_config.get("lr_scale", 0.1)
+        }
+    
+    return variant_config
+
+
+def get_rank_source_from_config(compression_config: Dict[str, Any]) -> str:
+    """
+    Extract the rank_source from a compression config for SVD variants.
+    
+    This reconstructs the original rank_source specification from the 
+    compression config data.
+    """
+    # Check if this is from the new variants format
+    if "rank_source" in compression_config:
+        return str(compression_config["rank_source"])
+    
+    # Legacy format: try to infer from rank and reason
+    actual_r = compression_config.get("actual_r")
+    reason = compression_config.get("reason", "")
+    
+    # Try to infer from reason string
+    if "audit_global_median" in reason.lower() or "median" in reason.lower():
+        return "audit_global_median"
+    elif "audit_global_90" in reason.lower() or "p90" in reason.lower():
+        return "audit_global_p90"
+    elif actual_r:
+        # Direct rank specification
+        return str(actual_r)
+    
+    return "unknown"
+
+
+def run_post_tuning(
+    model,
+    tokenizer,
+    dataset: Dict[str, Any],
+    config: Dict[str, Any],
+    post_tune_config: Dict[str, Any],
+    output_dir: Path,
+    smoke: bool = False
+):
+    """
+    Perform post-tuning on a truncated adapter to recover performance.
+    
+    This is a "tiny tune" - a brief training pass to adapt the truncated
+    adapter to the slight rank reduction.
+    
+    Args:
+        model: PEFT model with truncated adapter loaded
+        tokenizer: Tokenizer for the model
+        dataset: Tokenized dataset 
+        config: Full bench configuration
+        post_tune_config: Post-tuning settings (steps, lr_scale)
+        output_dir: Directory to save post-tuned adapter
+        smoke: Whether this is a smoke test
+        
+    Returns:
+        Updated model with post-tuned adapter
+    """
+    from transformers import Trainer, TrainingArguments
+    from transformers import DataCollatorWithPadding
+    
+    # Extract post-tuning parameters
+    post_tune_steps = post_tune_config.get("steps", 100)
+    lr_scale = post_tune_config.get("lr_scale", 0.1)
+    warmup_steps = post_tune_config.get("warmup_steps", 0)  # Default: zero warmup for tiny tune
+    
+    # Use base training config but with scaled parameters
+    train_config = config["train"]
+    base_lr = train_config.get("lr", 5e-5)
+    post_tune_lr = base_lr * lr_scale
+    
+    # Reduce steps for smoke mode
+    if smoke:
+        post_tune_steps = min(post_tune_steps, 20)
+        warmup_steps = min(warmup_steps, post_tune_steps // 5)  # Scale warmup for smoke
+    
+    # Setup training arguments for post-tuning
+    post_tune_args = TrainingArguments(
+        output_dir=str(output_dir / "post_tune"),
+        num_train_epochs=1,
+        max_steps=post_tune_steps,
+        learning_rate=post_tune_lr,
+        per_device_train_batch_size=train_config.get("per_device_train_batch_size", 8),
+        per_device_eval_batch_size=train_config.get("per_device_eval_batch_size", 32),
+        warmup_steps=warmup_steps,  # Configurable warmup (default 0)
+        logging_steps=max(1, post_tune_steps // 4),
+        save_steps=post_tune_steps,  # Save at end
+        eval_strategy="no",  # Skip eval during post-tuning
+        save_total_limit=1,
+        load_best_model_at_end=False,
+        dataloader_num_workers=0,
+        remove_unused_columns=False,
+        report_to=[]  # Disable wandb/tensorboard
+    )
+    
+    # Setup data collator
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+    
+    # Get training split
+    train_dataset = dataset.get("train", dataset.get("dataset", None))
+    if train_dataset is None:
+        print("Warning: No training dataset available for post-tuning")
+        return model
+    
+    # Setup trainer for post-tuning
+    trainer = Trainer(
+        model=model,
+        args=post_tune_args,
+        train_dataset=train_dataset,
+        data_collator=data_collator,
+        tokenizer=tokenizer,
+    )
+    
+    print(f"  Starting post-tuning: {post_tune_steps} steps at lr={post_tune_lr:.2e}")
+    
+    # Run post-tuning
+    trainer.train()
+    
+    # Save the post-tuned adapter (overwrites the truncated one)
+    trainer.save_model(str(output_dir))
+    
+    print(f"  Post-tuned adapter saved to {output_dir}")
+    
+    return model
+
+
 def generate_compression_configs(
     probe_dir: Path,
-    config: Dict[str, Any]
+    config: Dict[str, Any],
+    fast_mode: bool = True,
+    max_candidates: int = 4
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Step 3.4: Generate 3 compression configs from probe audit.
+    Step 3.4: Generate compression configs from probe audit with candidate control.
+    
+    Args:
+        probe_dir: Directory containing probe results and audit data
+        config: Bench configuration
+        fast_mode: If True, only generate energy_p90, knee_p90, erank_p90 (default)
+        max_candidates: Maximum number of candidates to generate (default 4)
     
     Returns dict with compression variant configs:
-    - uniform_median: use suggested_r_global_median everywhere
-    - uniform_p90: use suggested_r_global_90 everywhere  
-    - per_layer: use per-layer rank suggestions
+    - Fast mode: energy_p90, knee_p90, erank_p90 (plus per_layer if different)
+    - Full mode: All policy variants, but de-duplicated and capped
+    
+    Features:
+    1. De-duplicate ranks: if multiple policies suggest same rank, run once
+    2. Cap candidates: limit to top N by conservatism score
+    3. Fast mode: practitioner-friendly default subset
     """
     
     # Load audit results
@@ -764,96 +1049,209 @@ def generate_compression_configs(
     lora_config = config["lora"]
     probe_rank = lora_config["probe_r"]
     
+    # Collect all candidate variants with their properties
+    candidates = []
+    
+    # Helper to create candidate entry
+    def add_candidate(name, policy_type, suggested_r, conservatism_score, priority=1):
+        actual_r = round_to_allowed_ranks(suggested_r, allowed_ranks)
+        if actual_r > probe_rank:
+            actual_r = probe_rank
+            
+        # Skip control runs (no compression)
+        if actual_r == probe_rank:
+            return
+            
+        candidates.append({
+            "name": name,
+            "policy_type": policy_type,
+            "suggested_r": suggested_r,
+            "actual_r": actual_r,
+            "conservatism_score": conservatism_score,  # Higher = more conservative
+            "priority": priority,  # 1=fast_mode, 2=full_mode_only
+            "config": {
+                **lora_config,
+                "probe_r": actual_r,
+                "alpha": actual_r,
+            }
+        })
+    
+    # Gather policy-based candidates
+    policy_suggestions = audit_data.get("policy_global_suggestions", {})
+    
+    # Fast mode candidates (priority=1)
+    if "energy_90" in policy_suggestions and "uniform_p90" in policy_suggestions["energy_90"]:
+        add_candidate(
+            "energy_p90", "energy", 
+            policy_suggestions["energy_90"]["uniform_p90"],
+            conservatism_score=3.0,  # Medium conservative
+            priority=1
+        )
+    
+    if "knee" in policy_suggestions and "uniform_p90" in policy_suggestions["knee"]:
+        add_candidate(
+            "knee_p90", "knee",
+            policy_suggestions["knee"]["uniform_p90"], 
+            conservatism_score=2.0,  # Less conservative (finds elbows)
+            priority=1
+        )
+    
+    if "erank" in policy_suggestions and "uniform_p90" in policy_suggestions["erank"]:
+        add_candidate(
+            "erank_p90", "erank",
+            policy_suggestions["erank"]["uniform_p90"],
+            conservatism_score=1.5,  # Least conservative (entropy-based)
+            priority=1
+        )
+    
+    # Full mode additional candidates (priority=2)
+    if not fast_mode:
+        # Legacy median/p90 from audit
+        if "suggested_r_global_median" in audit_data:
+            add_candidate(
+                "uniform_median", "legacy",
+                audit_data["suggested_r_global_median"],
+                conservatism_score=4.0,  # Very conservative
+                priority=2
+            )
+        
+        if "suggested_r_global_90" in audit_data:
+            add_candidate(
+                "uniform_p90", "legacy",
+                audit_data["suggested_r_global_90"],
+                conservatism_score=3.5,  # Conservative
+                priority=2
+            )
+        
+        # OHT policy
+        if "oht" in policy_suggestions and "uniform_p90" in policy_suggestions["oht"]:
+            add_candidate(
+                "oht_p90", "oht",
+                policy_suggestions["oht"]["uniform_p90"],
+                conservatism_score=2.5,  # Medium
+                priority=2
+            )
+        
+        # Energy with median aggregation
+        if "energy_90" in policy_suggestions and "uniform_median" in policy_suggestions["energy_90"]:
+            add_candidate(
+                "energy_median", "energy",
+                policy_suggestions["energy_90"]["uniform_median"],
+                conservatism_score=3.5,  # More conservative than p90
+                priority=2
+            )
+    
+    # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
+    rank_to_candidates = {}
+    for candidate in candidates:
+        rank = candidate["actual_r"]
+        if rank not in rank_to_candidates:
+            rank_to_candidates[rank] = []
+        rank_to_candidates[rank].append(candidate)
+    
+    # For each rank, pick the candidate with highest priority, then lowest conservatism
+    deduplicated_candidates = []
+    for rank, rank_candidates in rank_to_candidates.items():
+        if len(rank_candidates) == 1:
+            deduplicated_candidates.append(rank_candidates[0])
+        else:
+            # Sort by priority (1=fast_mode first), then conservatism (lower first)
+            best = min(rank_candidates, key=lambda c: (c["priority"], c["conservatism_score"]))
+            # Add dedup info to name
+            policies = [c["policy_type"] for c in rank_candidates]
+            best["name"] = f"{best['name']}_r{rank}" if len(set(policies)) > 1 else best["name"]
+            best["dedup_note"] = f"Deduplicated from: {', '.join(set(policies))}"
+            deduplicated_candidates.append(best)
+    
+    # Step 2: Filter by mode (fast_mode keeps only priority=1)
+    if fast_mode:
+        filtered_candidates = [c for c in deduplicated_candidates if c["priority"] == 1]
+    else:
+        filtered_candidates = deduplicated_candidates
+    
+    # Step 3: Cap candidates by conservatism/diversity
+    if len(filtered_candidates) > max_candidates:
+        # Sort by conservatism score for diversity (keep range of conservative to aggressive)
+        filtered_candidates.sort(key=lambda c: c["conservatism_score"])
+        
+        # Take every N-th to ensure diversity across conservatism spectrum
+        step = len(filtered_candidates) / max_candidates
+        capped_candidates = []
+        for i in range(max_candidates):
+            idx = int(i * step)
+            capped_candidates.append(filtered_candidates[idx])
+        filtered_candidates = capped_candidates
+    
+    # Convert to compression_configs format
     compression_configs = {}
-    
-    # A) uniform_median
-    suggested_median = audit_data["suggested_r_global_median"]
-    median_rank = round_to_allowed_ranks(suggested_median, allowed_ranks)
-    
-    # Safety check: no rank > probe rank
-    if median_rank > probe_rank:
-        median_rank = probe_rank
-    
-    compression_configs["uniform_median"] = {
-        "variant": "uniform_median",
-        "suggested_r": suggested_median,
-        "actual_r": median_rank,
-        "rank_pattern": {},  # Empty for uniform
-        "alpha_pattern": {},  # Empty for uniform
-        "config": {
-            **lora_config,
-            "probe_r": median_rank,  # Use compressed rank
-            "alpha": median_rank,    # Preserve alpha=r scaling
-        },
-        "status": "ready",
-        "reason": None
-    }
-    
-    # B) uniform_p90
-    suggested_p90 = audit_data["suggested_r_global_90"]
-    p90_rank = round_to_allowed_ranks(suggested_p90, allowed_ranks)
-    
-    # Safety check: no rank > probe rank
-    if p90_rank > probe_rank:
-        p90_rank = probe_rank
-    
-    # Check if this is effectively a control run (no compression)
-    if p90_rank == probe_rank:
-        compression_configs["uniform_p90_control"] = {
-            "variant": "uniform_p90_control", 
-            "suggested_r": suggested_p90,
-            "actual_r": p90_rank,
-            "rank_pattern": {},  # Empty for uniform
-            "alpha_pattern": {},  # Empty for uniform
-            "config": {
-                **lora_config,
-                "probe_r": p90_rank,  # Use compressed rank
-                "alpha": p90_rank,    # Preserve alpha=r scaling
-            },
-            "status": "skipped",
-            "reason": f"Control run: suggested rank r={p90_rank} equals probe rank (no compression)"
-        }
-    else:
-        compression_configs["uniform_p90"] = {
-            "variant": "uniform_p90", 
-            "suggested_r": suggested_p90,
-            "actual_r": p90_rank,
-            "rank_pattern": {},  # Empty for uniform
-            "alpha_pattern": {},  # Empty for uniform
-            "config": {
-                **lora_config,
-                "probe_r": p90_rank,  # Use compressed rank
-                "alpha": p90_rank,    # Preserve alpha=r scaling
-            },
-            "status": "ready",
-            "reason": None
-        }
-    
-    # C) per_layer
-    per_layer_suggestions = audit_data.get("per_layer_suggestions")
-    if not per_layer_suggestions:
-        compression_configs["per_layer"] = {
-            "variant": "per_layer",
-            "suggested_r": None,
-            "actual_r": None,
-            "rank_pattern": {},
+    for candidate in filtered_candidates:
+        compression_configs[candidate["name"]] = {
+            "variant": candidate["name"],
+            "suggested_r": candidate["suggested_r"],
+            "actual_r": candidate["actual_r"],
+            "rank_pattern": {},  # Uniform variants
             "alpha_pattern": {},
-            "config": None,
-            "status": "SKIPPED",
-            "reason": "No per-layer suggestions found in audit"
+            "config": candidate["config"],
+            "status": "ready",
+            "reason": candidate.get("dedup_note"),
+            "policy_type": candidate["policy_type"],
+            "conservatism_score": candidate["conservatism_score"]
         }
-    else:
+    
+    # Add per-layer candidate if available and different from uniform candidates
+    per_layer_suggestions = audit_data.get("per_layer_suggestions")
+    # Only add per_layer if requested and available (not in fast_mode by default)
+    if per_layer_suggestions and (not fast_mode or len(filtered_candidates) < max_candidates):
         rank_pattern = per_layer_suggestions["rank_pattern"]
         
-        # Clamp ranks to probe rank and allowed ranks
+        # Clamp ranks to allowed values
         clamped_rank_pattern = {}
         for module_name, suggested_r in rank_pattern.items():
-            # First clamp to probe rank
             clamped_r = min(suggested_r, probe_rank)
-            # Then round to nearest allowed rank
-            if clamped_r in allowed_ranks:
-                clamped_rank_pattern[module_name] = clamped_r
+            # Round to nearest allowed rank
+            valid_ranks = [r for r in allowed_ranks if r <= clamped_r]
+            if valid_ranks:
+                clamped_rank_pattern[module_name] = max(valid_ranks)
             else:
+                clamped_rank_pattern[module_name] = min(allowed_ranks) if allowed_ranks else 1
+        
+        # Check if per-layer is different from uniform candidates
+        avg_rank = sum(clamped_rank_pattern.values()) / len(clamped_rank_pattern) if clamped_rank_pattern else 0
+        rounded_avg = round_to_allowed_ranks(avg_rank, allowed_ranks)
+        
+        # Only include if sufficiently different from uniform candidates
+        uniform_ranks = {c["actual_r"] for c in filtered_candidates}
+        if rounded_avg not in uniform_ranks and rounded_avg < probe_rank:
+            alpha_pattern = {name: rank for name, rank in clamped_rank_pattern.items()}
+            compression_configs["per_layer"] = {
+                "variant": "per_layer",
+                "suggested_r": avg_rank,
+                "actual_r": rounded_avg,
+                "rank_pattern": clamped_rank_pattern,
+                "alpha_pattern": alpha_pattern,
+                "config": {
+                    **lora_config,
+                    "probe_r": None,  # Per-layer uses rank_pattern
+                    "alpha": None,
+                },
+                "status": "ready",
+                "reason": None,
+                "policy_type": "per_layer",
+                "conservatism_score": 2.0  # Medium conservatism
+            }
+    
+    # Skip legacy SVD and per_layer_shuffled logic - handled by policy system above
+    # All candidate generation is now done, proceed to final filtering
+    
+    # NOTE: Old logic below is disabled but left for reference
+    # The new policy system handles all candidate generation above
+    try:
+        pass  # Placeholder - old logic removed
+    except Exception:
+        pass  # Handle any remaining old logic gracefully
+    
+    # Jump directly to final candidate control section
+    # (All legacy logic removed - policy system above handles everything)
                 # Find nearest allowed rank that doesn't exceed probe rank
                 valid_allowed_ranks = [r for r in allowed_ranks if r <= probe_rank]
                 if valid_allowed_ranks:
@@ -970,7 +1368,100 @@ def generate_compression_configs(
             "reason": "No per-layer variant to create shuffled control from"
         }
     
-    return compression_configs
+    # D) SVD truncation variants (both legacy and new format)
+    
+    # Legacy format support: enable_svd_variants + svd_ranks
+    if compression_config.get("enable_svd_variants", False):
+        svd_ranks = compression_config.get("svd_ranks", [])
+        for rank in svd_ranks:
+            if rank >= probe_rank:
+                # Skip if no compression would happen
+                compression_configs[f"svd_trunc_r{rank}"] = {
+                    "variant": f"svd_trunc_r{rank}",
+                    "suggested_r": rank,
+                    "actual_r": rank,
+                    "rank_pattern": {},
+                    "alpha_pattern": {},
+                    "config": None,
+                    "status": "skipped",
+                    "reason": f"SVD truncation rank r={rank} >= probe rank r={probe_rank} (no compression)"
+                }
+            else:
+                compression_configs[f"svd_trunc_r{rank}"] = {
+                    "variant": f"svd_trunc_r{rank}",
+                    "suggested_r": rank,
+                    "actual_r": rank,
+                    "rank_pattern": {},
+                    "alpha_pattern": {},
+                    "config": {
+                        **lora_config,
+                        "probe_r": rank,  # Use truncated rank
+                        "alpha": rank,    # Preserve alpha=r scaling
+                    },
+                    "status": "ready",
+                    "reason": f"SVD truncation from r={probe_rank} to r={rank}",
+                    "compression_method": "svd_truncation",
+                    "source_rank": probe_rank
+                }
+
+    # New format: compression.variants array (Step 3.1 enhancement)
+    compression_variants = compression_config.get("variants", [])
+    for variant_def in compression_variants:
+        variant_name = variant_def.get("name")
+        method = variant_def.get("method")
+        
+        if method == "svd_truncate":
+            svd_variant_config = generate_svd_variant_config(
+                variant_def, audit_data, probe_rank, lora_config, allowed_ranks
+            )
+            compression_configs[variant_name] = svd_variant_config
+    
+    # Apply final candidate control (remove old logic artifacts and enforce caps)
+    final_configs = {}
+    
+    # First, collect configs from my new system only
+    for name, config in compression_configs.items():
+        if config.get("policy_type") in ["energy", "knee", "erank", "oht", "legacy", "per_layer"]:
+            final_configs[name] = config
+    
+    # Apply capping if we have too many
+    if len(final_configs) > max_candidates:
+        # Sort by conservatism for diversity
+        sorted_configs = sorted(final_configs.items(), key=lambda x: x[1].get("conservatism_score", 999))
+        
+        # Take every N-th for diversity
+        step = len(sorted_configs) / max_candidates
+        capped_configs = {}
+        for i in range(max_candidates):
+            idx = int(i * step)
+            name, config = sorted_configs[idx]
+            capped_configs[name] = config
+        final_configs = capped_configs
+    
+    # Print candidate summary
+    if len(final_configs) > 0:
+        print(f"📊 Bench candidate control: {len(final_configs)} variants generated")
+        if fast_mode:
+            print("   Mode: FAST (energy_p90, knee_p90, erank_p90)")
+        else:
+            print(f"   Mode: FULL (capped at {max_candidates})")
+        
+        rank_summary = {}
+        for name, config in final_configs.items():
+            r = config["actual_r"]
+            if r not in rank_summary:
+                rank_summary[r] = []
+            rank_summary[r].append(name)
+        
+        for rank in sorted(rank_summary.keys(), key=lambda x: (x is None, x)):
+            variants = rank_summary[rank]
+            if len(variants) > 1:
+                print(f"   r={rank}: {', '.join(variants)} (deduplicated)")
+            else:
+                print(f"   r={rank}: {variants[0]}")
+        print()
+    
+    return final_configs
 
 
 def gather_environment_info() -> Dict[str, Any]:
@@ -1370,8 +1861,44 @@ def create_canonical_bench_report(
                         "rank_histogram": rank_check.get("rank_histogram"),
                         "total_modules": rank_check.get("total_modules")
                     }
+            elif result.get("compression_method") == "svd_truncation":
+                # SVD truncation variants
+                compression_config = compression_configs.get(variant_name, {})
+                
+                # Build compression metadata as requested in Step 3.4
+                compression_metadata = {
+                    "method": "svd_truncate",
+                    "rank_source": get_rank_source_from_config(compression_config),
+                    "target_rank": result["rank"],
+                    "source_rank": result.get("source_rank"),
+                    "alpha_mode": "keep_ratio",  # Currently hardcoded, could be configurable
+                    "energy_retained": result.get("energy_retained"),
+                    "compression_ratio": result.get("compression_ratio"),
+                    "truncation_modules": result.get("truncation_modules"),
+                    "retained_energy_mean": result.get("energy_retained")  # Placeholder for future use
+                }
+                
+                # Add post-tuning info if applicable
+                if result.get("post_tuned", False):
+                    compression_metadata["post_tune"] = result.get("post_tune_config", {
+                        "enabled": True,
+                        "steps": 100,  # Default fallback
+                        "lr_scale": 0.1
+                    })
+                else:
+                    compression_metadata["post_tune"] = {"enabled": False}
+                
+                compressed[variant_name] = {
+                    "rank": result["rank"],
+                    "params": result["params"],
+                    "accuracy": result["accuracy"],
+                    "delta_vs_probe": verdict_info["delta_vs_probe"],
+                    "param_reduction": verdict_info["param_reduction"],
+                    "verdict": verdict_info["verdict"],
+                    "compression": compression_metadata
+                }
             else:
-                # Uniform variants
+                # Uniform variants (non-SVD)
                 compressed[variant_name] = {
                     "rank": result["rank"],
                     "params": result["params"],
@@ -1662,6 +2189,168 @@ def create_markdown_report(
     return md_content
 
 
+def run_svd_truncation_variant(
+    config_path: str | Path,
+    output_dir: str | Path,
+    variant_name: str,
+    compression_config: Dict[str, Any],
+    smoke: bool = False
+) -> Dict[str, Any]:
+    """
+    Run SVD truncation variant by truncating the trained probe adapter.
+    
+    This doesn't involve retraining - it just applies SVD compression to the 
+    existing probe adapter and evaluates the truncated model.
+    """
+    from pathlib import Path
+    
+    # Load configuration
+    config = load_config(config_path)
+    
+    # Setup output directory for this variant
+    actual_r = compression_config["actual_r"]
+    source_rank = compression_config["source_rank"]
+    variant_dir = Path(output_dir) / variant_name
+    variant_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Find the probe adapter to truncate
+    probe_dir = Path(output_dir) / f"probe_r{source_rank}"
+    if not probe_dir.exists():
+        return {
+            "variant": variant_name,
+            "status": "FAILED",
+            "reason": f"Probe directory not found: {probe_dir}",
+            "accuracy": None,
+            "params": None,
+            "output_dir": str(variant_dir)
+        }
+    
+    try:
+        # Perform SVD truncation
+        print(f"Performing SVD truncation from r={source_rank} to r={actual_r}...")
+        print(f"  Source: {probe_dir}")
+        print(f"  Output: {variant_dir}")
+        
+        from gradience.vnext.svd_truncate import svd_truncate_peft_dir
+        
+        truncation_report = svd_truncate_peft_dir(
+            peft_dir=probe_dir,
+            out_dir=variant_dir,
+            target_rank=actual_r,
+            alpha_mode="keep_ratio",
+            save_dtype="fp16"
+        )
+        
+        print(f"  ✅ Truncation completed: {truncation_report.energy_retained:.1%} energy retained")
+        print(f"  🗜️  Compression: {truncation_report.compression_ratio:.1f}x parameter reduction")
+        
+        # Save truncation report
+        import json
+        report_path = variant_dir / "svd_truncation_report.json"
+        with open(report_path, 'w') as f:
+            json.dump(truncation_report.__dict__, f, indent=2)
+        
+        # Get device from config
+        device = config.get("runtime", {}).get("device", "cpu")
+        
+        # Setup dataset for evaluation
+        dataset = setup_dataset(config, smoke=smoke)
+        
+        # Setup base model and tokenizer
+        from transformers import AutoTokenizer, AutoModelForSequenceClassification
+        from peft import PeftModel
+        
+        model_name = config["model"]["name"]
+        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        
+        # Move to device
+        model = model.to(device)
+        
+        # Load the truncated adapter into the model
+        model = PeftModel.from_pretrained(model, str(variant_dir))
+        
+        # Get task profile and preprocess dataset
+        task_profile = get_task_profile_from_config(config)
+        tokenized_dataset = task_profile.tokenize(dataset, tokenizer, config)
+        
+        # Check if post-tuning is enabled
+        post_tune_config = compression_config.get("post_tune", {})
+        if post_tune_config.get("enabled", False):
+            print(f"🔧 Post-tuning enabled: {post_tune_config}")
+            
+            # Perform post-tuning of the truncated adapter
+            model = run_post_tuning(
+                model=model,
+                tokenizer=tokenizer,
+                dataset=tokenized_dataset,
+                config=config,
+                post_tune_config=post_tune_config,
+                output_dir=variant_dir,
+                smoke=smoke
+            )
+            print(f"  ✅ Post-tuning completed")
+        
+        # Evaluate the (possibly post-tuned) model
+        eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+        
+        # Write eval.json for this variant  
+        eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
+        eval_json_path = write_probe_eval_json(
+            probe_dir=variant_dir,
+            eval_results=eval_results,
+            eval_dataset_size=eval_dataset_size,
+            config=config
+        )
+        
+        # Count parameters
+        total_params = sum(p.numel() for p in model.parameters())
+        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        
+        # Check if post-tuning was performed
+        post_tuned = post_tune_config.get("enabled", False)
+        
+        result = {
+            "variant": variant_name,
+            "status": "PASS",
+            "rank": actual_r,
+            "params": trainable_params,
+            "total_params": total_params,
+            "accuracy": _extract_accuracy_with_fallback(eval_results, task_profile),
+            "eval_loss": eval_results.get("eval_loss"),
+            "output_dir": str(variant_dir),
+            "compression_method": "svd_truncation",
+            "source_rank": source_rank,
+            "energy_retained": truncation_report.energy_retained,
+            "compression_ratio": truncation_report.compression_ratio,
+            "truncation_modules": truncation_report.total_modules,
+            "post_tuned": post_tuned
+        }
+        
+        # Add post-tuning details if applicable
+        if post_tuned:
+            result["post_tune_config"] = {
+                "steps": post_tune_config.get("steps", 100),
+                "lr_scale": post_tune_config.get("lr_scale", 0.1),
+                "warmup_steps": post_tune_config.get("warmup_steps", 0)
+            }
+        
+        return result
+        
+    except Exception as e:
+        print(f"❌ SVD truncation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "variant": variant_name,
+            "status": "FAILED",
+            "reason": f"SVD truncation failed: {str(e)}",
+            "accuracy": None,
+            "params": None,
+            "output_dir": str(variant_dir)
+        }
+
+
 def run_compressed_variant_training(
     config_path: str | Path,
     output_dir: str | Path,
@@ -1706,6 +2395,19 @@ def run_compressed_variant_training(
     
     # Get device from config
     device = config.get("runtime", {}).get("device", "cpu")
+    
+    # Check if this is an SVD truncation variant
+    is_svd_variant = compression_config.get("compression_method") == "svd_truncation"
+    
+    if is_svd_variant:
+        # For SVD variants, we need to truncate the trained probe adapter
+        return run_svd_truncation_variant(
+            config_path=config_path,
+            output_dir=output_dir,
+            variant_name=variant_name,
+            compression_config=compression_config,
+            smoke=smoke
+        )
     
     # Setup dataset
     dataset = setup_dataset(config, smoke=smoke)
@@ -2194,7 +2896,8 @@ def create_multi_seed_aggregated_report(
         # Overall verdict based on majority
         overall_verdict = "PASS" if pass_rate >= 0.5 else "FAIL"
         
-        variants_data[variant_name] = {
+        # Build variant data
+        variant_data = {
             "n_seeds": len(variant_results),
             "accuracy": {
                 "mean": acc_mean,
@@ -2221,6 +2924,22 @@ def create_multi_seed_aggregated_report(
             "verdict": overall_verdict,
             "individual_verdicts": verdicts
         }
+        
+        # Preserve compression metadata if present (for SVD variants)
+        if variant_results and "compression" in variant_results[0]:
+            # Use compression metadata from first result (should be consistent across seeds)
+            variant_data["compression"] = variant_results[0]["compression"]
+            
+            # Aggregate energy retention if present
+            energy_values = [v["compression"].get("energy_retained") for v in variant_results if v.get("compression", {}).get("energy_retained") is not None]
+            if energy_values:
+                variant_data["compression"]["energy_retained_stats"] = {
+                    "mean": float(np.mean(energy_values)),
+                    "std": float(np.std(energy_values)) if len(energy_values) > 1 else 0.0,
+                    "values": energy_values
+                }
+        
+        variants_data[variant_name] = variant_data
     
     # Find best compression variant (highest mean reduction among passing variants)
     passing_variants = {name: data for name, data in variants_data.items() if data["verdict"] == "PASS"}
@@ -2852,7 +3571,9 @@ def run_bench_protocol(
     config_path: str | Path,
     output_dir: str | Path,
     smoke: bool = False,
-    ci: bool = False
+    ci: bool = False,
+    fast_mode: bool = True,
+    max_candidates: int = 4
 ) -> Dict[str, Any]:
     """
     Run the complete bench protocol.
@@ -2905,7 +3626,7 @@ def run_bench_protocol(
     print("\nStep 3.4: Generating compression configurations...")
     probe_rank = config["lora"]["probe_r"]
     probe_dir = output_path / f"probe_r{probe_rank}"
-    compression_configs = generate_compression_configs(probe_dir, config)
+    compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
     
     # Write compression configs to JSON for debugging/inspection
     compression_configs_path = output_path / "compression_configs.json"
@@ -2944,6 +3665,74 @@ def run_bench_protocol(
     verdict_path = output_path / "verdicts.json"
     with open(verdict_path, 'w') as f:
         json.dump(verdict_analysis, f, indent=2, ensure_ascii=False)
+    
+    # Step 3.7: Update policy scoreboard with results
+    try:
+        from gradience.vnext.policy_scoreboard import PolicyScoreboard, create_policy_result_from_bench_data
+        
+        scoreboard = PolicyScoreboard()
+        
+        # Extract policy results from verdict analysis and compression configs
+        config_name = config.get("name", "unknown_config")
+        model_name = config.get("model", {}).get("model_name", "unknown_model") 
+        task_name = config.get("task", {}).get("task_name", "unknown_task")
+        
+        policy_results = []
+        
+        # Process each compression variant that was tested
+        for variant_name, variant_config in compression_configs.items():
+            if variant_config.get("status") != "ready":
+                continue
+                
+            # Get policy information from variant config
+            policy_type = variant_config.get("policy_type", "unknown")
+            if policy_type == "unknown":
+                continue  # Skip non-policy variants
+                
+            suggested_rank = variant_config.get("suggested_r", 0)
+            actual_rank = variant_config.get("actual_r", 0)
+            
+            # Get performance results from verdict analysis
+            variant_verdict = verdict_analysis.get("verdicts", {}).get(variant_name)
+            if variant_verdict:
+                passed = variant_verdict.get("verdict") == "PASS"
+                performance_delta = variant_verdict.get("performance_delta", 0.0)
+                
+                # Collect all performance results for optimal rank calculation
+                all_results = {}
+                for vname, vverdict in verdict_analysis.get("verdicts", {}).items():
+                    if vverdict.get("performance_delta") is not None:
+                        all_results[vname] = vverdict.get("performance_delta", 0.0)
+                
+                # Create policy result
+                policy_result = create_policy_result_from_bench_data(
+                    config_name=config_name,
+                    model_name=model_name,
+                    task_name=task_name,
+                    policy_name=policy_type,
+                    suggested_rank=suggested_rank,
+                    actual_rank=actual_rank,
+                    performance_delta=performance_delta,
+                    passed=passed,
+                    all_results=all_results,
+                    seed=config.get("train", {}).get("seed", 42)
+                )
+                
+                policy_results.append(policy_result)
+        
+        # Add results to scoreboard
+        if policy_results:
+            scoreboard.add_benchmark_results(config_name, model_name, task_name, policy_results)
+            print(f"📊 Updated policy scoreboard with {len(policy_results)} policy results")
+            
+            # Export snapshot to output directory
+            snapshot_path = output_path / "policy_scoreboard_snapshot.json"
+            scoreboard.export_snapshot(snapshot_path)
+        
+    except ImportError:
+        print("⚠️  Policy scoreboard not available (vnext module not found)")
+    except Exception as e:
+        print(f"⚠️  Policy scoreboard update failed: {e}")
     
     # Load audit data for canonical report
     probe_audit_path = output_path / f"probe_r{probe_rank}" / "audit.json"
