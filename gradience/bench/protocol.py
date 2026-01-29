@@ -1081,30 +1081,56 @@ def generate_compression_configs(
             }
         })
     
-    # Gather policy-based candidates
-    policy_suggestions = audit_data.get("policy_global_suggestions", {})
+    # Gather policy-based candidates (robust handling of various schema versions)
+    policy_suggestions = (
+        audit_data.get("policy_global_suggestions")
+        or audit_data.get("policy_suggestions")
+        or audit_data.get("rank_policy_suggestions")
+        or audit_data.get("rank_suggestions_by_policy")
+        or {}
+    )
+    if not isinstance(policy_suggestions, dict):
+        policy_suggestions = {}
     
     # Fast mode candidates (priority=1)
-    if "energy_90" in policy_suggestions and "uniform_p90" in policy_suggestions["energy_90"]:
+    # Energy-based rank suggestions (handles multiple possible key names)
+    energy90 = (
+        policy_suggestions.get("energy_90")
+        or policy_suggestions.get("energy@0.90")
+        or {}
+    )
+    if isinstance(energy90, dict) and "uniform_p90" in energy90:
         add_candidate(
             "energy_p90", "energy", 
-            policy_suggestions["energy_90"]["uniform_p90"],
+            energy90["uniform_p90"],
             conservatism_score=3.0,  # Medium conservative
             priority=1
         )
     
-    if "knee" in policy_suggestions and "uniform_p90" in policy_suggestions["knee"]:
+    # Knee-based rank suggestions
+    knee = (
+        policy_suggestions.get("knee")
+        or policy_suggestions.get("knee_detection")
+        or {}
+    )
+    if isinstance(knee, dict) and "uniform_p90" in knee:
         add_candidate(
             "knee_p90", "knee",
-            policy_suggestions["knee"]["uniform_p90"], 
+            knee["uniform_p90"], 
             conservatism_score=2.0,  # Less conservative (finds elbows)
             priority=1
         )
     
-    if "erank" in policy_suggestions and "uniform_p90" in policy_suggestions["erank"]:
+    # Effective rank suggestions  
+    erank = (
+        policy_suggestions.get("erank")
+        or policy_suggestions.get("effective_rank")
+        or {}
+    )
+    if isinstance(erank, dict) and "uniform_p90" in erank:
         add_candidate(
             "erank_p90", "erank",
-            policy_suggestions["erank"]["uniform_p90"],
+            erank["uniform_p90"],
             conservatism_score=1.5,  # Least conservative (entropy-based)
             priority=1
         )
