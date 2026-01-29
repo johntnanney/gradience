@@ -13,10 +13,17 @@ This avoids actual training to focus on UDR functionality.
 import json
 import tempfile
 import torch
+import os
+import sys
 from pathlib import Path
 from typing import Dict, Any, List
-import sys
-import os
+
+# Dynamic repo root detection
+repo_root = Path(__file__).parent.parent
+
+def get_env_with_repo_pythonpath():
+    """Get environment with PYTHONPATH set to repo root."""
+    return {**os.environ, "PYTHONPATH": str(repo_root)}
 
 
 def create_realistic_lora_weights() -> Dict[str, torch.Tensor]:
@@ -200,7 +207,7 @@ def test_udr_bench_integration():
             
             cmd = ["gradience", "audit", "--peft-dir", str(peft_dir), "--json"]
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env=get_env_with_repo_pythonpath())
             
             if result.returncode != 0:
                 print(f"   ❌ Basic audit failed: {result.stderr}")
@@ -229,7 +236,7 @@ def test_udr_bench_integration():
             ]
             
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env=get_env_with_repo_pythonpath())
             
             if result.returncode != 0:
                 print(f"   ❌ UDR audit failed: {result.stderr}")
@@ -278,7 +285,7 @@ def test_udr_bench_integration():
             ]
             
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env=get_env_with_repo_pythonpath())
             
             if result.returncode != 0:
                 print(f"   ❌ Telemetry append failed: {result.stderr}")
@@ -318,7 +325,7 @@ def test_udr_bench_integration():
         try:
             cmd = ["gradience", "monitor", str(telemetry_path), "--json"]
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env=get_env_with_repo_pythonpath())
             
             if result.returncode != 0:
                 print(f"   ❌ Monitor failed: {result.stderr}")

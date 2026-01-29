@@ -13,7 +13,9 @@ from pathlib import Path
 
 def test_protocol_changes():
     """Verify UDR changes are present in protocol.py."""
-    protocol_path = Path("/Users/john/code/gradience/gradience/bench/protocol.py")
+    # Use dynamic path resolution instead of hardcoded path
+    repo_root = Path(__file__).parent.parent
+    protocol_path = repo_root / "gradience" / "bench" / "protocol.py"
     
     if not protocol_path.exists():
         print("❌ protocol.py not found")
@@ -48,7 +50,9 @@ def test_protocol_changes():
 
 def test_config_sample():
     """Test that the sample config with UDR parses correctly."""
-    config_path = Path("/Users/john/code/gradience/gradience/bench/configs/distilbert_sst2_with_udr.yaml")
+    # Use dynamic path resolution instead of hardcoded path
+    repo_root = Path(__file__).parent.parent
+    config_path = repo_root / "gradience" / "bench" / "configs" / "distilbert_sst2_with_udr.yaml"
     
     if not config_path.exists():
         print("❌ Sample UDR config not found")
@@ -74,8 +78,9 @@ def test_config_sample():
 def test_import_compatibility():
     """Test that protocol module imports work after changes."""
     try:
-        # Add path and import
-        sys.path.insert(0, '/Users/john/code/gradience')
+        # Add path and import using dynamic repo root
+        repo_root = Path(__file__).parent.parent
+        sys.path.insert(0, str(repo_root))
         
         # Test the actual import that would be used
         from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
