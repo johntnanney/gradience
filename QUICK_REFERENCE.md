@@ -90,6 +90,22 @@ gradience audit \
   --weights path/to/adapter_model.safetensors
 ```
 
+## Truncate (SVD compression)
+
+```bash
+# Basic truncation
+gradience truncate --peft-dir runs/toy_run/peft --out-dir runs/compressed --rank 8
+
+# With detailed output
+gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8 --verbose
+
+# JSON output
+gradience truncate --peft-dir adapter --out-dir compressed --rank 4 --json
+
+# Save detailed report
+gradience truncate --peft-dir adapter --out-dir adapter_r6 --rank 6 --report compression.json
+```
+
 ## Combined workflow
 
 ```bash
@@ -108,6 +124,9 @@ gradience audit --peft-dir runs/experiment/peft --top-wasteful 5
 # 5) Append audit + re-monitor
 gradience audit --peft-dir runs/experiment/peft --append runs/experiment/run.jsonl
 gradience monitor runs/experiment/run.jsonl --verbose
+
+# 6) Optional: Compress adapter for deployment
+gradience truncate --peft-dir runs/experiment/peft --out-dir runs/experiment/peft_compressed --rank 8
 ```
 
 ## Python API — TelemetryWriter

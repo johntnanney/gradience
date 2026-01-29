@@ -40,7 +40,10 @@ echo -e "${YELLOW}📊 Running r=4 experiment (seed=42)...${NC}"
 OUT_R4="/tmp/gradience_sensitivity_r4_fixed"
 rm -rf "$OUT_R4"
 
-PYTHONPATH=/Users/john/code/gradience python3 -m gradience.bench.run_bench \
+# Use dynamic repo root detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+PYTHONPATH="$REPO_ROOT" python3 -m gradience.bench.run_bench \
     --config "$CONFIG_R4" \
     --output "$OUT_R4" \
     --smoke > /tmp/sensitivity_r4_fixed.log 2>&1
@@ -54,7 +57,7 @@ echo -e "${YELLOW}📊 Running r=16 experiment (seed=42)...${NC}"
 OUT_R16="/tmp/gradience_sensitivity_r16_fixed"
 rm -rf "$OUT_R16"
 
-PYTHONPATH=/Users/john/code/gradience python3 -m gradience.bench.run_bench \
+PYTHONPATH="$REPO_ROOT" python3 -m gradience.bench.run_bench \
     --config "$CONFIG_R16" \
     --output "$OUT_R16" \
     --smoke > /tmp/sensitivity_r16_fixed.log 2>&1

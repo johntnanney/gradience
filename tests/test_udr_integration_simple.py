@@ -20,8 +20,14 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 
-# Add gradience to path
-sys.path.insert(0, '/Users/john/code/gradience')
+# Add gradience to path using repo-root detection
+REPO_ROOT = Path(__file__).resolve().parents[1]  # file is in tests/
+sys.path.insert(0, str(REPO_ROOT))
+
+
+def get_test_env():
+    """Get environment with PYTHONPATH set for subprocess calls."""
+    return {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
 
 
 def create_realistic_test_adapter(out_dir: Path, model_type: str = "gpt2") -> Path:
@@ -130,7 +136,7 @@ class TestUDRIntegrationSimple:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit failed: {result.stderr}"
@@ -204,7 +210,7 @@ class TestUDRIntegrationSimple:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit with --no-udr failed: {result.stderr}"
@@ -242,7 +248,7 @@ class TestUDRIntegrationSimple:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit without base norms failed: {result.stderr}"
@@ -287,7 +293,7 @@ class TestUDRIntegrationSimple:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             # Should not crash
@@ -326,7 +332,7 @@ class TestUDRIntegrationSimple:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit failed: {result.stderr}"

@@ -30,7 +30,10 @@ echo "Output: $OUT"
 echo
 
 # Run the bench in smoke mode for fastest execution
-PYTHONPATH=/Users/john/code/gradience python3 -m gradience.bench.run_bench \
+# Use dynamic repo root detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+PYTHONPATH="$REPO_ROOT" python3 -m gradience.bench.run_bench \
     --config gradience/bench/configs/distilbert_sst2_mini_validation.yaml \
     --output "$OUT" \
     --smoke > /tmp/demo_gain_audit.log 2>&1

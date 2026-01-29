@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "computed_at": "2026-01-28T17:30:00Z",
+  "computed_with": {
+    "gradience_version": "0.5.0",
+    "git_sha": "2277c7b7fe3f"
+  },
+  "policy_disagreement_analysis": {
+    "schema_version": 1,
+    "computed_at": "2026-01-28T17:26:18Z",
+    "computed_with": {
+      "gradience_version": "0.5.0",
+      "git_sha": "2277c7b7fe3f"
+    },
+    "disagreement_config": {
+      "quantile_threshold": 0.9,
+      "uniform_mult_gate": 3.0,
+      "importance_metric": "energy_share",
+      "quantile_pct": 90.0,
+      "min_uniform_mult_threshold": 3.0,
+      "spread_base_threshold": 3,
+      "spread_dynamic_factor": 0.5,
+      "spread_calculation_formula": "max(3, 0.5 * max_k_for_layer)",
+      "flat_detection_enabled": true,
+      "spread_filter_enabled": true,
+      "quantile_filter_enabled": true,
+      "config_capture_version": "1.0",
+      "algorithm_name": "energy_share_uniform_multiplier_gate"
+    },
+    "analysis_performed": true,
+    "distribution": {
+      "total_layers": 4,
+      "total_energy": 18.5,
+      "max_uniform_mult": 1.7297297297297298,
+      "is_flat": true,
+      "uniform_share": 0.25
+    },
+    "summary": {
+      "layers_with_disagreement": 4,
+      "layers_flagged_as_high_impact": 0
+    },
+    "disagreement_focus_set": {
+      "high_impact_layers": [
+        "layer.0.attn",
+        "layer.1.mlp",
+        "layer.2.norm"
+      ],
+      "recommended_focus_n": 3,
+      "focus_strategy": "top_disagreement_priority",
+      "message": "Energy distribution is flat (max=1.7\u00d7 uniform share). Consider Bench validation on top 3 disagreement layers by priority_score.",
+      "distribution_type": "flat"
+    },
+    "flagged_layers": [],
+    "all_layers_with_disagreement": [
+      {
+        "layer_name": "layer.0.attn",
+        "flagging_rationale": {
+          "spread": 3,
+          "spread_threshold": 3.0,
+          "meets_spread_threshold": true,
+          "importance_share": 0.43243243243243246,
+          "uniform_mult": 1.7297297297297298,
+          "uniform_mult_threshold": 3.0,
+          "meets_uniform_mult_threshold": false,
+          "priority_score": 1.7297297297297298,
+          "is_flat_distribution": true,
+          "quantile_threshold": 0.9,
+          "meets_quantile_threshold": null,
+          "passed_gate": false,
+          "flagged_as_high_impact": false,
+          "k_values": [
+            6,
+            3,
+            5
+          ],
+          "policies": [
+            "energy@0.85",
+            "knee",
+            "erank"
+          ]
+        }
+      },
+      {
+        "layer_name": "layer.1.mlp",
+        "flagging_rationale": {
+          "spread": 2,
+          "spread_threshold": 3.0,
+          "meets_spread_threshold": false,
+          "importance_share": 0.32432432432432434,
+          "uniform_mult": 1.2972972972972974,
+          "uniform_mult_threshold": 3.0,
+          "meets_uniform_mult_threshold": false,
+          "priority_score": 0.8648648648648649,
+          "is_flat_distribution": true,
+          "quantile_threshold": 0.9,
+          "meets_quantile_threshold": false,
+          "passed_gate": false,
+          "flagged_as_high_impact": false,
+          "k_values": [
+            5,
+            3,
+            4
+          ],
+          "policies": [
+            "energy@0.85",
+            "knee",
+            "erank"
+          ]
+        }
+      },
+      {
+        "layer_name": "layer.2.norm",
+        "flagging_rationale": {
+          "spread": 2,
+          "spread_threshold": 3.0,
+          "meets_spread_threshold": false,
+          "importance_share": 0.16216216216216217,
+          "uniform_mult": 0.6486486486486487,
+          "uniform_mult_threshold": 3.0,
+          "meets_uniform_mult_threshold": false,
+          "priority_score": 0.43243243243243246,
+          "is_flat_distribution": true,
+          "quantile_threshold": 0.9,
+          "meets_quantile_threshold": false,
+          "passed_gate": false,
+          "flagged_as_high_impact": false,
+          "k_values": [
+            4,
+            2,
+            3
+          ],
+          "policies": [
+            "energy@0.85",
+            "knee",
+            "erank"
+          ]
+        }
+      },
+      {
+        "layer_name": "layer.3.dropout",
+        "flagging_rationale": {
+          "spread": 2,
+          "spread_threshold": 3.0,
+          "meets_spread_threshold": false,
+          "importance_share": 0.08108108108108109,
+          "uniform_mult": 0.32432432432432434,
+          "uniform_mult_threshold": 3.0,
+          "meets_uniform_mult_threshold": false,
+          "priority_score": 0.21621621621621623,
+          "is_flat_distribution": true,
+          "quantile_threshold": 0.9,
+          "meets_quantile_threshold": false,
+          "passed_gate": false,
+          "flagged_as_high_impact": false,
+          "k_values": [
+            3,
+            1,
+            2
+          ],
+          "policies": [
+            "energy@0.85",
+            "knee",
+            "erank"
+          ]
+        }
+      }
+    ]
+  },
+  "adapter_info": {
+    "total_layers": 4,
+    "model_name": "fallback_test_model"
+  }
+}

@@ -18,8 +18,10 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 import sys
 
-# Add gradience to path
-sys.path.insert(0, '/Users/john/code/gradience')
+# Add gradience to path using dynamic resolution
+import os
+repo_root = Path(__file__).parent.parent
+sys.path.insert(0, str(repo_root))
 
 
 def test_bench_udr_config_parsing():
@@ -62,8 +64,9 @@ def test_bench_udr_config_parsing():
         mock_audit_result.layers = []
         mock_audit_result.issues = []
         
-        # Import directly from protocol module
-        sys.path.insert(0, '/Users/john/code/gradience/gradience/bench')
+        # Import directly from protocol module using dynamic path
+        protocol_path = repo_root / "gradience" / "bench"
+        sys.path.insert(0, str(protocol_path))
         import protocol
         
         with patch.object(protocol, 'audit_lora_peft_dir') as mock_audit:
@@ -84,16 +87,16 @@ def test_bench_udr_config_parsing():
             # Reset mock
             mock_audit.reset_mock()
             
-            # Test 2: Config without audit section should use model name and defaults
+            # Test 2: Config without audit section should disable UDR (opt-in policy)
             print("🔍 Testing config without UDR section...")
             audit_path = protocol.run_probe_audit(probe_dir, config_without_udr)
             
-            # Verify audit was called with model name as base_model
+            # Verify audit was called with UDR disabled (opt-in policy)
             mock_audit.assert_called_with(
                 probe_dir,
-                base_model_id="distilbert-base-uncased",
+                base_model_id=None,
                 base_norms_cache=None,
-                compute_udr=True
+                compute_udr=False
             )
             
             print("✅ Config parsing tests passed")
@@ -142,8 +145,9 @@ def test_bench_report_udr_integration():
     with tempfile.TemporaryDirectory() as temp_dir:
         output_dir = Path(temp_dir)
         
-        # Import protocol module directly
-        sys.path.insert(0, '/Users/john/code/gradience/gradience/bench')
+        # Import protocol module directly using dynamic path
+        protocol_path = repo_root / "gradience" / "bench"
+        sys.path.insert(0, str(protocol_path))
         import protocol
         
         # Test 1: Report with UDR data should include instrumentation
