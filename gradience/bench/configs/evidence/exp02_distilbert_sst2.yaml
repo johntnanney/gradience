@@ -15,15 +15,24 @@ task:
   dataset: "glue"
   subset: "sst2" 
   metric: "accuracy"
+  
+  # Probe quality gate - SST-2 requires 75% accuracy minimum
+  probe_gate:
+    metric: "accuracy"
+    min_value: 0.75                         # SST-2 sentiment classification threshold
 
 train:
   seed: 42
-  max_steps: 200
-  eval_steps: 50
-  lr: 0.00005  # 5e-5 for stable convergence
+  max_steps: 500                          # Increased from 200 for proper convergence
+  eval_steps: 100                         # Evaluate every 100 steps
+  lr: 0.00005                             # 5e-5 for stable convergence
   weight_decay: 0.01
   per_device_train_batch_size: 8
   per_device_eval_batch_size: 32
+  
+  # Increased sample sizes for better coverage
+  train_samples: 4000                     # ~500 steps with batch_size=8
+  eval_samples: 500                       # Larger eval set for reliable metrics
 
 lora:
   probe_r: 16               # Good balance for compression headroom
@@ -44,9 +53,9 @@ audit:
 runtime:
   device: "cpu"                       # CPU-friendly for wide compatibility
   
-  # Smoke test overrides for fast validation
-  smoke_max_steps: 50
-  smoke_train_samples: 200
+  # Smoke test overrides for fast validation (still allow convergence)
+  smoke_max_steps: 150                # Increased from 50 for meaningful validation
+  smoke_train_samples: 800            # Increased for better coverage
   smoke_eval_samples: 200
 
 run_type: "evidence_pack_exp02"

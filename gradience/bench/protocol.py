@@ -502,6 +502,45 @@ def run_probe_audit(
     # Debug: Check if summary has required fields
     print(f"Debug: audit_summary has stable_rank_mean={audit_summary.get('stable_rank_mean')}, utilization_mean={audit_summary.get('utilization_mean')}, current_r={audit_summary.get('current_r')}")
     
+    # Validate LoRA attachment - prevent wasted GPU cycles
+    stable_rank_mean = audit_summary.get('stable_rank_mean', 0.0)
+    utilization_mean = audit_summary.get('utilization_mean', 0.0)
+    
+    if stable_rank_mean == 0.0 and utilization_mean == 0.0:
+        print("")
+        print("🚨" * 20)
+        print("🚨 CRITICAL: LoRA LIKELY DID NOT TRAIN / DID NOT ATTACH")
+        print("🚨 stable_rank_mean = 0.0 AND utilization = 0.0")
+        print("🚨 This indicates LoRA adapters were not properly attached")
+        print("🚨 or training failed to update weights.")
+        print("🚨")
+        print("🚨 Common causes:")
+        print("🚨 • Wrong target_modules for this model architecture")
+        print("🚨 • LoRA not properly attached during training")
+        print("🚨 • Training failed silently")
+        print("🚨 • Adapter weights not saved properly")
+        print("🚨")
+        print("🚨 This probe is INVALID - marking as failed to prevent")
+        print("🚨 wasted GPU cycles on compression variants.")
+        print("🚨" * 20)
+        print("")
+        
+        # Mark probe as invalid in audit summary
+        audit_summary["probe_validity"] = {
+            "valid": False,
+            "reason": "LoRA_NOT_ATTACHED",
+            "stable_rank_mean": stable_rank_mean,
+            "utilization_mean": utilization_mean,
+            "message": "LoRA adapters likely did not train or attach properly"
+        }
+    else:
+        audit_summary["probe_validity"] = {
+            "valid": True,
+            "reason": "NORMAL_OPERATION", 
+            "stable_rank_mean": stable_rank_mean,
+            "utilization_mean": utilization_mean
+        }
+    
     # Generate additional global rank suggestions
     try:
         global_suggestions = suggest_global_ranks_from_audit(audit_summary)
@@ -3597,6 +3636,51 @@ def run_bench_protocol(
     print("\nStep 3.4: Generating compression configurations...")
     probe_rank = config["lora"]["probe_r"]
     probe_dir = output_path / f"probe_r{probe_rank}"
+    
+    # Check probe validity before wasting GPU cycles on compression
+    audit_json_path = probe_dir / "audit.json"
+    if audit_json_path.exists():
+        with open(audit_json_path) as f:
+            audit_data = json.load(f)
+            
+        probe_validity = audit_data.get("probe_validity", {})
+        if not probe_validity.get("valid", True):
+            print("")
+            print("⚠️" * 15)
+            print("⚠️  SKIPPING COMPRESSION VARIANTS")
+            print(f"⚠️  Reason: {probe_validity.get('reason', 'UNKNOWN')}")
+            print(f"⚠️  Message: {probe_validity.get('message', 'Probe invalid')}")
+            print(f"⚠️  stable_rank_mean: {probe_validity.get('stable_rank_mean', 'N/A')}")
+            print(f"⚠️  utilization_mean: {probe_validity.get('utilization_mean', 'N/A')}")
+            print("⚠️")
+            print("⚠️  This prevents wasted GPU cycles on compression variants")
+            print("⚠️  when the probe itself is invalid.")
+            print("⚠️" * 15)
+            print("")
+            
+            # Create empty compression configs and skip to reporting
+            compression_configs = {}
+            variant_results = {}
+            
+            # Jump to final report generation
+            import datetime
+            verdict_analysis = analyze_bench_verdicts(output_path, {}, config, task_profile, fast_mode=fast_mode)
+            
+            canonical_report = create_canonical_bench_report(
+                {},  # probe_results
+                {},  # variant_results  
+                verdict_analysis,
+                audit_data,  # probe_audit_data
+                {},  # compression_configs
+                config,
+                output_path
+            )
+            
+            # Write empty results but include probe validity warning
+            write_bench_report(output_path, canonical_report, config, verdict_analysis, {}, audit_data, {})
+            
+            return canonical_report
+    
     compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
     
     # Write compression configs to JSON for debugging/inspection
