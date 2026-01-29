@@ -21,9 +21,10 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import numpy as np
 
-# Import UDR functions
+# Import UDR functions using repo-root detection
 import sys
-sys.path.insert(0, '/Users/john/code/gradience')
+REPO_ROOT = Path(__file__).resolve().parents[1]  # file is in tests/
+sys.path.insert(0, str(REPO_ROOT))
 from gradience.vnext.audit.lora_audit import (
     compute_update_norms,
     compute_udr_metrics,
