@@ -1,0 +1,52 @@
+# Evidence Pack Experiment 02: DistilBERT SST2 Compression Benchmark
+# 
+# Purpose: Canonical CPU-friendly compression benchmark for Evidence Pack demonstrations
+# Use case: Standard reference run for LoRA compression evaluation
+# Runtime: ~5-10 minutes on CPU, suitable for CI and local testing
+#
+# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp02_distilbert_sst2.yaml --output /workspace/evidence_runs/exp02
+
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2" 
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 200
+  eval_steps: 50
+  lr: 0.00005  # 5e-5 for stable convergence
+  weight_decay: 0.01
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+
+lora:
+  probe_r: 16               # Good balance for compression headroom
+  alpha: 16                 # Standard α = r setting  
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [1,2,4,8,16,32]      # Full compression range
+  acc_tolerance: 0.005                # Tight tolerance for quality
+
+# UDR computation (Evidence Pack feature)
+audit:
+  base_model: "distilbert-base-uncased"
+  compute_udr: true
+  # base_norms_cache: "/workspace/gradience_cache/base_norms"  # Uncomment for persistent cache
+
+runtime:
+  device: "cpu"                       # CPU-friendly for wide compatibility
+  
+  # Smoke test overrides for fast validation
+  smoke_max_steps: 50
+  smoke_train_samples: 200
+  smoke_eval_samples: 200
+
+run_type: "evidence_pack_exp02"
