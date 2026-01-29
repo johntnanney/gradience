@@ -1,0 +1,66 @@
+# Example: Complete Tiny Tune Feature Demonstration
+# Shows SVD truncation with and without post-tuning
+
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2"
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 200  
+  eval_steps: 50
+  lr: 0.00005       # Base learning rate: 5e-5
+  weight_decay: 0.01
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+
+lora:
+  probe_r: 16  # Train r=16 probe first
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [2,4,8,16,32]
+  acc_tolerance: 0.005
+  
+  # Step 3.3: Tiny Tune Feature - SVD truncation with optional post-tuning
+  variants:
+    # Standard SVD truncation (no post-tuning)
+    - name: svd_trunc_p90
+      method: svd_truncate
+      rank_source: audit_global_p90
+      post_tune:
+        enabled: false
+
+    # Tiny tune after SVD truncation
+    - name: svd_trunc_p90_tune
+      method: svd_truncate
+      rank_source: audit_global_p90
+      post_tune:
+        enabled: true
+        steps: 100           # 100 post-tuning steps
+        lr_scale: 0.1        # LR = 5e-5 * 0.1 = 5e-6
+        warmup_steps: 0      # Zero warmup (tiny tune)
+
+    # Conservative tiny tune with more aggressive compression
+    - name: svd_trunc_r4_conserve
+      method: svd_truncate  
+      rank_source: 4          # Direct rank specification
+      post_tune:
+        enabled: true
+        steps: 150           # More steps for aggressive compression
+        lr_scale: 0.05       # LR = 5e-5 * 0.05 = 2.5e-6 (conservative)
+        warmup_steps: 10     # Small warmup for stability
+
+runtime:
+  device: "cpu"
+  smoke_max_steps: 25
+  smoke_train_samples: 200
+  smoke_eval_samples: 100

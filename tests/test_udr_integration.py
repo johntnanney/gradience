@@ -21,8 +21,15 @@ import subprocess
 import sys
 import os
 
-# Add gradience to path
-sys.path.insert(0, '/Users/john/code/gradience')
+# Add gradience to path using repo-root detection
+from pathlib import Path
+REPO_ROOT = Path(__file__).resolve().parents[1]  # file is in tests/
+sys.path.insert(0, str(REPO_ROOT))
+
+
+def get_test_env():
+    """Get environment with PYTHONPATH set for subprocess calls."""
+    return {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
 
 
 def check_dependencies():
@@ -153,7 +160,7 @@ class TestUDRIntegration:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit without base model failed: {result.stderr}"
@@ -179,7 +186,7 @@ class TestUDRIntegration:
             
             result_with_base = subprocess.run(
                 cmd_with_base, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             # Note: This might fail if transformers/model loading fails, which is OK for CI
@@ -279,7 +286,7 @@ class TestCLIBehavior:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             assert result.returncode == 0, f"Audit with --no-udr failed: {result.stderr}"
@@ -331,7 +338,7 @@ class TestCLIBehavior:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             if result.returncode != 0:
@@ -370,7 +377,7 @@ class TestCLIBehavior:
             
             result = subprocess.run(
                 cmd, capture_output=True, text=True,
-                env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"}
+                env=get_test_env()
             )
             
             # Should not crash - should complete audit with issues recorded

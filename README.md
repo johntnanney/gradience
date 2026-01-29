@@ -40,6 +40,23 @@ gradience monitor outputs/run.jsonl --verbose
 
 📋 **See [CLI_CHEATSHEET.md](CLI_CHEATSHEET.md) for more copy-paste commands**
 
+## 🔍 Acceptance Gate (Truth Commands)
+
+**Before any commit or deployment, ensure sanity with:**
+
+```bash
+./scripts/truth.sh
+```
+
+**What this validates:**
+- **Truth Command A**: `pytest -q` — All CI-grade tests pass
+- **Truth Command B**: CLI sanity — Core interfaces work
+  - `python3 -m gradience --help`
+  - `python3 -m gradience audit --help` 
+  - `python3 -m gradience.bench.run_bench --help`
+
+If these pass, the codebase is coherent. If dev scripts break, who cares.
+
 ---
 
 ## 🎯 Quick Demo: LoRA Gain Audit (v0.7.0)

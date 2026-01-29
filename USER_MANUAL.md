@@ -223,6 +223,44 @@ Notes:
 - The auditor prefers **`adapter_model.safetensors`** when present.
 - JSON output includes summary metrics + optional per-layer rows.
 
+### 4.4 `gradience truncate`
+**Purpose:** Compress a LoRA adapter using SVD truncation to reduce parameter count while preserving performance.
+
+```bash
+gradience truncate --peft-dir <source_dir> --out-dir <target_dir> --rank <target_rank>
+```
+
+**Key options**
+- `--rank <k>`: Target rank (must be smaller than original)
+- `--alpha-mode {keep_ratio,keep_alpha}`: Alpha scaling behavior (default: `keep_ratio`)
+- `--dtype {fp16,bf16,fp32}`: Output weight precision (default: `fp16`)
+- `--report <path>`: Save detailed compression report as JSON
+- `--verbose`: Show per-module energy retention statistics
+- `--json`: Machine-readable output
+
+**Output**
+- Creates complete PEFT adapter directory at `--out-dir`
+- Shows: input/output ranks, mean energy retained, parameter reduction
+- Automatic `truncation_report.json` with per-module statistics
+
+**Example workflow**
+```bash
+# 1) Check current adapter efficiency
+gradience audit --peft-dir ./adapter_r16 --top-wasteful 5
+
+# 2) Compress to smaller rank
+gradience truncate --peft-dir ./adapter_r16 --out-dir ./adapter_r8 --rank 8 --verbose
+
+# 3) Use compressed adapter (same API as original)
+model = PeftModel.from_pretrained(base_model, "./adapter_r8")
+```
+
+**Technical notes**
+- Uses fast QR-based SVD to avoid materializing large matrices
+- Preserves all non-LoRA weights (task heads, modules_to_save)
+- Output adapter is drop-in compatible with PEFT/Transformers
+- Energy retention indicates approximation quality (higher = better)
+
 ---
 
 ## 5. Telemetry: what is logged

@@ -1,0 +1,71 @@
+# Test config demonstrating Step 3.1: Enhanced SVD truncation variants
+# Shows the new compression.variants schema with audit-based rank selection
+
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2"
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 100  # Quick test
+  eval_steps: 50
+  lr: 0.00005
+  weight_decay: 0.0
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 32
+
+lora:
+  probe_r: 16  # Train r=16 probe first
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  # Standard compression settings
+  allowed_ranks: [1,2,4,8,16,32]
+  acc_tolerance: 0.005
+  
+  # New Step 3.1 schema: declarative variants array
+  variants:
+    - name: svd_trunc_median
+      method: svd_truncate
+      rank_source: audit_global_median  # Use audit's suggested_r_global_median
+      post_tune:
+        enabled: false
+
+    - name: svd_trunc_p90
+      method: svd_truncate
+      rank_source: audit_global_p90     # Use audit's suggested_r_global_90
+      post_tune:
+        enabled: false
+
+    - name: svd_trunc_p90_tune
+      method: svd_truncate
+      rank_source: audit_global_p90
+      post_tune:
+        enabled: true
+        steps: 100
+        lr_scale: 0.1        # 10% of base learning rate
+        warmup_steps: 0      # Zero warmup for tiny tune
+        
+    # Additional examples - direct rank specification
+    - name: svd_trunc_r4_tune
+      method: svd_truncate
+      rank_source: 4  # Direct rank specification
+      post_tune:
+        enabled: true
+        steps: 50
+        lr_scale: 0.05       # 5% of base learning rate
+        warmup_steps: 5      # Tiny warmup example
+
+runtime:
+  device: "cpu"
+  smoke_max_steps: 25
+  smoke_train_samples: 100
+  smoke_eval_samples: 100

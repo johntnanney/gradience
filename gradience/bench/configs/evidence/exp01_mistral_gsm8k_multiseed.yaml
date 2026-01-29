@@ -1,0 +1,81 @@
+# Evidence Pack Experiment 01b: Mistral GSM8K Multi-seed Benchmark
+#
+# Purpose: Production-quality multi-seed evaluation for statistical robustness  
+# Use case: Comprehensive Evidence Pack demonstration with variance estimation
+# Runtime: ~45-90 minutes (3 seeds × ~15-30 min per seed)
+#
+# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp01_mistral_gsm8k_multiseed.yaml --output /workspace/evidence_runs/exp01_multiseed
+
+bench_version: "0.1"
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm
+  eval_max_samples: 500           # Comprehensive eval set
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  probe_gate:
+    metric: exact_match
+    min_value: 0.15               # Realistic threshold for GSM8K
+
+train:
+  max_steps: 1200                 # Sufficient for convergence
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 0.0001
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 100
+  eval_steps: 400                 # Evaluate 3 times during training  
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 1600             # Sufficient training data
+  eval_samples: 500
+
+lora:
+  probe_r: 32                     # Higher rank for compression headroom
+  alpha: 64
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj  
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+compression:
+  allowed_ranks: [2, 4, 8, 16, 20, 24, 32]  # Full compression range
+  acc_tolerance: 0.025                       # Production tolerance
+  
+  # Multi-seed configuration  
+  seeds: [42, 123, 456]           # 3 seeds for variance estimation
+  variants_to_test: ["per_layer"] # Focus on promising variant
+
+# UDR computation enabled for full analysis
+audit:
+  base_model: "mistralai/Mistral-7B-v0.1"
+  compute_udr: true
+  # base_norms_cache: "/workspace/gradience_cache/mistral_base_norms"  # Uncomment for persistent cache
+
+runtime:
+  device: cuda                    # GPU required
+  
+  # Keep artifacts for analysis
+  keep_adapter_weights: true
+  keep_checkpoints: false
+
+run_type: "evidence_pack_exp01_multiseed"

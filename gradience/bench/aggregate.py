@@ -642,6 +642,21 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         for rec in summary["recommendations"]:
             lines.append(f"- {rec}")
     
+    # Policy scoreboard (if available)
+    try:
+        from gradience.vnext.policy_scoreboard import PolicyScoreboard
+        scoreboard = PolicyScoreboard()
+        
+        # Only add scoreboard if we have meaningful data
+        if scoreboard.data.get("total_benchmarks", 0) > 0:
+            lines.append("")
+            scoreboard_table = scoreboard.generate_markdown_table()
+            lines.append(scoreboard_table)
+    except ImportError:
+        pass  # Scoreboard not available
+    except Exception:
+        pass  # Scoreboard failed, continue without it
+    
     lines.append("")
     lines.append(f"*Generated on {data['aggregation_timestamp']}*")
     

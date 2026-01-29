@@ -51,7 +51,9 @@ def run_minimal_training(out_dir: Path) -> bool:
         ]
         
         import subprocess
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd="/Users/john/code/gradience")
+        # Dynamic repo root detection
+        repo_root = Path(__file__).parent.parent
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root))
         
         if result.returncode != 0:
             print(f"   ❌ Training failed: {result.stderr}")
@@ -132,7 +134,7 @@ def test_udr_in_bench_context():
             ]
             
             result = subprocess.run(cmd, capture_output=True, text=True, 
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env={**os.environ, "PYTHONPATH": str(repo_root)})
             
             if result.returncode != 0:
                 print(f"   ❌ Audit failed: {result.stderr}")
@@ -177,7 +179,7 @@ def test_udr_in_bench_context():
             ]
             
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env={**os.environ, "PYTHONPATH": str(repo_root)})
             
             if result.returncode != 0:
                 print(f"   ❌ Audit append failed: {result.stderr}")
@@ -221,7 +223,7 @@ def test_udr_in_bench_context():
             cmd = ["gradience", "monitor", str(run_jsonl), "--json"]
             
             result = subprocess.run(cmd, capture_output=True, text=True,
-                                  env={**os.environ, "PYTHONPATH": "/Users/john/code/gradience"})
+                                  env={**os.environ, "PYTHONPATH": str(repo_root)})
             
             if result.returncode != 0:
                 print(f"   ❌ Monitor failed: {result.stderr}")

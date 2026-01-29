@@ -129,9 +129,11 @@ PY
 
 # 5) Test rank suggestions on HF adapter
 echo "---- (5/6) rank suggestions ----"
-python3 - <<'PY' "$OUT/audit.json"
-import json, sys
-sys.path.append('/Users/john/code/gradience')
+# Use dynamic repo root detection
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+PYTHONPATH="$REPO_ROOT" python3 - <<'PY' "$OUT/audit.json"
+import json, sys, os
 
 from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit
 
