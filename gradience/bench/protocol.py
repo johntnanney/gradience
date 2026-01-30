@@ -338,13 +338,17 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         default_alpha_from_audit = default_rank_from_audit
         
         # Create complete, normalized patterns using canonical helpers
+        # Get patterns from compression_config (top-level) with fallback to variant_config (nested)
+        rank_pattern = compression_config.get("rank_pattern") or variant_config.get("rank_pattern", {})
+        alpha_pattern = compression_config.get("alpha_pattern") or variant_config.get("alpha_pattern", {})
+        
         full_rank_pattern = create_complete_rank_pattern(
-            variant_config["rank_pattern"], 
+            rank_pattern, 
             audit_layers, 
             default_rank_from_audit
         )
         full_alpha_pattern = create_complete_alpha_pattern(
-            variant_config["alpha_pattern"], 
+            alpha_pattern, 
             audit_layers, 
             default_alpha_from_audit
         )
@@ -352,6 +356,18 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         # Use minimum rank as default for PEFT compatibility
         # This conservative approach ensures rank_pattern overrides work correctly
         # (PEFT 0.18.1 has issues when default_r > some pattern values)
+        
+        # full_rank_pattern may be empty if module-name expansion fails (e.g., naming/prefix mismatch)
+        # Fall back to the provided rank_pattern rather than crashing.
+        if not full_rank_pattern:
+            full_rank_pattern = dict(rank_pattern or {})
+
+        if not full_rank_pattern:
+            raise ValueError(
+                "Computed empty rank_pattern for compressed variant. "
+                "This usually indicates a module-name mismatch between the adapter and base model."
+            )
+
         min_rank = min(full_rank_pattern.values())
         
         peft_config = LoraConfig(

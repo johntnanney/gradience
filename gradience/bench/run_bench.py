@@ -26,9 +26,6 @@ import yaml
 from pathlib import Path
 from typing import Optional
 
-from .protocol import run_bench_protocol
-
-
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the CLI."""
     
@@ -242,6 +239,9 @@ def main() -> int:
         print(f"Device override: {args.device}")
     print()
 
+    # Import heavy dependencies only when actually running (not for --help)
+    from .protocol import run_bench_protocol
+    
     try:
         # Handle device override by modifying config temporarily
         if args.device:
