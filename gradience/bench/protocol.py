@@ -45,6 +45,7 @@ from gradience.peft_utils import (
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
 from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
 from gradience.bench.task_profiles import get_task_profile_from_config
+from gradience.bench.schema import get_variant_payload, validate_compression_config
 
 
 def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
@@ -337,14 +338,17 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         default_rank_from_audit = compression_config.get("_probe_rank", 16)
         default_alpha_from_audit = default_rank_from_audit
         
+        # Get patterns using canonical schema accessor (prevents KeyError regressions)
+        rank_pattern, alpha_pattern = get_variant_payload(compression_config)
+        
         # Create complete, normalized patterns using canonical helpers
         full_rank_pattern = create_complete_rank_pattern(
-            variant_config["rank_pattern"], 
+            rank_pattern, 
             audit_layers, 
             default_rank_from_audit
         )
         full_alpha_pattern = create_complete_alpha_pattern(
-            variant_config["alpha_pattern"], 
+            alpha_pattern, 
             audit_layers, 
             default_alpha_from_audit
         )
@@ -1293,7 +1297,7 @@ def generate_compression_configs(
         uniform_ranks = {c["actual_r"] for c in filtered_candidates}
         if rounded_avg not in uniform_ranks and rounded_avg < probe_rank:
             alpha_pattern = {name: rank for name, rank in clamped_rank_pattern.items()}
-            compression_configs["per_layer"] = {
+            per_layer_config = {
                 "variant": "per_layer",
                 "suggested_r": avg_rank,
                 "actual_r": rounded_avg,
@@ -1309,6 +1313,10 @@ def generate_compression_configs(
                 "policy_type": "per_layer",
                 "conservatism_score": 2.0  # Medium conservatism
             }
+            
+            # Validate the schema before storing
+            validate_compression_config(per_layer_config)
+            compression_configs["per_layer"] = per_layer_config
     
     # Skip legacy SVD and per_layer_shuffled logic - handled by policy system above
     # All candidate generation is now done, proceed to final filtering
@@ -1329,7 +1337,7 @@ def generate_compression_configs(
     if ("per_layer" in compression_configs and 
         compression_configs["per_layer"]["status"] == "ready"):
         
-        original_rank_pattern = compression_configs["per_layer"]["rank_pattern"]
+        original_rank_pattern, _ = get_variant_payload(compression_configs["per_layer"])
         shuffled_rank_pattern = _create_shuffled_rank_pattern(
             original_rank_pattern, 
             seed=config.get("train", {}).get("seed", 42)
@@ -2591,8 +2599,8 @@ def run_all_compressed_variants(
             actual_r = compression_config["actual_r"]
             print(f"Compressed rank: {actual_r}")
             if variant_name == "per_layer":
-                pattern = compression_config["rank_pattern"]
-                active_modules = {k: v for k, v in pattern.items() if v > 0}
+                rank_pattern, _ = get_variant_payload(compression_config)
+                active_modules = {k: v for k, v in rank_pattern.items() if v > 0}
                 print(f"Active modules: {len(active_modules)}")
         
         result = run_compressed_variant_training(

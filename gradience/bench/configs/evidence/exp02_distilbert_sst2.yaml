@@ -54,8 +54,8 @@ runtime:
   device: "cpu"                       # CPU-friendly for wide compatibility
   
   # Smoke test overrides for fast validation (still allow convergence)
-  smoke_max_steps: 150                # Increased from 50 for meaningful validation
-  smoke_train_samples: 800            # Increased for better coverage
+  smoke_max_steps: 250                # Increased to ensure probe quality gate passes
+  smoke_train_samples: 1200           # Increased for better coverage  
   smoke_eval_samples: 200
 
 run_type: "evidence_pack_exp02"
