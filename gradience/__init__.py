@@ -44,7 +44,7 @@ except ImportError:
     __version__ = version("gradience")
 except Exception:
     # Fallback for development installs
-    __version__ = "0.8.4"
+    __version__ = "0.8.5"
 
 # Current API: vNext components
 # For stable telemetry, use: gradience.vnext.telemetry
