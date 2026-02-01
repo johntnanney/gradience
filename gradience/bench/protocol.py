@@ -2542,6 +2542,10 @@ def run_compressed_variant_training(
                 "output_dir": str(variant_dir),
                 "rank_check": rank_check_result
             }
+        elif rank_check_result.get("degrade_to_uniform", False):
+            print(f"⚠️  RANK DEGENERATION: {rank_check_result['reason']}")
+            print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
+            print(f"   per_layer variant collapsed to uniform - treating as legitimate degeneration")
         else:
             print(f"✅ Rank check passed: {len(rank_check_result['unique_ranks'])} distinct ranks")
             print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
@@ -2581,6 +2585,12 @@ def run_compressed_variant_training(
     # Add rank check results for per-layer variants
     if rank_check_result is not None:
         result["rank_check"] = rank_check_result
+        
+        # If per_layer variant degenerated to uniform, indicate the effective type
+        if rank_check_result.get("degrade_to_uniform", False):
+            result["effective_variant_type"] = "uniform"
+            result["degrade_to_uniform"] = True
+            # Note: variant name stays as per_layer but effective_variant_type shows what it became
     
     return result
 
