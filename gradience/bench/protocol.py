@@ -45,6 +45,12 @@ from gradience.peft_utils import (
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
 from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
 from gradience.bench.task_profiles import get_task_profile_from_config
+from gradience.bench.heartbeat import start_heartbeat, stop_heartbeat, heartbeat_stage
+from gradience.bench.monitored_stage import (
+    monitored_stage, monitor_evaluation, monitor_training, monitor_audit,
+    monitor_file_operations, monitor_generation, setup_global_monitoring
+)
+from gradience.bench.stage_state import create_stage_manager
 
 
 def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
@@ -660,7 +666,9 @@ def run_probe_audit(
 def run_probe_training(
     config_path: str | Path,
     output_dir: str | Path, 
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.1: Train probe adapter (r=16).
@@ -737,18 +745,64 @@ def run_probe_training(
     trainer.args.logging_dir = str(probe_dir / "logs")
     
     # Train the model
-    print(f"Starting probe training (r={config['lora']['probe_r']})...")
-    print(f"Output dir: {probe_dir}")
-    print(f"Max steps: {trainer.args.max_steps}")
-    print(f"Device: {device}")
+    # Check if training can be skipped
+    probe_rank = config['lora']['probe_r']
+    skip_training = resume and stage_manager and stage_manager.should_skip_probe_training(probe_rank)
     
-    trainer.train()
+    if not skip_training:
+        print(f"Starting probe training (r={probe_rank})...")
+        print(f"Output dir: {probe_dir}")
+        print(f"Max steps: {trainer.args.max_steps}")
+        print(f"Device: {device}")
+        
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_training(f"train_probe_r{probe_rank}", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe training")
+            trainer.train()
+            stage.progress("Probe training completed")
+        
+        # Mark training as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_trained", {
+                "probe_rank": probe_rank,
+                "max_steps": trainer.args.max_steps,
+                "output_dir": str(probe_dir)
+            })
+    else:
+        # Load existing model for evaluation (skip training)
+        print(f"Loading existing probe model from {probe_dir}...")
+        # We'll still need the model loaded for evaluation, but we skip training
 
     # Ensure adapter exists on disk for audit (save_strategy may be "no")
-    _save_peft_adapter_only(trainer, model, probe_dir, label="probe")
+    with monitor_file_operations("save_probe_adapter", output_dir=probe_dir) as stage:
+        stage.progress("Saving probe adapter to disk")
+        _save_peft_adapter_only(trainer, model, probe_dir, label="probe")
+        stage.progress("Probe adapter saved successfully")
     
-    # Evaluate final model using task profile
-    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+    # Check if evaluation can be skipped
+    skip_evaluation = resume and stage_manager and stage_manager.should_skip_probe_evaluation(probe_rank)
+    
+    if not skip_evaluation:
+        # Evaluate final model using task profile
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_evaluation("eval_probe", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe evaluation")
+            eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+            stage.progress("Probe evaluation completed")
+            stage.add_artifact("eval.json")
+        
+        # Mark evaluation as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_evaluated", {
+                "probe_rank": probe_rank,
+                "accuracy": eval_results.get("eval_accuracy", 0.0)
+            })
+    else:
+        # Load existing evaluation results
+        eval_json_path = probe_dir / "eval.json"
+        with open(eval_json_path) as f:
+            eval_results = json.load(f)
+        print(f"Loaded existing evaluation results: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
     
     # Step 3.2: Write eval.json
     eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
@@ -765,11 +819,31 @@ def run_probe_training(
     if not (probe_dir_path / "adapter_config.json").exists():
         raise RuntimeError(f"Probe adapter_config.json missing at {probe_dir_path}. Cannot audit.")
     
-    print("Running LoRA audit...")
-    audit_json_path = run_probe_audit(
-        probe_dir=probe_dir,
-        config=config
-    )
+    # Check if audit can be skipped
+    skip_audit = resume and stage_manager and stage_manager.should_skip_probe_audit(probe_rank)
+    
+    if not skip_audit:
+        print("Running LoRA audit...")
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_audit("audit_probe", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe audit analysis")
+            audit_json_path = run_probe_audit(
+                probe_dir=probe_dir,
+                config=config
+            )
+            stage.progress("Probe audit analysis completed")
+            stage.add_artifact("audit.json")
+        
+        # Mark audit as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_audited", {
+                "probe_rank": probe_rank,
+                "audit_path": str(audit_json_path)
+            })
+    else:
+        # Audit already exists
+        audit_json_path = probe_dir / "audit.json"
+        print(f"Using existing audit results: {audit_json_path}")
     
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
@@ -1101,6 +1175,7 @@ def generate_compression_configs(
     
     # Load audit results
     audit_path = probe_dir / "audit.json"
+    print(f"📋 Loading audit results from: {audit_path}")
     with open(audit_path, 'r') as f:
         audit_data = json.load(f)
     
@@ -1137,6 +1212,7 @@ def generate_compression_configs(
         })
     
     # Gather policy-based candidates (robust handling of various schema versions)
+    print("🎯 Analyzing policy-based rank suggestions...")
     policy_suggestions = (
         audit_data.get("policy_global_suggestions")
         or audit_data.get("policy_suggestions")
@@ -1147,7 +1223,10 @@ def generate_compression_configs(
     if not isinstance(policy_suggestions, dict):
         policy_suggestions = {}
     
+    print(f"   found policy suggestions: {list(policy_suggestions.keys())}")
+    
     # Fast mode candidates (priority=1)
+    print("⚡ Generating fast mode candidates...")
     # Energy-based rank suggestions (handles multiple possible key names)
     energy90 = (
         policy_suggestions.get("energy_90")
@@ -1155,6 +1234,7 @@ def generate_compression_configs(
         or {}
     )
     if isinstance(energy90, dict) and "uniform_p90" in energy90:
+        print(f"   energy_p90: suggested_r={energy90['uniform_p90']}")
         add_candidate(
             "energy_p90", "energy", 
             energy90["uniform_p90"],
@@ -1169,6 +1249,7 @@ def generate_compression_configs(
         or {}
     )
     if isinstance(knee, dict) and "uniform_p90" in knee:
+        print(f"   knee_p90: suggested_r={knee['uniform_p90']}")
         add_candidate(
             "knee_p90", "knee",
             knee["uniform_p90"], 
@@ -1183,6 +1264,7 @@ def generate_compression_configs(
         or {}
     )
     if isinstance(erank, dict) and "uniform_p90" in erank:
+        print(f"   erank_p90: suggested_r={erank['uniform_p90']}")
         add_candidate(
             "erank_p90", "erank",
             erank["uniform_p90"],
@@ -1192,6 +1274,7 @@ def generate_compression_configs(
     
     # Full mode additional candidates (priority=2)
     if not fast_mode:
+        print("🎯 Generating additional full mode candidates...")
         # Legacy median/p90 from audit
         if "suggested_r_global_median" in audit_data:
             add_candidate(
@@ -1228,6 +1311,7 @@ def generate_compression_configs(
             )
     
     # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
+    print(f"🔄 Processing {len(candidates)} initial candidates...")
     rank_to_candidates = {}
     for candidate in candidates:
         rank = candidate["actual_r"]
@@ -1235,7 +1319,10 @@ def generate_compression_configs(
             rank_to_candidates[rank] = []
         rank_to_candidates[rank].append(candidate)
     
+    print(f"   found candidates for ranks: {sorted(rank_to_candidates.keys())}")
+    
     # For each rank, pick the candidate with highest priority, then lowest conservatism
+    print("🎯 De-duplicating candidates by rank...")
     deduplicated_candidates = []
     for rank, rank_candidates in rank_to_candidates.items():
         if len(rank_candidates) == 1:
@@ -1250,13 +1337,17 @@ def generate_compression_configs(
             deduplicated_candidates.append(best)
     
     # Step 2: Filter by mode (fast_mode keeps only priority=1)
+    print(f"📋 Applying {'fast' if fast_mode else 'full'} mode filtering...")
     if fast_mode:
         filtered_candidates = [c for c in deduplicated_candidates if c["priority"] == 1]
     else:
         filtered_candidates = deduplicated_candidates
     
+    print(f"   after mode filtering: {len(filtered_candidates)} candidates")
+    
     # Step 3: Cap candidates by conservatism/diversity
     if len(filtered_candidates) > max_candidates:
+        print(f"⚖️  Applying candidate limit (max {max_candidates})...")
         # Sort by conservatism score for diversity (keep range of conservative to aggressive)
         filtered_candidates.sort(key=lambda c: c["conservatism_score"])
         
@@ -1486,6 +1577,11 @@ def generate_compression_configs(
             else:
                 print(f"   r={rank}: {variants[0]}")
         print()
+    
+    # Final candidate generation summary
+    total_configs = len(final_configs)
+    ready_configs = sum(1 for cfg in final_configs.values() if cfg.get("status") == "ready")
+    print(f"✅ Candidate generation completed: {ready_configs}/{total_configs} configs ready for training")
     
     return final_configs
 
@@ -2382,7 +2478,9 @@ def run_compressed_variant_training(
     output_dir: str | Path,
     variant_name: str,
     compression_config: Dict[str, Any],
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.5: Train a single compressed variant.
@@ -2479,18 +2577,52 @@ def run_compressed_variant_training(
     trainer.args.logging_dir = str(variant_dir / "logs")
     
     # Train the model
-    print(f"Starting {variant_name} training (r={actual_r})...")
-    print(f"Output dir: {variant_dir}")
-    print(f"Max steps: {max_steps}")
-    print(f"Device: {device}")
+    # Check if variant training can be skipped
+    skip_variant = resume and stage_manager and stage_manager.should_skip_variant_training(variant_name)
     
-    trainer.train()
+    if not skip_variant:
+        print(f"Starting {variant_name} training (r={actual_r})...")
+        print(f"Output dir: {variant_dir}")
+        print(f"Max steps: {max_steps}")
+        print(f"Device: {device}")
+        
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_training(f"train_{variant_name}", output_dir=variant_dir, seed=seed) as stage:
+            stage.progress(f"Starting {variant_name} training")
+            trainer.train()
+            stage.progress(f"{variant_name} training completed")
+        
+        # Mark training as completed early (before evaluation in case it fails)
+        if stage_manager:
+            stage_manager.mark_variant_completed(variant_name, {
+                "actual_r": actual_r,
+                "max_steps": max_steps,
+                "output_dir": str(variant_dir)
+            })
+    else:
+        # Skip training, will load existing results
+        print(f"Skipping {variant_name} training - already completed")
 
     # Ensure adapter exists on disk for audit (save_strategy may be "no")
-    _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
+    with monitor_file_operations(f"save_{variant_name}_adapter", output_dir=variant_dir) as stage:
+        stage.progress(f"Saving {variant_name} adapter to disk")
+        _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
+        stage.progress(f"{variant_name} adapter saved successfully")
     
-    # Evaluate final model using task profile
-    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+    # Evaluate final model using task profile (or load existing results)
+    if not skip_variant:
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_evaluation(f"eval_{variant_name}", output_dir=variant_dir, seed=seed) as stage:
+            stage.progress(f"Starting {variant_name} evaluation")
+            eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+            stage.progress(f"{variant_name} evaluation completed")
+            stage.add_artifact("eval.json")
+    else:
+        # Load existing evaluation results
+        eval_json_path = variant_dir / "eval.json"
+        with open(eval_json_path) as f:
+            eval_results = json.load(f)
+        print(f"Loaded existing evaluation results for {variant_name}: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
     
     # Write eval.json for this variant  
     eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
@@ -2599,7 +2731,9 @@ def run_all_compressed_variants(
     config_path: str | Path,
     output_dir: str | Path,
     compression_configs: Dict[str, Dict[str, Any]],
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.5: Train and evaluate all compressed variants.
@@ -2626,7 +2760,9 @@ def run_all_compressed_variants(
             output_dir=output_dir,
             variant_name=variant_name,
             compression_config=compression_config,
-            smoke=smoke
+            smoke=smoke,
+            stage_manager=stage_manager,
+            resume=resume
         )
         
         results[variant_name] = result
@@ -3609,7 +3745,8 @@ def run_bench_protocol(
     smoke: bool = False,
     ci: bool = False,
     fast_mode: bool = True,
-    max_candidates: int = 4
+    max_candidates: int = 4,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Run the complete bench protocol.
@@ -3617,6 +3754,9 @@ def run_bench_protocol(
     Supports both single-seed and multi-seed configurations.
     Multi-seed configs are detected by presence of 'seeds' in compression config.
     """
+    # Set up global monitoring infrastructure
+    setup_global_monitoring()
+    
     # Load configuration to check for multi-seed
     config = load_config(config_path)
     
@@ -3651,12 +3791,24 @@ def run_bench_protocol(
     print(f"Smoke mode: {smoke}")
     print()
     
+    # Initialize stage state manager for resume functionality
+    stage_manager = create_stage_manager(output_path)
+    
+    if resume:
+        print("🔄 Resume mode enabled - checking for completed stages...")
+        stage_manager.clean_invalid_state()  # Clean up any stale state
+        summary = stage_manager.get_resume_summary()
+        print(f"   Found {summary['total_completed_stages']} completed stages, {summary['total_completed_variants']} completed variants")
+        if summary['total_completed_stages'] > 0 or summary['total_completed_variants'] > 0:
+            print("   Completed stages:", ", ".join(summary['completed_stages']) if summary['completed_stages'] else "none")
+            print("   Completed variants:", ", ".join(summary['completed_variants']) if summary['completed_variants'] else "none")
+    
     # Preflight checks to catch common failure modes early
     run_bench_preflight_check(config, config['model']['name'])
     
     # Steps 3.1-3.3: Train, evaluate, and audit probe
     print("Step 3.1-3.3: Training, evaluating, and auditing probe adapter...")
-    probe_results = run_probe_training(config_path, output_path, smoke=smoke)
+    probe_results = run_probe_training(config_path, output_path, smoke=smoke, stage_manager=stage_manager, resume=resume)
     
     # Step 3.4: Generate compression configurations
     print("\nStep 3.4: Generating compression configurations...")
@@ -3707,7 +3859,30 @@ def run_bench_protocol(
             
             return canonical_report
     
-    compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
+    # Check if config generation can be skipped
+    skip_config_gen = resume and stage_manager and stage_manager.should_skip_config_generation()
+    
+    if not skip_config_gen:
+        seed = config.get("train", {}).get("seed", 42)
+        with monitor_generation("generate_configs", output_dir=output_path, seed=seed) as stage:
+            stage.progress("Analyzing probe audit results")
+            compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
+            stage.progress("Compression configurations generated")
+            stage.add_artifact("compression_configs.json")
+        
+        # Mark config generation as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed("compression_configs_generated", {
+                "num_configs": len(compression_configs),
+                "fast_mode": fast_mode,
+                "max_candidates": max_candidates
+            })
+    else:
+        # Load existing compression configs
+        compression_configs_path = output_path / "compression_configs.json"
+        with open(compression_configs_path) as f:
+            compression_configs = json.load(f)
+        print(f"Loaded existing compression configs: {len(compression_configs)} variants")
     
     # Write compression configs to JSON for debugging/inspection
     compression_configs_path = output_path / "compression_configs.json"
@@ -3730,7 +3905,9 @@ def run_bench_protocol(
         config_path=config_path,
         output_dir=output_path,
         compression_configs=compression_configs,
-        smoke=smoke
+        smoke=smoke,
+        stage_manager=stage_manager,
+        resume=resume
     )
     
     # Step 3.6: Compute verdicts
@@ -3821,31 +3998,38 @@ def run_bench_protocol(
         audit_data = json.load(f)
     
     # Create canonical bench.json report
-    canonical_report = create_canonical_bench_report(
-        probe_results=probe_results,
-        variant_results=variant_results,
-        verdict_analysis=verdict_analysis,
-        audit_data=audit_data,
-        compression_configs=compression_configs,
-        config=config,
-        output_dir=output_path
-    )
-    
-    # Write canonical benchmark report
-    report_path = output_path / "bench.json"
-    with open(report_path, 'w') as f:
-        json.dump(canonical_report, f, indent=2, ensure_ascii=False)
-    
-    # Create and write markdown report
-    markdown_content = create_markdown_report(
-        canonical_report=canonical_report,
-        config=config,
-        output_dir=output_path
-    )
-    
-    markdown_path = output_path / "bench.md"
-    with open(markdown_path, 'w') as f:
-        f.write(markdown_content)
+    seed = config.get("train", {}).get("seed", 42)
+    with monitor_generation("generate_report", output_dir=output_path, seed=seed) as stage:
+        stage.progress("Creating canonical benchmark report")
+        canonical_report = create_canonical_bench_report(
+            probe_results=probe_results,
+            variant_results=variant_results,
+            verdict_analysis=verdict_analysis,
+            audit_data=audit_data,
+            compression_configs=compression_configs,
+            config=config,
+            output_dir=output_path
+        )
+        
+        # Write canonical benchmark report
+        stage.progress("Writing JSON report")
+        report_path = output_path / "bench.json"
+        with open(report_path, 'w') as f:
+            json.dump(canonical_report, f, indent=2, ensure_ascii=False)
+        stage.add_artifact(report_path)
+        
+        # Create and write markdown report
+        stage.progress("Generating markdown report")
+        markdown_content = create_markdown_report(
+            canonical_report=canonical_report,
+            config=config,
+            output_dir=output_path
+        )
+        markdown_path = output_path / "bench.md"
+        with open(markdown_path, 'w') as f:
+            f.write(markdown_content)
+        stage.add_artifact(markdown_path)
+        stage.progress("Reports generated successfully")
     
     # Also write comprehensive internal report for debugging
     internal_report = {
