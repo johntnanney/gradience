@@ -32,6 +32,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import json
 import math
+import sys
 import time
 
 import torch
@@ -1603,16 +1604,16 @@ def audit_lora_state_dict(
     # Get total number of pairs for progress tracking
     all_pairs = list(_iter_lora_pairs(state_dict))
     total_pairs = len(all_pairs)
-    print(f"🔍 Auditing {total_pairs} LoRA layer pairs...")
+    print(f"🔍 Auditing {total_pairs} LoRA layer pairs...", file=sys.stderr)
     
     for idx, (prefix, a_key, b_key) in enumerate(all_pairs, 1):
         # Progress reporting every 10 layers or for significant progress
         if total_pairs >= 20:
             if idx % 10 == 0 or idx == total_pairs:
-                print(f"  audit progress: {idx}/{total_pairs} layers processed ({100*idx/total_pairs:.1f}%)")
+                print(f"  audit progress: {idx}/{total_pairs} layers processed ({100*idx/total_pairs:.1f}%)", file=sys.stderr)
         elif total_pairs >= 5:
             if idx % 5 == 0 or idx == total_pairs:
-                print(f"  audit progress: {idx}/{total_pairs} layers processed")
+                print(f"  audit progress: {idx}/{total_pairs} layers processed", file=sys.stderr)
         
         A = state_dict.get(a_key, None)
         B = state_dict.get(b_key, None)
@@ -2025,9 +2026,9 @@ def audit_lora_state_dict(
         )
     
     # Audit completion summary
-    print(f"✅ Audit completed: processed {n_layers} layers, {total_params:,} parameters")
+    print(f"✅ Audit completed: processed {n_layers} layers, {total_params:,} parameters", file=sys.stderr)
     if issues:
-        print(f"⚠️  Found {len(issues)} issues during audit")
+        print(f"⚠️  Found {len(issues)} issues during audit", file=sys.stderr)
     
     return LoRAAuditResult(
         peft_dir=None,
@@ -2108,7 +2109,8 @@ def audit_lora_peft_dir(
             issues=issues,
         )
 
-    print(f"📁 Loading adapter weights from: {w_path}")
+    # Use stderr to avoid breaking JSON output in tests
+    print(f"📁 Loading adapter weights from: {w_path}", file=sys.stderr)
     try:
         sd = load_adapter_state_dict(w_path, map_location=map_location)
     except Exception as e:
@@ -2136,7 +2138,7 @@ def audit_lora_peft_dir(
     # Load base model norms if UDR computation is requested
     base_norms = None
     if compute_udr:
-        print(f"📊 Loading base model norms for UDR computation: {base_model_id}")
+        print(f"📊 Loading base model norms for UDR computation: {base_model_id}", file=sys.stderr)
         base_norms = load_base_model_norms(
             base_model_id=base_model_id,
             base_norms_cache=base_norms_cache,
@@ -2144,7 +2146,7 @@ def audit_lora_peft_dir(
             issues=issues,
         )
         if base_norms:
-            print(f"   loaded norms for {len(base_norms)} base model layers")
+            print(f"   loaded norms for {len(base_norms)} base model layers", file=sys.stderr)
 
     result = audit_lora_state_dict(
         sd,

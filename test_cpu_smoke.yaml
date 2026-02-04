@@ -1,0 +1,76 @@
+# CPU Local Smoke Test - New Features Validation
+#
+# Purpose: Quick validation of new features on CPU
+# - Second rung logic (decision trace)  
+# - Self-contained aggregates
+# - Engineering hygiene (heartbeat, progress tracking)
+# 
+# Runtime: ~2-3 minutes on CPU
+
+bench_version: "0.1"
+
+model:
+  name: distilbert-base-uncased  # Small, CPU-friendly model
+  type: seqcls
+  torch_dtype: fp32  # CPU doesn't support bf16
+
+task:
+  dataset: sst2
+  subset: default
+  profile: seqcls_glue
+  eval_max_samples: 32            # Tiny eval set for speed
+  generation: null                # No generation for classification
+
+train:
+  max_steps: 5                    # Ultra-fast: just enough to get gradients
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 2
+  learning_rate: 0.001
+  warmup_ratio: 0.1
+  weight_decay: 0.0
+  logging_steps: 1
+  eval_steps: 5                   # Evaluate at end only
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 8                # Tiny training set
+  eval_samples: 32
+
+lora:
+  probe_r: 16                     # Moderate rank for CPU
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - q_lin
+    - v_lin
+
+compression:
+  allowed_ranks: [2, 4, 8, 12, 16]    # CPU-friendly range
+  acc_tolerance: 0.05                  # Relaxed for smoke test
+  
+  # Multi-seed configuration to test aggregation
+  seeds: [42, 123]                     # Just 2 seeds for speed
+  
+  # Explicit candidate control (should trigger second rung logic)
+  candidate_policies: ["energy_p90", "knee_p90"]
+  max_candidates: 4
+  fast_mode: true
+
+# Enable UDR for decision trace testing
+audit:
+  base_model: "distilbert-base-uncased"
+  compute_udr: false              # Skip UDR for speed on CPU
+
+runtime:
+  device: cpu                     # Force CPU mode
+  
+  # HYGIENE: Test heartbeat and progress tracking
+  enable_heartbeat: true
+  heartbeat_interval: 10          # Faster for quick test
+  enable_progress_tracking: true
+  
+  # Minimal artifact retention for smoke test
+  keep_adapter_weights: false
+  keep_checkpoints: false
+
+run_type: "cpu_smoke_test_new_features"
