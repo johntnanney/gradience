@@ -51,6 +51,7 @@ from gradience.bench.monitored_stage import (
     monitor_file_operations, monitor_generation, setup_global_monitoring
 )
 from gradience.bench.stage_state import create_stage_manager
+from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
 
 
 def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
@@ -1173,14 +1174,33 @@ def generate_compression_configs(
     3. Fast mode: practitioner-friendly default subset
     """
     
+    # Read compression candidate settings from config (override CLI defaults)
+    compression_config = config.get("compression", {})
+    config_fast_mode = compression_config.get("fast_mode")
+    config_max_candidates = compression_config.get("max_candidates")
+    config_candidate_policies = compression_config.get("candidate_policies")
+    
+    # Use config values if specified, otherwise fall back to CLI arguments
+    if config_fast_mode is not None:
+        fast_mode = config_fast_mode
+    if config_max_candidates is not None:
+        max_candidates = config_max_candidates
+    
+    print(f"🎯 Candidate Control Settings:")
+    print(f"   Fast mode: {fast_mode}")
+    print(f"   Max candidates: {max_candidates}")
+    if config_candidate_policies:
+        print(f"   Explicit policies: {config_candidate_policies}")
+    
     # Load audit results
     audit_path = probe_dir / "audit.json"
     print(f"📋 Loading audit results from: {audit_path}")
     with open(audit_path, 'r') as f:
         audit_data = json.load(f)
     
-    compression_config = config["compression"]
-    allowed_ranks = compression_config["allowed_ranks"]
+    # Get compression configuration (already loaded above, just reference it)
+    base_compression_config = config["compression"]
+    allowed_ranks = base_compression_config["allowed_ranks"]
     lora_config = config["lora"]
     probe_rank = lora_config["probe_r"]
     
@@ -1226,51 +1246,62 @@ def generate_compression_configs(
     print(f"   found policy suggestions: {list(policy_suggestions.keys())}")
     
     # Fast mode candidates (priority=1)
-    print("⚡ Generating fast mode candidates...")
+    # If explicit candidate_policies specified in config, use only those
+    if config_candidate_policies:
+        print(f"⚡ Generating explicit candidate policies: {config_candidate_policies}")
+        requested_policies = set(config_candidate_policies)
+    else:
+        print("⚡ Generating default fast mode candidates...")
+        # Default fast mode: energy_p90, knee_p90, erank_p90
+        requested_policies = {"energy_p90", "knee_p90", "erank_p90"}
+    
     # Energy-based rank suggestions (handles multiple possible key names)
-    energy90 = (
-        policy_suggestions.get("energy_90")
-        or policy_suggestions.get("energy@0.90")
-        or {}
-    )
-    if isinstance(energy90, dict) and "uniform_p90" in energy90:
-        print(f"   energy_p90: suggested_r={energy90['uniform_p90']}")
-        add_candidate(
-            "energy_p90", "energy", 
-            energy90["uniform_p90"],
-            conservatism_score=3.0,  # Medium conservative
-            priority=1
+    if "energy_p90" in requested_policies:
+        energy90 = (
+            policy_suggestions.get("energy_90")
+            or policy_suggestions.get("energy@0.90")
+            or {}
         )
+        if isinstance(energy90, dict) and "uniform_p90" in energy90:
+            print(f"   energy_p90: suggested_r={energy90['uniform_p90']}")
+            add_candidate(
+                "energy_p90", "energy", 
+                energy90["uniform_p90"],
+                conservatism_score=3.0,  # Medium conservative
+                priority=1
+            )
     
     # Knee-based rank suggestions
-    knee = (
-        policy_suggestions.get("knee")
-        or policy_suggestions.get("knee_detection")
-        or {}
-    )
-    if isinstance(knee, dict) and "uniform_p90" in knee:
-        print(f"   knee_p90: suggested_r={knee['uniform_p90']}")
-        add_candidate(
-            "knee_p90", "knee",
-            knee["uniform_p90"], 
-            conservatism_score=2.0,  # Less conservative (finds elbows)
-            priority=1
+    if "knee_p90" in requested_policies:
+        knee = (
+            policy_suggestions.get("knee")
+            or policy_suggestions.get("knee_detection")
+            or {}
         )
+        if isinstance(knee, dict) and "uniform_p90" in knee:
+            print(f"   knee_p90: suggested_r={knee['uniform_p90']}")
+            add_candidate(
+                "knee_p90", "knee",
+                knee["uniform_p90"], 
+                conservatism_score=2.0,  # Less conservative (finds elbows)
+                priority=1
+            )
     
     # Effective rank suggestions  
-    erank = (
-        policy_suggestions.get("erank")
-        or policy_suggestions.get("effective_rank")
-        or {}
-    )
-    if isinstance(erank, dict) and "uniform_p90" in erank:
-        print(f"   erank_p90: suggested_r={erank['uniform_p90']}")
-        add_candidate(
-            "erank_p90", "erank",
-            erank["uniform_p90"],
-            conservatism_score=1.5,  # Least conservative (entropy-based)
-            priority=1
+    if "erank_p90" in requested_policies:
+        erank = (
+            policy_suggestions.get("erank")
+            or policy_suggestions.get("effective_rank")
+            or {}
         )
+        if isinstance(erank, dict) and "uniform_p90" in erank:
+            print(f"   erank_p90: suggested_r={erank['uniform_p90']}")
+            add_candidate(
+                "erank_p90", "erank",
+                erank["uniform_p90"],
+                conservatism_score=1.5,  # Least conservative (entropy-based)
+                priority=1
+            )
     
     # Full mode additional candidates (priority=2)
     if not fast_mode:
@@ -1533,12 +1564,47 @@ def generate_compression_configs(
             )
             compression_configs[variant_name] = svd_variant_config
     
+    # Apply second rung decision logic (audit-driven compression candidates)
+    print("🎯 Evaluating second rung compression candidates...")
+    decision_trace = create_decision_trace(probe_rank, audit_data)
+    
+    existing_candidate_names = list(compression_configs.keys())
+    second_rung_candidates = maybe_add_second_rung_candidates(
+        probe_rank=probe_rank,
+        audit_metrics=decision_trace.audit_metrics,
+        allowed_ranks=allowed_ranks,
+        existing_candidates=existing_candidate_names,
+        decision_trace=decision_trace
+    )
+    
+    # Add second rung candidates to compression configs
+    for candidate in second_rung_candidates:
+        lora_config_copy = lora_config.copy()
+        lora_config_copy["probe_r"] = candidate["actual_r"]
+        lora_config_copy["alpha"] = candidate["actual_r"]  # Match rank for scaling
+        
+        compression_configs[candidate["name"]] = {
+            "variant": candidate["name"],
+            "suggested_r": candidate["suggested_r"],
+            "actual_r": candidate["actual_r"],
+            "method": "uniform",
+            "policy_type": candidate["policy_type"],
+            "conservatism_score": candidate["conservatism_score"],
+            "priority": candidate["priority"],
+            "config": lora_config_copy,
+            "status": "ready"
+        }
+        print(f"   Added {candidate['name']}: r={candidate['actual_r']} ({candidate['policy_type']})")
+    
+    # Store decision trace for reporting
+    globals()['_last_decision_trace'] = decision_trace
+    
     # Apply final candidate control (remove old logic artifacts and enforce caps)
     final_configs = {}
     
     # First, collect configs from my new system only
     for name, config in compression_configs.items():
-        if config.get("policy_type") in ["energy", "knee", "erank", "oht", "legacy", "per_layer"]:
+        if config.get("policy_type") in ["energy", "knee", "erank", "oht", "legacy", "per_layer", "second_rung_tier_a", "second_rung_tier_b"]:
             final_configs[name] = config
     
     # Apply capping if we have too many
@@ -1583,7 +1649,8 @@ def generate_compression_configs(
     ready_configs = sum(1 for cfg in final_configs.values() if cfg.get("status") == "ready")
     print(f"✅ Candidate generation completed: {ready_configs}/{total_configs} configs ready for training")
     
-    return final_configs
+    # Return both configs and decision trace
+    return final_configs, decision_trace
 
 
 def gather_environment_info() -> Dict[str, Any]:
@@ -1864,7 +1931,8 @@ def create_canonical_bench_report(
     audit_data: Dict[str, Any],
     compression_configs: Dict[str, Dict[str, Any]],
     config: Dict[str, Any],
-    output_dir: Path
+    output_dir: Path,
+    decision_trace: Optional[DecisionTrace] = None
 ) -> Dict[str, Any]:
     """
     Create the canonical bench.json report according to specification.
@@ -2131,6 +2199,10 @@ def create_canonical_bench_report(
     if instrumentation:
         report["instrumentation"] = instrumentation
     
+    # Add decision trace for audit-driven compression decisions
+    if decision_trace:
+        report["decision_trace"] = decision_trace.to_dict()
+    
     # Add protocol invariants for aggregation
     probe_gate_data = report["probe_quality_gate"]
     report["protocol_invariants"] = {
@@ -2298,6 +2370,70 @@ def create_markdown_report(
             # Show note that composition analysis was disabled
             md_content += "### Energy concentration\n\n"
             md_content += "- *Composition analysis disabled in config (audit.enable_composition_analysis: false)*\n\n"
+
+    # Add decision trace section if available
+    decision_trace_data = canonical_report.get("decision_trace")
+    if decision_trace_data:
+        md_content += """
+## Audit-driven decisions
+
+"""
+        probe_rank = decision_trace_data.get("probe_rank", 32)
+        audit_metrics = decision_trace_data.get("audit_metrics", {})
+        rules_fired = decision_trace_data.get("rules_fired", [])
+        rules_considered = decision_trace_data.get("rules_considered", [])
+        
+        md_content += f"- **Probe rank:** r={probe_rank}\n"
+        
+        utilization = audit_metrics.get("utilization_mean")
+        stable_rank = audit_metrics.get("stable_rank_mean")
+        if utilization is not None:
+            md_content += f"- **Utilization mean:** {utilization:.3f}\n"
+        if stable_rank is not None:
+            md_content += f"- **Stable rank mean:** {stable_rank:.1f}\n"
+        
+        if rules_fired:
+            md_content += "\n### Rules triggered\n\n"
+            for rule in rules_fired:
+                rule_id = rule.get("rule_id", "unknown")
+                action = rule.get("action", "no action specified")
+                evidence = rule.get("evidence", {})
+                
+                if rule_id == "tier_a_moderate_compression":
+                    util_thresh = evidence.get("threshold_util", 0.55)
+                    util_actual = evidence.get("utilization_mean", 0.0)
+                    triggered_by_util = evidence.get("triggered_by_util", False)
+                    triggered_by_suggested = evidence.get("triggered_by_suggested", False)
+                    
+                    triggers = []
+                    if triggered_by_util:
+                        triggers.append(f"utilization {util_actual:.3f} ≤ {util_thresh}")
+                    if triggered_by_suggested:
+                        triggers.append("suggested rank ≤ 0.75 × probe rank")
+                    
+                    md_content += f"- **Moderate compression:** {' OR '.join(triggers)} → {action}\n"
+                
+                elif rule_id == "tier_b_aggressive_compression":
+                    util_thresh = evidence.get("threshold_util", 0.30)
+                    util_actual = evidence.get("utilization_mean", 0.0)
+                    stable_thresh = evidence.get("threshold_stable", 8.0)
+                    stable_actual = evidence.get("stable_rank_mean", 0.0)
+                    
+                    md_content += f"- **Aggressive compression:** utilization {util_actual:.3f} < {util_thresh} AND stable rank {stable_actual:.1f} ≤ {stable_thresh:.1f} → {action}\n"
+        
+        if rules_considered and not rules_fired:
+            md_content += "\n### No additional candidates added\n\n"
+            for rule in rules_considered:
+                rule_id = rule.get("rule_id", "unknown")
+                action = rule.get("action", "")
+                if "not triggered:" in action:
+                    reason = action.split("not triggered: ", 1)[1]
+                    if rule_id == "tier_a_moderate_compression":
+                        md_content += f"- **Moderate compression not added:** {reason}\n"
+                    elif rule_id == "tier_b_aggressive_compression":
+                        md_content += f"- **Aggressive compression not added:** {reason}\n"
+        
+        md_content += "\n"
 
     md_content += f"""
 ## Summary
@@ -3113,6 +3249,100 @@ def create_multi_seed_aggregated_report(
         
         variants_data[variant_name] = variant_data
     
+    # Build detailed per-seed breakdown for self-contained reporting
+    detailed_results = {
+        "seeds": [],
+        "candidates": {},
+        "summary_statistics": {}
+    }
+    
+    # Extract seed information and results
+    for i, report in enumerate(seed_reports):
+        seed_id = report.get("env", {}).get("seed", f"seed_{i}")
+        probe_data = report["probe"]
+        compressed_data = report.get("compressed", {}) or {}
+        
+        seed_detail = {
+            "seed_id": seed_id,
+            "probe": {
+                "accuracy": probe_data["accuracy"],
+                "params": probe_data["params"],
+                "rank": probe_data["rank"]
+            },
+            "candidates": {}
+        }
+        
+        # Add candidate results for this seed
+        for variant_name in all_variant_names:
+            if variant_name in compressed_data:
+                variant_data = compressed_data[variant_name]
+                seed_detail["candidates"][variant_name] = {
+                    "accuracy": variant_data.get("accuracy"),
+                    "params": variant_data.get("params"),
+                    "rank": variant_data.get("rank", "unknown"),
+                    "delta_vs_probe": variant_data.get("delta_vs_probe"),
+                    "param_reduction": variant_data.get("param_reduction"),
+                    "verdict": variant_data.get("verdict"),
+                    "verdict_reason": variant_data.get("verdict_reason", "Accuracy within tolerance" if variant_data.get("verdict") == "PASS" else f"Accuracy drop {variant_data.get('delta_vs_probe', 0):.3f} exceeds tolerance"),
+                    "policy_name": variant_data.get("policy_name", variant_name),
+                    "compression_method": variant_data.get("compression", {}).get("method", "uniform") if variant_data.get("compression") else "uniform"
+                }
+            else:
+                # Candidate wasn't run in this seed (skip or fail)
+                seed_detail["candidates"][variant_name] = {
+                    "accuracy": None,
+                    "params": None,
+                    "rank": None,
+                    "delta_vs_probe": None,
+                    "param_reduction": None,
+                    "verdict": "SKIP",
+                    "verdict_reason": "Candidate not evaluated in this seed",
+                    "policy_name": variant_name,
+                    "compression_method": "unknown"
+                }
+        
+        detailed_results["seeds"].append(seed_detail)
+    
+    # Build candidate-centric summary statistics  
+    for variant_name in all_variant_names:
+        if variant_name in variants_data:
+            variant_stats = variants_data[variant_name]
+            
+            # Extract per-seed results for this candidate
+            candidate_seeds = []
+            for seed_detail in detailed_results["seeds"]:
+                if variant_name in seed_detail["candidates"]:
+                    candidate_data = seed_detail["candidates"][variant_name]
+                    if candidate_data["accuracy"] is not None:  # Only include successful runs
+                        candidate_seeds.append({
+                            "seed_id": seed_detail["seed_id"],
+                            "probe_accuracy": seed_detail["probe"]["accuracy"],
+                            "compressed_accuracy": candidate_data["accuracy"],
+                            "delta_accuracy": candidate_data["delta_vs_probe"],
+                            "probe_params": seed_detail["probe"]["params"],
+                            "compressed_params": candidate_data["params"],
+                            "param_reduction": candidate_data["param_reduction"],
+                            "verdict": candidate_data["verdict"],
+                            "verdict_reason": candidate_data["verdict_reason"]
+                        })
+            
+            # Calculate worst-case and mean deltas across seeds
+            if candidate_seeds:
+                deltas = [s["delta_accuracy"] for s in candidate_seeds if s["delta_accuracy"] is not None]
+                param_reductions = [s["param_reduction"] for s in candidate_seeds if s["param_reduction"] is not None]
+                
+                detailed_results["candidates"][variant_name] = {
+                    "policy_name": variant_name,
+                    "chosen_rank": candidate_seeds[0].get("compressed_params", 0) // 1000000,  # Rough rank estimate from params 
+                    "n_seeds_evaluated": len(candidate_seeds),
+                    "per_seed_results": candidate_seeds,
+                    "worst_case_delta": min(deltas) if deltas else None,
+                    "mean_delta": sum(deltas) / len(deltas) if deltas else None,
+                    "mean_param_reduction": sum(param_reductions) / len(param_reductions) if param_reductions else None,
+                    "pass_rate": variant_stats.get("pass_rate", 0.0),
+                    "overall_verdict": variant_stats.get("verdict", "UNKNOWN")
+                }
+    
     # Find best compression variant (highest mean reduction among passing variants)
     passing_variants = {name: data for name, data in variants_data.items() if data["verdict"] == "PASS"}
     best_compression = None
@@ -3152,6 +3382,7 @@ def create_multi_seed_aggregated_report(
             }
         },
         "compressed": variants_data,
+        "detailed_results": detailed_results,  # Self-contained per-seed, per-candidate breakdown
         "summary": {
             "best_compression": best_compression,
             "total_variants": len(variants_data),
@@ -3269,6 +3500,69 @@ def create_multi_seed_markdown_report(
 - **Best compression:** {summary["best_compression"]["variant"] if summary["best_compression"] else "None"}
 - **Statistical power:** {summary["statistical_power"]}
 
+## Detailed Per-Seed Results
+
+This section contains complete self-contained results for all seeds and candidates.
+
+"""
+    
+    # Add detailed breakdown for self-contained reporting
+    detailed_data = aggregated_report.get("detailed_results", {})
+    if detailed_data:
+        # Add per-candidate summary with worst-case delta
+        md_content += """### Candidate Summary
+
+| Candidate | Policy | Rank | Seeds | Worst Δ | Mean Δ | Param Reduction | Verdict |
+|---|---|---:|---:|---:|---:|---:|---|
+"""
+        
+        candidates = detailed_data.get("candidates", {})
+        for candidate_name, candidate_info in candidates.items():
+            worst_delta = candidate_info.get("worst_case_delta", 0.0)
+            mean_delta = candidate_info.get("mean_delta", 0.0)
+            param_reduction = candidate_info.get("mean_param_reduction", 0.0)
+            n_seeds = candidate_info.get("n_seeds_evaluated", 0)
+            verdict = candidate_info.get("overall_verdict", "UNKNOWN")
+            policy_name = candidate_info.get("policy_name", candidate_name)
+            rank = candidate_info.get("chosen_rank", "?")
+            
+            md_content += f"| `{candidate_name}` | {policy_name} | r={rank} | {n_seeds} | {worst_delta:+.3f} | {mean_delta:+.3f} | {param_reduction:.1%} | {verdict} |\n"
+        
+        # Add detailed per-seed, per-candidate breakdown
+        md_content += """
+
+### Complete Per-Seed Breakdown
+
+"""
+        
+        seeds_data = detailed_data.get("seeds", [])
+        for seed_info in seeds_data:
+            seed_id = seed_info.get("seed_id", "unknown")
+            probe_info = seed_info.get("probe", {})
+            
+            md_content += f"""
+#### Seed: {seed_id}
+
+**Probe baseline:** {probe_info.get('accuracy', 0.0):.3f} accuracy, r={probe_info.get('rank', '?')}, {probe_info.get('params', 0):,} params
+
+| Candidate | Accuracy | Δ vs Probe | Trainable Params | Param Reduction | Verdict | Reason |
+|---|---:|---:|---:|---:|---|---|
+"""
+            
+            candidates_data = seed_info.get("candidates", {})
+            for candidate_name, candidate_data in candidates_data.items():
+                if candidate_data.get("accuracy") is not None:  # Only show evaluated candidates
+                    accuracy = candidate_data.get("accuracy", 0.0)
+                    delta = candidate_data.get("delta_vs_probe", 0.0)
+                    params = candidate_data.get("params", 0)
+                    param_reduction = candidate_data.get("param_reduction", 0.0)
+                    verdict = candidate_data.get("verdict", "UNKNOWN")
+                    reason = candidate_data.get("verdict_reason", "No reason provided")
+                    
+                    md_content += f"| `{candidate_name}` | {accuracy:.3f} | {delta:+.3f} | {params:,} | {param_reduction:.1%} | {verdict} | {reason} |\n"
+    
+    md_content += f"""
+
 *Generated on {timestamp[:19].replace('T', ' ')}*
 """
 
@@ -3290,7 +3584,12 @@ def run_multi_seed_bench_protocol(
     """
     config = load_config(config_path)
     output_path = Path(output_dir)
+    
+    # HYGIENE: Ensure output directory exists BEFORE any logging/tee operations
     output_path.mkdir(parents=True, exist_ok=True)
+    
+    # HYGIENE: Start heartbeat for multi-seed coordination (prevent SSH timeouts)
+    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed="coordinator")
     
     print(f"Gradience Multi-Seed Bench Protocol v0.1")
     print("=" * 50)
@@ -3325,18 +3624,29 @@ def run_multi_seed_bench_protocol(
         
         seed_config["compression"] = compression
         
-        # Create seed-specific directory
+        # HYGIENE: Create seed-specific directory BEFORE any operations
         seed_dir = output_path / f"seed_{seed}"
+        seed_dir.mkdir(parents=True, exist_ok=True)
         seed_dirs.append(seed_dir)
+        
+        # HYGIENE: Create progress/heartbeat file for stuck detection
+        progress_file = seed_dir / "progress.txt"
+        with open(progress_file, 'w') as f:
+            f.write(f"STARTED: seed_{seed} at {datetime.datetime.now().isoformat()}\n")
+            f.flush()
         
         # Write seed-specific config
         seed_config_path = seed_dir / "config.yaml"
-        seed_dir.mkdir(parents=True, exist_ok=True)
         with open(seed_config_path, 'w') as f:
             yaml.dump(seed_config, f, indent=2)
         
         # Run single seed benchmark
         try:
+            # Update progress before starting
+            with open(progress_file, 'a') as f:
+                f.write(f"RUNNING: bench protocol started at {datetime.datetime.now().isoformat()}\n")
+                f.flush()
+            
             seed_report = run_bench_protocol(
                 config_path=seed_config_path,
                 output_dir=seed_dir,
@@ -3349,9 +3659,19 @@ def run_multi_seed_bench_protocol(
             seed_report["seed_index"] = i
             seed_reports.append(seed_report)
             
+            # Mark completion in progress file
+            with open(progress_file, 'a') as f:
+                f.write(f"COMPLETED: seed_{seed} at {datetime.datetime.now().isoformat()}\n")
+                f.flush()
+            
             print(f"\n✅ Seed {seed} completed successfully")
             
         except Exception as e:
+            # Mark failure in progress file
+            with open(progress_file, 'a') as f:
+                f.write(f"FAILED: seed_{seed} at {datetime.datetime.now().isoformat()}: {e}\n")
+                f.flush()
+            
             print(f"\n❌ Seed {seed} failed: {e}")
             # Continue with other seeds
             continue
@@ -3780,9 +4100,13 @@ def run_bench_protocol(
     print("Gradience Bench Protocol v0.1")
     print("=" * 40)
     
-    # Create output directory
+    # HYGIENE: Ensure output directory exists BEFORE any logging/tee operations
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+    
+    # HYGIENE: Start heartbeat for single-seed run (prevent SSH timeouts)
+    seed = config.get("train", {}).get("seed", 42)
+    heartbeat_stage("single_seed_benchmark", output_dir=output_path, seed=seed)
     
     print(f"Config: {config_path}")
     print(f"Output: {output_path}")
@@ -3851,7 +4175,8 @@ def run_bench_protocol(
                 audit_data,  # probe_audit_data
                 {},  # compression_configs
                 config,
-                output_path
+                output_path,
+                decision_trace=decision_trace
             )
             
             # Write empty results but include probe validity warning
@@ -3866,7 +4191,7 @@ def run_bench_protocol(
         seed = config.get("train", {}).get("seed", 42)
         with monitor_generation("generate_configs", output_dir=output_path, seed=seed) as stage:
             stage.progress("Analyzing probe audit results")
-            compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
+            compression_configs, decision_trace = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
             stage.progress("Compression configurations generated")
             stage.add_artifact("compression_configs.json")
         
@@ -3883,6 +4208,9 @@ def run_bench_protocol(
         with open(compression_configs_path) as f:
             compression_configs = json.load(f)
         print(f"Loaded existing compression configs: {len(compression_configs)} variants")
+        
+        # Create empty decision trace for consistency (existing runs)
+        decision_trace = DecisionTrace(probe_rank=config.get("lora", {}).get("probe_r", 32))
     
     # Write compression configs to JSON for debugging/inspection
     compression_configs_path = output_path / "compression_configs.json"
@@ -4008,7 +4336,8 @@ def run_bench_protocol(
             audit_data=audit_data,
             compression_configs=compression_configs,
             config=config,
-            output_dir=output_path
+            output_dir=output_path,
+            decision_trace=decision_trace
         )
         
         # Write canonical benchmark report

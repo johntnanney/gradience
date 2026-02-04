@@ -61,6 +61,11 @@ lora:
 compression:
   allowed_ranks: [4, 8, 16]       # Limited range for speed
   acc_tolerance: 0.05             # Relaxed tolerance for smoke test
+  
+  # Explicit candidate control for smoke test: fewer candidates but still multiple
+  candidate_policies: ["energy_p90", "knee_p90"]  # Just 2 policies for speed
+  max_candidates: 2                # Keep it ultra-fast for smoke testing
+  fast_mode: true                  # Ensure FAST mode
 
 # UDR disabled for smoke test speed  
 audit:
@@ -68,6 +73,11 @@ audit:
 
 runtime:
   device: cuda                    # GPU required
+  
+  # HYGIENE: Enable heartbeat and progress tracking (prevent stuck runs)
+  enable_heartbeat: true          # Keep SSH sessions alive during long phases
+  heartbeat_interval: 30          # Seconds between heartbeat messages
+  enable_progress_tracking: true  # Write progress files for stuck detection
   
   # Artifact hygiene - keep evidence, don't hoard weights
   keep_adapter_weights: false
