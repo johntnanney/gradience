@@ -4,6 +4,50 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+*No unreleased changes yet.*
+
+## [0.9.0] - 2026-02-06
+
+### Added
+- **PyPI-Ready Documentation Suite**: Complete professional documentation for package distribution
+  - Comprehensive troubleshooting guide with symptom→fix patterns
+  - RunPod cloud GPU setup guide (optional, cloud-specific)  
+  - Artifacts & evidence documentation for research reproducibility
+  - CLI reference with exit codes and fast mode explanations
+  - Configuration reference with guaranteed package examples
+  - Installation guide with environment-specific instructions
+- **Install Tier Tag System**: All documentation commands tagged with (base), (bench), or (gpu) requirements
+- **Idiot-proof Installation Guidance**: 
+  - Explicit PyTorch installation guidance (CPU vs CUDA)
+  - ModuleNotFoundError callouts in README
+  - Clear bench extras story with troubleshooting
+
+### Changed
+- **README Restructure**: Transformed from "lab notebook" to PyPI-first landing page
+  - Professional user onboarding flow: Who it's for → What you get → Install → Quickstart
+  - Performance guarantees documented (CLI operations, dependency loading)
+  - Clear 3-tier installation system (base, bench extras, development)
+  - Organized documentation section with logical progression
+- **PyPI Compatibility**: All relative links converted to absolute GitHub URLs
+- **Quickstart Workflow**: Uses importlib.resources for guaranteed config availability after pip install
+- **Citation Block**: Version-aware citations matching current release (v0.9.0, 2026)
+
+### Fixed
+- **Package Distribution**: Comprehensive CI testing matrix for "pip install ready" validation
+  - Tests across multiple Python versions (3.9-3.12) and platforms
+  - Validates base install, bench extras, packaging correctness, and CLI performance
+  - Local testing script for pre-release validation
+  - Console script verification and help command timing
+- **PyPI Landing Page**: Eliminates broken relative links and ensures quickstart works from installed wheel
+
+### Documentation  
+- **Professional Footer**: Added license, citation (APA + BibTeX), changelog links
+- **Security & Responsible Use**: Brief guidance on validation, resource awareness, data privacy
+- **Release Management**: Links to GitHub releases for detailed release notes
+- **Release Checklist**: Systematic version management process to prevent citation inconsistencies
+
 ## [v0.7.1] - 2026-01-26
 
 ### Added - LoRA Gain Audit Complete Implementation
