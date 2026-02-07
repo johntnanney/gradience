@@ -1352,20 +1352,55 @@ def generate_compression_configs(
     
     print(f"   found candidates for ranks: {sorted(rank_to_candidates.keys())}")
     
-    # For each rank, pick the candidate with highest priority, then lowest conservatism
-    print("🎯 De-duplicating candidates by rank...")
+    # Enhanced deduplication: keep diversity by mapping duplicates to "second rung" alternatives
+    print("🎯 De-duplicating candidates by rank with diversity preservation...")
     deduplicated_candidates = []
+    used_ranks = set()
+    
+    # Helper to find next most aggressive available rank
+    def find_next_aggressive_rank(original_rank, used_ranks, allowed_ranks):
+        """Find the next more aggressive (smaller) rank that's available."""
+        available_ranks = [r for r in allowed_ranks if r < original_rank and r not in used_ranks]
+        return min(available_ranks) if available_ranks else None
+    
     for rank, rank_candidates in rank_to_candidates.items():
         if len(rank_candidates) == 1:
+            # No collision, keep as-is
             deduplicated_candidates.append(rank_candidates[0])
+            used_ranks.add(rank)
         else:
-            # Sort by priority (1=fast_mode first), then conservatism (lower first)
-            best = min(rank_candidates, key=lambda c: (c["priority"], c["conservatism_score"]))
-            # Add dedup info to name
+            # Multiple candidates for same rank - apply diversity preservation
+            print(f"   🔀 Rank collision at r={rank}: {len(rank_candidates)} candidates")
+            
+            # Sort by priority (1=fast_mode first), then conservatism (lower first) 
+            sorted_candidates = sorted(rank_candidates, key=lambda c: (c["priority"], c["conservatism_score"]))
+            
+            # Keep the best candidate at original rank
+            best_candidate = sorted_candidates[0]
             policies = [c["policy_type"] for c in rank_candidates]
-            best["name"] = f"{best['name']}_r{rank}" if len(set(policies)) > 1 else best["name"]
-            best["dedup_note"] = f"Deduplicated from: {', '.join(set(policies))}"
-            deduplicated_candidates.append(best)
+            best_candidate["name"] = f"{best_candidate['name']}_r{rank}" if len(set(policies)) > 1 else best_candidate["name"]
+            best_candidate["dedup_note"] = f"Preferred choice from: {', '.join(set(policies))}"
+            deduplicated_candidates.append(best_candidate)
+            used_ranks.add(rank)
+            
+            # For remaining candidates, try to map to "second rung" alternatives
+            for i, displaced_candidate in enumerate(sorted_candidates[1:], 1):
+                next_rank = find_next_aggressive_rank(rank, used_ranks, allowed_ranks)
+                if next_rank is not None:
+                    print(f"     📍 Remapping {displaced_candidate['policy_type']} from r={rank} → r={next_rank} (second rung)")
+                    displaced_candidate["actual_r"] = next_rank
+                    displaced_candidate["name"] = f"{displaced_candidate['policy_type']}_r{next_rank}"
+                    displaced_candidate["dedup_note"] = f"Remapped from r={rank} to avoid collision (second rung)"
+                    
+                    # Update LoRA config
+                    displaced_candidate["config"]["probe_r"] = next_rank
+                    displaced_candidate["config"]["alpha"] = next_rank
+                    
+                    deduplicated_candidates.append(displaced_candidate)
+                    used_ranks.add(next_rank)
+                else:
+                    print(f"     ❌ No available second rung for {displaced_candidate['policy_type']} (r={rank})")
+                    # Could not find alternative - candidate is dropped
     
     # Step 2: Filter by mode (fast_mode keeps only priority=1)
     print(f"📋 Applying {'fast' if fast_mode else 'full'} mode filtering...")
@@ -1568,12 +1603,19 @@ def generate_compression_configs(
     print("🎯 Evaluating second rung compression candidates...")
     decision_trace = create_decision_trace(probe_rank, audit_data)
     
+    # Collect both existing names and used ranks to avoid duplicates
     existing_candidate_names = list(compression_configs.keys())
+    used_ranks = {cfg["actual_r"] for cfg in compression_configs.values()}
+    
+    # Add rank-based names to prevent second rung from creating duplicates
+    used_rank_names = [f"uniform_r{rank}" for rank in used_ranks]
+    existing_candidates_with_ranks = existing_candidate_names + used_rank_names
+    
     second_rung_candidates = maybe_add_second_rung_candidates(
         probe_rank=probe_rank,
         audit_metrics=decision_trace.audit_metrics,
         allowed_ranks=allowed_ranks,
-        existing_candidates=existing_candidate_names,
+        existing_candidates=existing_candidates_with_ranks,
         decision_trace=decision_trace
     )
     
@@ -3201,8 +3243,10 @@ def create_multi_seed_aggregated_report(
         pass_count = sum(1 for v in verdicts if v == "PASS")
         pass_rate = pass_count / len(verdicts)
         
-        # Overall verdict based on majority
-        overall_verdict = "PASS" if pass_rate >= 0.5 else "FAIL"
+        # Overall verdict based on stringent threshold for scientific validity
+        # Require at least 80% of seeds to pass for a variant to be considered valid
+        # This ensures robustness and prevents cherry-picking
+        overall_verdict = "PASS" if pass_rate >= 0.8 else "FAIL"
         
         # Build variant data
         variant_data = {
@@ -3232,6 +3276,10 @@ def create_multi_seed_aggregated_report(
             "verdict": overall_verdict,
             "individual_verdicts": verdicts
         }
+        
+        # Preserve rank information from first result (should be consistent across seeds)
+        if variant_results and "rank" in variant_results[0]:
+            variant_data["rank"] = variant_results[0]["rank"]
         
         # Preserve compression metadata if present (for SVD variants)
         if variant_results and "compression" in variant_results[0]:
@@ -3323,7 +3371,8 @@ def create_multi_seed_aggregated_report(
                             "compressed_params": candidate_data["params"],
                             "param_reduction": candidate_data["param_reduction"],
                             "verdict": candidate_data["verdict"],
-                            "verdict_reason": candidate_data["verdict_reason"]
+                            "verdict_reason": candidate_data["verdict_reason"],
+                            "rank": candidate_data["rank"]
                         })
             
             # Calculate worst-case and mean deltas across seeds
@@ -3333,7 +3382,7 @@ def create_multi_seed_aggregated_report(
                 
                 detailed_results["candidates"][variant_name] = {
                     "policy_name": variant_name,
-                    "chosen_rank": candidate_seeds[0].get("compressed_params", 0) // 1000000,  # Rough rank estimate from params 
+                    "chosen_rank": candidate_seeds[0].get("rank", "unknown") if candidate_seeds else "unknown",
                     "n_seeds_evaluated": len(candidate_seeds),
                     "per_seed_results": candidate_seeds,
                     "worst_case_delta": min(deltas) if deltas else None,
@@ -3343,21 +3392,79 @@ def create_multi_seed_aggregated_report(
                     "overall_verdict": variant_stats.get("verdict", "UNKNOWN")
                 }
     
-    # Find best compression variant (highest mean reduction among passing variants)
-    passing_variants = {name: data for name, data in variants_data.items() if data["verdict"] == "PASS"}
-    best_compression = None
-    if passing_variants:
-        best_name = max(passing_variants.keys(), key=lambda x: passing_variants[x]["param_reduction"]["mean"])
-        best_data = passing_variants[best_name]
-        best_compression = {
-            "variant": best_name,
-            "param_reduction_mean": best_data["param_reduction"]["mean"],
-            "param_reduction_std": best_data["param_reduction"]["std"],
-            "delta_vs_probe_mean": best_data["delta_vs_probe"]["mean"],
-            "delta_vs_probe_std": best_data["delta_vs_probe"]["std"],
-            "pass_rate": best_data["pass_rate"]
+    # Two-tier defensible selection system
+    # Tier 1: Safe variants (100% pass rate - all seeds pass)
+    safe_variants = {name: data for name, data in variants_data.items() if data["pass_rate"] == 1.0}
+    
+    # Tier 2: Aggressive variants (≥60% pass rate but <100% - majority pass, clearly labeled)
+    aggressive_variants = {name: data for name, data in variants_data.items() 
+                         if 0.6 <= data["pass_rate"] < 1.0}
+    
+    # Select best safe variant (highest compression among 100% pass rate)
+    best_safe_variant = None
+    if safe_variants:
+        best_safe_name = max(safe_variants.keys(), key=lambda x: safe_variants[x]["param_reduction"]["mean"])
+        best_safe_data = safe_variants[best_safe_name]
+        best_safe_variant = {
+            "variant": best_safe_name,
+            "param_reduction_mean": best_safe_data["param_reduction"]["mean"],
+            "param_reduction_std": best_safe_data["param_reduction"]["std"],
+            "delta_vs_probe_mean": best_safe_data["delta_vs_probe"]["mean"],
+            "delta_vs_probe_std": best_safe_data["delta_vs_probe"]["std"],
+            "pass_rate": best_safe_data["pass_rate"],
+            "pass_count": best_safe_data["pass_count"],
+            "total_runs": best_safe_data["total_runs"],
+            "confidence_level": "high",
+            "rationale": "All seeds pass tolerance - recommended for production"
         }
     
+    # Select best aggressive variant (highest compression among majority-pass)
+    best_aggressive_variant = None
+    if aggressive_variants:
+        best_aggressive_name = max(aggressive_variants.keys(), key=lambda x: aggressive_variants[x]["param_reduction"]["mean"])
+        best_aggressive_data = aggressive_variants[best_aggressive_name]
+        best_aggressive_variant = {
+            "variant": best_aggressive_name,
+            "param_reduction_mean": best_aggressive_data["param_reduction"]["mean"],
+            "param_reduction_std": best_aggressive_data["param_reduction"]["std"],
+            "delta_vs_probe_mean": best_aggressive_data["delta_vs_probe"]["mean"],
+            "delta_vs_probe_std": best_aggressive_data["delta_vs_probe"]["std"],
+            "pass_rate": best_aggressive_data["pass_rate"],
+            "pass_count": best_aggressive_data["pass_count"],
+            "total_runs": best_aggressive_data["total_runs"],
+            "confidence_level": "moderate",
+            "rationale": f"{best_aggressive_data['pass_count']}/{best_aggressive_data['total_runs']} seeds pass - higher risk, higher reward"
+        }
+    
+    # Legacy best_compression for backward compatibility (prefer safe, fallback to aggressive)
+    best_compression = best_safe_variant or best_aggressive_variant
+    
+    # Compute validation classification for multi-seed aggregation
+    n_seeds = len(seed_reports)
+    max_steps = base_report.get("env", {}).get("validation_classification", {}).get("max_steps", 0)
+    
+    if n_seeds >= 3 and max_steps >= 500:
+        validation_level = "certifiable"
+        validation_rationale = f"{n_seeds} seeds × {max_steps} steps provides statistical rigor"
+    elif n_seeds >= 2 and max_steps >= 200:
+        validation_level = "screening_plus"  
+        validation_rationale = f"{n_seeds} seeds × {max_steps} steps (limited budget/seeds)"
+    else:
+        validation_level = "screening_plus"
+        validation_rationale = f"{n_seeds} seeds but only {max_steps} steps (limited budget)"
+    
+    multiseed_validation_classification = {
+        "level": validation_level,
+        "rationale": validation_rationale,
+        "is_multiseed": True,
+        "n_seeds": n_seeds,
+        "max_steps": max_steps
+    }
+    
+    # Copy environment but update validation_classification
+    aggregated_env = base_report.get("env", {}).copy()
+    aggregated_env["validation_classification"] = multiseed_validation_classification
+
     # Build aggregated report
     aggregated_report = {
         "bench_version": base_report["bench_version"],
@@ -3367,7 +3474,7 @@ def create_multi_seed_aggregated_report(
         "seeds": [r.get("env", {}).get("seed", "unknown") for r in seed_reports],
         "model": base_report["model"],
         "task": base_report["task"],
-        "env": base_report.get("env", {}),  # Use environment from first report
+        "env": aggregated_env,
         "git_commit": base_report.get("git_commit"),  # Use git info from first report
         "probe": {
             "rank": base_report["probe"]["rank"],
@@ -3384,9 +3491,17 @@ def create_multi_seed_aggregated_report(
         "compressed": variants_data,
         "detailed_results": detailed_results,  # Self-contained per-seed, per-candidate breakdown
         "summary": {
-            "best_compression": best_compression,
+            "best_compression": best_compression,  # Legacy field for backward compatibility
+            "best_safe_variant": best_safe_variant,
+            "best_aggressive_variant": best_aggressive_variant,
             "total_variants": len(variants_data),
-            "passing_variants": len(passing_variants),
+            "safe_variants": len(safe_variants),
+            "aggressive_variants": len(aggressive_variants),
+            "selection_strategy": {
+                "safe_available": best_safe_variant is not None,
+                "aggressive_available": best_aggressive_variant is not None,
+                "recommendation": "use_safe" if best_safe_variant else ("use_aggressive_with_caution" if best_aggressive_variant else "no_viable_variants")
+            },
             "defensible_claims": True,
             "statistical_power": "sufficient" if len(seed_reports) >= 3 else "limited"
         },
@@ -3460,35 +3575,132 @@ def create_multi_seed_markdown_report(
         
         md_content += f"| {variant_display} | {acc_str} | {delta_str} | {red_str} | {pass_rate_str} | {verdict} |\n"
     
-    # Add defensible claims section
+    # Add per-rank validation evidence section for scientific honesty
     acc_tolerance = config.get("compression", {}).get("acc_tolerance", 0.005)
     
     md_content += f"""
 
-## Defensible Claims
+## Per-Rank Validation Evidence
+
+The following statements reflect the complete evidence from all {n_seeds} seeds:
 
 """
     
-    if summary["best_compression"]:
-        best = summary["best_compression"]
-        red_mean = best["param_reduction_mean"] * 100
-        red_std = best["param_reduction_std"] * 100
-        delta_mean = best["delta_vs_probe_mean"]
-        delta_std = best["delta_vs_probe_std"]
+    # Group variants by rank for clearer reporting
+    rank_to_variants = {}
+    for variant_name, data in compressed_data.items():
+        # Extract rank from variant data or name
+        rank = None
+        if "rank" in data:
+            rank = data["rank"]
+        elif "r" in variant_name:
+            # Try to extract from name like "uniform_r32" or "energy_p90" 
+            import re
+            rank_match = re.search(r'r(\d+)', variant_name)
+            if rank_match:
+                rank = int(rank_match.group(1))
         
-        md_content += f"""• **{best["variant"]} compression achieves {red_mean:.1f}% ± {red_std:.1f}% parameter reduction**
-• **Accuracy impact: {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline**
-• **Success rate: {best["pass_rate"]:.0%} across {n_seeds} independent seeds**
-• **Based on n={n_seeds} seeds for variance estimation**
+        if rank is not None:
+            if rank not in rank_to_variants:
+                rank_to_variants[rank] = []
+            rank_to_variants[rank].append((variant_name, data))
+    
+    # Generate honest per-rank statements
+    for rank in sorted(rank_to_variants.keys()):
+        variants = rank_to_variants[rank]
+        
+        # Determine overall validation status for this rank
+        all_pass_counts = [data["pass_count"] for _, data in variants]
+        all_total_runs = [data["total_runs"] for _, data in variants]
+        
+        # Use the variant with the most comprehensive data (highest total_runs)
+        best_variant_name, best_data = max(variants, key=lambda x: x[1]["total_runs"])
+        pass_count = best_data["pass_count"]
+        total_runs = best_data["total_runs"]
+        pass_rate = best_data["pass_rate"]
+        
+        # Generate scientific validation statement
+        if pass_rate == 1.0:
+            validation_status = "✅ **validated safe**"
+            detail = f"All {total_runs} seeds pass ±{acc_tolerance:.3f} tolerance"
+        elif pass_count >= 2 and total_runs >= 3:
+            validation_status = "⚠️  **conditionally promising**"
+            failed_count = total_runs - pass_count
+            if failed_count == 1:
+                detail = f"{pass_count}/{total_runs} seeds pass; one seed violates tolerance"
+            else:
+                detail = f"{pass_count}/{total_runs} seeds pass; {failed_count} seeds violate tolerance"
+        elif pass_count > 0:
+            validation_status = "❌ **unreliable**"
+            detail = f"Only {pass_count}/{total_runs} seeds pass tolerance"
+        else:
+            validation_status = "❌ **failed validation**"
+            detail = f"No seeds pass ±{acc_tolerance:.3f} tolerance"
+        
+        md_content += f"- **r={rank}** is {validation_status} ({detail})\n"
+    
+    md_content += f"""
+
+This evidence-based approach ensures complete transparency about which compression levels can be trusted across independent random seeds.
+
+## Two-Tier Selection System
+
+This benchmark uses a two-tier selection system for defensible recommendations:
 
 """
+    
+    # Add safe variant information
+    if summary["best_safe_variant"]:
+        safe = summary["best_safe_variant"]
+        red_mean = safe["param_reduction_mean"] * 100
+        red_std = safe["param_reduction_std"] * 100
+        delta_mean = safe["delta_vs_probe_mean"]
+        delta_std = safe["delta_vs_probe_std"]
+        
+        md_content += f"""### 🟢 Safe Variant (Recommended)
+- **Variant:** `{safe["variant"]}`
+- **Parameter reduction:** {red_mean:.1f}% ± {red_std:.1f}%
+- **Accuracy impact:** {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline
+- **Pass rate:** {safe["pass_count"]}/{safe["total_runs"]} seeds (100%)
+- **Confidence:** {safe["confidence_level"]} - {safe["rationale"]}
+
+"""
+    
+    # Add aggressive variant information
+    if summary["best_aggressive_variant"]:
+        aggressive = summary["best_aggressive_variant"]
+        red_mean = aggressive["param_reduction_mean"] * 100
+        red_std = aggressive["param_reduction_std"] * 100
+        delta_mean = aggressive["delta_vs_probe_mean"]
+        delta_std = aggressive["delta_vs_probe_std"]
+        
+        md_content += f"""### 🟡 Aggressive Variant (Higher Risk)
+- **Variant:** `{aggressive["variant"]}`
+- **Parameter reduction:** {red_mean:.1f}% ± {red_std:.1f}%
+- **Accuracy impact:** {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline
+- **Pass rate:** {aggressive["pass_count"]}/{aggressive["total_runs"]} seeds ({aggressive["pass_rate"]:.0%})
+- **Confidence:** {aggressive["confidence_level"]} - {aggressive["rationale"]}
+
+"""
+    
+    # Add selection recommendation
+    strategy = summary["selection_strategy"]
+    md_content += f"""### Recommendation: {strategy["recommendation"].replace("_", " ").title()}
+"""
+    
+    if strategy["recommendation"] == "use_safe":
+        md_content += "✅ Safe variant available - recommended for production deployment.\n\n"
+    elif strategy["recommendation"] == "use_aggressive_with_caution":
+        md_content += "⚠️  Only aggressive variants available - proceed with caution and additional validation.\n\n"
     else:
-        md_content += "• **No variants achieved reliable compression within tolerance**\n• **All approaches exceeded ±{acc_tolerance:.3f} accuracy threshold across seeds**\n\n"
+        md_content += "❌ No variants meet minimum reliability thresholds.\n\n"
 
     # Add interpretation
     md_content += f"""## Interpretation (Statistical)
 
-- **PASS** means ≥50% of seeds passed ±{acc_tolerance:.3f} accuracy tolerance
+- **PASS** means ≥80% of seeds passed ±{acc_tolerance:.3f} accuracy tolerance (stringent threshold)
+- **Safe variants** require 100% pass rate across all seeds
+- **Aggressive variants** require ≥60% pass rate but clearly flagged as higher risk
 - **Statistics** are calculated as mean ± standard deviation across {n_seeds} seeds
 - **Defensible claims** are supported by variance estimation across multiple random seeds
 - You should still validate these results on your real workload before deployment
@@ -3496,8 +3708,9 @@ def create_multi_seed_markdown_report(
 ## Summary
 
 - **Total variants:** {summary["total_variants"]}
-- **Passing variants:** {summary["passing_variants"]}
-- **Best compression:** {summary["best_compression"]["variant"] if summary["best_compression"] else "None"}
+- **Safe variants:** {summary["safe_variants"]} (100% pass rate)
+- **Aggressive variants:** {summary["aggressive_variants"]} (≥60% pass rate)
+- **Recommended approach:** {strategy["recommendation"].replace("_", " ")}
 - **Statistical power:** {summary["statistical_power"]}
 
 ## Detailed Per-Seed Results
@@ -4000,23 +4213,20 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
         for issue in env_issues:
             print(f"   - {issue}")
             
+        print("\n💡 SOLUTION:")
+        print("   Set environment variables to use a persistent cache directory:")
         if runpod_detected:
-            print("\n💡 RUNPOD SOLUTION:")
-            print("   source /workspace/gradience/scripts/runpod/env.sh")
-            print("   # This sets:")
-            print("   #   export HF_HOME=/workspace/hf_cache/hf_home")
-            print("   #   export HF_HUB_CACHE=/workspace/hf_cache/hub") 
-            print("   #   export HF_DATASETS_CACHE=/workspace/hf_cache/datasets")
-            print("   #   export TORCH_HOME=/workspace/hf_cache/torch")
-            print("\n   Or add to your /root/.bashrc:")
-            print("   if [ -d \"/workspace/gradience\" ]; then")
-            print("       source /workspace/gradience/scripts/runpod/env.sh")
-            print("   fi")
+            print("   # For RunPod environments:")
+            print("   export HF_HOME=/workspace/hf_cache/hf_home")
+            print("   export HF_HUB_CACHE=/workspace/hf_cache/hub") 
+            print("   export HF_DATASETS_CACHE=/workspace/hf_cache/datasets")
+            print("   export TORCH_HOME=/workspace/hf_cache/torch")
         else:
-            print("\n💡 SOLUTION: Set HuggingFace cache environment variables")
-            print("   export HF_HOME=$HOME/.cache/huggingface/hf_home")
-            print("   export HF_HUB_CACHE=$HOME/.cache/huggingface/hub")
-            print("   export HF_DATASETS_CACHE=$HOME/.cache/huggingface/datasets")
+            print("   # For other environments, choose a persistent location:")
+            print("   export HF_HOME=/path/to/persistent/hf_cache/hf_home")
+            print("   export HF_HUB_CACHE=/path/to/persistent/hf_cache/hub") 
+            print("   export HF_DATASETS_CACHE=/path/to/persistent/hf_cache/datasets")
+            print("   export TORCH_HOME=/path/to/persistent/hf_cache/torch")
     else:
         print("✅ HuggingFace cache environment properly configured")
     
