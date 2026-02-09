@@ -27,7 +27,7 @@ def get_module_version(module_name: str) -> str:
             return module.VERSION
         else:
             return "installed"
-    except:
+    except (ImportError, AttributeError):
         return "not found"
 
 

@@ -260,7 +260,7 @@ class TelemetryReader:
         if train_eval.ppl is not None and test_eval.ppl is not None and train_eval.ppl != 0:
             try:
                 gap = float(test_eval.ppl) / float(train_eval.ppl)
-            except Exception:
+            except (ValueError, TypeError, ZeroDivisionError):
                 gap = None
 
         # Generic (non-kind-specific) metrics

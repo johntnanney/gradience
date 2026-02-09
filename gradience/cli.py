@@ -66,7 +66,7 @@ def cmd_report(args: argparse.Namespace) -> None:
         for line in f:
             try:
                 events.append(json.loads(line))
-            except Exception:
+            except json.JSONDecodeError:
                 # Skip malformed lines
                 pass
 
@@ -166,7 +166,7 @@ def _load_config_file(path: str) -> Dict[str, Any]:
         # Try JSON first, then YAML
         try:
             data = json.loads(text)
-        except Exception:
+        except json.JSONDecodeError:
             import yaml
 
             data = yaml.safe_load(text)
@@ -510,7 +510,7 @@ def _print_recommendations(config: Any, recs: List[Any], *, verbose: bool = Fals
             if evidence:
                 try:
                     ev_json = json.dumps(evidence, sort_keys=True)
-                except Exception:
+                except (TypeError, ValueError):
                     ev_json = str(evidence)
                 print(f"       evidence: {ev_json}")
 
@@ -531,7 +531,7 @@ def cmd_check(args: argparse.Namespace) -> None:
                 candidates=["adapter_config.json", "adapter_config.yaml", "adapter_config.yml"],
                 label="PEFT adapter_config",
             )
-        except Exception as e:
+        except (FileNotFoundError, OSError) as e:
             print(f"Error: {e}")
             sys.exit(1)
 
@@ -542,7 +542,7 @@ def cmd_check(args: argparse.Namespace) -> None:
                 candidates=["training_args.json", "training_args.yaml", "training_args.yml"],
                 label="training_args",
             )
-        except Exception as e:
+        except (FileNotFoundError, OSError) as e:
             print(f"Error: {e}")
             sys.exit(1)
 
@@ -576,7 +576,7 @@ def cmd_check(args: argparse.Namespace) -> None:
         except FileNotFoundError:
             print(f"Error: File not found: {args.config}")
             sys.exit(1)
-        except Exception as e:
+        except (OSError, ValueError, json.JSONDecodeError) as e:
             print(f"Error: Failed to parse config file '{args.config}': {e}")
             sys.exit(1)
 
@@ -589,7 +589,7 @@ def cmd_check(args: argparse.Namespace) -> None:
         except FileNotFoundError:
             print(f"Error: File not found: {args.peft}")
             sys.exit(1)
-        except Exception as e:
+        except (OSError, ValueError, json.JSONDecodeError) as e:
             print(f"Error: Failed to parse PEFT config '{args.peft}': {e}")
             sys.exit(1)
 
@@ -602,7 +602,7 @@ def cmd_check(args: argparse.Namespace) -> None:
         except FileNotFoundError:
             print(f"Error: File not found: {args.training}")
             sys.exit(1)
-        except Exception as e:
+        except (OSError, ValueError, json.JSONDecodeError) as e:
             print(f"Error: Failed to parse training args '{args.training}': {e}")
             sys.exit(1)
 
@@ -625,7 +625,7 @@ def cmd_check(args: argparse.Namespace) -> None:
 
         config = ConfigSnapshot.from_dict(d)
         recs = check_config(config)
-    except Exception as e:
+    except (ImportError, ValueError, TypeError) as e:
         print(f"Error: Failed to build ConfigSnapshot or run policy: {e}")
         sys.exit(1)
 
@@ -650,7 +650,7 @@ def _fmt(x: Any, *, pct: bool = False) -> str:
         return "-"
     try:
         xf = float(x)
-    except Exception:
+    except (ValueError, TypeError):
         return str(x)
     if pct:
         return f"{xf * 100:.1f}%"
@@ -666,7 +666,7 @@ def _fmt_params(n) -> str:
         return "n/a"
     try:
         x = float(n)
-    except Exception:
+    except (ValueError, TypeError):
         return str(n)
     ax = abs(x)
     if ax >= 1e9:
@@ -734,7 +734,7 @@ def _extract_guard_activity(reader: Any) -> Dict[str, Any]:
         if guard_info["rollback_count"] > 0:
             guard_info["rollback_occurred"] = True
     
-    except Exception:
+    except Exception:  # Intentionally broad: guard info is best-effort diagnostic
         # If anything fails, return minimal guard_info
         pass
     
@@ -768,7 +768,7 @@ def _print_monitor_result(
             task_profile = (getattr(signals, "extras", {}) or {}).get("task_profile")
             model_name = model_name or (getattr(signals, "extras", {}) or {}).get("model_name")
             dataset_name = dataset_name or (getattr(signals, "extras", {}) or {}).get("dataset_name")
-        except Exception:
+        except (AttributeError, KeyError, TypeError):
             task_profile = task_profile or "unknown"
 
     print(f"Model:   {model_name or '-'}")
@@ -829,7 +829,7 @@ def _print_monitor_result(
     audit = None
     try:
         audit = (getattr(signals, "extras", {}) or {}).get("lora_audit")
-    except Exception:
+    except (AttributeError, KeyError, TypeError):
         audit = None
 
     if isinstance(audit, dict) and audit:
@@ -841,7 +841,7 @@ def _print_monitor_result(
         def _fmt_dom_params(p: Any) -> str:
             try:
                 pf = float(p)
-            except Exception:
+            except (ValueError, TypeError):
                 return "-"
             if pf >= 1e6:
                 return f"{pf/1e6:.1f}M"
@@ -861,7 +861,7 @@ def _print_monitor_result(
                 s_p90 = summary.get("suggested_r_global_90")
                 p50 = summary.get("energy_rank_90_p50")
                 p90 = summary.get("energy_rank_90_p90")
-            except Exception:
+            except (AttributeError, KeyError, TypeError):
                 s_med = s_p90 = p50 = p90 = None
 
             if s_med:
@@ -923,7 +923,7 @@ def _print_monitor_result(
             if verbose and a.get("context"):
                 try:
                     ctx = json.dumps(a["context"], sort_keys=True)
-                except Exception:
+                except (TypeError, ValueError):
                     ctx = str(a["context"])
                 print(f"       context: {ctx}")
 
@@ -945,14 +945,14 @@ def _print_monitor_result(
                 if confidence is not None:
                     try:
                         print(f"       confidence: {float(confidence):.2f}")
-                    except Exception:
+                    except (ValueError, TypeError):
                         print(f"       confidence: {confidence}")
                 if scope:
                     print(f"       scope: {scope}")
                 if evidence:
                     try:
                         ev_json = json.dumps(evidence, sort_keys=True)
-                    except Exception:
+                    except (TypeError, ValueError):
                         ev_json = str(evidence)
                     print(f"       evidence: {ev_json}")
     else:
@@ -970,7 +970,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
     try:
         from gradience.vnext import TelemetryReader
         from gradience.vnext.policy import check_run
-    except Exception as e:
+    except ImportError as e:
         print(f"Error: Failed to import Gradience vNext components: {e}")
         sys.exit(1)
 
@@ -980,7 +980,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
             strict_schema=bool(getattr(args, "strict_schema", False)),
             normalize=True,
         )
-    except Exception as e:
+    except (OSError, ValueError) as e:
         print(f"Error: Failed to open telemetry file: {e}")
         sys.exit(1)
 
@@ -988,12 +988,12 @@ def cmd_monitor(args: argparse.Namespace) -> None:
     config = None
     try:
         config = reader.latest_config()
-    except Exception:
+    except (AttributeError, KeyError, ValueError):
         config = None
 
     try:
         signals = reader.summarize()
-    except Exception as e:
+    except (AttributeError, KeyError, ValueError) as e:
         print(f"Error: Failed to summarize telemetry: {e}")
         sys.exit(1)
 
@@ -1012,7 +1012,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
                         "context": {"gap": gap_f, "threshold": float(args.gap_threshold)},
                     }
                 )
-        except Exception:
+        except (ValueError, TypeError):
             pass
     else:
         alerts.append(
@@ -1028,7 +1028,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
     # Policy-driven recommendations (config + signals)
     try:
         recs = check_run(config, signals, gap_threshold=float(args.gap_threshold))
-    except Exception as e:
+    except (ValueError, RuntimeError) as e:
         print(f"Error: Policy evaluation failed: {e}")
         sys.exit(1)
 
@@ -1105,15 +1105,15 @@ def _get_version_info():
     try:
         # Try to get package version (prefer importlib.metadata over deprecated pkg_resources)
         try:
-            from importlib.metadata import version
+            from importlib.metadata import version, PackageNotFoundError
             version_info["gradience_version"] = version("gradience")
-        except:
+        except (ImportError, PackageNotFoundError):
             try:
                 import pkg_resources
                 version_info["gradience_version"] = pkg_resources.get_distribution("gradience").version
-            except:
+            except Exception:  # Intentionally broad: pkg_resources exceptions vary by platform
                 version_info["gradience_version"] = "development"
-    except:
+    except Exception:  # Intentionally broad: outermost fallback for version detection
         version_info["gradience_version"] = "unknown"
     
     # Try to get git SHA
@@ -1127,7 +1127,7 @@ def _get_version_info():
             stderr=subprocess.DEVNULL
         ).decode().strip()
         version_info["git_sha"] = git_sha[:12]  # Short SHA
-    except:
+    except (FileNotFoundError, subprocess.CalledProcessError, OSError):
         version_info["git_sha"] = None
         
     return version_info
@@ -1735,7 +1735,7 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
     def _fmt_params(p: Any) -> str:
         try:
             pf = float(p)
-        except Exception:
+        except (ValueError, TypeError):
             return "-"
         if pf >= 1e6:
             return f"{pf/1e6:.1f}M"
@@ -1777,18 +1777,15 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
                 return None
             try:
                 _k = float(_k)
-            except Exception:
+            except (ValueError, TypeError):
                 return None
             for _r in (1, 2, 4, 8, 16, 32):
                 if _k <= _r:
                     return _r
             return 32
 
-        try:
-            _p50 = summary.get('energy_rank_90_p50')
-            _p90 = summary.get('energy_rank_90_p90')
-        except Exception:
-            _p50 = _p90 = None
+        _p50 = e90_p50  # Already extracted from result above
+        _p90 = e90_p90
         _s_med = _snap_rank(_p50)
         _s_p90 = _snap_rank(_p90)
         if _s_med is not None:
@@ -1960,7 +1957,7 @@ def cmd_truncate(args: argparse.Namespace) -> None:
             if not args.json:
                 print(f"📄 Report saved: {report_path}")
         
-    except Exception as e:
+    except (RuntimeError, ValueError, OSError) as e:
         print(f"Error: SVD truncation failed: {e}")
         if args.verbose:
             import traceback
@@ -2010,7 +2007,7 @@ def cmd_audit(args: argparse.Namespace) -> None:
 
     try:
         from gradience.vnext.audit import audit_lora_peft_dir
-    except Exception as e:
+    except ImportError as e:
         print(f"Error: Failed to import LoRA audit module: {e}")
         sys.exit(1)
 
@@ -2072,21 +2069,21 @@ def cmd_audit(args: argparse.Namespace) -> None:
                                 continue
                             try:
                                 e = jsonlib.loads(line)
-                            except Exception:
+                            except json.JSONDecodeError:
                                 continue
                             if isinstance(e, dict):
                                 if run_id is None and isinstance(e.get("run_id"), str):
                                     run_id = e.get("run_id")
                                 if isinstance(e.get("step"), int):
                                     last_step = e.get("step")
-                except Exception:
+                except (OSError, UnicodeDecodeError):
                     pass
             if run_id is None:
                 run_id = f"audit_{int(time.time())}"
             # Prefer structured event helper if available
             try:
                 event = result.to_metrics_event(run_id=run_id, step=last_step)
-            except Exception:
+            except (AttributeError, TypeError):
                 event = {
                     "schema": "gradience.vnext.telemetry/v1",
                     "ts": time.time(),
@@ -2101,7 +2098,7 @@ def cmd_audit(args: argparse.Namespace) -> None:
                 f.write(jsonlib.dumps(event, default=str) + "\n")
             if not getattr(args, "json", False):
                 print(f"Appended lora_audit metrics to {append_path}")
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: audit CLI catch-all
         print(f"Error: Audit failed: {e}")
         sys.exit(1)
 
@@ -2146,7 +2143,7 @@ def cmd_audit(args: argparse.Namespace) -> None:
                     from gradience.vnext.rank_suggestion import suggest_per_layer_ranks
                     rank_suggestions = suggest_per_layer_ranks(payload)
                     payload["rank_suggestions"] = rank_suggestions.to_dict()
-                except Exception as e:
+                except (ImportError, ValueError, TypeError, RuntimeError) as e:
                     payload["rank_suggestions_error"] = str(e)
             
             # Add policy disagreement analysis to JSON output
@@ -2162,10 +2159,10 @@ def cmd_audit(args: argparse.Namespace) -> None:
                     rationale_verbosity = getattr(args, "disagreement_rationale", "flagged_only")
                     disagreement_analysis = _analyze_policy_disagreements(layers, name_mapping, importance_config, rationale_verbosity)
                     payload["policy_disagreement_analysis"] = disagreement_analysis
-            except Exception as e:
+            except (ValueError, RuntimeError) as e:
                 payload["policy_disagreement_analysis_error"] = str(e)
                     
-        except Exception:
+        except (AttributeError, KeyError, TypeError):
             # Fallback if result isn't the expected dataclass
             payload = {"error": "unexpected_audit_result_type", "type": str(type(result))}
         print(jsonlib.dumps(payload, indent=2))
@@ -2198,7 +2195,7 @@ def cmd_explain(args: argparse.Namespace) -> None:
     try:
         with open(audit_json_path, 'r') as f:
             audit_data = jsonlib.load(f)
-    except Exception as e:
+    except (OSError, ValueError, json.JSONDecodeError) as e:
         print(f"Error loading audit JSON: {e}")
         sys.exit(1)
     
