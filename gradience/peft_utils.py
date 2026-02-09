@@ -268,7 +268,7 @@ def check_heterogeneous_ranks(adapter_weights_path: str, allowed_ranks: list) ->
             "reason": None
         }
         
-    except Exception as e:
+    except (RuntimeError, ValueError, AttributeError, TypeError, OSError) as e:
         return {
             "passed": False,
             "unique_ranks": [],

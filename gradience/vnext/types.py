@@ -217,7 +217,7 @@ class ConfigSnapshot:
         tp = d.get("task_profile", TaskProfile.UNKNOWN.value)
         try:
             task_profile = TaskProfile(tp)
-        except Exception:
+        except (ValueError, KeyError):
             task_profile = TaskProfile.UNKNOWN
 
         return ConfigSnapshot(
@@ -353,7 +353,7 @@ class Recommendation:
         sev = d.get("severity", Severity.INFO.value)
         try:
             severity = Severity(sev)
-        except Exception:
+        except (ValueError, KeyError):
             severity = Severity.INFO
 
         return Recommendation(

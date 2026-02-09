@@ -675,7 +675,7 @@ def analyze_policy_consensus(
         try:
             suggestion = apply_rank_policy(policy_spec, s, shape, r_alloc, eps)
             suggestions.append(suggestion)
-        except Exception:
+        except (ValueError, RuntimeError, TypeError, ZeroDivisionError, IndexError):
             # Skip failed policies in consensus (could log this)
             continue
     

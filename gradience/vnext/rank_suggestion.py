@@ -47,7 +47,7 @@ def _round_up_to_allowed_rank(x: float, allowed: Sequence[int] = DEFAULT_ALLOWED
     """
     try:
         xf = float(x)
-    except Exception:
+    except (ValueError, TypeError):
         return 0
 
     if xf <= 0:
@@ -69,7 +69,7 @@ def _infer_current_r_from_means(stable_rank_mean: Any, utilization_mean: Any) ->
     try:
         sr = float(stable_rank_mean)
         util = float(utilization_mean)
-    except Exception:
+    except (ValueError, TypeError):
         return None
 
     if util <= 0:
@@ -157,7 +157,7 @@ def suggest_global_ranks_from_audit(
     total_params_raw = _get_first_present(audit, ("total_lora_params", "lora_params", "total_params"))
     try:
         total_params = int(total_params_raw) if total_params_raw is not None else 0
-    except Exception:
+    except (ValueError, TypeError):
         total_params = 0
 
     # ---- current_r (prefer explicit, else infer) ----
@@ -287,7 +287,7 @@ def _get_float(row: Dict[str, Any], keys: Sequence[str]) -> Optional[float]:
             continue
         try:
             return float(v)
-        except Exception:
+        except (ValueError, TypeError):
             pass
     return None
 
@@ -300,7 +300,7 @@ def _get_int(row: Dict[str, Any], keys: Sequence[str]) -> Optional[int]:
         try:
             iv = int(v)
             return iv if iv > 0 else None
-        except Exception:
+        except (ValueError, TypeError):
             pass
     return None
 
