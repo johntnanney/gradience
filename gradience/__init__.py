@@ -9,7 +9,7 @@ Gradience is a flight recorder + mechanic for LoRA runs:
 
 CLI Commands:
     gradience check        # Config validation and recommendations
-    gradience monitor      # Live run monitoring and alerts  
+    gradience monitor      # Live run monitoring and alerts
     gradience audit        # Post-hoc LoRA adapter analysis
 
 HuggingFace Integration:
@@ -31,7 +31,7 @@ Rank Suggestions:
 
 Everything else is internal and may change.
 
-Legacy components (DEPRECATED) have been moved to docs/legacy/
+Legacy components (DEPRECATED) have been removed.
 For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md, PUBLIC_API.md
 """
 
@@ -42,35 +42,18 @@ except ImportError:
     # Fallback for Python < 3.8
     from importlib_metadata import version
     __version__ = version("gradience")
-except Exception:
-    # Fallback for development installs
-    __version__ = "0.8.4"
+except Exception:  # Intentionally broad: outermost fallback for development installs
+    __version__ = "0.8.5"
 
-# Current API: vNext components
-# For stable telemetry, use: gradience.vnext.telemetry
-# For HF integration, use: gradience.vnext.integrations.hf
-
-# Legacy components (maintained for backward compatibility, but deprecated)
-import warnings
-
-# Spectral analysis (legacy - for new code use gradience.vnext.audit)
-from gradience.spectral import SpectralAnalyzer
-
-# Structural analysis (legacy)  
-from gradience.structural import (
-    StructuralAnalyzer,
-    StructuralMetrics,
-    compute_muon_ratio,
-    get_weight_decay_from_optimizer,
-)
-
-# Legacy telemetry (for new code use gradience.vnext.telemetry)
-from gradience.telemetry import TelemetryWriter, TelemetryReader
+# Current API: vNext components re-exported for convenience
+from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
 
 # Stable public API (thin wrappers around CLI/module entrypoints)
 from gradience import api
 
 # Deprecated Guard functionality
+import warnings
+
 def _deprecated_guard_import():
     warnings.warn(
         "Guard functionality has been moved to docs/legacy/ and is no longer supported. "
@@ -86,23 +69,18 @@ def Guard(*args, **kwargs):
 
 def GuardConfig(*args, **kwargs):
     _deprecated_guard_import()
-    
+
 def create_guard(*args, **kwargs):
     _deprecated_guard_import()
 
 __all__ = [
     # Stable public API
     "api",
-    
-    # Current (but legacy) - use gradience.vnext for new code
-    "SpectralAnalyzer",
-    "StructuralAnalyzer", 
-    "StructuralMetrics",
-    "compute_muon_ratio",
-    "get_weight_decay_from_optimizer",
+
+    # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",
-    
+
     # Deprecated (will raise ImportError with helpful message)
     "Guard",
     "GuardConfig",

@@ -4,7 +4,8 @@ Gradience Bench CLI - LoRA Compression Benchmarking Tool
 Usage:
     python -m gradience.bench.run_bench \
       --config distilbert_sst2.yaml \
-      --output bench_runs/distilbert_sst2_001
+      --output bench_runs/distilbert_sst2_001 \
+      [--resume]
 
 Runs the complete bench protocol:
 1. Train probe adapter (r=16)
@@ -13,6 +14,10 @@ Runs the complete bench protocol:
 4. Retrain compressed variants
 5. Evaluate and make verdicts
 6. Generate reports (bench.json + bench.md)
+
+Resume functionality:
+    Use --resume to skip completed stages (avoids re-running expensive 90-minute probe training).
+    State is tracked in <output>/stage_state.json
 """
 
 from __future__ import annotations
@@ -100,6 +105,12 @@ Examples:
         "--verbose", "-v",
         action="store_true",
         help="Verbose output"
+    )
+    
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from completed stages (skips expensive operations like 90-minute probe training)"
     )
     
     # Candidate control options
@@ -267,7 +278,8 @@ def main() -> int:
                     smoke=args.smoke,
                     ci=args.ci,
                     fast_mode=not args.full_mode,
-                    max_candidates=args.max_candidates
+                    max_candidates=args.max_candidates,
+                    resume=args.resume
                 )
             finally:
                 # Clean up temporary config
@@ -280,7 +292,8 @@ def main() -> int:
                 smoke=args.smoke,
                 ci=args.ci,
                 fast_mode=not args.full_mode,
-                max_candidates=args.max_candidates
+                max_candidates=args.max_candidates,
+                resume=args.resume
             )
         
         # For CI mode, we need access to the internal verdicts
@@ -304,7 +317,7 @@ def main() -> int:
         print("\nTo run bench, install dependencies:")
         print("  pip install transformers>=4.20.0 peft>=0.4.0 datasets torch pyyaml")
         return 1
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: top-level CLI error handler
         print(f"\nBenchmark failed: {e}")
         if args.verbose:
             import traceback

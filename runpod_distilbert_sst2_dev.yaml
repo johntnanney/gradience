@@ -1,0 +1,79 @@
+# RunPod GPU Development: DistilBERT + SST-2 Single-Seed Rapid Iteration
+#
+# Purpose: Ultra-fast single-seed validation for development iterations
+# - Second rung logic validation
+# - Report generation testing
+# - Engineering hygiene verification
+# 
+# Runtime: ~3-4 minutes on GPU (single seed)
+# Cost: ~$0.03-0.05 on RunPod GPU
+#
+# Usage: 
+#   python -m gradience.bench.run_bench --config runpod_distilbert_sst2_dev.yaml --output /workspace/dev_validation
+
+bench_version: "0.1"
+
+model:
+  name: distilbert-base-uncased
+  type: seqcls
+  torch_dtype: bf16              # GPU supports bf16
+  gradient_checkpointing: true
+
+task:
+  dataset: sst2
+  subset: default
+  profile: seqcls_glue
+  eval_max_samples: 150          # Smaller but still meaningful
+  generation: null
+
+train:
+  seed: 42                       # Single seed for speed
+  max_steps: 80                  # Slightly reduced for dev speed
+  per_device_train_batch_size: 8
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0002
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  logging_steps: 20
+  eval_steps: 80                 # Evaluate at end only
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 640             # Reduced but sufficient for good probe
+  eval_samples: 150
+
+lora:
+  probe_r: 32                    # Same as multi-seed for consistency
+  alpha: 64
+  dropout: 0.05
+  target_modules:
+    - q_lin
+    - v_lin
+
+compression:
+  allowed_ranks: [4, 8, 12, 16, 20, 24, 28, 32]
+  acc_tolerance: 0.02
+  
+  # Explicit candidate control: test second rung logic
+  candidate_policies: ["energy_p90", "knee_p90"]     # Reduced for dev speed
+  max_candidates: 5              # Room for second rung candidates
+  fast_mode: true
+
+# Enable UDR for complete validation
+audit:
+  base_model: "distilbert-base-uncased"
+  compute_udr: true
+
+runtime:
+  device: cuda
+  
+  # HYGIENE: Full monitoring even in dev mode
+  enable_heartbeat: true
+  heartbeat_interval: 30
+  enable_progress_tracking: true
+  
+  # Dev artifact management
+  keep_adapter_weights: true
+  keep_checkpoints: false
+
+run_type: "runpod_distilbert_dev"

@@ -38,7 +38,7 @@ try:
     from transformers import TrainerCallback  # type: ignore
     from transformers.trainer_callback import TrainerControl, TrainerState  # type: ignore
     from transformers.training_args import TrainingArguments  # type: ignore
-except Exception as _e:  # pragma: no cover
+except ImportError as _e:  # pragma: no cover
     TrainerCallback = object  # type: ignore
     TrainerControl = Any  # type: ignore
     TrainerState = Any  # type: ignore
@@ -94,7 +94,7 @@ def _coerce_task_profile(tp: Optional[Union[str, TaskProfile]]) -> TaskProfile:
     # Accept strings like "easy_classification"
     try:
         return TaskProfile(str(tp))
-    except Exception:
+    except (ValueError, KeyError):
         return TaskProfile.UNKNOWN
 
 
@@ -110,7 +110,7 @@ def _best_effort_model_name(model: Any) -> str:
                 val = getattr(cfg, attr, None)
                 if val:
                     return str(val)
-    except Exception:
+    except (AttributeError, TypeError):
         pass
 
     # Fallbacks
@@ -118,7 +118,7 @@ def _best_effort_model_name(model: Any) -> str:
         name = getattr(model, "name_or_path", None)
         if name:
             return str(name)
-    except Exception:
+    except (AttributeError, TypeError):
         pass
 
     return model.__class__.__name__ if model is not None else "unknown"
@@ -151,7 +151,7 @@ def _best_effort_lora_snapshot(model: Any) -> LoRAConfigSnapshot:
             peft_cfg = pc.get("default") or next(iter(pc.values()))
         elif pc is not None:
             peft_cfg = pc
-    except Exception:
+    except (AttributeError, KeyError, StopIteration, TypeError):
         peft_cfg = None
 
     if peft_cfg is None:
@@ -179,7 +179,7 @@ def _best_effort_lora_snapshot(model: Any) -> LoRAConfigSnapshot:
             bias=str(bias) if bias is not None else None,
             extras={},
         )
-    except Exception:
+    except (AttributeError, TypeError, ValueError, KeyError):
         # If anything goes sideways, we just don't populate LoRA snapshot.
         return snap
 

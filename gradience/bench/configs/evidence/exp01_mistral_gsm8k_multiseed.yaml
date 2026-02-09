@@ -63,7 +63,12 @@ compression:
   
   # Multi-seed configuration  
   seeds: [42, 123, 456]           # 3 seeds for variance estimation
-  variants_to_test: ["per_layer"] # Focus on promising variant
+  
+  # Explicit candidate control: generate multiple compression candidates
+  # This upgrades from "validate one compression" → "choose among compressions"
+  candidate_policies: ["energy_p90", "knee_p90", "erank_p90"]  # Core practitioner-friendly policies
+  max_candidates: 3                          # Hard cap to prevent compute explosion
+  fast_mode: true                            # Ensure FAST mode (no full policy explosion)
 
 # UDR computation enabled for full analysis
 audit:
@@ -73,6 +78,11 @@ audit:
 
 runtime:
   device: cuda                    # GPU required
+  
+  # HYGIENE: Enable heartbeat and progress tracking (prevent stuck runs)
+  enable_heartbeat: true          # Keep SSH sessions alive during long phases
+  heartbeat_interval: 30          # Seconds between heartbeat messages
+  enable_progress_tracking: true  # Write progress files for stuck detection
   
   # Keep artifacts for analysis
   keep_adapter_weights: true

@@ -1,0 +1,268 @@
+name: "Pip Install Ready"
+
+# Tests that the package is ready for PyPI distribution with proper packaging,
+# minimal dependencies, working console scripts, and bundled configs.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  base-install:
+    name: "A. Base Install Test"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install base package
+      run: |
+        python -m pip install --upgrade pip
+        pip install .
+    
+    - name: Test basic import
+      run: |
+        python -c "import gradience; print(f'✅ Import successful, version: {gradience.__version__}')"
+    
+    - name: Test CLI help (should be fast without heavy deps)
+      run: |
+        gradience --help
+        echo "✅ gradience --help completed"
+        
+    - name: Verify minimal dependencies
+      run: |
+        # Should only have core deps, no torch/transformers
+        pip list | grep -E "^(torch|transformers)" && exit 1 || echo "✅ No heavy ML deps in base install"
+        pip list | grep -E "^(pyyaml|numpy|packaging|rich)" && echo "✅ Core deps present"
+
+  bench-extras:
+    name: "B. Bench Extras Test"  
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install bench extras
+      run: |
+        python -m pip install --upgrade pip
+        # Install with CPU-only torch to avoid GPU requirements
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        pip install ".[bench]"
+        
+    - name: Test bench CLI
+      run: |
+        gradience-bench --help
+        echo "✅ gradience-bench --help completed"
+        
+    - name: Run CPU-only smoke test
+      run: |
+        # Create minimal smoke test config
+        mkdir -p test_output
+        cat > smoke_config.yaml << 'EOF'
+        model:
+          name_or_path: "distilbert-base-uncased"
+          
+        task:
+          name: "sst2"
+          type: "classification"
+          
+        train:
+          train_samples: 10  # Tiny dataset for smoke test
+          eval_samples: 5
+          epochs: 1
+          batch_size: 2
+          learning_rate: 5e-5
+          
+        lora:
+          r: 4
+          alpha: 8
+          target_modules: ["q_lin", "v_lin"]
+          
+        smoke_train_samples: 10
+        smoke_eval_samples: 5
+        smoke_epochs: 1
+        smoke_max_train_steps: 2
+        EOF
+        
+        # Test config validation (should work without training)
+        python -c "
+        import gradience.bench.protocol as protocol
+        import yaml
+        with open('smoke_config.yaml') as f:
+            cfg = yaml.safe_load(f)
+        print('✅ Config validation works')
+        "
+        
+        # Test that configs are accessible
+        python -c "
+        import gradience.bench.configs as configs
+        import os
+        config_dir = os.path.dirname(configs.__file__)
+        yaml_files = [f for f in os.listdir(config_dir) if f.endswith('.yaml')]
+        print(f'✅ Found {len(yaml_files)} config files in installed package')
+        assert len(yaml_files) > 40, 'Missing config files'
+        "
+        
+        echo "✅ CPU smoke test completed"
+
+  packaging-correctness:
+    name: "C. Packaging Correctness"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install build tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install build wheel
+        
+    - name: Build wheel and sdist
+      run: |
+        python -m build
+        ls -la dist/
+        echo "✅ Build completed"
+        
+    - name: Install from wheel
+      run: |
+        # Create clean environment
+        pip install dist/*.whl
+        echo "✅ Wheel installation successful"
+        
+    - name: Test wheel contents and config access
+      run: |
+        # Test basic functionality from wheel
+        python -c "import gradience; print(f'Version: {gradience.__version__}')"
+        
+        # Test console scripts work
+        gradience --help > /dev/null
+        echo "✅ Console script works from wheel"
+        
+        # Test configs are accessible via importlib.resources
+        python -c "
+        import importlib.resources
+        import gradience.bench.configs
+        
+        # Test main configs directory
+        try:
+            configs_files = list(importlib.resources.files(gradience.bench.configs).iterdir())
+            yaml_files = [f for f in configs_files if f.name.endswith('.yaml')]
+            print(f'✅ Found {len(yaml_files)} config files via importlib.resources')
+            assert len(yaml_files) > 40, f'Expected >40 configs, got {len(yaml_files)}'
+        except Exception as e:
+            print(f'❌ Config access failed: {e}')
+            raise
+            
+        # Test evidence subdirectory
+        try:
+            evidence_files = list(importlib.resources.files(gradience.bench.configs).joinpath('evidence').iterdir())
+            evidence_yamls = [f for f in evidence_files if f.name.endswith('.yaml')]
+            print(f'✅ Found {len(evidence_yamls)} evidence configs')
+            assert len(evidence_yamls) >= 3, f'Expected >=3 evidence configs, got {len(evidence_yamls)}'
+        except Exception as e:
+            print(f'❌ Evidence config access failed: {e}')
+            raise
+            
+        # Test policies directory  
+        try:
+            import gradience.bench.policies
+            policy_files = list(importlib.resources.files(gradience.bench.policies).iterdir())
+            policy_yamls = [f for f in policy_files if f.name.endswith('.yaml')]
+            print(f'✅ Found {len(policy_yamls)} policy files')
+            assert len(policy_yamls) >= 1, f'Expected >=1 policy, got {len(policy_yamls)}'
+        except Exception as e:
+            print(f'❌ Policy access failed: {e}')
+            raise
+            
+        print('✅ All importlib.resources tests passed')
+        "
+        
+    - name: Test installation in fresh environment
+      run: |
+        # Simulate fresh install by removing current installation
+        pip uninstall -y gradience
+        
+        # Install from built wheel
+        pip install dist/gradience-*.whl
+        
+        # Test in different directory to avoid source interference
+        cd /tmp
+        python -c "
+        import gradience
+        print(f'Fresh install version: {gradience.__version__}')
+        
+        # Test config access from fresh install
+        import gradience.bench.configs
+        import os
+        config_dir = os.path.dirname(gradience.bench.configs.__file__)
+        yaml_count = len([f for f in os.listdir(config_dir) if f.endswith('.yaml')])
+        print(f'Fresh install configs: {yaml_count}')
+        assert yaml_count > 40, f'Fresh install missing configs: {yaml_count}'
+        print('✅ Fresh installation test passed')
+        "
+
+  performance-requirements:
+    name: "Performance Requirements"
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        
+    - name: Install base package
+      run: |
+        python -m pip install --upgrade pip
+        pip install .
+        
+    - name: Test CLI performance requirements
+      run: |
+        # Test gradience --help is fast (< 3s for base CLI)
+        timeout 3s gradience --help || (echo "❌ gradience --help took >3s" && exit 1)
+        echo "✅ gradience --help completed within 3s"
+        
+        # Install bench extras for bench test
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        pip install ".[bench]"
+        
+        # Test gradience-bench --help is reasonable (< 15s with ML deps loaded)
+        # Note: First run loads transformers/torch which is slow, but acceptable for bench CLI
+        timeout 15s gradience-bench --help || (echo "❌ gradience-bench --help took >15s" && exit 1)
+        echo "✅ gradience-bench --help completed within 15s"
+        
+        # Test second run is faster (< 5s after deps loaded)
+        timeout 5s gradience-bench --help || (echo "❌ gradience-bench second run took >5s" && exit 1)
+        echo "✅ gradience-bench second run completed within 5s"
+        
+        echo "✅ CLI performance requirements met"

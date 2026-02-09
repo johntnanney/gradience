@@ -17,10 +17,9 @@ import os
 import json
 import yaml
 import datetime
-import sys
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 # Check for optional dependencies
 try:
@@ -38,53 +37,51 @@ except ImportError:
 # Gradience imports (always available)
 from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 from gradience.peft_utils import (
-    normalize_rank_pattern, normalize_alpha_pattern,
     create_complete_rank_pattern, create_complete_alpha_pattern,
     check_heterogeneous_ranks
 )
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
 from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
 from gradience.bench.task_profiles import get_task_profile_from_config
+from gradience.bench.heartbeat import start_heartbeat, stop_heartbeat, heartbeat_stage
+from gradience.bench.monitored_stage import (
+    monitored_stage, monitor_evaluation, monitor_training, monitor_audit,
+    monitor_file_operations, monitor_generation, setup_global_monitoring
+)
+from gradience.bench.stage_state import create_stage_manager
+from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
+from gradience.bench.escalation import (
+    run_escalation_round, update_escalation_trace_with_results,
+    enrich_verdicts_with_stability, EscalationTrace,
+)
 
-
-def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
-    """
-    Resolve policy-based rank sources like 'audit.rank_suggestions.knee.uniform_p90'.
-    
-    Args:
-        audit_data: Audit data dict with policy_global_suggestions
-        rank_source: Dotted path like "audit.rank_suggestions.POLICY.STATISTIC"
-        
-    Returns:
-        Rank suggestion as float, or None if path cannot be resolved
-    """
-    try:
-        # Parse the path: audit.rank_suggestions.POLICY.STATISTIC
-        parts = rank_source.split(".")
-        if len(parts) != 4 or parts[0] != "audit" or parts[1] != "rank_suggestions":
-            return None
-            
-        policy_name = parts[2]  # e.g., "knee", "erank", "oht", "energy_90"
-        statistic = parts[3]    # e.g., "uniform_median", "uniform_p90", "uniform_max"
-        
-        # Check if we have policy global suggestions
-        policy_suggestions = audit_data.get("policy_global_suggestions")
-        if not policy_suggestions:
-            return None
-            
-        # Check if the requested policy exists
-        if policy_name not in policy_suggestions:
-            return None
-            
-        # Check if the requested statistic exists for that policy
-        policy_data = policy_suggestions[policy_name]
-        if statistic not in policy_data:
-            return None
-            
-        return float(policy_data[statistic])
-        
-    except (KeyError, ValueError, TypeError):
-        return None
+# Re-exports for backward compatibility — all existing import paths continue to work.
+from gradience.bench.metadata import (  # noqa: F401
+    gather_environment_info, get_git_commit, get_git_tag,
+    get_hf_model_revision, get_dataset_revision, extract_model_dataset_info,
+)
+from gradience.bench._util import (  # noqa: F401
+    _extract_accuracy_with_fallback, get_primary_metric_key,
+    create_config_hash, round_to_allowed_ranks,
+)
+from gradience.bench.compression import (  # noqa: F401
+    generate_compression_configs, generate_svd_variant_config,
+    get_rank_source_from_config, _resolve_policy_rank_source,
+    _create_shuffled_rank_pattern,
+)
+from gradience.bench.reporting import (  # noqa: F401
+    create_canonical_bench_report, create_markdown_report,
+    create_multi_seed_aggregated_report, create_multi_seed_markdown_report,
+)
+from gradience.bench.constants import (
+    SMOKE_TRAIN_SAMPLES, SMOKE_EVAL_SAMPLES, SMOKE_MAX_POST_TUNE_STEPS,
+    DEFAULT_POST_TUNE_STEPS, DEFAULT_POST_TUNE_LR_SCALE, DEFAULT_BASE_LR,
+    DEFAULT_TRAIN_BATCH_SIZE, DEFAULT_EVAL_BATCH_SIZE, DEFAULT_NUM_LABELS,
+    DEFAULT_PROBE_RANK, TASK_QUALITY_THRESHOLDS, DEFAULT_TASK_THRESHOLD,
+    MIN_SEEDS_CERTIFIABLE, MIN_STEPS_CERTIFIABLE,
+    MIN_SEEDS_SCREENING_PLUS, MIN_STEPS_SCREENING_PLUS,
+    DEFAULT_ACCURACY_TOLERANCE, DEFAULT_SEED,
+)
 
 
 def _unwrap_model_for_save(trainer, model):
@@ -92,7 +89,7 @@ def _unwrap_model_for_save(trainer, model):
     if trainer is not None and hasattr(trainer, "accelerator"):
         try:
             return trainer.accelerator.unwrap_model(model)
-        except Exception:
+        except (AttributeError, RuntimeError):
             pass
     # Common wrapper case
     if hasattr(model, "module"):
@@ -151,20 +148,7 @@ def _get_probe_quality_threshold(task_name: str) -> float:
     Returns:
         Minimum accuracy threshold for considering probe sufficiently trained
     """
-    # Task-specific quality thresholds based on typical performance
-    task_thresholds = {
-        "sst2": 0.75,       # SST-2 sentiment: 75% minimum
-        "mnli": 0.70,       # MNLI entailment: 70% minimum  
-        "qnli": 0.75,       # QNLI question entailment: 75% minimum
-        "qqp": 0.80,        # QQP paraphrase: 80% minimum
-        "rte": 0.60,        # RTE small dataset: 60% minimum
-        "wnli": 0.55,       # WNLI very small: 55% minimum
-        "cola": 0.70,       # CoLA linguistic: 70% minimum
-        "mrpc": 0.75,       # MRPC paraphrase: 75% minimum
-        "stsb": 0.80,       # STS-B regression converted to classification
-    }
-    
-    return task_thresholds.get(task_name.lower(), 0.70)  # Default 70% for unknown tasks
+    return TASK_QUALITY_THRESHOLDS.get(task_name.lower(), DEFAULT_TASK_THRESHOLD)
 
 
 def load_config(config_path: str | Path) -> Dict[str, Any]:
@@ -187,8 +171,8 @@ def setup_dataset(config: Dict[str, Any], smoke: bool = False):
     # Apply smoke test limits if requested
     if smoke:
         runtime = config.get("runtime", {})
-        train_samples = runtime.get("smoke_train_samples", 200)
-        eval_samples = runtime.get("smoke_eval_samples", 200)
+        train_samples = runtime.get("smoke_train_samples", SMOKE_TRAIN_SAMPLES)
+        eval_samples = runtime.get("smoke_eval_samples", SMOKE_EVAL_SAMPLES)
         
         if "train" in dataset:
             dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_samples)))
@@ -242,7 +226,7 @@ def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
         # Default to sequence classification
         model = AutoModelForSequenceClassification.from_pretrained(
             model_name,
-            num_labels=2,  # Default binary classification
+            num_labels=DEFAULT_NUM_LABELS,
             torch_dtype=torch_dtype
         )
         task_type = TaskType.SEQ_CLS
@@ -307,7 +291,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         # Default to sequence classification
         model = AutoModelForSequenceClassification.from_pretrained(
             model_name,
-            num_labels=2,  # Default binary classification
+            num_labels=DEFAULT_NUM_LABELS,
             torch_dtype=torch_dtype
         )
         task_type = TaskType.SEQ_CLS
@@ -334,7 +318,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         audit_layers = compression_config.get("_audit_layers", [])
         
         # Use the original probe rank as default for modules not in rank_pattern
-        default_rank_from_audit = compression_config.get("_probe_rank", 16)
+        default_rank_from_audit = compression_config.get("_probe_rank", DEFAULT_PROBE_RANK)
         default_alpha_from_audit = default_rank_from_audit
         
         # Create complete, normalized patterns using canonical helpers
@@ -660,7 +644,9 @@ def run_probe_audit(
 def run_probe_training(
     config_path: str | Path,
     output_dir: str | Path, 
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.1: Train probe adapter (r=16).
@@ -737,18 +723,64 @@ def run_probe_training(
     trainer.args.logging_dir = str(probe_dir / "logs")
     
     # Train the model
-    print(f"Starting probe training (r={config['lora']['probe_r']})...")
-    print(f"Output dir: {probe_dir}")
-    print(f"Max steps: {trainer.args.max_steps}")
-    print(f"Device: {device}")
+    # Check if training can be skipped
+    probe_rank = config['lora']['probe_r']
+    skip_training = resume and stage_manager and stage_manager.should_skip_probe_training(probe_rank)
     
-    trainer.train()
+    if not skip_training:
+        print(f"Starting probe training (r={probe_rank})...")
+        print(f"Output dir: {probe_dir}")
+        print(f"Max steps: {trainer.args.max_steps}")
+        print(f"Device: {device}")
+        
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_training(f"train_probe_r{probe_rank}", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe training")
+            trainer.train()
+            stage.progress("Probe training completed")
+        
+        # Mark training as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_trained", {
+                "probe_rank": probe_rank,
+                "max_steps": trainer.args.max_steps,
+                "output_dir": str(probe_dir)
+            })
+    else:
+        # Load existing model for evaluation (skip training)
+        print(f"Loading existing probe model from {probe_dir}...")
+        # We'll still need the model loaded for evaluation, but we skip training
 
     # Ensure adapter exists on disk for audit (save_strategy may be "no")
-    _save_peft_adapter_only(trainer, model, probe_dir, label="probe")
+    with monitor_file_operations("save_probe_adapter", output_dir=probe_dir) as stage:
+        stage.progress("Saving probe adapter to disk")
+        _save_peft_adapter_only(trainer, model, probe_dir, label="probe")
+        stage.progress("Probe adapter saved successfully")
     
-    # Evaluate final model using task profile
-    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+    # Check if evaluation can be skipped
+    skip_evaluation = resume and stage_manager and stage_manager.should_skip_probe_evaluation(probe_rank)
+    
+    if not skip_evaluation:
+        # Evaluate final model using task profile
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_evaluation("eval_probe", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe evaluation")
+            eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+            stage.progress("Probe evaluation completed")
+            stage.add_artifact("eval.json")
+        
+        # Mark evaluation as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_evaluated", {
+                "probe_rank": probe_rank,
+                "accuracy": eval_results.get("eval_accuracy", 0.0)
+            })
+    else:
+        # Load existing evaluation results
+        eval_json_path = probe_dir / "eval.json"
+        with open(eval_json_path) as f:
+            eval_results = json.load(f)
+        print(f"Loaded existing evaluation results: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
     
     # Step 3.2: Write eval.json
     eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
@@ -765,11 +797,31 @@ def run_probe_training(
     if not (probe_dir_path / "adapter_config.json").exists():
         raise RuntimeError(f"Probe adapter_config.json missing at {probe_dir_path}. Cannot audit.")
     
-    print("Running LoRA audit...")
-    audit_json_path = run_probe_audit(
-        probe_dir=probe_dir,
-        config=config
-    )
+    # Check if audit can be skipped
+    skip_audit = resume and stage_manager and stage_manager.should_skip_probe_audit(probe_rank)
+    
+    if not skip_audit:
+        print("Running LoRA audit...")
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_audit("audit_probe", output_dir=probe_dir, seed=seed) as stage:
+            stage.progress("Starting probe audit analysis")
+            audit_json_path = run_probe_audit(
+                probe_dir=probe_dir,
+                config=config
+            )
+            stage.progress("Probe audit analysis completed")
+            stage.add_artifact("audit.json")
+        
+        # Mark audit as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_audited", {
+                "probe_rank": probe_rank,
+                "audit_path": str(audit_json_path)
+            })
+    else:
+        # Audit already exists
+        audit_json_path = probe_dir / "audit.json"
+        print(f"Using existing audit results: {audit_json_path}")
     
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
@@ -800,183 +852,6 @@ def run_probe_training(
         }
     }
 
-
-def round_to_allowed_ranks(suggested_r: int, allowed_ranks: list[int]) -> int:
-    """Round a suggested rank to the nearest allowed rank."""
-    if suggested_r in allowed_ranks:
-        return suggested_r
-    
-    # Find closest allowed rank
-    return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
-
-
-def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: int) -> Dict[str, int]:
-    """
-    Create a shuffled control by redistributing ranks across different modules.
-    
-    This is the key scientific control: if audit-guided placement matters,
-    per_layer should outperform per_layer_shuffled. If any heterogeneity
-    is enough, they should perform similarly.
-    
-    Args:
-        original_rank_pattern: Dict mapping module names to ranks
-        seed: Random seed for deterministic shuffling
-        
-    Returns:
-        Dict with same module names but redistributed rank values
-    """
-    import random
-    
-    # Extract module names and rank values
-    module_names = list(original_rank_pattern.keys())
-    rank_values = list(original_rank_pattern.values())
-    
-    # Create deterministic shuffle using seed + offset
-    rng = random.Random(seed + 10000)  # Fixed offset for reproducibility
-    
-    # Shuffle the rank values while keeping module names fixed
-    shuffled_ranks = rank_values.copy()
-    rng.shuffle(shuffled_ranks)
-    
-    # Recombine: same modules, redistributed ranks
-    shuffled_pattern = dict(zip(module_names, shuffled_ranks))
-    
-    return shuffled_pattern
-
-
-def generate_svd_variant_config(
-    variant_def: Dict[str, Any],
-    audit_data: Dict[str, Any],
-    probe_rank: int,
-    lora_config: Dict[str, Any],
-    allowed_ranks: List[int]
-) -> Dict[str, Any]:
-    """
-    Generate a compression config for a single SVD truncation variant.
-    
-    Args:
-        variant_def: Variant definition from compression.variants
-        audit_data: Audit results containing suggested ranks
-        probe_rank: Original probe rank
-        lora_config: LoRA configuration
-        allowed_ranks: Allowed rank values
-        
-    Returns:
-        Compression config dict compatible with existing variant format
-    """
-    variant_name = variant_def["name"]
-    rank_source = variant_def.get("rank_source")
-    post_tune_config = variant_def.get("post_tune", {})
-    
-    # Resolve target rank from rank_source
-    if rank_source == "audit_global_median":
-        suggested_rank = audit_data["suggested_r_global_median"]
-    elif rank_source == "audit_global_p90":
-        suggested_rank = audit_data["suggested_r_global_90"]
-    elif isinstance(rank_source, str) and rank_source.startswith("audit.rank_suggestions."):
-        # New policy-based rank sources (Step 7)
-        suggested_rank = _resolve_policy_rank_source(audit_data, rank_source)
-        if suggested_rank is None:
-            return {
-                "variant": variant_name,
-                "suggested_r": None,
-                "actual_r": None,
-                "rank_pattern": {},
-                "alpha_pattern": {},
-                "config": None,
-                "status": "skipped",
-                "reason": f"Failed to resolve policy rank_source: {rank_source}"
-            }
-    elif isinstance(rank_source, (int, float)):
-        # Direct rank specification
-        suggested_rank = int(rank_source)
-    else:
-        return {
-            "variant": variant_name,
-            "suggested_r": None,
-            "actual_r": None,
-            "rank_pattern": {},
-            "alpha_pattern": {},
-            "config": None,
-            "status": "skipped",
-            "reason": f"Unsupported rank_source: {rank_source}"
-        }
-    
-    # Round to allowed ranks
-    actual_rank = round_to_allowed_ranks(suggested_rank, allowed_ranks)
-    
-    # Safety check: no rank > probe rank
-    if actual_rank > probe_rank:
-        actual_rank = probe_rank
-    
-    # Check if this would be a no-op (no compression)
-    if actual_rank >= probe_rank:
-        return {
-            "variant": variant_name,
-            "suggested_r": suggested_rank,
-            "actual_r": actual_rank,
-            "rank_pattern": {},
-            "alpha_pattern": {},
-            "config": None,
-            "status": "skipped",
-            "reason": f"SVD truncation rank r={actual_rank} >= probe rank r={probe_rank} (no compression)"
-        }
-    
-    # Build variant configuration
-    variant_config = {
-        "variant": variant_name,
-        "suggested_r": suggested_rank,
-        "actual_r": actual_rank,
-        "rank_pattern": {},
-        "alpha_pattern": {},
-        "config": {
-            **lora_config,
-            "probe_r": actual_rank,  # Use truncated rank
-            "alpha": actual_rank,    # Preserve alpha=r scaling
-        },
-        "status": "ready",
-        "reason": f"SVD truncation from r={probe_rank} to r={actual_rank}",
-        "compression_method": "svd_truncation",
-        "source_rank": probe_rank,
-        "rank_source": rank_source  # Store original rank_source for artifact capture
-    }
-    
-    # Add post-tuning configuration if specified
-    if post_tune_config.get("enabled", False):
-        variant_config["post_tune"] = {
-            "enabled": True,
-            "steps": post_tune_config.get("steps", 100),
-            "lr_scale": post_tune_config.get("lr_scale", 0.1)
-        }
-    
-    return variant_config
-
-
-def get_rank_source_from_config(compression_config: Dict[str, Any]) -> str:
-    """
-    Extract the rank_source from a compression config for SVD variants.
-    
-    This reconstructs the original rank_source specification from the 
-    compression config data.
-    """
-    # Check if this is from the new variants format
-    if "rank_source" in compression_config:
-        return str(compression_config["rank_source"])
-    
-    # Legacy format: try to infer from rank and reason
-    actual_r = compression_config.get("actual_r")
-    reason = compression_config.get("reason", "")
-    
-    # Try to infer from reason string
-    if "audit_global_median" in reason.lower() or "median" in reason.lower():
-        return "audit_global_median"
-    elif "audit_global_90" in reason.lower() or "p90" in reason.lower():
-        return "audit_global_p90"
-    elif actual_r:
-        # Direct rank specification
-        return str(actual_r)
-    
-    return "unknown"
 
 
 def run_post_tuning(
@@ -1010,18 +885,18 @@ def run_post_tuning(
     from transformers import DataCollatorWithPadding
     
     # Extract post-tuning parameters
-    post_tune_steps = post_tune_config.get("steps", 100)
-    lr_scale = post_tune_config.get("lr_scale", 0.1)
+    post_tune_steps = post_tune_config.get("steps", DEFAULT_POST_TUNE_STEPS)
+    lr_scale = post_tune_config.get("lr_scale", DEFAULT_POST_TUNE_LR_SCALE)
     warmup_steps = post_tune_config.get("warmup_steps", 0)  # Default: zero warmup for tiny tune
     
     # Use base training config but with scaled parameters
     train_config = config["train"]
-    base_lr = train_config.get("lr", 5e-5)
+    base_lr = train_config.get("lr", DEFAULT_BASE_LR)
     post_tune_lr = base_lr * lr_scale
     
     # Reduce steps for smoke mode
     if smoke:
-        post_tune_steps = min(post_tune_steps, 20)
+        post_tune_steps = min(post_tune_steps, SMOKE_MAX_POST_TUNE_STEPS)
         warmup_steps = min(warmup_steps, post_tune_steps // 5)  # Scale warmup for smoke
     
     # Setup training arguments for post-tuning
@@ -1030,8 +905,8 @@ def run_post_tuning(
         num_train_epochs=1,
         max_steps=post_tune_steps,
         learning_rate=post_tune_lr,
-        per_device_train_batch_size=train_config.get("per_device_train_batch_size", 8),
-        per_device_eval_batch_size=train_config.get("per_device_eval_batch_size", 32),
+        per_device_train_batch_size=train_config.get("per_device_train_batch_size", DEFAULT_TRAIN_BATCH_SIZE),
+        per_device_eval_batch_size=train_config.get("per_device_eval_batch_size", DEFAULT_EVAL_BATCH_SIZE),
         warmup_steps=warmup_steps,  # Configurable warmup (default 0)
         logging_steps=max(1, post_tune_steps // 4),
         save_steps=post_tune_steps,  # Save at end
@@ -1073,1146 +948,6 @@ def run_post_tuning(
     
     return model
 
-
-def generate_compression_configs(
-    probe_dir: Path,
-    config: Dict[str, Any],
-    fast_mode: bool = True,
-    max_candidates: int = 4
-) -> Dict[str, Dict[str, Any]]:
-    """
-    Step 3.4: Generate compression configs from probe audit with candidate control.
-    
-    Args:
-        probe_dir: Directory containing probe results and audit data
-        config: Bench configuration
-        fast_mode: If True, only generate energy_p90, knee_p90, erank_p90 (default)
-        max_candidates: Maximum number of candidates to generate (default 4)
-    
-    Returns dict with compression variant configs:
-    - Fast mode: energy_p90, knee_p90, erank_p90 (plus per_layer if different)
-    - Full mode: All policy variants, but de-duplicated and capped
-    
-    Features:
-    1. De-duplicate ranks: if multiple policies suggest same rank, run once
-    2. Cap candidates: limit to top N by conservatism score
-    3. Fast mode: practitioner-friendly default subset
-    """
-    
-    # Load audit results
-    audit_path = probe_dir / "audit.json"
-    with open(audit_path, 'r') as f:
-        audit_data = json.load(f)
-    
-    compression_config = config["compression"]
-    allowed_ranks = compression_config["allowed_ranks"]
-    lora_config = config["lora"]
-    probe_rank = lora_config["probe_r"]
-    
-    # Collect all candidate variants with their properties
-    candidates = []
-    
-    # Helper to create candidate entry
-    def add_candidate(name, policy_type, suggested_r, conservatism_score, priority=1):
-        actual_r = round_to_allowed_ranks(suggested_r, allowed_ranks)
-        if actual_r > probe_rank:
-            actual_r = probe_rank
-            
-        # Skip control runs (no compression)
-        if actual_r == probe_rank:
-            return
-            
-        candidates.append({
-            "name": name,
-            "policy_type": policy_type,
-            "suggested_r": suggested_r,
-            "actual_r": actual_r,
-            "conservatism_score": conservatism_score,  # Higher = more conservative
-            "priority": priority,  # 1=fast_mode, 2=full_mode_only
-            "config": {
-                **lora_config,
-                "probe_r": actual_r,
-                "alpha": actual_r,
-            }
-        })
-    
-    # Gather policy-based candidates (robust handling of various schema versions)
-    policy_suggestions = (
-        audit_data.get("policy_global_suggestions")
-        or audit_data.get("policy_suggestions")
-        or audit_data.get("rank_policy_suggestions")
-        or audit_data.get("rank_suggestions_by_policy")
-        or {}
-    )
-    if not isinstance(policy_suggestions, dict):
-        policy_suggestions = {}
-    
-    # Fast mode candidates (priority=1)
-    # Energy-based rank suggestions (handles multiple possible key names)
-    energy90 = (
-        policy_suggestions.get("energy_90")
-        or policy_suggestions.get("energy@0.90")
-        or {}
-    )
-    if isinstance(energy90, dict) and "uniform_p90" in energy90:
-        add_candidate(
-            "energy_p90", "energy", 
-            energy90["uniform_p90"],
-            conservatism_score=3.0,  # Medium conservative
-            priority=1
-        )
-    
-    # Knee-based rank suggestions
-    knee = (
-        policy_suggestions.get("knee")
-        or policy_suggestions.get("knee_detection")
-        or {}
-    )
-    if isinstance(knee, dict) and "uniform_p90" in knee:
-        add_candidate(
-            "knee_p90", "knee",
-            knee["uniform_p90"], 
-            conservatism_score=2.0,  # Less conservative (finds elbows)
-            priority=1
-        )
-    
-    # Effective rank suggestions  
-    erank = (
-        policy_suggestions.get("erank")
-        or policy_suggestions.get("effective_rank")
-        or {}
-    )
-    if isinstance(erank, dict) and "uniform_p90" in erank:
-        add_candidate(
-            "erank_p90", "erank",
-            erank["uniform_p90"],
-            conservatism_score=1.5,  # Least conservative (entropy-based)
-            priority=1
-        )
-    
-    # Full mode additional candidates (priority=2)
-    if not fast_mode:
-        # Legacy median/p90 from audit
-        if "suggested_r_global_median" in audit_data:
-            add_candidate(
-                "uniform_median", "legacy",
-                audit_data["suggested_r_global_median"],
-                conservatism_score=4.0,  # Very conservative
-                priority=2
-            )
-        
-        if "suggested_r_global_90" in audit_data:
-            add_candidate(
-                "uniform_p90", "legacy",
-                audit_data["suggested_r_global_90"],
-                conservatism_score=3.5,  # Conservative
-                priority=2
-            )
-        
-        # OHT policy
-        if "oht" in policy_suggestions and "uniform_p90" in policy_suggestions["oht"]:
-            add_candidate(
-                "oht_p90", "oht",
-                policy_suggestions["oht"]["uniform_p90"],
-                conservatism_score=2.5,  # Medium
-                priority=2
-            )
-        
-        # Energy with median aggregation
-        if "energy_90" in policy_suggestions and "uniform_median" in policy_suggestions["energy_90"]:
-            add_candidate(
-                "energy_median", "energy",
-                policy_suggestions["energy_90"]["uniform_median"],
-                conservatism_score=3.5,  # More conservative than p90
-                priority=2
-            )
-    
-    # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
-    rank_to_candidates = {}
-    for candidate in candidates:
-        rank = candidate["actual_r"]
-        if rank not in rank_to_candidates:
-            rank_to_candidates[rank] = []
-        rank_to_candidates[rank].append(candidate)
-    
-    # For each rank, pick the candidate with highest priority, then lowest conservatism
-    deduplicated_candidates = []
-    for rank, rank_candidates in rank_to_candidates.items():
-        if len(rank_candidates) == 1:
-            deduplicated_candidates.append(rank_candidates[0])
-        else:
-            # Sort by priority (1=fast_mode first), then conservatism (lower first)
-            best = min(rank_candidates, key=lambda c: (c["priority"], c["conservatism_score"]))
-            # Add dedup info to name
-            policies = [c["policy_type"] for c in rank_candidates]
-            best["name"] = f"{best['name']}_r{rank}" if len(set(policies)) > 1 else best["name"]
-            best["dedup_note"] = f"Deduplicated from: {', '.join(set(policies))}"
-            deduplicated_candidates.append(best)
-    
-    # Step 2: Filter by mode (fast_mode keeps only priority=1)
-    if fast_mode:
-        filtered_candidates = [c for c in deduplicated_candidates if c["priority"] == 1]
-    else:
-        filtered_candidates = deduplicated_candidates
-    
-    # Step 3: Cap candidates by conservatism/diversity
-    if len(filtered_candidates) > max_candidates:
-        # Sort by conservatism score for diversity (keep range of conservative to aggressive)
-        filtered_candidates.sort(key=lambda c: c["conservatism_score"])
-        
-        # Take every N-th to ensure diversity across conservatism spectrum
-        step = len(filtered_candidates) / max_candidates
-        capped_candidates = []
-        for i in range(max_candidates):
-            idx = int(i * step)
-            capped_candidates.append(filtered_candidates[idx])
-        filtered_candidates = capped_candidates
-    
-    # Convert to compression_configs format
-    compression_configs = {}
-    for candidate in filtered_candidates:
-        compression_configs[candidate["name"]] = {
-            "variant": candidate["name"],
-            "suggested_r": candidate["suggested_r"],
-            "actual_r": candidate["actual_r"],
-            "rank_pattern": {},  # Uniform variants
-            "alpha_pattern": {},
-            "config": candidate["config"],
-            "status": "ready",
-            "reason": candidate.get("dedup_note"),
-            "policy_type": candidate["policy_type"],
-            "conservatism_score": candidate["conservatism_score"]
-        }
-    
-    # Add per-layer candidate if available and different from uniform candidates
-    per_layer_suggestions = audit_data.get("per_layer_suggestions")
-    # Only add per_layer if requested and available (not in fast_mode by default)
-    if per_layer_suggestions and (not fast_mode or len(filtered_candidates) < max_candidates):
-        rank_pattern = per_layer_suggestions["rank_pattern"]
-        
-        # Clamp ranks to allowed values
-        clamped_rank_pattern = {}
-        for module_name, suggested_r in rank_pattern.items():
-            clamped_r = min(suggested_r, probe_rank)
-            # Round to nearest allowed rank
-            valid_ranks = [r for r in allowed_ranks if r <= clamped_r]
-            if valid_ranks:
-                clamped_rank_pattern[module_name] = max(valid_ranks)
-            else:
-                clamped_rank_pattern[module_name] = min(allowed_ranks) if allowed_ranks else 1
-        
-        # Check if per-layer is different from uniform candidates
-        avg_rank = sum(clamped_rank_pattern.values()) / len(clamped_rank_pattern) if clamped_rank_pattern else 0
-        rounded_avg = round_to_allowed_ranks(avg_rank, allowed_ranks)
-        
-        # Only include if sufficiently different from uniform candidates
-        uniform_ranks = {c["actual_r"] for c in filtered_candidates}
-        if rounded_avg not in uniform_ranks and rounded_avg < probe_rank:
-            alpha_pattern = {name: rank for name, rank in clamped_rank_pattern.items()}
-            compression_configs["per_layer"] = {
-                "variant": "per_layer",
-                "suggested_r": avg_rank,
-                "actual_r": rounded_avg,
-                "rank_pattern": clamped_rank_pattern,
-                "alpha_pattern": alpha_pattern,
-                "config": {
-                    **lora_config,
-                    "probe_r": None,  # Per-layer uses rank_pattern
-                    "alpha": None,
-                },
-                "status": "ready",
-                "reason": None,
-                "policy_type": "per_layer",
-                "conservatism_score": 2.0  # Medium conservatism
-            }
-    
-    # Skip legacy SVD and per_layer_shuffled logic - handled by policy system above
-    # All candidate generation is now done, proceed to final filtering
-    
-    # NOTE: Old logic below is disabled but left for reference
-    # The new policy system handles all candidate generation above
-    try:
-        pass  # Placeholder - old logic removed
-    except Exception:
-        pass  # Handle any remaining old logic gracefully
-    
-    # Jump directly to final candidate control section
-    # (All legacy logic removed - policy system above handles everything)
-    pass  # No additional processing needed - policy system handles everything
-
-# D) per_layer_shuffled (control for mechanism testing)
-    # Create shuffled control only if we have a successful per_layer variant
-    if ("per_layer" in compression_configs and 
-        compression_configs["per_layer"]["status"] == "ready"):
-        
-        original_rank_pattern = compression_configs["per_layer"]["rank_pattern"]
-        shuffled_rank_pattern = _create_shuffled_rank_pattern(
-            original_rank_pattern, 
-            seed=config.get("train", {}).get("seed", 42)
-        )
-        
-        # Create alpha pattern matching the shuffled ranks
-        shuffled_alpha_pattern = {}
-        for module_name, suggested_r in shuffled_rank_pattern.items():
-            if suggested_r > 0:  # Only for active modules
-                shuffled_alpha_pattern[module_name] = suggested_r
-        
-        # Normalize patterns
-        shuffled_rank_pattern = normalize_rank_pattern(shuffled_rank_pattern)
-        shuffled_alpha_pattern = normalize_alpha_pattern(shuffled_alpha_pattern)
-        
-        compression_configs["per_layer_shuffled"] = {
-            "variant": "per_layer_shuffled",
-            "suggested_r": len(shuffled_rank_pattern),
-            "actual_r": len([r for r in shuffled_rank_pattern.values() if r > 0]),
-            "rank_pattern": shuffled_rank_pattern,
-            "alpha_pattern": shuffled_alpha_pattern,
-            # Attach same audit metadata for consistency
-            "_audit_layers": audit_data.get("layers", []),
-            "_probe_rank": probe_rank,
-            "_shuffle_seed": config.get("train", {}).get("seed", 42) + 10000,  # Deterministic offset
-            "config": {
-                **lora_config,
-                "rank_pattern": shuffled_rank_pattern,
-                "alpha_pattern": shuffled_alpha_pattern,
-                "probe_r": None,  
-                "alpha": None,
-            },
-            "status": "ready",
-            "reason": "Shuffled control for audit-guided per-layer variant"
-        }
-    else:
-        # No per_layer to shuffle
-        compression_configs["per_layer_shuffled"] = {
-            "variant": "per_layer_shuffled",
-            "suggested_r": None,
-            "actual_r": None,
-            "rank_pattern": {},
-            "alpha_pattern": {},
-            "config": None,
-            "status": "SKIPPED",
-            "reason": "No per-layer variant to create shuffled control from"
-        }
-    
-    # D) SVD truncation variants (both legacy and new format)
-    
-    # Legacy format support: enable_svd_variants + svd_ranks
-    if compression_config.get("enable_svd_variants", False):
-        svd_ranks = compression_config.get("svd_ranks", [])
-        for rank in svd_ranks:
-            if rank >= probe_rank:
-                # Skip if no compression would happen
-                compression_configs[f"svd_trunc_r{rank}"] = {
-                    "variant": f"svd_trunc_r{rank}",
-                    "suggested_r": rank,
-                    "actual_r": rank,
-                    "rank_pattern": {},
-                    "alpha_pattern": {},
-                    "config": None,
-                    "status": "skipped",
-                    "reason": f"SVD truncation rank r={rank} >= probe rank r={probe_rank} (no compression)"
-                }
-            else:
-                compression_configs[f"svd_trunc_r{rank}"] = {
-                    "variant": f"svd_trunc_r{rank}",
-                    "suggested_r": rank,
-                    "actual_r": rank,
-                    "rank_pattern": {},
-                    "alpha_pattern": {},
-                    "config": {
-                        **lora_config,
-                        "probe_r": rank,  # Use truncated rank
-                        "alpha": rank,    # Preserve alpha=r scaling
-                    },
-                    "status": "ready",
-                    "reason": f"SVD truncation from r={probe_rank} to r={rank}",
-                    "compression_method": "svd_truncation",
-                    "source_rank": probe_rank
-                }
-
-    # New format: compression.variants array (Step 3.1 enhancement)
-    compression_variants = compression_config.get("variants", [])
-    for variant_def in compression_variants:
-        variant_name = variant_def.get("name")
-        method = variant_def.get("method")
-        
-        if method == "svd_truncate":
-            svd_variant_config = generate_svd_variant_config(
-                variant_def, audit_data, probe_rank, lora_config, allowed_ranks
-            )
-            compression_configs[variant_name] = svd_variant_config
-    
-    # Apply final candidate control (remove old logic artifacts and enforce caps)
-    final_configs = {}
-    
-    # First, collect configs from my new system only
-    for name, config in compression_configs.items():
-        if config.get("policy_type") in ["energy", "knee", "erank", "oht", "legacy", "per_layer"]:
-            final_configs[name] = config
-    
-    # Apply capping if we have too many
-    if len(final_configs) > max_candidates:
-        # Sort by conservatism for diversity
-        sorted_configs = sorted(final_configs.items(), key=lambda x: x[1].get("conservatism_score", 999))
-        
-        # Take every N-th for diversity
-        step = len(sorted_configs) / max_candidates
-        capped_configs = {}
-        for i in range(max_candidates):
-            idx = int(i * step)
-            name, config = sorted_configs[idx]
-            capped_configs[name] = config
-        final_configs = capped_configs
-    
-    # Print candidate summary
-    if len(final_configs) > 0:
-        print(f"📊 Bench candidate control: {len(final_configs)} variants generated")
-        if fast_mode:
-            print("   Mode: FAST (energy_p90, knee_p90, erank_p90)")
-        else:
-            print(f"   Mode: FULL (capped at {max_candidates})")
-        
-        rank_summary = {}
-        for name, config in final_configs.items():
-            r = config["actual_r"]
-            if r not in rank_summary:
-                rank_summary[r] = []
-            rank_summary[r].append(name)
-        
-        for rank in sorted(rank_summary.keys(), key=lambda x: (x is None, x)):
-            variants = rank_summary[rank]
-            if len(variants) > 1:
-                print(f"   r={rank}: {', '.join(variants)} (deduplicated)")
-            else:
-                print(f"   r={rank}: {variants[0]}")
-        print()
-    
-    return final_configs
-
-
-def gather_environment_info() -> Dict[str, Any]:
-    """Gather comprehensive environment information for self-describing bench reports."""
-    import platform
-    import os
-    
-    env_info = {
-        "python_version": sys.version.split()[0],
-        "python_implementation": platform.python_implementation(),
-        "platform": platform.platform(),
-        "architecture": platform.architecture()[0],
-        "hostname": platform.node(),
-    }
-    
-    # Package versions
-    packages = ["torch", "transformers", "peft", "datasets", "accelerate", "safetensors", "numpy"]
-    for package in packages:
-        try:
-            module = __import__(package)
-            env_info[f"{package}_version"] = module.__version__
-        except ImportError:
-            env_info[f"{package}_version"] = "not_installed"
-        except AttributeError:
-            env_info[f"{package}_version"] = "version_unavailable"
-    
-    # PyTorch and CUDA information
-    try:
-        import torch
-        env_info["torch_version"] = torch.__version__
-        env_info["cuda_available"] = torch.cuda.is_available()
-        
-        if torch.cuda.is_available():
-            env_info["cuda_version"] = torch.version.cuda
-            env_info["cudnn_version"] = torch.backends.cudnn.version()
-            env_info["cuda_device_count"] = torch.cuda.device_count()
-            
-            # GPU information
-            gpu_info = []
-            for i in range(torch.cuda.device_count()):
-                props = torch.cuda.get_device_properties(i)
-                gpu_info.append({
-                    "device_id": i,
-                    "name": props.name,
-                    "total_memory": props.total_memory,
-                    "major": props.major,
-                    "minor": props.minor,
-                    "multi_processor_count": props.multi_processor_count
-                })
-            env_info["gpu_devices"] = gpu_info
-            
-            # Current device and memory
-            if torch.cuda.current_device() is not None:
-                current_device = torch.cuda.current_device()
-                env_info["current_cuda_device"] = current_device
-                env_info["cuda_memory_allocated"] = torch.cuda.memory_allocated(current_device)
-                env_info["cuda_memory_reserved"] = torch.cuda.memory_reserved(current_device)
-        else:
-            env_info["cuda_version"] = None
-            env_info["gpu_devices"] = []
-            
-    except ImportError:
-        env_info["torch_version"] = "not_installed"
-        env_info["cuda_available"] = False
-        env_info["cuda_version"] = None
-        env_info["gpu_devices"] = []
-    
-    # Environment variables that affect reproducibility
-    relevant_env_vars = [
-        "CUDA_VISIBLE_DEVICES", "HF_HOME", "HF_HUB_CACHE", "HF_DATASETS_CACHE",
-        "TORCH_HOME", "TRANSFORMERS_CACHE", "TOKENIZERS_PARALLELISM",
-        "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"
-    ]
-    
-    env_vars = {}
-    for var in relevant_env_vars:
-        value = os.environ.get(var)
-        if value is not None:
-            env_vars[var] = value
-    env_info["environment_variables"] = env_vars
-    
-    return env_info
-
-
-def get_git_commit() -> Optional[str]:
-    """Get the current git commit hash."""
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
-        pass
-    return None
-
-
-def get_git_tag() -> Optional[str]:
-    """Get the current git tag or 'dirty' if there are uncommitted changes."""
-    try:
-        # Check if working directory is dirty
-        result = subprocess.run(
-            ["git", "diff", "--quiet"],
-            capture_output=True,
-            timeout=5
-        )
-        if result.returncode != 0:
-            return "dirty"
-        
-        # Check if there are staged changes
-        result = subprocess.run(
-            ["git", "diff", "--cached", "--quiet"],
-            capture_output=True,
-            timeout=5
-        )
-        if result.returncode != 0:
-            return "dirty"
-        
-        # Get the exact tag for current commit
-        result = subprocess.run(
-            ["git", "describe", "--exact-match", "--tags"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-        
-        # If no exact tag, get the most recent tag with distance
-        result = subprocess.run(
-            ["git", "describe", "--tags", "--abbrev=7"],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-            
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
-        pass
-    return None
-
-
-def get_hf_model_revision(model_id: str) -> Optional[Dict[str, str]]:
-    """Get the revision hash for a HuggingFace model."""
-    try:
-        from huggingface_hub import model_info
-        info = model_info(model_id)
-        return {
-            "model_id": model_id,
-            "revision": info.sha,
-            "last_modified": info.lastModified.isoformat() if info.lastModified else None
-        }
-    except Exception:
-        return {
-            "model_id": model_id,
-            "revision": "unknown",
-            "last_modified": None
-        }
-
-
-def get_dataset_revision(dataset_id: str, split: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """Get the revision hash and split information for a HuggingFace dataset."""
-    try:
-        from huggingface_hub import dataset_info
-        from datasets import load_dataset_builder
-        
-        # Get dataset info from hub
-        info = dataset_info(dataset_id)
-        
-        # Get split sizes
-        builder = load_dataset_builder(dataset_id)
-        split_info = {}
-        if hasattr(builder, 'info') and hasattr(builder.info, 'splits'):
-            for split_name, split_details in builder.info.splits.items():
-                split_info[split_name] = split_details.num_examples
-        
-        return {
-            "dataset_id": dataset_id,
-            "revision": info.sha,
-            "last_modified": info.lastModified.isoformat() if info.lastModified else None,
-            "split_sizes": split_info,
-            "requested_split": split
-        }
-    except Exception as e:
-        return {
-            "dataset_id": dataset_id,
-            "revision": "unknown",
-            "last_modified": None,
-            "split_sizes": {},
-            "requested_split": split,
-            "error": str(e)
-        }
-
-
-def extract_model_dataset_info(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Extract model and dataset information from the bench config."""
-    metadata = {}
-    
-    # Extract model information
-    model_id = config.get("model_id")
-    if model_id:
-        metadata["model_info"] = get_hf_model_revision(model_id)
-    
-    # Extract dataset information
-    dataset_config = config.get("dataset", {})
-    if isinstance(dataset_config, dict):
-        dataset_id = dataset_config.get("name")
-        split = dataset_config.get("split")
-        if dataset_id:
-            metadata["dataset_info"] = get_dataset_revision(dataset_id, split)
-    
-    return metadata
-
-
-def get_primary_metric_key(config: Dict[str, Any]) -> str:
-    """Determine the primary evaluation metric based on the task configuration."""
-    task_config = config.get("task", {})
-    dataset_name = task_config.get("dataset", "").lower()
-    
-    # Dataset-specific metric mappings
-    if dataset_name == "gsm8k":
-        return "eval_exact_match"
-    elif dataset_name in ["glue", "cola", "sst2", "mrpc", "qqp", "mnli", "qnli", "rte", "wnli"]:
-        return "eval_accuracy"
-    else:
-        # Default fallback
-        return "eval_accuracy"
-
-
-def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=None) -> float:
-    """
-    Extract accuracy metric from evaluation results with robust fallback.
-    
-    Priority:
-    1. task_profile.primary_metric_key (if available)
-    2. Fallback sequence: eval_accuracy, eval_exact_match, accuracy, exact_match
-    
-    Args:
-        eval_results: Dictionary of evaluation metrics
-        task_profile: TaskProfile instance (optional)
-        
-    Returns:
-        float: Accuracy value (0.0 if not found)
-    """
-    # Try task profile primary metric key first
-    if task_profile and hasattr(task_profile, 'primary_metric_key'):
-        primary_key = task_profile.primary_metric_key
-        if primary_key in eval_results:
-            return eval_results[primary_key]
-    
-    # Fallback sequence
-    fallback_keys = ["eval_accuracy", "eval_exact_match", "accuracy", "exact_match"]
-    for key in fallback_keys:
-        if key in eval_results:
-            return eval_results[key]
-    
-    return 0.0
-
-
-def create_config_hash(config: Dict[str, Any]) -> str:
-    """Create a stable hash of the configuration for reference."""
-    import hashlib
-    import json
-    
-    # Create a stable string representation
-    config_str = json.dumps(config, sort_keys=True, separators=(',', ':'))
-    return hashlib.sha256(config_str.encode()).hexdigest()[:16]
-
-
-def create_canonical_bench_report(
-    probe_results: Dict[str, Any],
-    variant_results: Dict[str, Dict[str, Any]],
-    verdict_analysis: Dict[str, Any],
-    audit_data: Dict[str, Any],
-    compression_configs: Dict[str, Dict[str, Any]],
-    config: Dict[str, Any],
-    output_dir: Path
-) -> Dict[str, Any]:
-    """
-    Create the canonical bench.json report according to specification.
-    """
-    
-    # Gather metadata
-    timestamp = datetime.datetime.now().isoformat()
-    git_commit = get_git_commit()
-    git_tag = get_git_tag()
-    env_info = gather_environment_info()
-    
-    # Add git information to environment
-    env_info["git_commit"] = git_commit
-    env_info["git_tag"] = git_tag
-    
-    # Extract model and dataset revision information
-    model_dataset_metadata = extract_model_dataset_info(config)
-    env_info.update(model_dataset_metadata)
-    
-    # Add validation classification to environment info
-    validation_classification = verdict_analysis.get("validation_classification", {})
-    env_info["validation_classification"] = validation_classification
-    
-    # Check if probe was undertrained
-    probe_quality_status = verdict_analysis.get("probe_quality_status")
-    
-    if probe_quality_status in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]:
-        # Create minimal bench.json for undertrained probe
-        probe_data = probe_results.get("probe", {})
-        
-        # Add instrumentation sections if available (even for undertrained probes)
-        instrumentation = {}
-        
-        # UDR instrumentation (if present)
-        udr_instrumentation = audit_data.get("udr_instrumentation")
-        if udr_instrumentation:
-            instrumentation["udr"] = udr_instrumentation
-        
-        # Composition analysis (if enabled in config)
-        composition_data = audit_data.get("composition")
-        if composition_data:
-            instrumentation["composition"] = composition_data
-        
-        minimal_report = {
-            "bench_version": config.get("bench_version", "0.1"),
-            "timestamp": timestamp,
-            "git_commit": git_commit,
-            "env": env_info,
-            "model": config["model"]["name"],
-            "task": f"{config['task']['dataset']}/{config['task']['subset']}",
-            "status": probe_quality_status,
-            "probe_quality_gate": {
-                "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
-                "metric_value": probe_data.get("accuracy"),
-                "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
-                "passed": False
-            },
-            "probe": {
-                "rank": probe_data.get("rank"),
-                "params": probe_data.get("params"),
-                "accuracy": probe_data.get("accuracy"),
-                "threshold_required": verdict_analysis.get("summary", {}).get("probe_threshold")
-            },
-            "compressed": {},
-            "summary": {
-                "probe_quality": "FAILED",
-                "recommendations_validated": "N/A",
-                "best_compression": None,
-                "notes": verdict_analysis.get("summary", {}).get("notes", [])
-            },
-            "config_metadata": {
-                "primary_metric_key": get_primary_metric_key(config),
-                "config_hash": create_config_hash(config),
-                "embedded_config": config  # Complete configuration for reproducibility
-            }
-        }
-        
-        # Add instrumentation if available
-        if instrumentation:
-            minimal_report["instrumentation"] = instrumentation
-        
-        return minimal_report
-    
-    # Extract probe summary metrics from audit
-    probe_summary = audit_data.get("summary", {})
-    probe_baseline = verdict_analysis["probe_baseline"]
-    
-    # Build compressed section
-    compressed = {}
-    for variant_name, result in variant_results.items():
-        if result["status"] == "completed":
-            verdict_info = verdict_analysis["verdicts"][variant_name]
-            
-            if variant_name in ["per_layer", "per_layer_shuffled"]:
-                # Count non-default ranks in the pattern from compression_configs
-                compression_config = compression_configs.get(variant_name, {})
-                rank_pattern = compression_config.get("rank_pattern", {})
-                rank_pattern_nondefault = len([r for r in rank_pattern.values() if r > 0]) if rank_pattern else result.get("rank", 0)
-                
-                compressed[variant_name] = {
-                    "rank_pattern_nondefault": rank_pattern_nondefault,
-                    "params": result["params"],
-                    "accuracy": result["accuracy"],
-                    "delta_vs_probe": verdict_info["delta_vs_probe"],
-                    "param_reduction": verdict_info["param_reduction"],
-                    "verdict": verdict_info["verdict"]
-                }
-                
-                # Include rank_check results if available
-                if "rank_check" in result:
-                    rank_check = result["rank_check"]
-                    # Only include essential fields for the canonical report
-                    compressed[variant_name]["rank_check"] = {
-                        "passed": rank_check.get("passed"),
-                        "unique_ranks": rank_check.get("unique_ranks"),
-                        "rank_histogram": rank_check.get("rank_histogram"),
-                        "total_modules": rank_check.get("total_modules")
-                    }
-            elif result.get("compression_method") == "svd_truncation":
-                # SVD truncation variants
-                compression_config = compression_configs.get(variant_name, {})
-                
-                # Build compression metadata as requested in Step 3.4
-                compression_metadata = {
-                    "method": "svd_truncate",
-                    "rank_source": get_rank_source_from_config(compression_config),
-                    "target_rank": result["rank"],
-                    "source_rank": result.get("source_rank"),
-                    "alpha_mode": "keep_ratio",  # Currently hardcoded, could be configurable
-                    "energy_retained": result.get("energy_retained"),
-                    "compression_ratio": result.get("compression_ratio"),
-                    "truncation_modules": result.get("truncation_modules"),
-                    "retained_energy_mean": result.get("energy_retained")  # Placeholder for future use
-                }
-                
-                # Add post-tuning info if applicable
-                if result.get("post_tuned", False):
-                    compression_metadata["post_tune"] = result.get("post_tune_config", {
-                        "enabled": True,
-                        "steps": 100,  # Default fallback
-                        "lr_scale": 0.1
-                    })
-                else:
-                    compression_metadata["post_tune"] = {"enabled": False}
-                
-                compressed[variant_name] = {
-                    "rank": result["rank"],
-                    "params": result["params"],
-                    "accuracy": result["accuracy"],
-                    "delta_vs_probe": verdict_info["delta_vs_probe"],
-                    "param_reduction": verdict_info["param_reduction"],
-                    "verdict": verdict_info["verdict"],
-                    "compression": compression_metadata
-                }
-            else:
-                # Uniform variants (non-SVD)
-                compressed[variant_name] = {
-                    "rank": result["rank"],
-                    "params": result["params"],
-                    "accuracy": result["accuracy"],
-                    "delta_vs_probe": verdict_info["delta_vs_probe"],
-                    "param_reduction": verdict_info["param_reduction"],
-                    "verdict": verdict_info["verdict"]
-                }
-    
-    # Calculate summary statistics
-    completed_variants = [v for v in variant_results.values() if v["status"] == "completed"]
-    passed_variants = [v for v in verdict_analysis["verdicts"].values() if v["verdict"] == "PASS"]
-    recommendations_validated = f"{len(passed_variants)}/{len(completed_variants)}"
-    
-    best_compression = verdict_analysis.get("best_compression")
-    best_compression_variant = best_compression["variant"] if best_compression else None
-    
-    # Construct notes
-    notes = []
-    if best_compression_variant == "per_layer":
-        notes.append("per_layer applied successfully (verified via adapter shapes)")
-    elif best_compression_variant == "per_layer_shuffled":
-        notes.append("per_layer_shuffled control applied successfully")
-    
-    # Extract UDR instrumentation if available
-    udr_instrumentation = {}
-    if probe_summary.get("n_layers_with_udr", 0) > 0:
-        udr_instrumentation = {
-            "udr_median": probe_summary.get("udr_median"),
-            "udr_p90": probe_summary.get("udr_p90"),
-            "udr_max": probe_summary.get("udr_max"),
-            "fraction_udr_gt_0_3": probe_summary.get("fraction_udr_gt_0_3"),
-            "n_layers_with_udr": probe_summary.get("n_layers_with_udr")
-        }
-        
-        # Add top-5 modules by UDR for debugging value
-        audit_layers = audit_data.get("layers", [])
-        if audit_layers:
-            # Sort layers by UDR, take top 5
-            layers_with_udr = [l for l in audit_layers if l.get("udr") is not None]
-            layers_with_udr.sort(key=lambda x: x["udr"], reverse=True)
-            top_5_modules = [
-                {
-                    "name": layer["name"], 
-                    "udr": round(layer["udr"], 4),
-                    "rank": layer.get("r", "unknown")
-                } 
-                for layer in layers_with_udr[:5]
-            ]
-            if top_5_modules:
-                udr_instrumentation["top_modules"] = top_5_modules
-    
-    # Build the canonical report
-    report = {
-        "bench_version": config.get("bench_version", "0.1"),
-        "timestamp": timestamp,
-        "git_commit": git_commit,
-        "env": env_info,
-        "model": config["model"]["name"],
-        "task": f"{config['task']['dataset']}/{config['task']['subset']}",
-        "probe_quality_gate": {
-            "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
-            "metric_value": probe_results["probe"]["accuracy"],
-            "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
-            "passed": verdict_analysis.get("probe_quality_status") not in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]
-        },
-        "probe": {
-            "rank": probe_results["probe"]["rank"],
-            "params": probe_results["probe"]["params"],
-            "accuracy": probe_results["probe"]["accuracy"],
-            "utilization_mean": probe_summary.get("utilization_mean"),
-            "energy_rank_90_p50": probe_summary.get("energy_rank_90_p50"),
-            "energy_rank_90_p90": probe_summary.get("energy_rank_90_p90"),
-            "suggested_r_global_median": probe_summary.get("suggested_r_global_median"),
-            "suggested_r_global_90": probe_summary.get("suggested_r_global_90")
-        },
-        "compressed": compressed,
-        "summary": {
-            "recommendations_validated": recommendations_validated,
-            "best_compression": best_compression_variant,
-            "notes": notes
-        },
-        "config_metadata": {
-            "primary_metric_key": get_primary_metric_key(config),
-            "config_hash": create_config_hash(config),
-            "embedded_config": config  # Complete configuration for reproducibility
-        }
-    }
-    
-    # Add instrumentation sections if available
-    instrumentation = {}
-    
-    # UDR instrumentation
-    if udr_instrumentation:
-        instrumentation["udr"] = udr_instrumentation
-    
-    # Composition analysis (if enabled in config)
-    composition_data = audit_data.get("composition")
-    if composition_data:
-        instrumentation["composition"] = composition_data
-    
-    # Gain metrics summary
-    gain_summary = audit_data.get("summary", {}).get("gain")
-    if gain_summary:
-        instrumentation["gain"] = gain_summary
-    
-    # Add instrumentation section if we have any data
-    if instrumentation:
-        report["instrumentation"] = instrumentation
-    
-    # Add protocol invariants for aggregation
-    probe_gate_data = report["probe_quality_gate"]
-    report["protocol_invariants"] = {
-        "probe_quality_gate": {
-            "status": "PASSED" if probe_gate_data["passed"] else "FAILED",
-            "message": f"Probe {probe_gate_data['metric_key']} {probe_gate_data['metric_value']:.4f} {'≥' if probe_gate_data['passed'] else '<'} {probe_gate_data['min_value']:.4f}",
-            "metric_key": probe_gate_data["metric_key"],
-            "metric_value": probe_gate_data["metric_value"],
-            "min_value": probe_gate_data["min_value"]
-        }
-    }
-    
-    # Schema normalization: ensure "compressed" field is always present
-    report.setdefault("compressed", {})
-    
-    return report
-
-
-def create_markdown_report(
-    canonical_report: Dict[str, Any],
-    config: Dict[str, Any],
-    output_dir: Path
-) -> str:
-    """
-    Create bench.md human-readable markdown report.
-    """
-    
-    # Extract data from canonical report
-    model = canonical_report["model"]
-    task = canonical_report["task"]
-    timestamp = canonical_report["timestamp"]
-    probe_data = canonical_report["probe"]
-    compressed_data = canonical_report.get("compressed", {}) or {}
-    summary = canonical_report["summary"]
-    instrumentation = canonical_report.get("instrumentation", {})
-    
-    # Extract validation classification
-    validation_classification = canonical_report.get("env", {}).get("validation_classification", {})
-    validation_level = validation_classification.get("level", "unknown")
-    validation_rationale = validation_classification.get("rationale", "Not specified")
-    
-    # Build markdown content
-    md_content = f"""# Gradience Bench v{canonical_report["bench_version"]}
-
-- **Model:** {model}
-- **Task:** {task}
-- **Validation Level:** {validation_level.title()}
-  - *{validation_rationale}*
-
-## Probe
-
-- **Rank:** {probe_data["rank"]}
-- **LoRA params:** {probe_data["params"]:,}
-- **Accuracy:** {probe_data["accuracy"]:.3f}
-
-## Compression results
-
-| Variant | Params | Accuracy | Δ vs probe | Param reduction | Verdict |
-|---|---:|---:|---:|---:|---|
-"""
-
-    # Add results table rows
-    for variant_name, data in compressed_data.items():
-        params = f"{data['params']:,}" if data['params'] else "n/a"
-        accuracy = f"{data['accuracy']:.3f}" if data['accuracy'] is not None else "n/a"
-        delta = f"{data['delta_vs_probe']:+.3f}" if data['delta_vs_probe'] is not None else "n/a"
-        reduction = f"{data['param_reduction']:.1%}" if data['param_reduction'] is not None else "n/a"
-        verdict = data['verdict']
-        
-        # Format variant name for display
-        if variant_name == "per_layer":
-            variant_display = "`per_layer`"
-        elif variant_name == "per_layer_shuffled":
-            variant_display = "`per_layer_shuffled`"
-        elif variant_name == "uniform_median":
-            variant_display = "`uniform_median`"
-        elif variant_name == "uniform_p90":
-            variant_display = "`uniform_p90`"
-        elif variant_name == "uniform_p90_control":
-            variant_display = "`uniform_p90_control`"
-        else:
-            variant_display = f"`{variant_name}`"
-        
-        md_content += f"| {variant_display} | {params} | {accuracy} | {delta} | {reduction} | {verdict} |\n"
-    
-    # Add interpretation section
-    acc_tolerance = config.get("compression", {}).get("acc_tolerance", 0.005)
-    
-    # Create validation-level-specific interpretation
-    if validation_level == "certifiable":
-        interpretation_header = "## Interpretation (Certifiable)"
-        validation_note = "- **Certifiable results** - Multi-seed validation with statistical rigor suitable for production decisions"
-    elif validation_level == "screening_plus":
-        interpretation_header = "## Interpretation (Screening+)"  
-        validation_note = "- **Enhanced screening** - Multi-seed but limited budget/seeds, good for development decisions"
-    else:  # screening
-        interpretation_header = "## Interpretation (Screening Only)"
-        validation_note = "- **Screening only** - Single-seed validation, suitable for rapid development iteration"
-    
-    md_content += f"""
-
-{interpretation_header}
-
-{validation_note}
-- **PASS** means the compressed model didn't hurt accuracy beyond tolerance (±{acc_tolerance:.3f})
-- **FAIL** means accuracy dropped more than the tolerance threshold
-- You should still validate these results on your real workload before deployment
-- Parameter reduction shows the percentage decrease in trainable LoRA parameters
-"""
-
-    # Add magnitude diagnostics if instrumentation data is available
-    composition = instrumentation.get("composition", {})
-    gain_summary = instrumentation.get("gain", {})
-    
-    if gain_summary or composition:
-        md_content += """
-## Magnitude diagnostics (LoRA ΔW)
-
-"""
-        
-        # Overall magnitude metrics
-        if gain_summary:
-            delta_fro_mean = gain_summary.get("delta_fro_mean")
-            delta_op_mean = gain_summary.get("delta_op_mean")
-            if delta_fro_mean is not None or delta_op_mean is not None:
-                md_content += "### Update magnitude\n\n"
-                if delta_fro_mean is not None:
-                    md_content += f"- **Mean ||ΔW||_F:** {delta_fro_mean:.6f}\n"
-                if delta_op_mean is not None:
-                    md_content += f"- **Mean ||ΔW||_2:** {delta_op_mean:.6f}\n"
-                md_content += "\n"
-        
-        # Top 5 layers by energy concentration (if composition analysis available)
-        if composition and composition.get("top_k", {}).get("layers"):
-            md_content += "### Top 5 layers by Δ energy\n\n"
-            top_layers = composition["top_k"]["layers"][:5]  # Ensure max 5
-            
-            for i, layer_info in enumerate(top_layers, 1):
-                layer_num = layer_info["layer"]
-                share = layer_info["share"]
-                energy = layer_info["energy_fro2"]
-                md_content += f"{i}. **Layer {layer_num}:** {share:.1%} ({energy:.6f})\n"
-            md_content += "\n"
-        
-        # Energy concentration summary (if composition analysis available)
-        if composition:
-            top_10pct_share = composition.get("top_10pct", {}).get("share")
-            concentration_index = composition.get("concentration_index")
-            if top_10pct_share is not None or concentration_index is not None:
-                md_content += "### Energy concentration\n\n"
-                if top_10pct_share is not None:
-                    n_layers = composition.get("top_10pct", {}).get("n", 0)
-                    md_content += f"- **Top-{n_layers} layers (10%):** {top_10pct_share:.1%} of energy\n"
-                if concentration_index is not None:
-                    md_content += f"- **Concentration index (HHI):** {concentration_index:.3f}\n"
-                    # Simple interpretation
-                    if concentration_index > 0.4:
-                        md_content += "- 🚨 **Highly concentrated** adaptation\n"
-                    elif concentration_index > 0.25:
-                        md_content += "- ⚠️ **Moderately concentrated** adaptation\n"
-                    else:
-                        md_content += "- ✅ **Well distributed** adaptation\n"
-                md_content += "\n"
-        elif gain_summary:
-            # Show note that composition analysis was disabled
-            md_content += "### Energy concentration\n\n"
-            md_content += "- *Composition analysis disabled in config (audit.enable_composition_analysis: false)*\n\n"
-
-    md_content += f"""
-## Summary
-
-- **Recommendations validated:** {summary["recommendations_validated"]}
-- **Best compression:** {summary["best_compression"] or "None"}
-
-*Generated on {timestamp[:19].replace('T', ' ')}*
-"""
-
-    return md_content
 
 
 def run_svd_truncation_variant(
@@ -2356,14 +1091,14 @@ def run_svd_truncation_variant(
         # Add post-tuning details if applicable
         if post_tuned:
             result["post_tune_config"] = {
-                "steps": post_tune_config.get("steps", 100),
-                "lr_scale": post_tune_config.get("lr_scale", 0.1),
+                "steps": post_tune_config.get("steps", DEFAULT_POST_TUNE_STEPS),
+                "lr_scale": post_tune_config.get("lr_scale", DEFAULT_POST_TUNE_LR_SCALE),
                 "warmup_steps": post_tune_config.get("warmup_steps", 0)
             }
         
         return result
         
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: SVD truncation pipeline has diverse failure modes
         print(f"❌ SVD truncation failed: {e}")
         import traceback
         traceback.print_exc()
@@ -2382,7 +1117,9 @@ def run_compressed_variant_training(
     output_dir: str | Path,
     variant_name: str,
     compression_config: Dict[str, Any],
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.5: Train a single compressed variant.
@@ -2479,18 +1216,52 @@ def run_compressed_variant_training(
     trainer.args.logging_dir = str(variant_dir / "logs")
     
     # Train the model
-    print(f"Starting {variant_name} training (r={actual_r})...")
-    print(f"Output dir: {variant_dir}")
-    print(f"Max steps: {max_steps}")
-    print(f"Device: {device}")
+    # Check if variant training can be skipped
+    skip_variant = resume and stage_manager and stage_manager.should_skip_variant_training(variant_name)
     
-    trainer.train()
+    if not skip_variant:
+        print(f"Starting {variant_name} training (r={actual_r})...")
+        print(f"Output dir: {variant_dir}")
+        print(f"Max steps: {max_steps}")
+        print(f"Device: {device}")
+        
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_training(f"train_{variant_name}", output_dir=variant_dir, seed=seed) as stage:
+            stage.progress(f"Starting {variant_name} training")
+            trainer.train()
+            stage.progress(f"{variant_name} training completed")
+        
+        # Mark training as completed early (before evaluation in case it fails)
+        if stage_manager:
+            stage_manager.mark_variant_completed(variant_name, {
+                "actual_r": actual_r,
+                "max_steps": max_steps,
+                "output_dir": str(variant_dir)
+            })
+    else:
+        # Skip training, will load existing results
+        print(f"Skipping {variant_name} training - already completed")
 
     # Ensure adapter exists on disk for audit (save_strategy may be "no")
-    _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
+    with monitor_file_operations(f"save_{variant_name}_adapter", output_dir=variant_dir) as stage:
+        stage.progress(f"Saving {variant_name} adapter to disk")
+        _save_peft_adapter_only(trainer, model, variant_dir, label=f"variant:{variant_name}")
+        stage.progress(f"{variant_name} adapter saved successfully")
     
-    # Evaluate final model using task profile
-    eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+    # Evaluate final model using task profile (or load existing results)
+    if not skip_variant:
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_evaluation(f"eval_{variant_name}", output_dir=variant_dir, seed=seed) as stage:
+            stage.progress(f"Starting {variant_name} evaluation")
+            eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
+            stage.progress(f"{variant_name} evaluation completed")
+            stage.add_artifact("eval.json")
+    else:
+        # Load existing evaluation results
+        eval_json_path = variant_dir / "eval.json"
+        with open(eval_json_path) as f:
+            eval_results = json.load(f)
+        print(f"Loaded existing evaluation results for {variant_name}: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
     
     # Write eval.json for this variant  
     eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
@@ -2542,6 +1313,10 @@ def run_compressed_variant_training(
                 "output_dir": str(variant_dir),
                 "rank_check": rank_check_result
             }
+        elif rank_check_result.get("degrade_to_uniform", False):
+            print(f"⚠️  RANK DEGENERATION: {rank_check_result['reason']}")
+            print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
+            print(f"   per_layer variant collapsed to uniform - treating as legitimate degeneration")
         else:
             print(f"✅ Rank check passed: {len(rank_check_result['unique_ranks'])} distinct ranks")
             print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
@@ -2581,6 +1356,12 @@ def run_compressed_variant_training(
     # Add rank check results for per-layer variants
     if rank_check_result is not None:
         result["rank_check"] = rank_check_result
+        
+        # If per_layer variant degenerated to uniform, indicate the effective type
+        if rank_check_result.get("degrade_to_uniform", False):
+            result["effective_variant_type"] = "uniform"
+            result["degrade_to_uniform"] = True
+            # Note: variant name stays as per_layer but effective_variant_type shows what it became
     
     return result
 
@@ -2589,7 +1370,9 @@ def run_all_compressed_variants(
     config_path: str | Path,
     output_dir: str | Path,
     compression_configs: Dict[str, Dict[str, Any]],
-    smoke: bool = False
+    smoke: bool = False,
+    stage_manager = None,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Step 3.5: Train and evaluate all compressed variants.
@@ -2616,7 +1399,9 @@ def run_all_compressed_variants(
             output_dir=output_dir,
             variant_name=variant_name,
             compression_config=compression_config,
-            smoke=smoke
+            smoke=smoke,
+            stage_manager=stage_manager,
+            resume=resume
         )
         
         results[variant_name] = result
@@ -2640,17 +1425,17 @@ def classify_validation_level(config: Dict[str, Any]) -> Dict[str, str]:
     max_steps = train_config.get("max_steps", 0)
     
     # Determine validation level
-    if is_multiseed and max_steps >= 200:
-        if len(seeds) >= 3 and max_steps >= 500:
+    if is_multiseed and max_steps >= MIN_STEPS_SCREENING_PLUS:
+        if len(seeds) >= MIN_SEEDS_CERTIFIABLE and max_steps >= MIN_STEPS_CERTIFIABLE:
             classification = "certifiable"
             rationale = f"{len(seeds)} seeds × {max_steps} steps provides statistical rigor"
         else:
             classification = "screening_plus"
             rationale = f"{len(seeds)} seeds × {max_steps} steps (limited budget/seeds)"
     elif is_multiseed:
-        classification = "screening_plus"  
+        classification = "screening_plus"
         rationale = f"{len(seeds)} seeds but only {max_steps} steps (limited budget)"
-    elif max_steps >= 500:
+    elif max_steps >= MIN_STEPS_CERTIFIABLE:
         classification = "screening"
         rationale = f"Single seed, {max_steps} steps (no variance estimation)"
     else:
@@ -2679,7 +1464,7 @@ def compute_verdicts(
     Returns verdict analysis including PASS/FAIL decisions and best compression.
     """
     compression_config = config.get("compression", {})
-    acc_tolerance = compression_config.get("acc_tolerance", 0.005)
+    acc_tolerance = compression_config.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE)
     
     # Classify validation level
     validation_classification = classify_validation_level(config)
@@ -2848,286 +1633,6 @@ def compute_verdicts(
     }
 
 
-def create_multi_seed_aggregated_report(
-    seed_reports: list[Dict[str, Any]], 
-    config: Dict[str, Any], 
-    output_dir: Path
-) -> Dict[str, Any]:
-    """
-    Create aggregated report from multiple seed runs.
-    
-    Returns bench_aggregate.json format with mean ± std statistics.
-    """
-    import numpy as np
-    from datetime import datetime
-    
-    if not seed_reports:
-        raise ValueError("No seed reports provided for aggregation")
-    
-    # Extract metadata from first report
-    base_report = seed_reports[0]
-    timestamp = datetime.utcnow().isoformat() + "Z"
-    
-    # Aggregate probe results
-    probe_accuracies = [r["probe"]["accuracy"] for r in seed_reports]
-    probe_params = [r["probe"]["params"] for r in seed_reports]
-    
-    # Calculate probe statistics
-    probe_acc_mean = float(np.mean(probe_accuracies))
-    probe_acc_std = float(np.std(probe_accuracies))
-    probe_params_mean = float(np.mean(probe_params))  # Should be constant
-    
-    # Aggregate compressed variants
-    variants_data = {}
-    
-    # Get all variant names from all reports
-    all_variant_names = set()
-    for report in seed_reports:
-        compressed_data = report.get("compressed", {}) or {}
-        all_variant_names.update(compressed_data.keys())
-    
-    for variant_name in all_variant_names:
-        # Collect data for this variant across all seeds
-        variant_results = []
-        for report in seed_reports:
-            compressed_data = report.get("compressed", {}) or {}
-            if variant_name in compressed_data:
-                variant_data = compressed_data[variant_name]
-                if variant_data.get("accuracy") is not None:  # Only include successful runs
-                    variant_results.append(variant_data)
-        
-        if not variant_results:
-            continue  # Skip variants with no successful runs
-        
-        # Extract metrics
-        accuracies = [v["accuracy"] for v in variant_results]
-        deltas = [v["delta_vs_probe"] for v in variant_results]
-        reductions = [v["param_reduction"] for v in variant_results]
-        verdicts = [v["verdict"] for v in variant_results]
-        params = [v["params"] for v in variant_results]
-        
-        # Calculate statistics
-        acc_mean = float(np.mean(accuracies))
-        acc_std = float(np.std(accuracies))
-        delta_mean = float(np.mean(deltas))
-        delta_std = float(np.std(deltas))
-        red_mean = float(np.mean(reductions))
-        red_std = float(np.std(reductions))
-        params_mean = float(np.mean(params))
-        
-        # Calculate pass rate
-        pass_count = sum(1 for v in verdicts if v == "PASS")
-        pass_rate = pass_count / len(verdicts)
-        
-        # Overall verdict based on majority
-        overall_verdict = "PASS" if pass_rate >= 0.5 else "FAIL"
-        
-        # Build variant data
-        variant_data = {
-            "n_seeds": len(variant_results),
-            "accuracy": {
-                "mean": acc_mean,
-                "std": acc_std,
-                "values": accuracies
-            },
-            "delta_vs_probe": {
-                "mean": delta_mean,
-                "std": delta_std,
-                "values": deltas
-            },
-            "param_reduction": {
-                "mean": red_mean,
-                "std": red_std,
-                "values": reductions
-            },
-            "params": {
-                "mean": params_mean,
-                "std": float(np.std(params)) if len(params) > 1 else 0.0
-            },
-            "pass_rate": pass_rate,
-            "pass_count": pass_count,
-            "total_runs": len(variant_results),
-            "verdict": overall_verdict,
-            "individual_verdicts": verdicts
-        }
-        
-        # Preserve compression metadata if present (for SVD variants)
-        if variant_results and "compression" in variant_results[0]:
-            # Use compression metadata from first result (should be consistent across seeds)
-            variant_data["compression"] = variant_results[0]["compression"]
-            
-            # Aggregate energy retention if present
-            energy_values = [v["compression"].get("energy_retained") for v in variant_results if v.get("compression", {}).get("energy_retained") is not None]
-            if energy_values:
-                variant_data["compression"]["energy_retained_stats"] = {
-                    "mean": float(np.mean(energy_values)),
-                    "std": float(np.std(energy_values)) if len(energy_values) > 1 else 0.0,
-                    "values": energy_values
-                }
-        
-        variants_data[variant_name] = variant_data
-    
-    # Find best compression variant (highest mean reduction among passing variants)
-    passing_variants = {name: data for name, data in variants_data.items() if data["verdict"] == "PASS"}
-    best_compression = None
-    if passing_variants:
-        best_name = max(passing_variants.keys(), key=lambda x: passing_variants[x]["param_reduction"]["mean"])
-        best_data = passing_variants[best_name]
-        best_compression = {
-            "variant": best_name,
-            "param_reduction_mean": best_data["param_reduction"]["mean"],
-            "param_reduction_std": best_data["param_reduction"]["std"],
-            "delta_vs_probe_mean": best_data["delta_vs_probe"]["mean"],
-            "delta_vs_probe_std": best_data["delta_vs_probe"]["std"],
-            "pass_rate": best_data["pass_rate"]
-        }
-    
-    # Build aggregated report
-    aggregated_report = {
-        "bench_version": base_report["bench_version"],
-        "timestamp": timestamp,
-        "aggregation_type": "multi_seed",
-        "n_seeds": len(seed_reports),
-        "seeds": [r.get("env", {}).get("seed", "unknown") for r in seed_reports],
-        "model": base_report["model"],
-        "task": base_report["task"],
-        "env": base_report.get("env", {}),  # Use environment from first report
-        "git_commit": base_report.get("git_commit"),  # Use git info from first report
-        "probe": {
-            "rank": base_report["probe"]["rank"],
-            "accuracy": {
-                "mean": probe_acc_mean,
-                "std": probe_acc_std,
-                "values": probe_accuracies
-            },
-            "params": {
-                "mean": probe_params_mean,
-                "std": float(np.std(probe_params)) if len(probe_params) > 1 else 0.0
-            }
-        },
-        "compressed": variants_data,
-        "summary": {
-            "best_compression": best_compression,
-            "total_variants": len(variants_data),
-            "passing_variants": len(passing_variants),
-            "defensible_claims": True,
-            "statistical_power": "sufficient" if len(seed_reports) >= 3 else "limited"
-        },
-        "config_metadata": base_report.get("config_metadata", {})  # Use config metadata from first report
-    }
-    
-    return aggregated_report
-
-
-def create_multi_seed_markdown_report(
-    aggregated_report: Dict[str, Any],
-    config: Dict[str, Any],
-    output_dir: Path
-) -> str:
-    """
-    Create bench_aggregate.md human-readable markdown report for multi-seed results.
-    """
-    model = aggregated_report["model"]
-    task = aggregated_report["task"]
-    n_seeds = aggregated_report["n_seeds"]
-    timestamp = aggregated_report["timestamp"]
-    probe_data = aggregated_report["probe"]
-    compressed_data = aggregated_report.get("compressed", {}) or {}
-    summary = aggregated_report["summary"]
-    
-    # Extract validation level from aggregated report
-    validation_level = "certifiable" if n_seeds >= 3 else "screening_plus"
-    
-    # Build markdown content
-    md_content = f"""# Gradience Bench v{aggregated_report["bench_version"]} (Multi-Seed)
-
-- **Model:** {model}
-- **Task:** {task}
-- **Seeds:** {n_seeds}
-- **Validation Level:** {validation_level.title()}
-- **Statistical Power:** {summary["statistical_power"]}
-
-## Probe Baseline (mean ± std)
-
-- **Rank:** {probe_data["rank"]}
-- **Accuracy:** {probe_data["accuracy"]["mean"]:.4f} ± {probe_data["accuracy"]["std"]:.4f}
-- **LoRA params:** {probe_data["params"]["mean"]:,.0f}
-
-## Compression Results (Aggregated)
-
-| Variant | Accuracy | Δ vs Probe | Param Reduction | Pass Rate | Verdict |
-|---|---:|---:|---:|---:|---|
-"""
-
-    # Add results table rows
-    for variant_name, data in compressed_data.items():
-        acc_str = f"{data['accuracy']['mean']:.3f} ± {data['accuracy']['std']:.3f}"
-        delta_str = f"{data['delta_vs_probe']['mean']:+.3f} ± {data['delta_vs_probe']['std']:.3f}"
-        red_str = f"{data['param_reduction']['mean']:.1%} ± {data['param_reduction']['std']:.1%}"
-        pass_rate_str = f"{data['pass_count']}/{data['total_runs']} ({data['pass_rate']:.0%})"
-        verdict = data['verdict']
-        
-        # Format variant name for display
-        if variant_name == "per_layer":
-            variant_display = "`per_layer`"
-        elif variant_name == "per_layer_shuffled":
-            variant_display = "`per_layer_shuffled`"
-        elif variant_name == "uniform_median":
-            variant_display = "`uniform_median`"
-        elif variant_name == "uniform_p90":
-            variant_display = "`uniform_p90`"
-        elif variant_name == "uniform_p90_control":
-            variant_display = "`uniform_p90_control`"
-        else:
-            variant_display = f"`{variant_name}`"
-        
-        md_content += f"| {variant_display} | {acc_str} | {delta_str} | {red_str} | {pass_rate_str} | {verdict} |\n"
-    
-    # Add defensible claims section
-    acc_tolerance = config.get("compression", {}).get("acc_tolerance", 0.005)
-    
-    md_content += f"""
-
-## Defensible Claims
-
-"""
-    
-    if summary["best_compression"]:
-        best = summary["best_compression"]
-        red_mean = best["param_reduction_mean"] * 100
-        red_std = best["param_reduction_std"] * 100
-        delta_mean = best["delta_vs_probe_mean"]
-        delta_std = best["delta_vs_probe_std"]
-        
-        md_content += f"""• **{best["variant"]} compression achieves {red_mean:.1f}% ± {red_std:.1f}% parameter reduction**
-• **Accuracy impact: {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline**
-• **Success rate: {best["pass_rate"]:.0%} across {n_seeds} independent seeds**
-• **Based on n={n_seeds} seeds for variance estimation**
-
-"""
-    else:
-        md_content += "• **No variants achieved reliable compression within tolerance**\n• **All approaches exceeded ±{acc_tolerance:.3f} accuracy threshold across seeds**\n\n"
-
-    # Add interpretation
-    md_content += f"""## Interpretation (Statistical)
-
-- **PASS** means ≥50% of seeds passed ±{acc_tolerance:.3f} accuracy tolerance
-- **Statistics** are calculated as mean ± standard deviation across {n_seeds} seeds
-- **Defensible claims** are supported by variance estimation across multiple random seeds
-- You should still validate these results on your real workload before deployment
-
-## Summary
-
-- **Total variants:** {summary["total_variants"]}
-- **Passing variants:** {summary["passing_variants"]}
-- **Best compression:** {summary["best_compression"]["variant"] if summary["best_compression"] else "None"}
-- **Statistical power:** {summary["statistical_power"]}
-
-*Generated on {timestamp[:19].replace('T', ' ')}*
-"""
-
-    return md_content
-
 
 def run_multi_seed_bench_protocol(
     config_path: str | Path,
@@ -3144,7 +1649,12 @@ def run_multi_seed_bench_protocol(
     """
     config = load_config(config_path)
     output_path = Path(output_dir)
+    
+    # HYGIENE: Ensure output directory exists BEFORE any logging/tee operations
     output_path.mkdir(parents=True, exist_ok=True)
+    
+    # HYGIENE: Start heartbeat for multi-seed coordination (prevent SSH timeouts)
+    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed="coordinator")
     
     print(f"Gradience Multi-Seed Bench Protocol v0.1")
     print("=" * 50)
@@ -3179,18 +1689,29 @@ def run_multi_seed_bench_protocol(
         
         seed_config["compression"] = compression
         
-        # Create seed-specific directory
+        # HYGIENE: Create seed-specific directory BEFORE any operations
         seed_dir = output_path / f"seed_{seed}"
+        seed_dir.mkdir(parents=True, exist_ok=True)
         seed_dirs.append(seed_dir)
+        
+        # HYGIENE: Create progress/heartbeat file for stuck detection
+        progress_file = seed_dir / "progress.txt"
+        with open(progress_file, 'w') as f:
+            f.write(f"STARTED: seed_{seed} at {datetime.datetime.now().isoformat()}\n")
+            f.flush()
         
         # Write seed-specific config
         seed_config_path = seed_dir / "config.yaml"
-        seed_dir.mkdir(parents=True, exist_ok=True)
         with open(seed_config_path, 'w') as f:
             yaml.dump(seed_config, f, indent=2)
         
         # Run single seed benchmark
         try:
+            # Update progress before starting
+            with open(progress_file, 'a') as f:
+                f.write(f"RUNNING: bench protocol started at {datetime.datetime.now().isoformat()}\n")
+                f.flush()
+            
             seed_report = run_bench_protocol(
                 config_path=seed_config_path,
                 output_dir=seed_dir,
@@ -3203,9 +1724,19 @@ def run_multi_seed_bench_protocol(
             seed_report["seed_index"] = i
             seed_reports.append(seed_report)
             
+            # Mark completion in progress file
+            with open(progress_file, 'a') as f:
+                f.write(f"COMPLETED: seed_{seed} at {datetime.datetime.now().isoformat()}\n")
+                f.flush()
+            
             print(f"\n✅ Seed {seed} completed successfully")
             
-        except Exception as e:
+        except Exception as e:  # Intentionally broad: per-seed failure must not abort entire benchmark
+            # Mark failure in progress file
+            with open(progress_file, 'a') as f:
+                f.write(f"FAILED: seed_{seed} at {datetime.datetime.now().isoformat()}: {e}\n")
+                f.flush()
+            
             print(f"\n❌ Seed {seed} failed: {e}")
             # Continue with other seeds
             continue
@@ -3342,10 +1873,10 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> No
                         cleaned_files.append(str(checkpoint_dir.relative_to(output_dir)) + "/")
                         saved_space += dir_size
     
-    except Exception as e:
+    except (OSError, PermissionError) as e:
         print(f"⚠️  Artifact cleanup encountered error: {e}")
         return
-    
+
     # Report cleanup results
     if cleaned_files:
         saved_mb = saved_space / (1024 * 1024)
@@ -3492,9 +2023,9 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
             else:
                 print(f"ℹ️  HF cache directory will be created: {cache_dir}")
                 
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             print(f"⚠️  Could not determine HF cache location: {e}")
-    
+
     except ImportError:
         print("⚠️  HuggingFace transformers not available for cache check")
     
@@ -3534,23 +2065,20 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
         for issue in env_issues:
             print(f"   - {issue}")
             
+        print("\n💡 SOLUTION:")
+        print("   Set environment variables to use a persistent cache directory:")
         if runpod_detected:
-            print("\n💡 RUNPOD SOLUTION:")
-            print("   source /workspace/gradience/scripts/runpod/env.sh")
-            print("   # This sets:")
-            print("   #   export HF_HOME=/workspace/hf_cache/hf_home")
-            print("   #   export HF_HUB_CACHE=/workspace/hf_cache/hub") 
-            print("   #   export HF_DATASETS_CACHE=/workspace/hf_cache/datasets")
-            print("   #   export TORCH_HOME=/workspace/hf_cache/torch")
-            print("\n   Or add to your /root/.bashrc:")
-            print("   if [ -d \"/workspace/gradience\" ]; then")
-            print("       source /workspace/gradience/scripts/runpod/env.sh")
-            print("   fi")
+            print("   # For RunPod environments:")
+            print("   export HF_HOME=/workspace/hf_cache/hf_home")
+            print("   export HF_HUB_CACHE=/workspace/hf_cache/hub") 
+            print("   export HF_DATASETS_CACHE=/workspace/hf_cache/datasets")
+            print("   export TORCH_HOME=/workspace/hf_cache/torch")
         else:
-            print("\n💡 SOLUTION: Set HuggingFace cache environment variables")
-            print("   export HF_HOME=$HOME/.cache/huggingface/hf_home")
-            print("   export HF_HUB_CACHE=$HOME/.cache/huggingface/hub")
-            print("   export HF_DATASETS_CACHE=$HOME/.cache/huggingface/datasets")
+            print("   # For other environments, choose a persistent location:")
+            print("   export HF_HOME=/path/to/persistent/hf_cache/hf_home")
+            print("   export HF_HUB_CACHE=/path/to/persistent/hf_cache/hub") 
+            print("   export HF_DATASETS_CACHE=/path/to/persistent/hf_cache/datasets")
+            print("   export TORCH_HOME=/path/to/persistent/hf_cache/torch")
     else:
         print("✅ HuggingFace cache environment properly configured")
     
@@ -3573,7 +2101,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
                     if "HF_HOME" in os.environ:
                         del os.environ["HF_HOME"]
                         
-        except Exception as e:
+        except Exception as e:  # Intentionally broad: HF model loading can fail in many ways
             error_msg = str(e).lower()
             if "incomplete" in error_msg and "metadata" in error_msg:
                 print(f"❌ Safetensors metadata corruption detected for {model_name}")
@@ -3587,7 +2115,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
                 
     except ImportError:
         print("⚠️  Cannot test model loading - HuggingFace transformers not available")
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: preflight check must never abort benchmark
         print(f"⚠️  Model loading check failed: {e}")
     
     print("✅ Preflight checks complete!\n")
@@ -3599,7 +2127,8 @@ def run_bench_protocol(
     smoke: bool = False,
     ci: bool = False,
     fast_mode: bool = True,
-    max_candidates: int = 4
+    max_candidates: int = 4,
+    resume: bool = False
 ) -> Dict[str, Any]:
     """
     Run the complete bench protocol.
@@ -3607,6 +2136,9 @@ def run_bench_protocol(
     Supports both single-seed and multi-seed configurations.
     Multi-seed configs are detected by presence of 'seeds' in compression config.
     """
+    # Set up global monitoring infrastructure
+    setup_global_monitoring()
+    
     # Load configuration to check for multi-seed
     config = load_config(config_path)
     
@@ -3630,9 +2162,13 @@ def run_bench_protocol(
     print("Gradience Bench Protocol v0.1")
     print("=" * 40)
     
-    # Create output directory
+    # HYGIENE: Ensure output directory exists BEFORE any logging/tee operations
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+    
+    # HYGIENE: Start heartbeat for single-seed run (prevent SSH timeouts)
+    seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+    heartbeat_stage("single_seed_benchmark", output_dir=output_path, seed=seed)
     
     print(f"Config: {config_path}")
     print(f"Output: {output_path}")
@@ -3641,12 +2177,24 @@ def run_bench_protocol(
     print(f"Smoke mode: {smoke}")
     print()
     
+    # Initialize stage state manager for resume functionality
+    stage_manager = create_stage_manager(output_path)
+    
+    if resume:
+        print("🔄 Resume mode enabled - checking for completed stages...")
+        stage_manager.clean_invalid_state()  # Clean up any stale state
+        summary = stage_manager.get_resume_summary()
+        print(f"   Found {summary['total_completed_stages']} completed stages, {summary['total_completed_variants']} completed variants")
+        if summary['total_completed_stages'] > 0 or summary['total_completed_variants'] > 0:
+            print("   Completed stages:", ", ".join(summary['completed_stages']) if summary['completed_stages'] else "none")
+            print("   Completed variants:", ", ".join(summary['completed_variants']) if summary['completed_variants'] else "none")
+    
     # Preflight checks to catch common failure modes early
     run_bench_preflight_check(config, config['model']['name'])
     
     # Steps 3.1-3.3: Train, evaluate, and audit probe
     print("Step 3.1-3.3: Training, evaluating, and auditing probe adapter...")
-    probe_results = run_probe_training(config_path, output_path, smoke=smoke)
+    probe_results = run_probe_training(config_path, output_path, smoke=smoke, stage_manager=stage_manager, resume=resume)
     
     # Step 3.4: Generate compression configurations
     print("\nStep 3.4: Generating compression configurations...")
@@ -3689,7 +2237,8 @@ def run_bench_protocol(
                 audit_data,  # probe_audit_data
                 {},  # compression_configs
                 config,
-                output_path
+                output_path,
+                decision_trace=decision_trace
             )
             
             # Write empty results but include probe validity warning
@@ -3697,7 +2246,33 @@ def run_bench_protocol(
             
             return canonical_report
     
-    compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
+    # Check if config generation can be skipped
+    skip_config_gen = resume and stage_manager and stage_manager.should_skip_config_generation()
+    
+    if not skip_config_gen:
+        seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+        with monitor_generation("generate_configs", output_dir=output_path, seed=seed) as stage:
+            stage.progress("Analyzing probe audit results")
+            compression_configs, decision_trace = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
+            stage.progress("Compression configurations generated")
+            stage.add_artifact("compression_configs.json")
+        
+        # Mark config generation as completed
+        if stage_manager:
+            stage_manager.mark_stage_completed("compression_configs_generated", {
+                "num_configs": len(compression_configs),
+                "fast_mode": fast_mode,
+                "max_candidates": max_candidates
+            })
+    else:
+        # Load existing compression configs
+        compression_configs_path = output_path / "compression_configs.json"
+        with open(compression_configs_path) as f:
+            compression_configs = json.load(f)
+        print(f"Loaded existing compression configs: {len(compression_configs)} variants")
+        
+        # Create empty decision trace for consistency (existing runs)
+        decision_trace = DecisionTrace(probe_rank=config.get("lora", {}).get("probe_r", 32))
     
     # Write compression configs to JSON for debugging/inspection
     compression_configs_path = output_path / "compression_configs.json"
@@ -3720,7 +2295,9 @@ def run_bench_protocol(
         config_path=config_path,
         output_dir=output_path,
         compression_configs=compression_configs,
-        smoke=smoke
+        smoke=smoke,
+        stage_manager=stage_manager,
+        resume=resume
     )
     
     # Step 3.6: Compute verdicts
@@ -3731,7 +2308,70 @@ def run_bench_protocol(
         output_path=output_path,
         smoke=smoke
     )
-    
+
+    # Step 3.6a: Escalation round (safety fallback)
+    compression = config.get("compression", {})
+    escalation_config = compression.get("escalation", {})
+
+    esc_configs, escalation_trace = run_escalation_round(
+        variant_results=variant_results,
+        verdicts=verdict_analysis["verdicts"],
+        compression_configs=compression_configs,
+        config=config,
+        probe_rank=config["lora"]["probe_r"],
+        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
+        escalation_config=escalation_config,
+    )
+
+    if esc_configs:
+        print(f"\n{'='*50}")
+        print(f"ESCALATION ROUND: {len(esc_configs)} safer candidate(s)")
+        print(f"{'='*50}")
+
+        esc_results = run_all_compressed_variants(
+            config_path=config_path,
+            output_dir=output_path,
+            compression_configs=esc_configs,
+            smoke=smoke,
+            stage_manager=stage_manager,
+            resume=resume,
+        )
+
+        # Merge escalation results into the main result sets
+        variant_results.update(esc_results)
+        compression_configs.update(esc_configs)
+
+        # Re-compute verdicts with expanded result set
+        verdict_analysis = compute_verdicts(
+            probe_results=probe_results,
+            variant_results=variant_results,
+            config=config,
+            output_path=output_path,
+            smoke=smoke,
+        )
+
+        esc_verdicts = {
+            k: verdict_analysis["verdicts"][k]
+            for k in esc_configs if k in verdict_analysis["verdicts"]
+        }
+        escalation_trace = update_escalation_trace_with_results(
+            trace=escalation_trace,
+            escalation_verdicts=esc_verdicts,
+            original_best_compression=verdict_analysis.get("best_compression"),
+        )
+
+        print(f"Escalation complete: {len(escalation_trace.escalation_trace)} entries")
+        if escalation_trace.final_recommendation:
+            print(f"Final recommendation: {escalation_trace.final_recommendation}")
+
+    # Enrich all verdicts with stability metadata
+    enrich_verdicts_with_stability(
+        verdicts=verdict_analysis["verdicts"],
+        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
+        escalation_trace=escalation_trace,
+        catastrophic_margin=escalation_config.get("catastrophic_margin"),
+    )
+
     # Write verdict analysis to JSON
     verdict_path = output_path / "verdicts.json"
     with open(verdict_path, 'w') as f:
@@ -3786,7 +2426,7 @@ def run_bench_protocol(
                     performance_delta=performance_delta,
                     passed=passed,
                     all_results=all_results,
-                    seed=config.get("train", {}).get("seed", 42)
+                    seed=config.get("train", {}).get("seed", DEFAULT_SEED)
                 )
                 
                 policy_results.append(policy_result)
@@ -3802,7 +2442,7 @@ def run_bench_protocol(
         
     except ImportError:
         print("⚠️  Policy scoreboard not available (vnext module not found)")
-    except Exception as e:
+    except (TypeError, ValueError, OSError) as e:
         print(f"⚠️  Policy scoreboard update failed: {e}")
     
     # Load audit data for canonical report
@@ -3811,31 +2451,40 @@ def run_bench_protocol(
         audit_data = json.load(f)
     
     # Create canonical bench.json report
-    canonical_report = create_canonical_bench_report(
-        probe_results=probe_results,
-        variant_results=variant_results,
-        verdict_analysis=verdict_analysis,
-        audit_data=audit_data,
-        compression_configs=compression_configs,
-        config=config,
-        output_dir=output_path
-    )
-    
-    # Write canonical benchmark report
-    report_path = output_path / "bench.json"
-    with open(report_path, 'w') as f:
-        json.dump(canonical_report, f, indent=2, ensure_ascii=False)
-    
-    # Create and write markdown report
-    markdown_content = create_markdown_report(
-        canonical_report=canonical_report,
-        config=config,
-        output_dir=output_path
-    )
-    
-    markdown_path = output_path / "bench.md"
-    with open(markdown_path, 'w') as f:
-        f.write(markdown_content)
+    seed = config.get("train", {}).get("seed", DEFAULT_SEED)
+    with monitor_generation("generate_report", output_dir=output_path, seed=seed) as stage:
+        stage.progress("Creating canonical benchmark report")
+        canonical_report = create_canonical_bench_report(
+            probe_results=probe_results,
+            variant_results=variant_results,
+            verdict_analysis=verdict_analysis,
+            audit_data=audit_data,
+            compression_configs=compression_configs,
+            config=config,
+            output_dir=output_path,
+            decision_trace=decision_trace,
+            escalation_trace=escalation_trace,
+        )
+
+        # Write canonical benchmark report
+        stage.progress("Writing JSON report")
+        report_path = output_path / "bench.json"
+        with open(report_path, 'w') as f:
+            json.dump(canonical_report, f, indent=2, ensure_ascii=False)
+        stage.add_artifact(report_path)
+        
+        # Create and write markdown report
+        stage.progress("Generating markdown report")
+        markdown_content = create_markdown_report(
+            canonical_report=canonical_report,
+            config=config,
+            output_dir=output_path
+        )
+        markdown_path = output_path / "bench.md"
+        with open(markdown_path, 'w') as f:
+            f.write(markdown_content)
+        stage.add_artifact(markdown_path)
+        stage.progress("Reports generated successfully")
     
     # Also write comprehensive internal report for debugging
     internal_report = {
