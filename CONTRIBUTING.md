@@ -291,12 +291,19 @@ gradience/
 │   │   ├── audit/          # LoRA adapter analysis
 │   │   └── rank_suggestion/ # Conservative compression
 │   ├── bench/              # Benchmarking framework
-│   │   ├── task_profiles/  # Task-specific logic (GSM8K, GLUE)
-│   │   └── protocol.py     # Core bench protocol
-│   ├── spectral.py         # Legacy spectral analysis
-│   ├── structural.py       # Legacy structural analysis  
+│   │   ├── protocol.py     # Orchestration (probe → audit → compress → report)
+│   │   ├── constants.py    # All named constants
+│   │   ├── compression.py  # Candidate generation
+│   │   ├── escalation.py   # Auto-escalation safety fallback
+│   │   ├── reporting.py    # JSON + markdown report generation
+│   │   ├── metadata.py     # Environment metadata
+│   │   ├── _util.py        # Shared utilities
+│   │   └── task_profiles/  # Task-specific logic (GSM8K, GLUE)
 │   └── cli.py             # CLI interface
-├── tests/                  # Comprehensive test suite
+├── tests/                  # Comprehensive test suite (378+ tests)
+│   ├── conftest.py         # Shared fixtures
+│   ├── test_escalation.py  # Escalation unit tests (34 tests)
+│   └── test_compression_pipeline.py  # Compression integration tests
 ├── scripts/               # Development utilities
 └── docs/                  # Documentation
 ```
@@ -307,6 +314,9 @@ gradience/
 - **Audit Logic** (`vnext/audit/`): Core LoRA analysis algorithms
 - **Rank Suggestions** (`vnext/rank_suggestion/`): Conservative compression logic
 - **Protocol** (`bench/protocol.py`): Benchmarking pipeline orchestration
+- **Escalation** (`bench/escalation.py`): Auto-escalation when compression candidates fail catastrophically
+- **Compression** (`bench/compression.py`): Audit-driven compression candidate generation
+- **Reporting** (`bench/reporting.py`): Canonical JSON, markdown, and multi-seed reports
 
 ## 📊 Bench Artifact Changes
 

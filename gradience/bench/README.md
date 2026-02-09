@@ -102,25 +102,46 @@ For release validation, use the **Outsider Drill** to simulate a fresh external 
 
 Use this before any release to ensure Gradience provides a smooth experience for external users without tribal knowledge.
 
-## Status
-
-This directory is the **v0.1 scaffold** (layout + config + reporting utilities).
-The actual train/audit/retrain protocol wiring lands in later commits.
-
-## Layout
+## Module Layout
 
 ```
 gradience/bench/
-├── run_bench.py
+├── run_bench.py          # CLI entry point (--config, --smoke, --device)
+├── protocol.py           # Orchestration: probe → audit → compress → escalate → report
+├── constants.py          # All named constants (no magic numbers)
+├── compression.py        # Candidate generation and config logic
+├── escalation.py         # Auto-escalation safety fallback (classify, escalate, trace)
+├── reporting.py          # JSON, markdown, and multi-seed report generation
+├── metadata.py           # Environment and git metadata collection
+├── _util.py              # Shared utility functions
+├── aggregate.py          # Multi-seed aggregation
+├── heartbeat.py          # Progress heartbeat monitoring
+├── watchdog.py           # Stage timeout watchdog
+├── stage_state.py        # Stage lifecycle tracking
+├── check_deps.py         # Dependency validation
 ├── configs/
-│   └── distilbert_sst2*.yaml
+│   ├── distilbert_sst2*.yaml
+│   └── gpu_smoke/
 ├── policies/
-│   ├── safe_uniform.yaml      # Machine-consumable policy export
+│   ├── safe_uniform.yaml # Machine-consumable policy export
 │   └── README.md
-├── protocol.py
-├── report.py
+├── task_profiles/        # Task-specific logic (GSM8K, GLUE, etc.)
 └── README.md
 ```
+
+### Key Modules
+
+- **protocol.py**: Top-level orchestration only. Calls into the other modules
+  for each pipeline step.
+- **escalation.py**: Pure functions + dataclasses. When a compression candidate
+  fails catastrophically, walks `allowed_ranks` upward to find a safer rank,
+  trains it, and records a full trace. Enabled by default.
+- **compression.py**: Generates compression candidates from audit results.
+  Handles policy-based rank selection, de-duplication, and fast-mode filtering.
+- **reporting.py**: Produces `bench.json` (canonical), `bench.md` (human),
+  and multi-seed aggregate reports. Includes escalation and stability metadata.
+- **constants.py**: Single source of truth for all thresholds, margins, and
+  defaults. No magic numbers in other modules.
 ## Reference Results
 
 📁 **Frozen reference results available at:** `gradience/bench/results/distilbert_sst2_v0.1/`

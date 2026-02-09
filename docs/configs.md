@@ -142,11 +142,29 @@ compression:
   max_candidates: 4                 # Maximum compression candidates to test
   
   # Explicit policy selection (overrides fast_mode defaults)
-  candidate_policies:               
+  candidate_policies:
     - "energy_p90"                  # Energy-based rank selection at 90th percentile
     - "knee_p90"                    # Knee detection at 90th percentile
     - "erank_p90"                   # Effective rank at 90th percentile
+
+  # Auto-escalation (safety fallback for catastrophic failures)
+  escalation:
+    enabled: true                   # Enable auto-escalation (default: true)
+    max_rounds: 1                   # Max escalation rounds per run (default: 1)
+    catastrophic_margin: null       # Override margin (default: max(0.01, 0.5 * acc_tolerance))
 ```
+
+**Escalation Behavior:**
+
+When a compressed variant fails catastrophically (accuracy drop exceeds
+`catastrophic_margin`), the system automatically:
+1. Identifies the next safer rank in `allowed_ranks`
+2. Trains a new variant at that rank
+3. Evaluates and records the result with a full trace
+4. Reports the original failure and the escalation outcome
+
+This ensures the bench always delivers a validated recommendation rather than
+just reporting failure. Set `escalation.enabled: false` to disable.
 
 **Available Compression Policies:**
 - `"energy_p90"`, `"energy_p95"` - Energy-based rank selection

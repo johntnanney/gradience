@@ -6,7 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-*No unreleased changes yet.*
+### Added
+- **Auto-Escalation Safety Fallback** (`gradience/bench/escalation.py`):
+  When an audit-driven compression candidate fails catastrophically, the bench
+  automatically escalates to a safer (higher) rank, trains it, and produces a
+  validated recommendation with full receipts. Enabled by default, zero config
+  required, bounded to 1 escalation round per run.
+  - Catastrophic failure classification: `catastrophic_margin = max(0.01, 0.5 * acc_tolerance)`
+  - Escalation ladder walks `allowed_ranks` upward from the failed rank
+  - Full trace recorded in `bench.json` under `report["escalation"]`
+  - Stability metadata enriches every verdict: `stability_status`, `failure_mode`, `escalated_to`
+  - Markdown report includes "Stability & auto-escalation" section
+  - Multi-seed aggregation tracks per-seed escalation traces
+- **Shared Test Fixtures** (`tests/conftest.py`): Common pytest fixtures for
+  mock configs, audit results, and compression configs used across test files
+- **Compression Pipeline Integration Tests** (`tests/test_compression_pipeline.py`):
+  430-line test suite covering candidate generation, config validation, and
+  edge cases for the compression subsystem
+- **Escalation Test Suite** (`tests/test_escalation.py`): 34 tests across 7
+  test classes covering failure classification, escalation candidates, trace
+  serialization, verdict enrichment, and end-to-end integration
+
+### Changed
+- **Protocol Decomposition**: Monolithic `protocol.py` decomposed into focused modules:
+  - `constants.py` — all named constants (magic numbers eliminated)
+  - `compression.py` — compression candidate generation and config logic
+  - `reporting.py` — JSON, markdown, and multi-seed report generation
+  - `metadata.py` — environment and git metadata collection
+  - `_util.py` — shared utility functions
+  - `protocol.py` retains orchestration only (~60% size reduction)
+- **Typed Results**: `subprocess.CompletedProcess` returns replaced with typed
+  result objects throughout the bench pipeline
+- **Exception Handling**: All broad `except Exception` blocks replaced with
+  specific exception types (`ValueError`, `TypeError`, `KeyError`, `OSError`,
+  etc.) across production code. 14 remaining annotated instances justified with
+  `# broad-except:` comments.
+- **vnext Migration**: Root-level duplicates removed in favor of canonical
+  `vnext/` implementations:
+  - Removed: `gradience/demo.py`, `gradience/spectral.py`,
+    `gradience/structural.py`, `gradience/telemetry.py`,
+    `gradience/vnext/integrations/huggingface.py`,
+    `gradience/vnext/rank_policies.py`
+  - All imports updated to point to `vnext/` locations
+
+### Fixed
+- **cli.py**: Fixed pre-existing `NameError` in `_print_audit_summary()` where
+  undefined `summary` variable was silently caught by a broad exception handler
+- **peft_utils.py**: Added `OSError` to adapter detection exception handler to
+  catch `FileNotFoundError` from safetensors
+- **guard.py**: Narrowed 3 exception handlers from `except Exception` to
+  `except (ValueError, TypeError, RuntimeError)`
 
 ## [0.9.0] - 2026-02-06
 

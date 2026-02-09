@@ -267,7 +267,10 @@ Audit includes **algorithmic decision traces** for transparency:
       "compression_ratio": 0.75,       # 25% parameter reduction
       "training_time_seconds": 145.2,
       "verdict": "PASSED",             # PASSED | FAILED
-      "delta_accuracy": -0.004         # Accuracy loss
+      "delta_accuracy": -0.004,        # Accuracy loss
+      "stability_status": "stable",    # "stable" | "near_miss" | "unstable" | "unknown"
+      "failure_mode": null,            # null | "catastrophic" | "near_miss"
+      "escalated_to": null             # null | "energy_p90_esc_r16" (if escalation occurred)
     }
   },
   
@@ -284,6 +287,24 @@ Audit includes **algorithmic decision traces** for transparency:
       "energy_p90: 25% compression with -0.4% accuracy loss",
       "per_layer: 39% compression with -1.2% accuracy loss (PASSED)",
       "knee_p90: 45% compression with -3.1% accuracy loss (FAILED)"
+    ]
+  },
+
+  "escalation": {                        # Present only if escalation triggered
+    "triggered": true,
+    "rounds": 1,
+    "entries": [
+      {
+        "original_variant": "knee_p90",
+        "failed_rank": 8,
+        "failure_class": "catastrophic", # "catastrophic" | "near_miss" | "none"
+        "worst_delta": -0.031,
+        "catastrophic_margin": 0.0125,
+        "escalated_to_rank": 12,
+        "escalated_variant": "knee_p90_esc_r12",
+        "escalated_verdict": "PASSED",   # null until training completes
+        "escalated_delta": -0.008
+      }
     ]
   }
 }
