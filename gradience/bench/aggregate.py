@@ -20,7 +20,7 @@ from typing import List, Dict, Any, Optional, Tuple
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return None
 
 def _find_probe_dir(seed_dir: Path) -> Optional[Path]:
@@ -654,7 +654,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
             lines.append(scoreboard_table)
     except ImportError:
         pass  # Scoreboard not available
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
         pass  # Scoreboard failed, continue without it
     
     lines.append("")

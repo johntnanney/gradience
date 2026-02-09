@@ -46,6 +46,28 @@ class BenchAggregateArtifacts:
     aggregate_json: Path
     aggregate_md: Path
 
+@dataclass(frozen=True)
+class AuditResult:
+    """Result from running ``gradience audit``."""
+    returncode: int
+    log_path: Optional[Path] = None
+
+    @property
+    def success(self) -> bool:
+        """True when the audit process exited cleanly."""
+        return self.returncode == 0
+
+@dataclass(frozen=True)
+class MonitorResult:
+    """Result from running ``gradience monitor``."""
+    returncode: int
+    log_path: Optional[Path] = None
+
+    @property
+    def success(self) -> bool:
+        """True when the monitor process exited cleanly."""
+        return self.returncode == 0
+
 
 # -----------------------------
 # Helpers
@@ -63,11 +85,11 @@ def _run(
     env: Optional[Mapping[str, str]] = None,
     check: bool = True,
     log_path: Optional[Path] = None,
-) -> subprocess.CompletedProcess[str]:
+) -> int:
     """
-    Run a command with optional logging.
+    Run a command with optional logging, returning the exit code.
 
-    If log_path is provided, stdout/stderr are written to that file.
+    If *log_path* is provided, stdout/stderr are written to that file.
     Otherwise, the process inherits the current stdout/stderr.
     """
     merged_env = os.environ.copy()
@@ -77,7 +99,7 @@ def _run(
     if log_path is not None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         with log_path.open("w", encoding="utf-8") as f:
-            return subprocess.run(
+            proc = subprocess.run(
                 list(argv),
                 cwd=str(cwd) if cwd else None,
                 env=merged_env,
@@ -86,13 +108,15 @@ def _run(
                 stderr=subprocess.STDOUT,
                 check=check,
             )
+            return proc.returncode
 
-    return subprocess.run(
+    proc = subprocess.run(
         list(argv),
         cwd=str(cwd) if cwd else None,
         env=merged_env,
         check=check,
     )
+    return proc.returncode
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -209,7 +233,7 @@ def audit(
     env: Optional[Mapping[str, str]] = None,
     log_path: Optional[str | Path] = None,
     check: bool = True,
-) -> subprocess.CompletedProcess[str]:
+) -> AuditResult:
     """
     Run `gradience audit` via the stable CLI entrypoint.
 
@@ -239,12 +263,9 @@ def audit(
     if extra_args:
         argv.extend(list(extra_args))
 
-    return _run(
-        argv,
-        env=env,
-        check=check,
-        log_path=Path(log_path) if log_path else None,
-    )
+    log_p = Path(log_path) if log_path else None
+    returncode = _run(argv, env=env, check=check, log_path=log_p)
+    return AuditResult(returncode=returncode, log_path=log_p)
 
 
 def monitor(
@@ -256,7 +277,7 @@ def monitor(
     env: Optional[Mapping[str, str]] = None,
     log_path: Optional[str | Path] = None,
     check: bool = True,
-) -> subprocess.CompletedProcess[str]:
+) -> MonitorResult:
     """
     Run `gradience monitor` via the stable CLI entrypoint.
 
@@ -277,12 +298,9 @@ def monitor(
     if extra_args:
         argv.extend(list(extra_args))
 
-    return _run(
-        argv,
-        env=env,
-        check=check,
-        log_path=Path(log_path) if log_path else None,
-    )
+    log_p = Path(log_path) if log_path else None
+    returncode = _run(argv, env=env, check=check, log_path=log_p)
+    return MonitorResult(returncode=returncode, log_path=log_p)
 
 
 # -----------------------------
