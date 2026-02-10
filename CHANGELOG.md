@@ -4,6 +4,24 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.9.3] - 2026-02-10
+
+### Fixed - Bench Artifact Credibility
+
+Four fixes to improve public-demo quality of bench aggregate reports (bench_aggregate.json / bench_aggregate.md):
+
+1. **Seed IDs now report real values** — `"seeds": [42, 123, 456]` instead of `["unknown", "unknown", "unknown"]`. Bug was in `protocol.py:2975` reading from wrong dict path. Fixed in both protocol and standalone aggregator.
+
+2. **Candidate selection is now explained** — New "Candidate Selection" section in bench_aggregate.md showing mode (fast/full), policies evaluated, de-duplication events, and final candidate count. Selection trace stored in `config_metadata.candidate_selection`.
+
+3. **Rank policy disambiguated from compression method** — Added `policy_origin` field to compression metadata (e.g., `"energy"`, `"knee"`, `"erank"`). New "Rank Policy" column in markdown tables separates *how the rank was chosen* from *how compression was applied* (always `svd_truncate`).
+
+4. **Audit decision trace in aggregate** — New `audit_summary` section in aggregate JSON with probe rank, per-policy suggestions (suggested_r, actual_r, dedup annotations), and selection reasoning. Rendered as "Audit Context" section in markdown with policy suggestion table.
+
+### Added
+- `tests/test_bench_credibility.py` — 18 tests covering all four credibility fixes
+- `_extract_seed_id()` helper in `aggregate.py` for parsing seed IDs from directory names
+
 ## [v0.7.1] - 2026-01-26
 
 ### Added - LoRA Gain Audit Complete Implementation

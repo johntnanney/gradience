@@ -1221,6 +1221,7 @@ def generate_compression_configs(
     
     # For each rank, pick the candidate with highest priority, then lowest conservatism
     deduplicated_candidates = []
+    dedup_events = []
     for rank, rank_candidates in rank_to_candidates.items():
         if len(rank_candidates) == 1:
             deduplicated_candidates.append(rank_candidates[0])
@@ -1232,6 +1233,12 @@ def generate_compression_configs(
             best["name"] = f"{best['name']}_r{rank}" if len(set(policies)) > 1 else best["name"]
             best["dedup_note"] = f"Deduplicated from: {', '.join(set(policies))}"
             deduplicated_candidates.append(best)
+            dedup_events.append({
+                "rank": rank,
+                "policies": sorted(set(policies)),
+                "kept": best["name"],
+                "dropped": [c["name"] for c in rank_candidates if c["name"] != best["name"]]
+            })
     
     # Step 2: Filter by mode (fast_mode keeps only priority=1)
     if fast_mode:
@@ -1470,7 +1477,27 @@ def generate_compression_configs(
             else:
                 print(f"   r={rank}: {variants[0]}")
         print()
-    
+
+    # Build selection trace for downstream reporting
+    final_configs["_selection_trace"] = {
+        "mode": "fast" if fast_mode else "full",
+        "max_candidates": max_candidates,
+        "total_policies_evaluated": len(candidates),
+        "after_dedup": len(deduplicated_candidates),
+        "final_count": len(final_configs) - 1,  # exclude _selection_trace key itself
+        "dedup_events": dedup_events,
+        "candidates": [
+            {
+                "name": c["name"],
+                "policy_type": c["policy_type"],
+                "suggested_r": c["suggested_r"],
+                "actual_r": c["actual_r"],
+                "conservatism_score": c["conservatism_score"],
+            }
+            for c in candidates
+        ]
+    }
+
     return final_configs
 
 
@@ -1878,6 +1905,7 @@ def create_canonical_bench_report(
                 # Build compression metadata as requested in Step 3.4
                 compression_metadata = {
                     "method": "svd_truncate",
+                    "policy_origin": compression_config.get("policy_type", "unknown"),
                     "rank_source": get_rank_source_from_config(compression_config),
                     "target_rank": result["rank"],
                     "source_rank": result.get("source_rank"),
@@ -2972,7 +3000,7 @@ def create_multi_seed_aggregated_report(
         "timestamp": timestamp,
         "aggregation_type": "multi_seed",
         "n_seeds": len(seed_reports),
-        "seeds": [r.get("env", {}).get("seed", "unknown") for r in seed_reports],
+        "seeds": [r.get("seed", r.get("env", {}).get("seed", "unknown")) for r in seed_reports],
         "model": base_report["model"],
         "task": base_report["task"],
         "env": base_report.get("env", {}),  # Use environment from first report
@@ -2999,7 +3027,32 @@ def create_multi_seed_aggregated_report(
         },
         "config_metadata": base_report.get("config_metadata", {})  # Use config metadata from first report
     }
-    
+
+    # Build audit_summary from candidate selection trace
+    config_meta = aggregated_report.get("config_metadata", {})
+    sel_trace = config_meta.get("candidate_selection")
+    if sel_trace:
+        probe_rank = base_report.get("probe", {}).get("rank")
+        policy_suggestions = {}
+        for cand in sel_trace.get("candidates", []):
+            policy_suggestions[cand["name"]] = {
+                "policy_type": cand["policy_type"],
+                "suggested_r": cand["suggested_r"],
+                "actual_r": cand["actual_r"],
+            }
+        # Annotate dedup events
+        for evt in sel_trace.get("dedup_events", []):
+            for dropped in evt.get("dropped", []):
+                if dropped in policy_suggestions:
+                    policy_suggestions[dropped]["dedup"] = f"merged with {evt.get('kept', '?')}"
+
+        mode_str = "Fast" if sel_trace.get("mode") == "fast" else "Full"
+        aggregated_report["audit_summary"] = {
+            "probe_rank": probe_rank,
+            "policy_suggestions": policy_suggestions,
+            "selection_reasoning": f"{mode_str} mode: {sel_trace.get('total_policies_evaluated', '?')} policies evaluated, {sel_trace.get('after_dedup', '?')} unique ranks after dedup"
+        }
+
     return aggregated_report
 
 
@@ -3027,7 +3080,7 @@ def create_multi_seed_markdown_report(
 
 - **Model:** {model}
 - **Task:** {task}
-- **Seeds:** {n_seeds}
+- **Seeds:** {n_seeds} ({', '.join(str(s) for s in aggregated_report.get("seeds", []))})
 - **Validation Level:** {validation_level.title()}
 - **Statistical Power:** {summary["statistical_power"]}
 
@@ -3039,8 +3092,8 @@ def create_multi_seed_markdown_report(
 
 ## Compression Results (Aggregated)
 
-| Variant | Accuracy | Δ vs Probe | Param Reduction | Pass Rate | Verdict |
-|---|---:|---:|---:|---:|---|
+| Variant | Rank Policy | Accuracy | Δ vs Probe | Param Reduction | Pass Rate | Verdict |
+|---|---|---:|---:|---:|---:|---|
 """
 
     # Add results table rows
@@ -3050,7 +3103,10 @@ def create_multi_seed_markdown_report(
         red_str = f"{data['param_reduction']['mean']:.1%} ± {data['param_reduction']['std']:.1%}"
         pass_rate_str = f"{data['pass_count']}/{data['total_runs']} ({data['pass_rate']:.0%})"
         verdict = data['verdict']
-        
+
+        # Extract policy_origin from compression metadata
+        policy_origin = data.get("compression", {}).get("policy_origin", "—")
+
         # Format variant name for display
         if variant_name == "per_layer":
             variant_display = "`per_layer`"
@@ -3064,9 +3120,43 @@ def create_multi_seed_markdown_report(
             variant_display = "`uniform_p90_control`"
         else:
             variant_display = f"`{variant_name}`"
-        
-        md_content += f"| {variant_display} | {acc_str} | {delta_str} | {red_str} | {pass_rate_str} | {verdict} |\n"
+
+        md_content += f"| {variant_display} | {policy_origin} | {acc_str} | {delta_str} | {red_str} | {pass_rate_str} | {verdict} |\n"
     
+    # Add candidate selection section if available
+    selection = aggregated_report.get("config_metadata", {}).get("candidate_selection")
+    if selection:
+        mode_label = "Fast (energy, knee, erank policies)" if selection.get("mode") == "fast" else f"Full (capped at {selection.get('max_candidates', '?')})"
+        md_content += f"""
+## Candidate Selection
+
+- **Mode:** {mode_label}
+- **Policies evaluated:** {selection.get('total_policies_evaluated', '?')}
+- **After de-duplication:** {selection.get('after_dedup', '?')} unique ranks
+- **Final candidates:** {selection.get('final_count', '?')}
+"""
+        for evt in selection.get("dedup_events", []):
+            kept = evt.get("kept", "?")
+            policies = ", ".join(evt.get("policies", []))
+            md_content += f"- **r={evt.get('rank', '?')}:** {policies} all mapped here, kept `{kept}`\n"
+        md_content += "\n"
+
+    # Add audit context section if available
+    audit_summary = aggregated_report.get("audit_summary")
+    if audit_summary:
+        probe_rank = audit_summary.get("probe_rank", "?")
+        md_content += f"""## Audit Context
+
+Probe trained at r={probe_rank}. Audit-driven rank suggestions:
+
+| Policy | Type | Suggested r | Tested r | Notes |
+|--------|------|------------|----------|-------|
+"""
+        for name, info in audit_summary.get("policy_suggestions", {}).items():
+            notes = info.get("dedup", "—")
+            md_content += f"| `{name}` | {info.get('policy_type', '?')} | {info.get('suggested_r', '?')} | {info.get('actual_r', '?')} | {notes} |\n"
+        md_content += f"\n*{audit_summary.get('selection_reasoning', '')}*\n\n"
+
     # Add defensible claims section
     acc_tolerance = config.get("compression", {}).get("acc_tolerance", 0.005)
     
@@ -3682,12 +3772,15 @@ def run_bench_protocol(
             return canonical_report
     
     compression_configs = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
-    
+
+    # Pop selection trace before serializing compression_configs
+    selection_trace = compression_configs.pop("_selection_trace", None)
+
     # Write compression configs to JSON for debugging/inspection
     compression_configs_path = output_path / "compression_configs.json"
     with open(compression_configs_path, 'w') as f:
         json.dump(compression_configs, f, indent=2, ensure_ascii=False)
-    
+
     print(f"Compression configs generated:")
     for variant, config_data in compression_configs.items():
         status = config_data["status"]
@@ -3804,7 +3897,11 @@ def run_bench_protocol(
         config=config,
         output_dir=output_path
     )
-    
+
+    # Inject candidate selection trace into config_metadata
+    if selection_trace and "config_metadata" in canonical_report:
+        canonical_report["config_metadata"]["candidate_selection"] = selection_trace
+
     # Write canonical benchmark report
     report_path = output_path / "bench.json"
     with open(report_path, 'w') as f:
