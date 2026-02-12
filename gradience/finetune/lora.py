@@ -286,7 +286,7 @@ class LoRAAnalyzer:
                 try:
                     S = torch.linalg.svdvals(W)
                     self.base_sigma_max[base_name] = S[0].item()
-                except Exception:
+                except (RuntimeError, ValueError):
                     continue
     
     def _param_to_adapter_name(self, param_name: str) -> Optional[str]:

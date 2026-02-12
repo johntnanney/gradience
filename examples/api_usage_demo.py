@@ -24,10 +24,10 @@ def demo_audit_api():
             check=False  # Continue even if CLI has issues
         )
         
-        if result.returncode == 0:
+        if result.success:
             print("✅ Audit completed successfully")
         else:
-            print("⚠️  Audit had issues (expected in some environments)")
+            print(f"⚠️  Audit had issues (returncode={result.returncode})")
             
     except Exception as e:
         print(f"❌ Audit failed: {e}")

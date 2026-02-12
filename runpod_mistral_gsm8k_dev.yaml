@@ -1,0 +1,92 @@
+# RunPod Development: Mistral-7B + GSM8K Single-Seed Validation
+#
+# Purpose: Fast iteration for second rung logic validation on reasoning tasks
+# - Quick validation of audit-driven compression candidates
+# - Test decision trace generation on mathematical reasoning
+# - Verify GSM8K evaluation pipeline
+# 
+# Runtime: ~15-20 minutes on GPU (single seed)
+# Cost: ~$0.25-0.35 on RunPod A40/A100
+#
+# Usage: 
+#   python -m gradience.bench.run_bench --config runpod_mistral_gsm8k_dev.yaml --output /workspace/dev_artifacts/mistral_gsm8k_dev
+
+bench_version: "0.1"
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm
+  eval_max_samples: 200          # Smaller but meaningful eval set
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  probe_gate:
+    metric: exact_match
+    min_value: 0.10              # Slightly relaxed for dev iteration
+
+train:
+  seed: 42                       # Single seed for speed
+  max_steps: 600                 # Reduced but sufficient for good probe
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 0.0001
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 100
+  eval_steps: 600                # Evaluate at end only
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 1200            # Sufficient for good probe quality
+  eval_samples: 200
+
+lora:
+  probe_r: 64                    # Same as production for consistency
+  alpha: 128
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj  
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+compression:
+  allowed_ranks: [4, 8, 12, 16, 24, 32, 40, 48, 56, 64]
+  acc_tolerance: 0.025           # Slightly relaxed for dev speed
+  
+  # Explicit candidate control for second rung validation
+  candidate_policies: ["energy_p90", "knee_p90"]  # Reduced for dev speed
+  max_candidates: 6              # Room for second rung candidates
+  fast_mode: true
+
+# Enable UDR for full pipeline validation
+audit:
+  base_model: "mistralai/Mistral-7B-v0.1"
+  compute_udr: true
+
+runtime:
+  device: cuda
+  
+  # Full monitoring even in dev mode
+  enable_heartbeat: true
+  heartbeat_interval: 60
+  enable_progress_tracking: true
+  
+  # Dev artifact management
+  keep_adapter_weights: true
+  keep_checkpoints: false
+
+run_type: "dev_mistral_gsm8k_validation"

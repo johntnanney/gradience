@@ -1,347 +1,282 @@
-# RunPod Operations Guide
+# RunPod Cloud GPU Guide
 
-**Complete survival guide for running Gradience on RunPod infrastructure.**
+**Optional guide for RunPod users. Gradience works on any machine - this is just cloud-specific convenience.**
 
-## 🚀 Quick Start (TL;DR)
+RunPod provides affordable GPU access for model compression experiments. This guide covers RunPod-specific setup, management, and artifact extraction.
 
-```bash
-# Essential first step - prevents 90% of RunPod issues
-source /workspace/gradience/scripts/runpod/env.sh
+## Prerequisites
 
-# Then run gradience normally
-python -m gradience.bench.run_bench --config configs/your_config.yaml --output results
-```
+- RunPod account with GPU pod access
+- Basic Linux command line familiarity
+- SSH client for secure copy operations
 
-## 📦 RunPod Storage Architecture
+## Quick Start
 
-Understanding RunPod's dual-disk setup is critical:
+1. **Launch Pod**: Select PyTorch template with CUDA support
+2. **Setup Environment**: Use automated script or manual installation
+3. **Run Experiments**: Execute bench commands in tmux sessions
+4. **Extract Results**: SCP artifacts to local machine
+5. **Clean Up**: Manage disk space and stop billing
 
-| Mount Point | Size | Purpose | Speed | Persistence |
-|-------------|------|---------|--------|-------------|
-| `/root/` | 10-50GB | System disk | Fast SSD | ❌ Ephemeral |
-| `/workspace/` | 100GB-1TB+ | Data disk | Variable | ✅ Persistent |
+## Environment Setup
 
-**Key insight**: Models and datasets MUST go to `/workspace/` to avoid quota issues.
+### Automated Setup
 
-## 🎯 Environment Variables (HuggingFace Cache)
-
-### Current Standards (2024+)
-```bash
-export HF_HOME=/workspace/hf_cache/hf_home           # Primary cache directory
-export HF_HUB_CACHE=/workspace/hf_cache/hub         # Model weights cache  
-export HF_DATASETS_CACHE=/workspace/hf_cache/datasets # Dataset cache
-export TORCH_HOME=/workspace/hf_cache/torch         # PyTorch cache
-```
-
-### Legacy Variables (Still Supported)
-```bash
-export TRANSFORMERS_CACHE=/workspace/hf_cache/hub   # Deprecated but works
-export HUGGINGFACE_HUB_CACHE=/workspace/hf_cache/hub # Old name for HF_HUB_CACHE
-```
-
-### ❌ Deprecated (Avoid)
-```bash
-export TRANSFORMERS_CACHE=/root/.cache/transformers # Will fill system disk
-```
-
-## 🛠️ Setup Procedures
-
-### Option 1: Automated Setup (Recommended)
-```bash
-# Clone and setup in one go
-cd /workspace
-git clone https://github.com/johntnanney/gradience.git
-cd gradience
-source scripts/runpod/env.sh  # Sets up all cache dirs + env vars
-pip install -e ".[hf,dev]"
-```
-
-### Option 2: Manual Setup
-```bash
-# Set cache locations BEFORE any Python imports
-export HF_HOME=/workspace/hf_cache/hf_home
-export HF_HUB_CACHE=/workspace/hf_cache/hub
-export HF_DATASETS_CACHE=/workspace/hf_cache/datasets
-export TORCH_HOME=/workspace/hf_cache/torch
-
-# Create directories
-mkdir -p /workspace/hf_cache/{hf_home,hub,datasets,torch}
-
-# Verify setup
-env | grep -E "HF_|TORCH_"
-```
-
-### Option 3: Emergency Recovery
-```bash
-# If /root/ already filled up
-mkdir -p /workspace/hf_cache/{hf_home,hub,datasets}
-
-# Move existing cache
-mv /root/.cache/huggingface/* /workspace/hf_cache/hf_home/ 2>/dev/null || true
-mv /root/.cache/torch/* /workspace/hf_cache/torch/ 2>/dev/null || true
-
-# Clean up system disk
-rm -rf /root/.cache/huggingface/*
-rm -rf /root/.cache/torch/*
-
-# Set new environment
-source /workspace/gradience/scripts/runpod/env.sh
-```
-
-## 🔧 Persistent Configuration
-
-### Automatic Setup on Pod Start
-Add to `/root/.bashrc`:
+Use the provided environment setup script:
 
 ```bash
-# RunPod persistent cache setup
-if [ -d "/workspace/gradience" ]; then
-    source /workspace/gradience/scripts/runpod/env.sh
-fi
+# Download and run setup script (base)
+curl -fsSL https://raw.githubusercontent.com/gradience-ai/gradience/main/scripts/runpod_setup.sh | bash
+
+# Or if already cloned: (base)
+./scripts/runpod_setup.sh
 ```
 
-### Manual .bashrc Entry
+The script handles:
+- Python environment creation
+- Gradience installation with bench extras **(bench)**
+- HuggingFace cache configuration
+- tmux installation and basic config
+
+### Manual Setup
+
 ```bash
-# HuggingFace cache configuration for RunPod
-export HF_HOME=/workspace/hf_cache/hf_home
-export HF_HUB_CACHE=/workspace/hf_cache/hub
-export HF_DATASETS_CACHE=/workspace/hf_cache/datasets
-export TORCH_HOME=/workspace/hf_cache/torch
+# Install system dependencies (base)
+apt-get update && apt-get install -y tmux git
+
+# Create Python environment (base)
+python -m venv gradience-env
+source gradience-env/bin/activate
+
+# Install Gradience (bench)
+pip install "gradience[bench]"
+
+# Configure HuggingFace cache (base)
+export HF_HOME="/workspace/hf_cache"
+export HF_HUB_CACHE="/workspace/hf_cache/hub"
+mkdir -p $HF_HOME
+
+# Add to ~/.bashrc for persistence (base)
+echo 'export HF_HOME="/workspace/hf_cache"' >> ~/.bashrc
+echo 'export HF_HUB_CACHE="/workspace/hf_cache/hub"' >> ~/.bashrc
 ```
 
-## 🚨 Common Issues & Solutions
+## tmux Session Management
 
-### Issue 1: "No space left on device" during model download
+**Important**: tmux is a system package (`apt-get`), not a Python package (`pip`).
 
-**Symptoms:**
-- Error during `transformers` model loading
-- `/root/` filesystem at 100%
-- Downloads failing mid-process
+### Install tmux
 
-**Solution:**
 ```bash
-# Check what's using space
-df -h /root
-du -sh /root/.cache/* 2>/dev/null | sort -hr
+# On RunPod (Ubuntu-based)
+apt-get update && apt-get install -y tmux
 
-# Emergency cleanup
-rm -rf /root/.cache/huggingface/*
-rm -rf /root/.cache/torch/*
-source /workspace/gradience/scripts/runpod/env.sh
+# Verify installation
+tmux --version
 ```
 
-### Issue 2: Models downloading to wrong location
+### Basic tmux Workflow
 
-**Symptoms:**
-- Cache environment set but models still go to `/root/`
-- Environment variables ignored
-
-**Root Cause:** Environment must be set BEFORE importing HuggingFace libraries.
-
-**Solution:**
 ```bash
-# WRONG - too late
-python -c "
-import transformers
-import os
-os.environ['HF_HUB_CACHE'] = '/workspace/hf_cache/hub'  # Ignored!
-"
+# Start new session for experiment (base)
+tmux new-session -d -s experiment1
 
-# CORRECT - env first
-export HF_HUB_CACHE=/workspace/hf_cache/hub
-python -c "import transformers"  # Uses correct cache
+# Attach to session (base)
+tmux attach-session -t experiment1
+
+# Inside tmux: run long experiments (bench)
+source gradience-env/bin/activate
+gradience bench configs/distilbert_sst2_gpu.yaml --output-dir /workspace/results
+
+# Detach (Ctrl+B, then D) (base)
+# Session continues running in background
+
+# List sessions (base)
+tmux list-sessions
+
+# Kill session when done (base)
+tmux kill-session -t experiment1
 ```
 
-### Issue 3: Jupyter Notebook cache issues
+### tmux Best Practices
 
-**Problem:** Jupyter kernels don't inherit shell environment variables.
+- **One session per experiment**: Avoid conflicts and easy monitoring
+- **Meaningful session names**: `experiment1`, `bert-large`, `gpt2-eval`
+- **Regular detaching**: Preserve work if connection drops
+- **Clean session management**: Kill completed sessions to save memory
 
-**Solution:** Set in notebook cell BEFORE imports:
-```python
-import os
-os.environ['HF_HOME'] = '/workspace/hf_cache/hf_home'
-os.environ['HF_HUB_CACHE'] = '/workspace/hf_cache/hub' 
-os.environ['HF_DATASETS_CACHE'] = '/workspace/hf_cache/datasets'
+## Disk Space Management
 
-# Now safe to import
-import transformers
-from datasets import load_dataset
-```
+RunPod pods have limited disk space. Regular cleanup prevents storage issues.
 
-### Issue 4: Safetensors corruption after disk full
+### HuggingFace Cache Cleanup
 
-**Symptoms:**
-- `incomplete metadata` errors
-- `EOFError` during model loading
-- Corrupted `.safetensors` files
-
-**Solution:**
 ```bash
-# Clear corrupted cache completely
-rm -rf /workspace/hf_cache/hub/models--*
-source /workspace/gradience/scripts/runpod/env.sh
-# Re-download will start fresh
+# Check cache size
+du -sh $HF_HOME
+
+# Clean old/unused models (be careful!)
+rm -rf $HF_HOME/hub/models--*unused-model*
+
+# Or clear entire cache (re-downloads everything)
+rm -rf $HF_HOME && mkdir -p $HF_HOME
 ```
 
-### Issue 5: Multiple Python processes fighting over cache
+### Repository Cleanup
 
-**Symptoms:**
-- Random download failures
-- Partial model files
-- Inconsistent cache state
-
-**Solution:** Use file locking (automatic in newer transformers):
 ```bash
-export HF_HUB_DISABLE_SYMLINKS_WARNING=1
-export HF_HUB_ENABLE_HF_TRANSFER=1  # Faster downloads
+# Clean git repositories
+find /workspace -name ".git" -type d -exec du -sh {} \;
+rm -rf /workspace/old-repo-clone
+
+# Clean Python cache
+find /workspace -name "__pycache__" -type d -exec rm -rf {} \; 2>/dev/null
+find /workspace -name "*.pyc" -delete
 ```
 
-## 📊 Monitoring & Maintenance
+### Experiment Results Management
 
-### Disk Usage Monitoring
 ```bash
-# Check system disk (should stay <80%)
-df -h /root | tail -1
+# Check results disk usage
+du -sh /workspace/results
 
-# Check data disk  
-df -h /workspace | tail -1
+# Archive old results before cleanup
+tar -czf old-results-$(date +%Y%m%d).tar.gz /workspace/results/old-experiment
+rm -rf /workspace/results/old-experiment
 
-# Find largest cache items
-du -sh /workspace/hf_cache/* | sort -hr
+# Extract important artifacts only
+mkdir -p /workspace/artifacts
+cp /workspace/results/*/bench.json /workspace/artifacts/
+cp /workspace/results/*/audit.json /workspace/artifacts/
 ```
 
-### Cache Cleanup
-```bash
-# Clean old model versions (keep only latest)
-find /workspace/hf_cache/hub -name "*.json" -mtime +30 -delete
+## Artifact Extraction
 
-# Remove temporary download files
-find /workspace/hf_cache -name "*.tmp*" -delete
-find /workspace/hf_cache -name ".locks" -type d -exec rm -rf {} + 2>/dev/null || true
+### SCP to Local Machine
+
+```bash
+# From your local machine: (base)
+
+# Copy specific artifacts (base)
+scp root@runpod-ip:/workspace/results/bench.json ./local-results/
+
+# Copy entire results directory (base)
+scp -r root@runpod-ip:/workspace/results ./local-results/
+
+# Copy compressed archive (base)
+scp root@runpod-ip:/workspace/artifacts.tar.gz ./
+tar -xzf artifacts.tar.gz
 ```
 
-### Health Check Script
+### Batch Artifact Collection
+
+Create extraction script on RunPod:
+
 ```bash
+# On RunPod: create extraction script
+cat > /workspace/collect_artifacts.sh << 'EOF'
 #!/bin/bash
-# Save as scripts/runpod/health_check.sh
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+ARCHIVE_NAME="gradience_artifacts_${TIMESTAMP}.tar.gz"
 
-echo "=== RunPod Health Check ==="
+# Create temporary directory for artifacts
+mkdir -p /tmp/artifacts
 
-# Check disk space
-echo "Disk usage:"
-df -h /root /workspace | tail -2
+# Collect key artifacts
+find /workspace/results -name "bench.json" -exec cp {} /tmp/artifacts/bench_{}.json \;
+find /workspace/results -name "audit.json" -exec cp {} /tmp/artifacts/audit_{}.json \;
+find /workspace/results -name "compression_configs.json" -exec cp {} /tmp/artifacts/compression_{}.json \;
 
-# Check cache environment
-echo -e "\nCache configuration:"
-env | grep -E "HF_|TORCH_" | sort
+# Create archive
+tar -czf "/workspace/${ARCHIVE_NAME}" -C /tmp artifacts
 
-# Check cache sizes
-echo -e "\nCache sizes:"
-du -sh /workspace/hf_cache/* 2>/dev/null | sort -hr | head -5
+# Cleanup
+rm -rf /tmp/artifacts
 
-# Verify writable
-echo -e "\nCache write test:"
-test_file="/workspace/hf_cache/write_test_$$"
-if touch "$test_file" 2>/dev/null; then
-    rm "$test_file"
-    echo "✅ Cache directory writable"
-else
-    echo "❌ Cache directory not writable"
-fi
+echo "Artifacts archived to: /workspace/${ARCHIVE_NAME}"
+echo "Download with: scp root@\$(curl -s https://ipv4.icanhazip.com):/workspace/${ARCHIVE_NAME} ./"
+EOF
+
+chmod +x /workspace/collect_artifacts.sh
 ```
 
-## ⚡ Performance Optimizations
+### Using the Collection Script
 
-### Download Acceleration
 ```bash
-# Use HF transfer for faster downloads (>100MB files)
-export HF_HUB_ENABLE_HF_TRANSFER=1
-pip install hf_transfer
+# On RunPod
+./collect_artifacts.sh
 
-# Parallel downloads
-export HF_HUB_DOWNLOAD_PARALLEL=1
+# Output shows download command:
+# Download with: scp root@192.168.1.100:/workspace/gradience_artifacts_20240206_143022.tar.gz ./
+
+# Run the scp command from your local machine
 ```
 
-### Memory Management
+## Cost Optimization
+
+### Monitoring Usage
+
 ```bash
-# Reduce memory pressure during large model downloads
-export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
-export HF_HUB_CACHE_MAX_SIZE=50GB  # Limit cache size
+# Check GPU utilization (gpu)
+nvidia-smi
+
+# Monitor disk usage (base)
+df -h /workspace
+
+# Check running processes (base)
+ps aux | grep python
 ```
 
-### Network Optimization
+### Stopping vs Pausing
+
+- **Pause pod**: Preserves disk state, reduced billing rate
+- **Stop pod**: Destroys disk state, no billing
+- **Always stop** when experiment complete unless continuing work
+
+### Efficient Workflows
+
+1. **Prepare locally**: Test configs on CPU before GPU runs
+2. **Batch experiments**: Queue multiple runs in same session
+3. **Extract early**: Copy artifacts immediately after completion
+4. **Clean aggressively**: Remove data as soon as extracted
+
+## Troubleshooting
+
+### Common Issues
+
+**tmux not found**:
 ```bash
-# Increase download timeouts for large models
-export HF_HUB_DOWNLOAD_TIMEOUT=3600  # 1 hour timeout
-export REQUESTS_TIMEOUT=300           # 5 minute request timeout
+apt-get update && apt-get install -y tmux
 ```
 
-## 🔐 Security Considerations
-
-### File Permissions
+**Out of disk space**:
 ```bash
-# Ensure cache is readable by all processes
-chmod -R 755 /workspace/hf_cache/
+# Emergency cleanup
+rm -rf $HF_HOME/hub/models--*
+docker system prune -f
 ```
 
-### Token Management
+**Connection lost**:
 ```bash
-# Use HF tokens for private models
-huggingface-cli login --token your_token
-# Token stored in /workspace/hf_cache/hf_home/token (persistent)
+# Reconnect and reattach
+ssh root@runpod-ip
+tmux list-sessions
+tmux attach-session -t experiment1
 ```
 
-## 📈 Best Practices
-
-1. **Always set environment BEFORE Python imports**
-2. **Use the automated setup script** (`scripts/runpod/env.sh`)  
-3. **Monitor `/root/` disk usage** (should stay <80%)
-4. **Clean up failed downloads** regularly
-5. **Use artifact hygiene** (`keep_adapter_weights: false`) to save space
-6. **Add setup to `.bashrc`** for persistence across pod restarts
-
-## 🔬 Advanced Debugging
-
-### Cache Introspection
-```python
-# Check current cache locations from Python
-import os
-from pathlib import Path
-
-print("HF_HOME:", os.environ.get('HF_HOME', 'NOT SET'))
-print("HF_HUB_CACHE:", os.environ.get('HF_HUB_CACHE', 'NOT SET'))
-
-# Check actual transformers cache
-import transformers
-print("Transformers cache dir:", transformers.utils.TRANSFORMERS_CACHE)
-```
-
-### Network Diagnostics
+**CUDA out of memory**:
 ```bash
-# Test HuggingFace Hub connectivity
-curl -I https://huggingface.co/api/models/distilbert-base-uncased
-
-# Check download speed
-time huggingface-cli download microsoft/DialoGPT-small --cache-dir /tmp/speed_test
+# Reduce batch size in config
+# Check GPU memory: nvidia-smi
+# Kill competing processes: pkill -f python
 ```
 
-### Process Monitoring
-```bash
-# Monitor active downloads
-lsof +D /workspace/hf_cache | grep -v "DEL"
+### Getting Help
 
-# Check Python processes using cache
-ps aux | grep python | head -5
-```
+- Check RunPod documentation for platform issues
+- Use `gradience --help` for tool-specific questions  
+- Gradience logs available in experiment output directories
 
 ---
 
-## 📚 References
-
-- [HuggingFace Hub Documentation](https://huggingface.co/docs/huggingface_hub/guides/manage-cache)
-- [RunPod Storage Documentation](https://docs.runpod.io/pods/storage)
-- [Gradience Artifact Hygiene Guide](../bench/README.md#artifact-hygiene)
-
----
-
-💡 **Pro Tip**: Always run `source scripts/runpod/env.sh` as the first command in any new RunPod session. This single command prevents 90% of storage-related issues.
+**Remember**: This is optional cloud-specific guidance. Gradience works on any machine with Python 3.9+ and optional GPU support.

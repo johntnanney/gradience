@@ -1,0 +1,81 @@
+# RunPod GPU Experiment: DistilBERT + SST-2 Rapid Validation
+#
+# Purpose: Fast GPU validation of new features with good signal-to-noise ratio
+# - Second rung logic (decision trace)  
+# - Self-contained aggregates
+# - Engineering hygiene (heartbeat, progress tracking)
+# 
+# Runtime: ~8-12 minutes on GPU (3 seeds × ~3-4 min per seed)
+# Cost: ~$0.10-0.20 on RunPod GPU
+#
+# Usage: 
+#   python -m gradience.bench.run_bench --config runpod_distilbert_sst2.yaml --output /workspace/runpod_distilbert_validation
+
+bench_version: "0.1"
+
+model:
+  name: distilbert-base-uncased
+  type: seqcls
+  torch_dtype: bf16              # GPU supports bf16
+  gradient_checkpointing: true   # Memory efficiency on GPU
+
+task:
+  dataset: sst2
+  subset: default
+  profile: seqcls_glue
+  eval_max_samples: 200          # Good eval size for reliable signal
+  generation: null               # No generation for classification
+
+train:
+  max_steps: 100                 # Sufficient for convergence but fast
+  per_device_train_batch_size: 8 # Take advantage of GPU memory
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0002          # Slightly higher for faster convergence
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  logging_steps: 20
+  eval_steps: 100                # Evaluate at end only
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 800             # Sufficient training data for good probe
+  eval_samples: 200
+
+lora:
+  probe_r: 32                    # Higher rank for compression headroom
+  alpha: 64
+  dropout: 0.05
+  target_modules:
+    - q_lin
+    - v_lin
+
+compression:
+  allowed_ranks: [4, 8, 12, 16, 20, 24, 28, 32]  # Full range for good compression options
+  acc_tolerance: 0.02                             # Tight tolerance for production validation
+  
+  # Multi-seed configuration for statistical robustness
+  seeds: [42, 123, 456]          # 3 seeds for variance estimation
+  
+  # Explicit candidate control: test all new logic paths
+  candidate_policies: ["energy_p90", "knee_p90", "erank_p90"]  # All core policies
+  max_candidates: 6              # Allow room for second rung + policies
+  fast_mode: true                # Ensure FAST mode (no policy explosion)
+
+# Enable UDR for complete validation
+audit:
+  base_model: "distilbert-base-uncased"
+  compute_udr: true              # Full audit pipeline validation
+
+runtime:
+  device: cuda                   # GPU required
+  
+  # HYGIENE: Enable all monitoring for RunPod environment
+  enable_heartbeat: true         # Keep SSH sessions alive during training
+  heartbeat_interval: 30         # Every 30 seconds
+  enable_progress_tracking: true # Track progress for stuck run detection
+  
+  # Artifact management for cost efficiency
+  keep_adapter_weights: true     # Keep for analysis but clean probe weights
+  keep_checkpoints: false        # Don't waste storage on RunPod
+
+run_type: "runpod_distilbert_validation"

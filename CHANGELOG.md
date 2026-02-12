@@ -31,8 +31,28 @@ Four fixes to improve public-demo quality of bench aggregate reports (bench_aggr
 4. **Audit decision trace in aggregate** — New `audit_summary` section in aggregate JSON with probe rank, per-policy suggestions (suggested_r, actual_r, dedup annotations), and selection reasoning. Rendered as "Audit Context" section in markdown with policy suggestion table.
 
 ### Added
-- `tests/test_bench_credibility.py` — 18 tests covering all four credibility fixes
+- `tests/test_bench_credibility.py` — 31 tests covering all credibility and consistency fixes
 - `_extract_seed_id()` helper in `aggregate.py` for parsing seed IDs from directory names
+
+## [0.9.0] - 2026-02-06
+
+### Added
+- **PyPI-Ready Documentation Suite**: Complete professional documentation for package distribution
+  - Comprehensive troubleshooting guide with symptom-fix patterns
+  - RunPod cloud GPU setup guide (optional, cloud-specific)
+  - Artifacts and evidence documentation for research reproducibility
+  - CLI reference with exit codes and fast mode explanations
+  - Configuration reference with guaranteed package examples
+  - Installation guide with environment-specific instructions
+- **Install Tier Tag System**: All documentation commands tagged with (base), (bench), or (gpu) requirements
+
+### Changed
+- **README Restructure**: Transformed from lab notebook to PyPI-first landing page
+- **PyPI Compatibility**: All relative links converted to absolute GitHub URLs
+- **Quickstart Workflow**: Uses importlib.resources for guaranteed config availability after pip install
+
+### Fixed
+- **Package Distribution**: Comprehensive CI testing matrix for pip install validation
 
 ## [v0.7.1] - 2026-01-26
 
