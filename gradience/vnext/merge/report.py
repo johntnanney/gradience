@@ -1,0 +1,338 @@
+"""
+Report generation for merge audit results.
+
+Produces:
+  merge_audit.json  -- Machine-readable, structured for downstream tools
+  merge_audit.md    -- Human-readable, suitable for code review / team sharing
+
+Follows the same artifact philosophy as bench.json / bench.md.
+"""
+
+from __future__ import annotations
+
+import json
+import statistics
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+from gradience.vnext.merge.verdicts import (
+    CompatibilityVerdict,
+    LayerVerdict,
+    VerdictThresholds,
+)
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from gradience.vnext.merge.io import AdapterInfo
+
+
+# ---------------------------------------------------------------------------
+# Report data structure
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class MergeAuditReport:
+    """Top-level merge audit report.  Mutable during construction."""
+
+    adapter_a: Dict[str, Any]       # path, rank, alpha, base_model, n_layers
+    adapter_b: Dict[str, Any]
+    matching: Dict[str, Any]        # shared, only_a, only_b counts + names
+    layer_verdicts: List[Dict[str, Any]]  # LayerVerdict.to_dict() for each layer
+    aggregate: Dict[str, Any]       # overall verdict, score, overlap stats
+    recommendations: List[str]
+    issues: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    thresholds: Dict[str, float] = field(default_factory=dict)
+    timestamp: str = ""
+    gradience_version: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------
+
+
+def build_report(
+    adapter_a_info: "AdapterInfo",
+    adapter_b_info: "AdapterInfo",
+    shared: List[str],
+    only_a: List[str],
+    only_b: List[str],
+    layer_verdicts: List[LayerVerdict],
+    overall_verdict: CompatibilityVerdict,
+    score: float,
+    recommendations: List[str],
+    thresholds: VerdictThresholds,
+) -> MergeAuditReport:
+    """Assemble full report from analysis results."""
+    try:
+        from importlib.metadata import version as pkg_version
+
+        grad_version = pkg_version("gradience")
+    except Exception:  # broad-except: optional metadata lookup
+        grad_version = "dev"
+
+    overlaps = [lv.metrics.mean_overlap for lv in layer_verdicts]
+    agreements = [lv.metrics.directional_agreement for lv in layer_verdicts]
+
+    warnings: List[str] = []
+    if only_a:
+        warnings.append(
+            f"{len(only_a)} layer(s) only in adapter A: {', '.join(only_a[:5])}"
+        )
+    if only_b:
+        warnings.append(
+            f"{len(only_b)} layer(s) only in adapter B: {', '.join(only_b[:5])}"
+        )
+
+    base_a = getattr(adapter_a_info.config, "raw", {}).get("base_model_name_or_path", "unknown")
+    base_b = getattr(adapter_b_info.config, "raw", {}).get("base_model_name_or_path", "unknown")
+
+    return MergeAuditReport(
+        adapter_a={
+            "path": str(adapter_a_info.path),
+            "rank": adapter_a_info.rank,
+            "alpha": adapter_a_info.alpha,
+            "base_model": base_a,
+            "n_layers": len(adapter_a_info.lora_pairs),
+        },
+        adapter_b={
+            "path": str(adapter_b_info.path),
+            "rank": adapter_b_info.rank,
+            "alpha": adapter_b_info.alpha,
+            "base_model": base_b,
+            "n_layers": len(adapter_b_info.lora_pairs),
+        },
+        matching={
+            "n_shared": len(shared),
+            "n_only_a": len(only_a),
+            "n_only_b": len(only_b),
+            "shared_layers": shared,
+            "only_a_layers": only_a,
+            "only_b_layers": only_b,
+        },
+        layer_verdicts=[lv.to_dict() for lv in layer_verdicts],
+        aggregate={
+            "overall_verdict": overall_verdict.value,
+            "compatibility_score": round(score, 4),
+            "mean_overlap": round(sum(overlaps) / len(overlaps), 4) if overlaps else 0.0,
+            "median_overlap": round(
+                statistics.median(overlaps), 4
+            ) if overlaps else 0.0,
+            "max_overlap": round(max(overlaps), 4) if overlaps else 0.0,
+            "mean_agreement": round(
+                sum(agreements) / len(agreements), 4
+            ) if agreements else 0.0,
+            "n_safe": sum(
+                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.SAFE
+            ),
+            "n_redundant": sum(
+                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT
+            ),
+            "n_conflicting": sum(
+                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING
+            ),
+            "n_imbalanced": sum(
+                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED
+            ),
+        },
+        recommendations=recommendations,
+        issues=[],
+        warnings=warnings,
+        thresholds=thresholds.to_dict(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        gradience_version=grad_version,
+    )
+
+
+# ---------------------------------------------------------------------------
+# JSON
+# ---------------------------------------------------------------------------
+
+
+def to_json(report: MergeAuditReport) -> Dict[str, Any]:
+    """Convert report to JSON-serializable dict."""
+    return {
+        "schema_version": "gradience.merge_audit/v1",
+        "timestamp": report.timestamp,
+        "gradience_version": report.gradience_version,
+        "adapter_a": report.adapter_a,
+        "adapter_b": report.adapter_b,
+        "matching": report.matching,
+        "aggregate": report.aggregate,
+        "per_layer": report.layer_verdicts,
+        "recommendations": report.recommendations,
+        "issues": report.issues,
+        "warnings": report.warnings,
+        "thresholds": report.thresholds,
+    }
+
+
+def write_json_report(report: MergeAuditReport, output_path: Path) -> None:
+    """Write merge_audit.json."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    data = to_json(report)
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Markdown
+# ---------------------------------------------------------------------------
+
+
+def _shorten_layer_name(name: str) -> str:
+    """Shorten a fully-qualified layer name while keeping it unique.
+
+    Extracts the block index and module suffix, e.g.:
+        "base_model.model.model.layers.10.self_attn.k_proj"  -> "L10.k_proj"
+        "base_model.model.lm_head"                           -> "lm_head"
+    """
+    parts = name.split(".")
+
+    # Find the last numeric component (block index)
+    block_idx = None
+    suffix_start = len(parts)
+    for i in range(len(parts) - 1, -1, -1):
+        if parts[i].isdigit():
+            block_idx = parts[i]
+            suffix_start = i + 1
+            break
+
+    suffix = ".".join(parts[suffix_start:]) if suffix_start < len(parts) else parts[-1]
+
+    if block_idx is not None:
+        return f"L{block_idx}.{suffix}"
+    return suffix
+
+
+_VERDICT_EMOJI = {
+    "safe": "\u2705",         # green check
+    "redundant": "\u26a0\ufe0f",  # warning
+    "conflicting": "\u274c",  # red X
+    "imbalanced": "\u2696\ufe0f",  # balance scale
+}
+
+
+def to_markdown(report: MergeAuditReport) -> str:
+    """Render human-readable markdown report."""
+    lines: List[str] = []
+    agg = report.aggregate
+
+    # --- Title ---
+    lines.append("# Merge Compatibility Audit\n")
+
+    # --- Adapters ---
+    lines.append("## Adapters\n")
+    lines.append("| | Adapter A | Adapter B |")
+    lines.append("|---|---|---|")
+    lines.append(
+        f"| **Path** | `{report.adapter_a['path']}` | `{report.adapter_b['path']}` |"
+    )
+    lines.append(
+        f"| **Rank** | {report.adapter_a['rank']} | {report.adapter_b['rank']} |"
+    )
+    lines.append(
+        f"| **Alpha** | {report.adapter_a['alpha']} | {report.adapter_b['alpha']} |"
+    )
+    lines.append(
+        f"| **Base model** | {report.adapter_a['base_model']} | {report.adapter_b['base_model']} |"
+    )
+    lines.append(
+        f"| **Layers** | {report.adapter_a['n_layers']} | {report.adapter_b['n_layers']} |"
+    )
+    lines.append("")
+
+    # --- Compatibility summary ---
+    verdict_str = agg["overall_verdict"]
+    emoji = _VERDICT_EMOJI.get(verdict_str, "")
+    lines.append("## Compatibility Summary\n")
+    lines.append(f"**Overall verdict:** {emoji} **{verdict_str.upper()}**\n")
+    lines.append(f"- Compatibility score: {agg['compatibility_score']:.3f}")
+    lines.append(f"- Mean overlap: {agg['mean_overlap']:.3f}")
+    lines.append(f"- Max overlap: {agg['max_overlap']:.3f}")
+    lines.append(f"- Mean agreement: {agg['mean_agreement']:.3f}")
+    lines.append(
+        f"- Shared layers: {report.matching['n_shared']} | "
+        f"Only A: {report.matching['n_only_a']} | "
+        f"Only B: {report.matching['n_only_b']}"
+    )
+    lines.append(
+        f"- Verdicts: {agg['n_safe']} safe, "
+        f"{agg['n_redundant']} redundant, "
+        f"{agg['n_conflicting']} conflicting, "
+        f"{agg['n_imbalanced']} imbalanced"
+    )
+    lines.append("")
+
+    # --- Per-layer analysis ---
+    if report.layer_verdicts:
+        lines.append("## Per-Layer Analysis\n")
+        lines.append(
+            "| Layer | r_a | r_b | Overlap | Agreement | Mag ratio | Verdict | Strategy |"
+        )
+        lines.append("|---|---:|---:|---:|---:|---:|---|---|")
+
+        for lv in report.layer_verdicts:
+            m = lv["metrics"]
+            v_emoji = _VERDICT_EMOJI.get(lv["verdict"], "")
+            short_name = _shorten_layer_name(lv["layer_name"])
+            lines.append(
+                f"| {short_name} "
+                f"| {m['nominal_rank_a']} "
+                f"| {m['nominal_rank_b']} "
+                f"| {m['mean_overlap']:.3f} "
+                f"| {m['directional_agreement']:.3f} "
+                f"| {m['magnitude_ratio']:.1f}x "
+                f"| {v_emoji} {lv['verdict']} "
+                f"| {lv['suggested_strategy']} |"
+            )
+        lines.append("")
+
+    # --- Conflict details ---
+    conflicts = [lv for lv in report.layer_verdicts if lv["verdict"] == "conflicting"]
+    if conflicts:
+        lines.append("## Conflict Details\n")
+        for lv in conflicts:
+            lines.append(f"### {lv['layer_name']}\n")
+            lines.append(f"- {lv['recommendation']}")
+            lines.append(f"- Conflicting dimensions: {lv['conflict_dimensions']}")
+            lines.append("")
+
+    # --- Recommendations ---
+    if report.recommendations:
+        lines.append("## Recommendations\n")
+        for rec in report.recommendations:
+            lines.append(f"- {rec}")
+        lines.append("")
+
+    # --- Warnings ---
+    if report.warnings:
+        lines.append("## Warnings\n")
+        for warn in report.warnings:
+            lines.append(f"- {warn}")
+        lines.append("")
+
+    # --- Footer ---
+    lines.append(f"*Generated by Gradience {report.gradience_version} on {report.timestamp}*\n")
+
+    return "\n".join(lines)
+
+
+def write_markdown_report(report: MergeAuditReport, output_path: Path) -> None:
+    """Write merge_audit.md."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    md = to_markdown(report)
+    with open(output_path, "w") as f:
+        f.write(md)
+
+
+def write_reports(report: MergeAuditReport, output_dir: Union[str, Path]) -> None:
+    """Write both merge_audit.json and merge_audit.md."""
+    output_dir = Path(output_dir)
+    write_json_report(report, output_dir / "merge_audit.json")
+    write_markdown_report(report, output_dir / "merge_audit.md")
