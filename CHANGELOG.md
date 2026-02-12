@@ -4,6 +4,18 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.9.4] - 2026-02-12
+
+### Fixed - Aggregate Metadata Consistency
+
+Three fixes for internally inconsistent aggregate artifact metadata:
+
+1. **Aggregate owns validation_classification** — No longer copies single-seed `env.validation_classification` (which had `is_multiseed: false`, `n_seeds: 1`). Aggregate now computes its own with correct `is_multiseed: true`, `n_seeds: 3`, and rationale reflecting multi-seed reality.
+
+2. **Selection trace final_count fixed** — Was off-by-one (`len(final_configs) - 1` subtracted for a key not yet added), producing `final_count: 0` when 1 candidate ran. Added `final_candidates` list naming what actually evaluated.
+
+3. **effective_overrides in config_metadata** — `embedded_config` shows what the user configured (e.g. `variants_to_test: ["per_layer"]`), new `effective_overrides` shows what actually ran (e.g. `variants_evaluated: ["energy_p90"]`, `fast_mode: true`). Eliminates config-vs-execution confusion.
+
 ## [v0.9.3] - 2026-02-10
 
 ### Fixed - Bench Artifact Credibility
