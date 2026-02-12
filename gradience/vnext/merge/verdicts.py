@@ -1,0 +1,358 @@
+"""
+Decision logic for merge compatibility.
+
+Translates raw SubspaceMetrics into actionable per-layer assessments and
+an aggregate compatibility verdict.  The decision tree follows the spec's
+five-branch structure:
+
+    1. Low overlap  -> SAFE (orthogonal subspaces)
+    2. High overlap + aligned  -> REDUNDANT (de-dup needed)
+    3. High overlap + opposing -> CONFLICTING (danger zone)
+    4. Extreme magnitude ratio -> IMBALANCED (coefficient tuning)
+    5. Everything else         -> SAFE with moderate confidence
+
+Thresholds ship as defaults but can be overridden via CLI flags or a
+VerdictThresholds instance.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+from gradience.vnext.merge.spectral_compat import SubspaceMetrics
+
+
+# ---------------------------------------------------------------------------
+# Enums and thresholds
+# ---------------------------------------------------------------------------
+
+
+class CompatibilityVerdict(Enum):
+    SAFE = "safe"
+    REDUNDANT = "redundant"
+    CONFLICTING = "conflicting"
+    IMBALANCED = "imbalanced"
+
+
+@dataclass(frozen=True)
+class VerdictThresholds:
+    """Tunable thresholds for verdict decisions.
+
+    Attributes
+    ----------
+    low_overlap : below this -> orthogonal subspaces
+    high_overlap : above this -> significant shared subspace
+    aligned : agreement above this -> same direction (redundant)
+    conflicting : agreement below this -> opposing (conflicting)
+    imbalanced : magnitude ratio above this -> imbalanced
+    """
+
+    low_overlap: float = 0.2
+    high_overlap: float = 0.5
+    aligned: float = 0.5
+    conflicting: float = -0.3
+    imbalanced: float = 5.0
+
+    @classmethod
+    def conservative(cls) -> VerdictThresholds:
+        """Flag more potential issues. Good for early adoption."""
+        return cls(
+            low_overlap=0.15,
+            high_overlap=0.35,
+            aligned=0.6,
+            conflicting=-0.2,
+            imbalanced=3.0,
+        )
+
+    @classmethod
+    def permissive(cls) -> VerdictThresholds:
+        """Flag only obvious problems. For experienced users."""
+        return cls(
+            low_overlap=0.3,
+            high_overlap=0.7,
+            aligned=0.4,
+            conflicting=-0.5,
+            imbalanced=10.0,
+        )
+
+    def to_dict(self) -> Dict[str, float]:
+        return asdict(self)
+
+
+# ---------------------------------------------------------------------------
+# Per-layer verdict
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LayerVerdict:
+    """Assessment for one matched layer pair."""
+
+    layer_name: str
+    module_type: str
+    metrics: SubspaceMetrics
+    verdict: CompatibilityVerdict
+    confidence: float               # [0, 1] — how clearly metrics match verdict
+    recommendation: str             # human-readable
+    conflict_dimensions: int        # number of conflicting singular directions
+    safe_merge_rank: int            # suggested merged adapter rank
+    suggested_strategy: str         # "linear" | "ties" | "dare" | "exclude"
+    suggested_coefficients: Optional[Tuple[float, float]]  # (coeff_a, coeff_b)
+
+    def to_dict(self) -> Dict[str, Any]:
+        d: Dict[str, Any] = {
+            "layer_name": self.layer_name,
+            "module_type": self.module_type,
+            "metrics": self.metrics.to_dict(),
+            "verdict": self.verdict.value,
+            "confidence": self.confidence,
+            "recommendation": self.recommendation,
+            "conflict_dimensions": self.conflict_dimensions,
+            "safe_merge_rank": self.safe_merge_rank,
+            "suggested_strategy": self.suggested_strategy,
+            "suggested_coefficients": (
+                list(self.suggested_coefficients)
+                if self.suggested_coefficients
+                else None
+            ),
+        }
+        return d
+
+
+# ---------------------------------------------------------------------------
+# Layer assessment
+# ---------------------------------------------------------------------------
+
+
+def _overlap_confidence(value: float, threshold: float) -> float:
+    """Distance from threshold, normalized to [0, 1]."""
+    if threshold < 1e-10:
+        return 1.0
+    return min(abs(value - threshold) / threshold, 1.0)
+
+
+def assess_layer(
+    layer_name: str,
+    module_type: str,
+    metrics: SubspaceMetrics,
+    thresholds: Optional[VerdictThresholds] = None,
+) -> LayerVerdict:
+    """Five-branch decision tree for layer-level verdict.
+
+    Handles the clearest cases first, falls through to ambiguous last.
+    """
+    if thresholds is None:
+        thresholds = VerdictThresholds()
+
+    # --- Branch 1: Orthogonal subspaces ---
+    if metrics.mean_overlap < thresholds.low_overlap:
+        return LayerVerdict(
+            layer_name=layer_name,
+            module_type=module_type,
+            metrics=metrics,
+            verdict=CompatibilityVerdict.SAFE,
+            confidence=_overlap_confidence(
+                metrics.mean_overlap, thresholds.low_overlap
+            ),
+            recommendation=(
+                f"Orthogonal subspaces (overlap={metrics.mean_overlap:.3f}). "
+                f"Safe to merge with any method. Combined effective rank: "
+                f"{metrics.effective_rank_a + metrics.effective_rank_b}."
+            ),
+            conflict_dimensions=0,
+            safe_merge_rank=metrics.effective_rank_a + metrics.effective_rank_b,
+            suggested_strategy="linear",
+            suggested_coefficients=(0.5, 0.5),
+        )
+
+    # --- Branch 2: Redundant (high overlap, aligned) ---
+    if (
+        metrics.mean_overlap > thresholds.high_overlap
+        and metrics.directional_agreement > thresholds.aligned
+    ):
+        return LayerVerdict(
+            layer_name=layer_name,
+            module_type=module_type,
+            metrics=metrics,
+            verdict=CompatibilityVerdict.REDUNDANT,
+            confidence=min(
+                _overlap_confidence(metrics.mean_overlap, thresholds.high_overlap),
+                abs(metrics.directional_agreement - thresholds.aligned),
+            ),
+            recommendation=(
+                f"High redundancy (overlap={metrics.mean_overlap:.3f}, "
+                f"agreement={metrics.directional_agreement:.3f}). "
+                f"Adapters learn similar features. TIES recommended to "
+                f"deduplicate shared directions. Merged rank ~ "
+                f"{max(metrics.effective_rank_a, metrics.effective_rank_b)}."
+            ),
+            conflict_dimensions=0,
+            safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
+            suggested_strategy="ties",
+            suggested_coefficients=(0.5, 0.5),
+        )
+
+    # --- Branch 3: Conflicting (high overlap, opposing) ---
+    if (
+        metrics.mean_overlap > thresholds.high_overlap
+        and metrics.directional_agreement < thresholds.conflicting
+    ):
+        n_conflict = sum(
+            1
+            for cos_a in metrics.principal_angle_cosines
+            if cos_a > thresholds.high_overlap
+        )
+
+        return LayerVerdict(
+            layer_name=layer_name,
+            module_type=module_type,
+            metrics=metrics,
+            verdict=CompatibilityVerdict.CONFLICTING,
+            confidence=min(
+                _overlap_confidence(metrics.mean_overlap, thresholds.high_overlap),
+                abs(metrics.directional_agreement - thresholds.conflicting),
+            ),
+            recommendation=(
+                f"CONFLICT: {n_conflict} shared direction(s) have opposing effects "
+                f"(overlap={metrics.mean_overlap:.3f}, "
+                f"agreement={metrics.directional_agreement:.3f}). "
+                f"Direct merging will cause cancellation. Options: "
+                f"(1) Use DARE with high drop rate, "
+                f"(2) Reduce merge coefficient for weaker adapter, "
+                f"(3) Exclude this layer from merge."
+            ),
+            conflict_dimensions=n_conflict,
+            safe_merge_rank=metrics.effective_rank_a,
+            suggested_strategy="dare",
+            suggested_coefficients=None,
+        )
+
+    # --- Branch 4: Magnitude imbalanced ---
+    if metrics.magnitude_ratio > thresholds.imbalanced:
+        ratio = metrics.magnitude_ratio
+        coeff_strong = 1.0 / (1.0 + ratio)
+        coeff_weak = ratio / (1.0 + ratio)
+
+        return LayerVerdict(
+            layer_name=layer_name,
+            module_type=module_type,
+            metrics=metrics,
+            verdict=CompatibilityVerdict.IMBALANCED,
+            confidence=_overlap_confidence(
+                metrics.magnitude_ratio, thresholds.imbalanced
+            ),
+            recommendation=(
+                f"Magnitude imbalance ({metrics.magnitude_ratio:.1f}x). "
+                f"The weaker adapter's contribution will be drowned out "
+                f"with equal coefficients. Suggested rebalancing: "
+                f"stronger={coeff_strong:.2f}, weaker={coeff_weak:.2f}."
+            ),
+            conflict_dimensions=0,
+            safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
+            suggested_strategy="linear",
+            suggested_coefficients=(coeff_strong, coeff_weak),
+        )
+
+    # --- Branch 5: Moderate / ambiguous -> default SAFE ---
+    return LayerVerdict(
+        layer_name=layer_name,
+        module_type=module_type,
+        metrics=metrics,
+        verdict=CompatibilityVerdict.SAFE,
+        confidence=0.5,
+        recommendation=(
+            f"Moderate subspace interaction (overlap={metrics.mean_overlap:.3f}, "
+            f"agreement={metrics.directional_agreement:.3f}). "
+            f"Standard merge methods should work. TIES is a safe default."
+        ),
+        conflict_dimensions=0,
+        safe_merge_rank=(metrics.effective_rank_a + metrics.effective_rank_b) // 2,
+        suggested_strategy="ties",
+        suggested_coefficients=(0.5, 0.5),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Aggregate assessment
+# ---------------------------------------------------------------------------
+
+
+def assess_overall(
+    layer_verdicts: List[LayerVerdict],
+) -> Tuple[CompatibilityVerdict, float, List[str]]:
+    """Compute aggregate compatibility verdict, score, and recommendations.
+
+    Parameters
+    ----------
+    layer_verdicts : per-layer assessments
+
+    Returns
+    -------
+    overall_verdict : worst-case verdict across layers
+    compatibility_score : energy-weighted mean overlap [0, 1]
+        (0 = fully orthogonal, 1 = fully overlapping)
+    recommendations : list of human-readable recommendation strings
+    """
+    if not layer_verdicts:
+        return CompatibilityVerdict.SAFE, 0.0, ["No shared layers to analyze."]
+
+    # Priority ordering: CONFLICTING > IMBALANCED > REDUNDANT > SAFE
+    verdict_priority = {
+        CompatibilityVerdict.SAFE: 0,
+        CompatibilityVerdict.REDUNDANT: 1,
+        CompatibilityVerdict.IMBALANCED: 2,
+        CompatibilityVerdict.CONFLICTING: 3,
+    }
+
+    overall = max(
+        (lv.verdict for lv in layer_verdicts),
+        key=lambda v: verdict_priority[v],
+    )
+
+    # Energy-weighted mean overlap
+    total_energy = 0.0
+    weighted_overlap = 0.0
+    for lv in layer_verdicts:
+        # Weight by the larger Frobenius norm: layers with bigger updates
+        # contribute more to the aggregate score.
+        energy = max(lv.metrics.frobenius_norm_a, lv.metrics.frobenius_norm_b)
+        total_energy += energy
+        weighted_overlap += energy * lv.metrics.mean_overlap
+
+    score = weighted_overlap / total_energy if total_energy > 0 else 0.0
+
+    # Build recommendations
+    recommendations: List[str] = []
+
+    conflicting = [lv for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING]
+    redundant = [lv for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT]
+    imbalanced = [lv for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED]
+
+    if conflicting:
+        names = ", ".join(lv.layer_name.split(".")[-1] for lv in conflicting[:3])
+        recommendations.append(
+            f"{len(conflicting)} layer(s) show subspace conflicts ({names}). "
+            f"Consider DARE with high drop rate or excluding these layers."
+        )
+
+    if redundant:
+        recommendations.append(
+            f"{len(redundant)} layer(s) show high redundancy. "
+            f"TIES merge recommended to deduplicate shared features."
+        )
+
+    if imbalanced:
+        recommendations.append(
+            f"{len(imbalanced)} layer(s) show magnitude imbalance. "
+            f"Use rebalanced coefficients or normalize adapter scales."
+        )
+
+    if not conflicting and not redundant and not imbalanced:
+        recommendations.append(
+            "Adapters are spectrally compatible. "
+            "Linear merge (equal coefficients) should preserve both signals."
+        )
+
+    return overall, score, recommendations
