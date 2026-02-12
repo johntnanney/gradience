@@ -1479,12 +1479,14 @@ def generate_compression_configs(
         print()
 
     # Build selection trace for downstream reporting
+    evaluated_names = sorted(final_configs.keys())
     final_configs["_selection_trace"] = {
         "mode": "fast" if fast_mode else "full",
         "max_candidates": max_candidates,
         "total_policies_evaluated": len(candidates),
         "after_dedup": len(deduplicated_candidates),
-        "final_count": len(final_configs) - 1,  # exclude _selection_trace key itself
+        "final_count": len(evaluated_names),
+        "final_candidates": evaluated_names,
         "dedup_events": dedup_events,
         "candidates": [
             {
@@ -3003,7 +3005,16 @@ def create_multi_seed_aggregated_report(
         "seeds": [r.get("seed", r.get("env", {}).get("seed", "unknown")) for r in seed_reports],
         "model": base_report["model"],
         "task": base_report["task"],
-        "env": base_report.get("env", {}),  # Use environment from first report
+        "env": {
+            **base_report.get("env", {}),
+            # Override validation_classification at aggregate layer (seed-level is single-seed)
+            "validation_classification": {
+                "level": "certifiable" if len(seed_reports) >= 3 else "screening_plus",
+                "rationale": f"Multi-seed ({len(seed_reports)} seeds: {', '.join(str(r.get('seed', '?')) for r in seed_reports)}), variance estimation enabled",
+                "is_multiseed": True,
+                "n_seeds": len(seed_reports),
+            }
+        },
         "git_commit": base_report.get("git_commit"),  # Use git info from first report
         "probe": {
             "rank": base_report["probe"]["rank"],
@@ -3901,6 +3912,19 @@ def run_bench_protocol(
     # Inject candidate selection trace into config_metadata
     if selection_trace and "config_metadata" in canonical_report:
         canonical_report["config_metadata"]["candidate_selection"] = selection_trace
+
+    # Inject effective overrides so embedded_config vs actual execution is clear
+    if "config_metadata" in canonical_report:
+        variants_actually_evaluated = sorted(
+            name for name, res in variant_results.items()
+            if res.get("status") in ("completed", "PASS")
+        )
+        canonical_report["config_metadata"]["effective_overrides"] = {
+            "fast_mode": fast_mode,
+            "max_candidates": max_candidates,
+            "variants_evaluated": variants_actually_evaluated,
+            "candidate_selection_mode": "fast" if fast_mode else "full",
+        }
 
     # Write canonical benchmark report
     report_path = output_path / "bench.json"
