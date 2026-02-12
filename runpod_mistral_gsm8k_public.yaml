@@ -1,0 +1,100 @@
+# RunPod Public Demonstration: Mistral-7B + GSM8K Mathematical Reasoning
+#
+# Purpose: Production-quality benchmark for public artifact generation
+# - Validate second rung logic on complex reasoning tasks
+# - Generate comprehensive decision traces and audit reports  
+# - Demonstrate statistical robustness across seeds
+# - Create publication-ready compression analysis
+# 
+# Runtime: ~45-60 minutes on GPU (3 seeds × ~15-20 min per seed)
+# Cost: ~$0.70-1.00 on RunPod A40/A100
+#
+# Usage: 
+#   python -m gradience.bench.run_bench --config runpod_mistral_gsm8k_public.yaml --output /workspace/public_artifacts/mistral_gsm8k_demo
+
+bench_version: "0.1"
+
+model:
+  name: mistralai/Mistral-7B-v0.1
+  type: causal_lm
+  torch_dtype: bf16
+  gradient_checkpointing: true
+  use_cache: false
+
+task:
+  dataset: gsm8k
+  subset: main
+  profile: gsm8k_causal_lm
+  eval_max_samples: 500          # Comprehensive eval for statistical power
+  generation:
+    max_new_tokens: 128
+    do_sample: false
+    temperature: 0.0
+    num_beams: 1
+  probe_gate:
+    metric: exact_match
+    min_value: 0.15              # Realistic threshold for GSM8K reasoning
+
+train:
+  max_steps: 1000                # Sufficient for convergence and good probe quality
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 16
+  learning_rate: 0.0001
+  warmup_ratio: 0.03
+  weight_decay: 0.0
+  logging_steps: 100
+  eval_steps: 1000               # Evaluate at end for clean telemetry
+  save_strategy: 'no'
+  report_to: none
+  train_samples: 1600            # Large training set for robust probe
+  eval_samples: 500
+
+lora:
+  probe_r: 64                    # High rank to maximize compression opportunities
+  alpha: 128                     # 2:1 ratio for stability
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj  
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+compression:
+  allowed_ranks: [4, 8, 12, 16, 24, 32, 40, 48, 56, 64]  # Wide range for rich second rung analysis
+  acc_tolerance: 0.02                                     # Tight tolerance for production quality
+  
+  # Multi-seed configuration for statistical robustness
+  seeds: [42, 123, 456]          # 3 seeds for publication-quality variance analysis
+  
+  # Comprehensive candidate generation for second rung demonstration
+  candidate_policies: ["energy_p90", "knee_p90", "erank_p90"]  # All core policies
+  max_candidates: 8              # Room for policies + second rung candidates
+  fast_mode: true                # Controlled candidate explosion
+
+# Full audit pipeline for comprehensive analysis
+audit:
+  base_model: "mistralai/Mistral-7B-v0.1"
+  compute_udr: true              # Full UDR computation for decision transparency
+  # base_norms_cache: "/workspace/gradience_cache/mistral_base_norms"  # Uncomment for persistent cache
+
+runtime:
+  device: cuda
+  
+  # PRODUCTION HYGIENE: Full monitoring and logging
+  enable_heartbeat: true         # Essential for long-running mathematical reasoning training
+  heartbeat_interval: 60         # Every minute for production monitoring
+  enable_progress_tracking: true # Critical for detecting stuck runs on complex tasks
+  
+  # Artifact preservation for public demonstration
+  keep_adapter_weights: true     # Preserve for detailed analysis
+  keep_checkpoints: false        # Don't waste storage
+  
+  # Performance optimization for large model
+  dataloader_num_workers: 4      # Parallel data loading
+  fp16_full_eval: false          # Use bf16 consistency
+
+run_type: "public_mistral_gsm8k_demonstration"

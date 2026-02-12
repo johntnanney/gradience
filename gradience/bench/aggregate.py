@@ -21,7 +21,7 @@ from typing import List, Dict, Any, Optional, Tuple
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return None
 
 def _extract_seed_id(run_path: Path) -> Any:
@@ -684,7 +684,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
             lines.append(scoreboard_table)
     except ImportError:
         pass  # Scoreboard not available
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
         pass  # Scoreboard failed, continue without it
     
     lines.append("")
