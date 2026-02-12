@@ -19,6 +19,9 @@ Usage:
     # Audit a PEFT LoRA adapter directory for rank/utilization waste:
     gradience audit --peft-dir ./peft_out [--top-wasteful 10] [--json]
 
+    # Audit merge compatibility between two PEFT LoRA adapters:
+    gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b [--output-dir ./out]
+
 Notes:
   * `check` consumes a Gradience vNext `ConfigSnapshot` (JSON/YAML) and emits
     `Recommendation[]` using the restraint-first policy.
@@ -2172,6 +2175,127 @@ def cmd_audit(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# merge-audit
+# ---------------------------------------------------------------------------
+
+
+def cmd_merge_audit(args: argparse.Namespace) -> None:
+    """Run merge compatibility audit on two PEFT LoRA adapters."""
+    import json as jsonlib
+
+    adapter_a = getattr(args, "adapter_a", None)
+    adapter_b = getattr(args, "adapter_b", None)
+
+    if not adapter_a or not adapter_b:
+        print("Error: --adapter-a and --adapter-b are both required")
+        sys.exit(1)
+
+    # Validate paths
+    for label, path_str in [("adapter-a", adapter_a), ("adapter-b", adapter_b)]:
+        p = Path(path_str)
+        if not p.is_dir():
+            print(f"Error: --{label} path does not exist or is not a directory: {p}")
+            sys.exit(1)
+
+    try:
+        from gradience.vnext.merge import merge_audit, VerdictThresholds
+    except ImportError as e:
+        print(f"Error: Failed to import merge audit module: {e}")
+        sys.exit(1)
+
+    # Resolve thresholds preset
+    thresholds_name = getattr(args, "thresholds", "default")
+    if thresholds_name == "conservative":
+        thresholds = VerdictThresholds.conservative()
+    elif thresholds_name == "permissive":
+        thresholds = VerdictThresholds.permissive()
+    else:
+        thresholds = VerdictThresholds()
+
+    try:
+        report = merge_audit(
+            adapter_a_dir=adapter_a,
+            adapter_b_dir=adapter_b,
+            output_dir=getattr(args, "output_dir", None),
+            energy_threshold=float(getattr(args, "energy_threshold", 0.90)),
+            thresholds=thresholds,
+            compute_dtype=getattr(args, "compute_dtype", "float64"),
+            verbose=getattr(args, "verbose", False),
+        )
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Merge audit failed: {e}")
+        if getattr(args, "verbose", False):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+    # --- Output ---
+    if getattr(args, "json", False):
+        from gradience.vnext.merge import to_json
+        print(jsonlib.dumps(to_json(report), indent=2))
+        return
+
+    # Pretty-print summary
+    agg = report.aggregate
+    verdict = agg["overall_verdict"].upper()
+
+    verdict_emoji = {
+        "SAFE": "\u2705",
+        "REDUNDANT": "\u26a0\ufe0f",
+        "CONFLICTING": "\u274c",
+        "IMBALANCED": "\u2696\ufe0f",
+    }
+    emoji = verdict_emoji.get(verdict, "")
+
+    print(f"\n{emoji}  Merge Compatibility: {verdict}")
+    print(f"   Score: {agg['compatibility_score']:.3f}")
+    print(f"   Mean overlap: {agg['mean_overlap']:.3f}  |  Max: {agg['max_overlap']:.3f}")
+    print(f"   Agreement: {agg['mean_agreement']:.3f}")
+    print(
+        f"   Layers: {agg['n_safe']} safe, "
+        f"{agg['n_redundant']} redundant, "
+        f"{agg['n_conflicting']} conflicting, "
+        f"{agg['n_imbalanced']} imbalanced"
+    )
+
+    if report.recommendations:
+        print("\nRecommendations:")
+        for rec in report.recommendations:
+            print(f"  \u2022 {rec}")
+
+    if report.warnings:
+        print("\nWarnings:")
+        for warn in report.warnings:
+            print(f"  \u26a0 {warn}")
+
+    # Per-layer table (compact)
+    if report.layer_verdicts and getattr(args, "verbose", False):
+        print("\nPer-layer:")
+        print(f"  {'Layer':<30s} {'Overlap':>8s} {'Agree':>8s} {'Verdict':<12s} {'Strategy':<8s}")
+        print(f"  {'─' * 30} {'─' * 8} {'─' * 8} {'─' * 12} {'─' * 8}")
+        for lv in report.layer_verdicts:
+            from gradience.vnext.merge.report import _shorten_layer_name
+            short = _shorten_layer_name(lv["layer_name"])
+            m = lv["metrics"]
+            print(
+                f"  {short:<30s} "
+                f"{m['mean_overlap']:8.3f} "
+                f"{m['directional_agreement']:8.3f} "
+                f"{lv['verdict']:<12s} "
+                f"{lv['suggested_strategy']:<8s}"
+            )
+
+    out_dir = getattr(args, "output_dir", None)
+    if out_dir:
+        print(f"\nReports written to: {out_dir}/merge_audit.{{json,md}}")
+
+    print()
+
+
+# ---------------------------------------------------------------------------
 # explain
 # ---------------------------------------------------------------------------
 
@@ -2622,6 +2746,59 @@ def main() -> None:
              "full: Complete rationale for all layers (verbose, good for debugging).",
     )
     audit_parser.set_defaults(func=cmd_audit)
+
+    # merge-audit
+    merge_audit_parser = subparsers.add_parser(
+        "merge-audit",
+        help="Audit spectral compatibility between two PEFT LoRA adapters",
+    )
+    merge_audit_parser.add_argument(
+        "--adapter-a",
+        type=str,
+        required=True,
+        help="Path to the first PEFT adapter directory",
+    )
+    merge_audit_parser.add_argument(
+        "--adapter-b",
+        type=str,
+        required=True,
+        help="Path to the second PEFT adapter directory",
+    )
+    merge_audit_parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Directory to write merge_audit.json and merge_audit.md",
+    )
+    merge_audit_parser.add_argument(
+        "--energy-threshold",
+        type=float,
+        default=0.90,
+        help="Energy threshold for effective rank computation (default: 0.90)",
+    )
+    merge_audit_parser.add_argument(
+        "--thresholds",
+        choices=["default", "conservative", "permissive"],
+        default="default",
+        help="Verdict threshold preset (default: default)",
+    )
+    merge_audit_parser.add_argument(
+        "--compute-dtype",
+        choices=["float64", "float32", "fp64", "fp32"],
+        default="float64",
+        help="Precision for SVD computation (default: float64)",
+    )
+    merge_audit_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output JSON instead of pretty text",
+    )
+    merge_audit_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show per-layer analysis table and progress",
+    )
+    merge_audit_parser.set_defaults(func=cmd_merge_audit)
 
     # explain
     explain_parser = subparsers.add_parser(
