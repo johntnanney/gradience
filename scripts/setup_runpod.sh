@@ -25,7 +25,7 @@ cd gradience
 
 # Install dependencies if needed
 echo "📦 Installing Python dependencies..."
-pip install -e . --quiet
+pip install -e ".[bench]" --quiet
 
 # Verify installation
 echo "🔍 Verifying Gradience installation..."

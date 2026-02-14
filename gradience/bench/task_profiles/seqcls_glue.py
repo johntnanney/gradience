@@ -99,7 +99,8 @@ class GLUESequenceClassificationProfile:
             max_steps=train_config.get("max_steps", 500),
             per_device_train_batch_size=train_config.get("per_device_train_batch_size", 8),
             per_device_eval_batch_size=train_config.get("per_device_eval_batch_size", 32),
-            learning_rate=train_config.get("lr", 5e-5),
+            gradient_accumulation_steps=train_config.get("gradient_accumulation_steps", 1),
+            learning_rate=train_config.get("learning_rate", train_config.get("lr", 5e-5)),
             weight_decay=train_config.get("weight_decay", 0.01),
             warmup_ratio=train_config.get("warmup_ratio", 0.1),
             logging_steps=train_config.get("logging_steps", 50),
@@ -111,6 +112,7 @@ class GLUESequenceClassificationProfile:
             dataloader_drop_last=False,
             seed=train_config.get("seed", 42),
             report_to=[],  # Disable wandb/tensorboard
+            bf16=True if cfg.get("model", {}).get("torch_dtype") == "bf16" else False,
         )
         
         return Trainer(
