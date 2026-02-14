@@ -39,9 +39,8 @@ ADAPTERS = {
     # "dialogsum": "predibase/dialogsum",
 
     # Pair 3: NLU/Classification (expect HIGH overlap / REDUNDANT)
-    # NOTE: Uncomment and update after verifying availability.
-    # "glue_mnli": "predibase/glue_mnli",
-    # "glue_qnli": "predibase/glue_qnli",
+    "glue_mnli": "predibase/glue_mnli",
+    "glue_qnli": "predibase/glue_qnli",
 
     # Pair 4: Non-Predibase adapters (robustness test)
     "zephyr_sft": "alignment-handbook/zephyr-7b-sft-lora",
@@ -147,6 +146,7 @@ def verify_all():
 
     pairs = [
         ("magicoder", "customer_support", "Pair 1: Code x Support"),
+        ("glue_mnli", "glue_qnli", "Pair 3: NLU Classification"),
         ("zephyr_sft", "gsm8k", "Pair 4: Chat x Math"),
     ]
 

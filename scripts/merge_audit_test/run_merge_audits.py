@@ -30,19 +30,19 @@ PAIRS = [
         "customer_support",
         "LOW overlap: code generation vs customer support are fundamentally different tasks",
     ),
-    # Uncomment as adapters become available:
+    # Pair 2: Summarization variants — not available on HuggingFace
     # (
     #     "pair2_summarization_variants",
     #     "tldr",
     #     "dialogsum",
     #     "MODERATE overlap: both learn text compression but from different input domains",
     # ),
-    # (
-    #     "pair3_nlu_classification",
-    #     "glue_mnli",
-    #     "glue_qnli",
-    #     "HIGH overlap: both learn entailment/contradiction features",
-    # ),
+    (
+        "pair3_nlu_classification",
+        "glue_mnli",
+        "glue_qnli",
+        "HIGH overlap: both learn entailment/contradiction features",
+    ),
     (
         "pair4_chat_vs_math",
         "zephyr_sft",
