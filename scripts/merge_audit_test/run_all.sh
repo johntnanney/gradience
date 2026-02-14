@@ -15,6 +15,7 @@ set -e
 SCRIPT_DIR="scripts/merge_audit_test"
 WORKSPACE="/workspace/merge_test"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p "$WORKSPACE"
 
 echo "============================================================"
 echo "  Merge-Audit A40 GPU Test Protocol"
