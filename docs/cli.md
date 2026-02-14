@@ -13,7 +13,7 @@ Gradience provides two main CLI tools:
 
 ### Usage
 ```bash
-gradience [-h] {verify,report,check,audit,explain,truncate,monitor} ...
+gradience [-h] {verify,report,check,audit,merge-audit,explain,truncate,monitor} ...
 ```
 
 **Description**: Spectral telemetry and restraint-first diagnostics for neural network training
@@ -26,6 +26,7 @@ gradience [-h] {verify,report,check,audit,explain,truncate,monitor} ...
 | `report` | Generate report from telemetry |
 | `check` | Validate config and emit restraint-first recommendations |
 | `audit` | Audit PEFT LoRA adapter for rank/utilization waste |
+| `merge-audit` | Audit spectral compatibility between two PEFT LoRA adapters |
 | `explain` | Explain disagreement analysis for specific layer from audit JSON |
 | `truncate` | SVD truncate PEFT LoRA adapter to smaller rank |
 | `monitor` | Analyze vNext telemetry JSONL and emit alerts/recommendations |
@@ -89,6 +90,108 @@ gradience audit --peft-dir ./my_adapter --top-wasteful 5
 # Append to existing training telemetry
 gradience audit --peft-dir ./my_adapter --append ./training_run.jsonl
 ```
+
+### gradience merge-audit
+
+**Spectral compatibility analysis between two PEFT LoRA adapters before merging.**
+
+Computes per-layer subspace overlap, directional agreement, and magnitude balance to determine whether two adapters can be safely merged and which merge strategy to use.
+
+```bash
+gradience merge-audit --adapter-a ADAPTER_A --adapter-b ADAPTER_B [OPTIONS]
+```
+
+#### Required Arguments
+- `--adapter-a ADAPTER_A` - Path to the first PEFT adapter directory
+- `--adapter-b ADAPTER_B` - Path to the second PEFT adapter directory
+
+#### Optional Arguments
+
+**Output Control:**
+- `--output-dir DIR` - Directory to write `merge_audit.json` and `merge_audit.md`
+- `--json` - Output JSON instead of pretty text
+- `--verbose` - Show per-layer analysis table and progress
+
+**Analysis Options:**
+- `--energy-threshold FLOAT` - Energy threshold for effective rank computation (default: 0.90)
+- `--thresholds {default,conservative,permissive}` - Verdict threshold preset (default: default)
+- `--compute-dtype {float64,float32,fp64,fp32}` - Precision for SVD computation (default: float64)
+
+#### Threshold Presets
+
+| Preset | Low Overlap | High Overlap | Aligned | Conflicting | Imbalanced |
+|--------|-------------|--------------|---------|-------------|------------|
+| **default** | 0.20 | 0.50 | 0.50 | -0.30 | 5.0x |
+| **conservative** | 0.15 | 0.35 | 0.60 | -0.20 | 3.0x |
+| **permissive** | 0.30 | 0.70 | 0.40 | -0.50 | 10.0x |
+
+**Conservative** flags more potential issues (good for early adoption). **Permissive** flags only obvious problems (for experienced users).
+
+#### Verdict Types
+
+| Verdict | Meaning | Recommended Strategy |
+|---------|---------|---------------------|
+| **SAFE** | Orthogonal or moderately interacting subspaces | `linear` (equal coefficients) |
+| **REDUNDANT** | High overlap with aligned directions | `ties` (deduplicate shared features) |
+| **CONFLICTING** | High overlap with opposing directions | `dare` (high drop rate) or exclude layer |
+| **IMBALANCED** | Extreme magnitude ratio between adapters | `linear` (rebalanced coefficients) |
+
+#### Examples
+
+```bash
+# Basic compatibility check
+gradience merge-audit --adapter-a ./code_adapter --adapter-b ./chat_adapter
+
+# Full report with artifacts
+gradience merge-audit \
+    --adapter-a ./adapter_a \
+    --adapter-b ./adapter_b \
+    --output-dir ./merge_report \
+    --verbose
+
+# Conservative analysis (flags more issues)
+gradience merge-audit \
+    --adapter-a ./adapter_a \
+    --adapter-b ./adapter_b \
+    --thresholds conservative \
+    --output-dir ./merge_report
+
+# JSON output for automation
+gradience merge-audit \
+    --adapter-a ./adapter_a \
+    --adapter-b ./adapter_b \
+    --json
+```
+
+#### Python API
+
+```python
+from gradience.vnext.merge import merge_audit, VerdictThresholds
+
+# Basic usage
+report = merge_audit(
+    adapter_a_dir="./adapter_a",
+    adapter_b_dir="./adapter_b",
+    output_dir="./merge_output",
+)
+
+# Access results
+print(report.aggregate["overall_verdict"])   # "safe" | "conflicting" | ...
+print(report.aggregate["compatibility_score"])  # 0.0 (orthogonal) to 1.0 (overlapping)
+
+# Conservative thresholds
+report = merge_audit(
+    adapter_a_dir="./adapter_a",
+    adapter_b_dir="./adapter_b",
+    thresholds=VerdictThresholds.conservative(),
+)
+```
+
+#### Output Artifacts
+
+When `--output-dir` is specified, writes:
+- **`merge_audit.json`** — Machine-readable report (schema `gradience.merge_audit/v1`)
+- **`merge_audit.md`** — Human-readable Markdown report with per-layer table and recommendations
 
 ### gradience monitor
 

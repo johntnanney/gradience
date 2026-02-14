@@ -25,7 +25,46 @@ def _read_json(path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 def _extract_seed_id(run_path: Path) -> Any:
-    """Extract seed ID from a seed run directory name (e.g., seed_42 → 42)."""
+    """Extract seed ID from a seed run directory.
+
+    Fallback hierarchy:
+    1. bench.json  → top-level ``seed`` or ``config_metadata.seed``
+    2. config.yaml → ``train.seed`` (regex, no YAML dependency required)
+    3. Directory name parsing (``seed_42`` → 42)
+    """
+    # 1. Try bench.json (canonical after the seed-injection patch)
+    bj = run_path / "bench.json"
+    j = _read_json(bj)
+    if isinstance(j, dict):
+        s = j.get("seed")
+        if s is not None:
+            return s
+        s = (j.get("config_metadata") or {}).get("seed")
+        if s is not None:
+            return s
+
+    # 2. Fallback: parse config.yaml with lightweight regex (no yaml import)
+    #    Prefer train.seed (nested under 'train:' block) over a bare seed:.
+    cfg_path = run_path / "config.yaml"
+    if cfg_path.exists():
+        try:
+            text = cfg_path.read_text(encoding="utf-8")
+            # 2a. Look for seed nested under a 'train:' block (indented)
+            m = re.search(
+                r'^train:\s*\n(?:[ \t]+\S[^\n]*\n)*?[ \t]+seed:\s*(\d+)',
+                text,
+                re.MULTILINE,
+            )
+            if m:
+                return int(m.group(1))
+            # 2b. Any top-level or indented seed: line (first match wins)
+            m = re.search(r'^\s*seed:\s*(\d+)', text, re.MULTILINE)
+            if m:
+                return int(m.group(1))
+        except OSError:
+            pass
+
+    # 3. Directory name (original behaviour)
     m = re.search(r'seed_(\d+)', run_path.name)
     return int(m.group(1)) if m else run_path.name
 

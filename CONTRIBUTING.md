@@ -134,6 +134,11 @@ make check
    python -m pytest test_bench_*_integration.py -v
    ```
 
+4. **Merge Audit Tests**: Spectral metrics, verdicts, IO, and CLI (CPU-only, ~2s)
+   ```bash
+   python -m pytest tests/test_merge_audit.py -v
+   ```
+
 ### Running Bench Locally
 
 To test your changes with a real bench run:
@@ -289,15 +294,22 @@ gradience/
 │   │   ├── telemetry/      # JSONL telemetry output
 │   │   ├── integrations/   # HuggingFace callbacks
 │   │   ├── audit/          # LoRA adapter analysis
-│   │   └── rank_suggestion/ # Conservative compression
+│   │   ├── rank_suggestion/ # Conservative compression
+│   │   └── merge/          # Merge compatibility audit (NEW)
+│   │       ├── __init__.py      # Public API: merge_audit()
+│   │       ├── spectral_compat.py  # QR-based SVD, subspace metrics
+│   │       ├── verdicts.py      # Decision tree, VerdictThresholds
+│   │       ├── report.py        # MergeAuditReport, JSON/MD output
+│   │       └── io.py            # Adapter loading, layer matching
 │   ├── bench/              # Benchmarking framework
 │   │   ├── task_profiles/  # Task-specific logic (GSM8K, GLUE)
 │   │   └── protocol.py     # Core bench protocol
 │   ├── spectral.py         # Legacy spectral analysis
-│   ├── structural.py       # Legacy structural analysis  
+│   ├── structural.py       # Legacy structural analysis
 │   └── cli.py             # CLI interface
 ├── tests/                  # Comprehensive test suite
 ├── scripts/               # Development utilities
+│   └── merge_audit_test/  # A40 GPU test protocol for merge-audit
 └── docs/                  # Documentation
 ```
 
@@ -307,6 +319,7 @@ gradience/
 - **Audit Logic** (`vnext/audit/`): Core LoRA analysis algorithms
 - **Rank Suggestions** (`vnext/rank_suggestion/`): Conservative compression logic
 - **Protocol** (`bench/protocol.py`): Benchmarking pipeline orchestration
+- **Merge Audit** (`vnext/merge/`): Spectral compatibility analysis between adapter pairs — QR-based SVD, principal angle computation, verdict decision tree, report generation
 
 ## 📊 Bench Artifact Changes
 

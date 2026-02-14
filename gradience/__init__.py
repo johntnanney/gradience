@@ -4,6 +4,7 @@ Gradience: Telemetry-first observability for LoRA / PEFT fine-tuning
 Gradience is a flight recorder + mechanic for LoRA runs:
 - Flight recorder: emits stable JSONL telemetry (gradience.vnext.telemetry/v1)
 - Mechanic: audits adapters and provides conservative rank compression suggestions
+- Merge auditor: spectral compatibility analysis between LoRA adapter pairs
 
 ## Public API (Stability Guaranteed)
 
@@ -11,6 +12,7 @@ CLI Commands:
     gradience check        # Config validation and recommendations
     gradience monitor      # Live run monitoring and alerts
     gradience audit        # Post-hoc LoRA adapter analysis
+    gradience merge-audit  # Spectral compatibility between two adapters
 
 HuggingFace Integration:
     from gradience.vnext.integrations.hf import GradienceCallback
@@ -25,6 +27,14 @@ Rank Suggestions:
         suggest_per_layer_ranks,
         GlobalRankSuggestion,
         PerLayerRankSuggestionReport,
+    )
+
+Merge Compatibility Audit:
+    from gradience.vnext.merge import (
+        merge_audit,
+        VerdictThresholds,
+        MergeAuditReport,
+        CompatibilityVerdict,
     )
 
 ## Internal Implementation
