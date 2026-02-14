@@ -45,7 +45,7 @@ ADAPTERS = {
 
     # Pair 4: Non-Predibase adapters (robustness test)
     "zephyr_sft": "alignment-handbook/zephyr-7b-sft-lora",
-    # "gsm8k": "vineetsharma/qlora-adapter-Mistral-7B-Instruct-v0.1-gsm8k",
+    "gsm8k": "vineetsharma/qlora-adapter-Mistral-7B-Instruct-v0.1-gsm8k",
 }
 
 # Only download adapter files, not bundled model weights
