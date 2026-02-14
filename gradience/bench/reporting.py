@@ -85,9 +85,13 @@ def create_canonical_bench_report(
         if composition_data:
             instrumentation["composition"] = composition_data
 
+        # Extract seed from config for canonical placement
+        _seed = config.get("train", {}).get("seed")
+
         minimal_report = {
             "bench_version": config.get("bench_version", "0.1"),
             "timestamp": timestamp,
+            "seed": _seed,
             "git_commit": git_commit,
             "env": env_info,
             "model": config["model"]["name"],
@@ -115,6 +119,7 @@ def create_canonical_bench_report(
             "config_metadata": {
                 "primary_metric_key": get_primary_metric_key(config),
                 "config_hash": create_config_hash(config),
+                "seed": _seed,
                 "embedded_config": config  # Complete configuration for reproducibility
             }
         }
@@ -258,10 +263,14 @@ def create_canonical_bench_report(
             if top_5_modules:
                 udr_instrumentation["top_modules"] = top_5_modules
 
+    # Extract seed from config for canonical placement
+    _seed = config.get("train", {}).get("seed")
+
     # Build the canonical report
     report = {
         "bench_version": config.get("bench_version", "0.1"),
         "timestamp": timestamp,
+        "seed": _seed,
         "git_commit": git_commit,
         "env": env_info,
         "model": config["model"]["name"],
@@ -291,6 +300,7 @@ def create_canonical_bench_report(
         "config_metadata": {
             "primary_metric_key": get_primary_metric_key(config),
             "config_hash": create_config_hash(config),
+            "seed": _seed,
             "embedded_config": config  # Complete configuration for reproducibility
         }
     }

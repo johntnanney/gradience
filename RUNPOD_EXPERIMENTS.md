@@ -7,9 +7,10 @@ Complete setup for validating Gradience's new audit-driven compression features 
 ## 🎯 New Features to Validate
 
 - **Second Rung Logic**: Audit-driven compression candidates (Tier A/B)
-- **Self-Contained Aggregates**: Complete per-seed, per-candidate breakdowns  
+- **Self-Contained Aggregates**: Complete per-seed, per-candidate breakdowns
 - **Engineering Hygiene**: Progress tracking, heartbeat monitoring, artifact cleanup
 - **Decision Transparency**: Full audit pipeline with UDR computation
+- **Merge Compatibility Audit**: Spectral compatibility analysis between LoRA adapter pairs
 
 ## 📋 Configuration Files
 
@@ -111,3 +112,72 @@ cat /workspace/experiments/mistral_public/seed_42/compression_configs.json
 | Mistral Public | 150 min | $2.25 | Production demo |
 
 **Total for complete validation**: ~$3.00
+
+---
+
+## 🔀 Merge-Audit A40 GPU Test Protocol
+
+Validates the `gradience merge-audit` feature against real HuggingFace LoRA adapters on an A40 GPU.
+
+### Test Scripts
+
+Located in `scripts/merge_audit_test/`:
+
+| Script | Purpose |
+|--------|---------|
+| `run_all.sh` | Master runbook — runs all phases sequentially |
+| `discover_adapters.py` | Multi-strategy HF Hub search for Mistral-7B LoRA adapters |
+| `download_adapters.py` | Download adapter weights with verification and base-model cross-check |
+| `run_merge_audits.py` | Run merge-audit Python API on configured adapter pairs |
+| `analyze_merge_results.py` | Deep analysis: module-type stratification, cross-pair comparison, sanity checks |
+| `gpu_verification.py` | GPU inference verification with memory delta logging |
+
+### Adapter Pairs
+
+| Pair | Adapter A | Adapter B | Expected Overlap |
+|------|-----------|-----------|-----------------|
+| 1 | Predibase magicoder | Predibase customer_support | LOW (different tasks) |
+| 2 | Summarization variant A | Summarization variant B | MODERATE (same task family) |
+| 3 | GLUE MNLI | GLUE QNLI | HIGH (both entailment) |
+| 4 | zephyr-7b-sft-lora | GSM8K qlora | ROBUSTNESS (non-Predibase) |
+
+### Quick Start
+
+```bash
+cd /workspace/gradience
+bash scripts/merge_audit_test/run_all.sh
+```
+
+### Key Artifacts
+
+- `/workspace/merge_test/results/*/merge_audit.json` — Per-pair merge audit reports
+- `/workspace/merge_test/results/*/merge_audit.md` — Per-pair human-readable reports
+- `/workspace/merge_test/results/run_summary.json` — Cross-pair summary
+- `/workspace/merge_test/results/analysis_summary.json` — Deep analysis results
+
+### What to Look For
+
+1. **Layer-type stratification**: Attention layers vs MLP layers should show different overlap patterns
+2. **Conservative vs default thresholds**: Conservative should flag more layers as concerning
+3. **Per-layer timing**: Expect <500ms per layer on A40
+4. **GPU memory deltas**: Adapter loading should show predictable memory increase
+
+### Merge-Audit Validation Checklist
+
+- [ ] Adapters download successfully from HuggingFace Hub
+- [ ] merge-audit runs without errors on all available adapter pairs
+- [ ] Per-layer verdicts make intuitive sense (code vs chat = low overlap)
+- [ ] Attention vs MLP stratification visible in analysis
+- [ ] Conservative thresholds produce stricter verdicts than defaults
+- [ ] GPU verification loads base model + adapters successfully
+- [ ] Memory delta logging captures per-adapter footprint
+- [ ] Results archive ships back cleanly
+
+### Cost Estimate
+
+| Step | Runtime | Notes |
+|------|---------|-------|
+| Adapter download | 5-10 min | ~200-500MB total |
+| Merge audits (2-4 pairs) | 5-15 min | CPU-bound SVD |
+| GPU verification | 10-20 min | Mistral-7B loading + inference |
+| **Total** | **~30-45 min** | **~$0.50 on A40** |

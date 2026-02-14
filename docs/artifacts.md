@@ -681,3 +681,115 @@ diff -u seed_42/bench.json seed_123/bench.json | grep '"env"' -A 20
 ```
 
 The artifact system transforms Gradience from a compression tool into a **reproducible research process** with full evidence traceability.
+
+## Merge Compatibility Artifacts
+
+### merge_audit.json - Adapter Merge Compatibility Report
+
+**Spectral compatibility analysis between two PEFT LoRA adapters.** Produced by `gradience merge-audit` to assess whether two adapters can be safely merged, and which merge strategy to use.
+
+#### Structure Overview
+```json
+{
+  "schema": "gradience.merge_audit/v1",
+  "timestamp": "2026-02-13T10:30:00Z",
+  "adapter_a": {
+    "path": "./adapter_a",
+    "base_model": "mistralai/Mistral-7B-v0.1",
+    "rank": 16,
+    "alpha": 16,
+    "n_layers": 32
+  },
+  "adapter_b": {
+    "path": "./adapter_b",
+    "base_model": "mistralai/Mistral-7B-v0.1",
+    "rank": 8,
+    "alpha": 8,
+    "n_layers": 32
+  },
+  "matching": {
+    "shared": 32,
+    "only_a": 0,
+    "only_b": 0
+  },
+  "aggregate": {
+    "overall_verdict": "safe",
+    "compatibility_score": 0.142,
+    "mean_overlap": 0.142,
+    "max_overlap": 0.387,
+    "mean_agreement": 0.056,
+    "n_safe": 30,
+    "n_redundant": 1,
+    "n_conflicting": 0,
+    "n_imbalanced": 1
+  },
+  "per_layer": [
+    {
+      "layer_name": "model.layers.0.self_attn.q_proj",
+      "module_type": "attention",
+      "verdict": "safe",
+      "confidence": 0.85,
+      "recommendation": "Orthogonal subspaces...",
+      "suggested_strategy": "linear",
+      "suggested_coefficients": [0.5, 0.5],
+      "metrics": {
+        "mean_overlap": 0.087,
+        "max_overlap": 0.213,
+        "directional_agreement": 0.034,
+        "magnitude_ratio": 1.23,
+        "effective_rank_a": 4,
+        "effective_rank_b": 3
+      }
+    }
+  ],
+  "recommendations": [
+    "Adapters are spectrally compatible. Linear merge (equal coefficients) should preserve both signals."
+  ],
+  "thresholds": {
+    "low_overlap": 0.2,
+    "high_overlap": 0.5,
+    "aligned": 0.5,
+    "conflicting": -0.3,
+    "imbalanced": 5.0
+  }
+}
+```
+
+#### Key Metrics Explained
+
+**Mean Overlap**: Average cosine of principal angles between adapter subspaces [0, 1]
+- **< 0.2**: Orthogonal subspaces, safe to merge with any method
+- **0.2 - 0.5**: Moderate interaction, standard merge methods work
+- **> 0.5**: Significant shared subspace, check directional agreement
+
+**Directional Agreement**: Projection cosine similarity [-1, 1]
+- **> 0.5**: Aligned directions (same effect) — REDUNDANT, use TIES to deduplicate
+- **-0.3 to 0.5**: Neutral — SAFE
+- **< -0.3**: Opposing directions — CONFLICTING, merging causes cancellation
+
+**Magnitude Ratio**: Frobenius norm ratio of larger to smaller adapter, >= 1
+- **< 5.0**: Balanced — equal merge coefficients work
+- **> 5.0**: IMBALANCED — weaker adapter drowned out, use rebalanced coefficients
+
+**Compatibility Score**: Energy-weighted mean overlap across all layers [0, 1]
+- **0.0**: Fully orthogonal adapters (ideal for merging)
+- **1.0**: Fully overlapping adapters (redundant)
+
+#### Verdict Decision Tree
+
+1. Low overlap → **SAFE** (orthogonal subspaces)
+2. High overlap + aligned → **REDUNDANT** (de-dup needed via TIES)
+3. High overlap + opposing → **CONFLICTING** (danger zone — use DARE or exclude)
+4. Extreme magnitude ratio → **IMBALANCED** (coefficient tuning needed)
+5. Moderate / ambiguous → **SAFE** with moderate confidence
+
+### merge_audit.md - Human-Readable Merge Report
+
+**Markdown report** with formatted tables, recommendations, and per-layer analysis. Suitable for PR descriptions, documentation, and team review.
+
+Contains:
+- Adapter metadata comparison (base model, rank, alpha, target modules)
+- Aggregate compatibility summary
+- Per-layer verdict table with overlap, agreement, and strategy columns
+- Actionable recommendations
+- Warnings for mismatched base models or target modules

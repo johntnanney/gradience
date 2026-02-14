@@ -5,6 +5,7 @@ ownership, effective_overrides, Rank Policy column in markdown.
 """
 
 import json
+import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -281,6 +282,179 @@ class TestStandaloneAggregateMd(unittest.TestCase):
         md = generate_markdown_report(data)
         self.assertIn("Rank Policy", md)
         self.assertIn("energy", md)
+
+
+class TestSeedInBenchJson(unittest.TestCase):
+    """Seed must appear in bench.json at report['seed'] and report['config_metadata']['seed']."""
+
+    def _build_canonical(self, seed_value):
+        """Invoke create_canonical_bench_report with a config carrying a seed."""
+        from gradience.bench.reporting import create_canonical_bench_report
+        config = {
+            "bench_version": "0.1",
+            "model": {"name": "test-model"},
+            "task": {"dataset": "sst2", "subset": "default"},
+            "train": {"seed": seed_value},
+            "lora": {"probe_r": 16},
+        }
+        probe_results = {
+            "probe": {"rank": 16, "params": 1024, "accuracy": 0.85}
+        }
+        variant_results = {}
+        verdict_analysis = {
+            "probe_quality_status": "PASSED",
+            "probe_baseline": 0.85,
+            "summary": {"probe_threshold": 0.75, "notes": []},
+            "verdicts": {},
+        }
+        audit_data = {"summary": {}}
+        compression_configs = {}
+
+        with tempfile.TemporaryDirectory() as td:
+            report = create_canonical_bench_report(
+                probe_results=probe_results,
+                variant_results=variant_results,
+                verdict_analysis=verdict_analysis,
+                audit_data=audit_data,
+                compression_configs=compression_configs,
+                config=config,
+                output_dir=Path(td),
+            )
+        return report
+
+    def test_seed_at_top_level(self):
+        report = self._build_canonical(42)
+        self.assertEqual(report["seed"], 42)
+
+    def test_seed_in_config_metadata(self):
+        report = self._build_canonical(123)
+        self.assertEqual(report["config_metadata"]["seed"], 123)
+
+    def test_seed_none_when_missing(self):
+        """If config has no train.seed, the field should be None (not crash)."""
+        from gradience.bench.reporting import create_canonical_bench_report
+        config = {
+            "bench_version": "0.1",
+            "model": {"name": "test-model"},
+            "task": {"dataset": "sst2", "subset": "default"},
+            "lora": {"probe_r": 16},
+            # no "train" key at all
+        }
+        probe_results = {
+            "probe": {"rank": 16, "params": 1024, "accuracy": 0.85}
+        }
+        verdict_analysis = {
+            "probe_quality_status": "PASSED",
+            "probe_baseline": 0.85,
+            "summary": {"probe_threshold": 0.75, "notes": []},
+            "verdicts": {},
+        }
+        with tempfile.TemporaryDirectory() as td:
+            report = create_canonical_bench_report(
+                probe_results=probe_results,
+                variant_results={},
+                verdict_analysis=verdict_analysis,
+                audit_data={"summary": {}},
+                compression_configs={},
+                config=config,
+                output_dir=Path(td),
+            )
+        self.assertIsNone(report["seed"])
+        self.assertIsNone(report["config_metadata"]["seed"])
+
+
+class TestSeedExtractionFallback(unittest.TestCase):
+    """_extract_seed_id should fall back through bench.json → config.yaml → dirname."""
+
+    def test_prefers_bench_json_seed(self):
+        """bench.json with top-level seed wins over directory name."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "seed_99"
+            seed_dir.mkdir()
+            bj = seed_dir / "bench.json"
+            bj.write_text(json.dumps({"seed": 42}))
+            self.assertEqual(_extract_seed_id(seed_dir), 42)
+
+    def test_falls_back_to_config_metadata_seed(self):
+        """bench.json without top-level seed but with config_metadata.seed."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "seed_99"
+            seed_dir.mkdir()
+            bj = seed_dir / "bench.json"
+            bj.write_text(json.dumps({"config_metadata": {"seed": 123}}))
+            self.assertEqual(_extract_seed_id(seed_dir), 123)
+
+    def test_falls_back_to_config_yaml(self):
+        """No bench.json but config.yaml contains seed."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "run_0"
+            seed_dir.mkdir()
+            cfg = seed_dir / "config.yaml"
+            cfg.write_text("train:\n  seed: 456\n  lr: 0.001\n")
+            self.assertEqual(_extract_seed_id(seed_dir), 456)
+
+    def test_falls_back_to_dirname(self):
+        """No bench.json, no config.yaml → directory name parsing."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "seed_789"
+            seed_dir.mkdir()
+            self.assertEqual(_extract_seed_id(seed_dir), 789)
+
+    def test_dirname_non_seed_returns_name(self):
+        """Non-seed dir with no JSON or YAML → raw directory name."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "experiment_alpha"
+            seed_dir.mkdir()
+            self.assertEqual(_extract_seed_id(seed_dir), "experiment_alpha")
+
+    def test_bench_json_missing_seed_falls_through(self):
+        """bench.json exists but has no seed field → fall to config.yaml."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "run_0"
+            seed_dir.mkdir()
+            bj = seed_dir / "bench.json"
+            bj.write_text(json.dumps({"model": "test", "task": "sst2"}))
+            cfg = seed_dir / "config.yaml"
+            cfg.write_text("train:\n  seed: 42\n")
+            self.assertEqual(_extract_seed_id(seed_dir), 42)
+
+    def test_config_yaml_prefers_train_seed_over_bare(self):
+        """If config.yaml has both a top-level seed and train.seed, prefer train.seed."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "run_0"
+            seed_dir.mkdir()
+            cfg = seed_dir / "config.yaml"
+            # Top-level seed: 999, but train.seed: 42 — should return 42
+            cfg.write_text(
+                "seed: 999\n"
+                "model:\n  name: test\n"
+                "train:\n  seed: 42\n  lr: 0.001\n"
+            )
+            self.assertEqual(_extract_seed_id(seed_dir), 42)
+
+    def test_config_yaml_top_level_seed_when_no_train_block(self):
+        """If config.yaml only has a bare seed: line (no train: block), use it."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "run_0"
+            seed_dir.mkdir()
+            cfg = seed_dir / "config.yaml"
+            cfg.write_text("seed: 777\nmodel:\n  name: test\n")
+            self.assertEqual(_extract_seed_id(seed_dir), 777)
+
+    def test_config_yaml_nested_seed_with_other_train_keys(self):
+        """train: block with multiple keys before seed: still found."""
+        with tempfile.TemporaryDirectory() as td:
+            seed_dir = Path(td) / "run_0"
+            seed_dir.mkdir()
+            cfg = seed_dir / "config.yaml"
+            cfg.write_text(
+                "train:\n"
+                "  lr: 0.001\n"
+                "  epochs: 3\n"
+                "  batch_size: 16\n"
+                "  seed: 123\n"
+            )
+            self.assertEqual(_extract_seed_id(seed_dir), 123)
 
 
 if __name__ == "__main__":

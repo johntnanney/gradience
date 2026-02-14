@@ -4,6 +4,38 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added — Merge Compatibility Audit
+
+New `gradience merge-audit` command for spectral compatibility analysis between two PEFT LoRA adapters before merging.
+
+- **`gradience/vnext/merge/` module** (5 files, ~1,400 lines)
+  - `__init__.py` — Public API orchestrator: `merge_audit()` function
+  - `spectral_compat.py` — QR-based SVD, principal angle analysis, subspace overlap metrics
+  - `verdicts.py` — Five-branch decision tree: SAFE / REDUNDANT / CONFLICTING / IMBALANCED
+  - `report.py` — `MergeAuditReport` dataclass, JSON/Markdown report generation
+  - `io.py` — Adapter loading, layer matching, factor extraction (reuses `vnext.audit` infrastructure)
+
+- **CLI**: `gradience merge-audit --adapter-a <dir> --adapter-b <dir>` with flags:
+  - `--output-dir` — Write `merge_audit.json` and `merge_audit.md`
+  - `--thresholds {default,conservative,permissive}` — Verdict sensitivity presets
+  - `--energy-threshold` — Energy fraction for effective rank (default: 0.90)
+  - `--compute-dtype {float64,float32}` — SVD precision
+  - `--json` / `--verbose` — Output control
+
+- **Python API**:
+  ```python
+  from gradience.vnext.merge import merge_audit, VerdictThresholds
+  report = merge_audit(adapter_a_dir="./a", adapter_b_dir="./b")
+  ```
+
+- **Artifacts**: `merge_audit.json` (schema `gradience.merge_audit/v1`) and `merge_audit.md`
+
+- **Tests**: 79 tests in `tests/test_merge_audit.py` covering spectral metrics, verdicts, edge cases, IO, and CLI
+
+- **GPU test protocol**: `scripts/merge_audit_test/` — 6-script RunPod A40 test suite for validating merge-audit against real HuggingFace adapters (Predibase LoRA Land collection)
+
 ## [v0.9.4] - 2026-02-12
 
 ### Fixed - Aggregate Metadata Consistency
