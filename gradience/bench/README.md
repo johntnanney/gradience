@@ -69,7 +69,7 @@ The `uniform_p90_control` variant is automatically skipped when the suggested 90
 "Control run: suggested rank r=32 equals probe rank (no compression)"
 ```
 
-**Full policy documentation**: [VALIDATION_POLICY.md](/VALIDATION_POLICY.md)  
+**Full policy documentation**: [VALIDATION_POLICY.md](/docs/VALIDATION_POLICY.md)  
 **Machine-consumable policy**: `gradience/bench/policies/safe_uniform.yaml`
 
 ## Outsider Drill - First-Class Acceptance Test

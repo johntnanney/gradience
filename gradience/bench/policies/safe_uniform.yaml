@@ -1,5 +1,5 @@
 # Safe Uniform Baseline Policy - Machine-Consumable Export
-# Generated from empirical validation results and VALIDATION_POLICY.md
+# Generated from empirical validation results and docs/VALIDATION_POLICY.md
 
 policy_version: "0.1"
 policy_name: "Safe Uniform Baseline Policy"

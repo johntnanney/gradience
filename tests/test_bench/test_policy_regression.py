@@ -18,7 +18,7 @@ class TestSafeUniformPolicyRegression(unittest.TestCase):
         """Load the canonical policy file."""
         self.repo_root = Path(__file__).parent.parent.parent
         self.policy_path = self.repo_root / "gradience" / "bench" / "policies" / "safe_uniform.yaml"
-        self.validation_policy_path = self.repo_root / "VALIDATION_POLICY.md"
+        self.validation_policy_path = self.repo_root / "docs" / "VALIDATION_POLICY.md"
         self.bench_readme_path = self.repo_root / "gradience" / "bench" / "README.md"
         
         # Load machine-consumable policy

@@ -42,7 +42,7 @@ Merge Compatibility Audit:
 Everything else is internal and may change.
 
 Legacy components (DEPRECATED) have been removed.
-For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md, PUBLIC_API.md
+For current usage, see: README.md, docs/QUICK_REFERENCE.md, docs/USER_MANUAL.md, PUBLIC_API.md
 """
 
 try:
