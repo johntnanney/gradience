@@ -28,6 +28,9 @@ from gradience.bench.metadata import (
 from gradience.bench._util import (
     get_primary_metric_key, create_config_hash,
 )
+from gradience.bench.stats_utils import (
+    confidence_interval_95, cohens_d_one_sample,
+)
 from gradience.bench.compression import get_rank_source_from_config
 from gradience.bench.constants import (
     PASS_RATE_VALID, PASS_RATE_AGGRESSIVE, DEFAULT_ACCURACY_TOLERANCE,
@@ -734,6 +737,7 @@ def create_multi_seed_aggregated_report(
     # Calculate probe statistics
     probe_acc_mean = float(np.mean(probe_accuracies))
     probe_acc_std = float(np.std(probe_accuracies, ddof=1)) if len(probe_accuracies) > 1 else 0.0
+    probe_acc_ci = confidence_interval_95(probe_accuracies)
     probe_params_mean = float(np.mean(probe_params))  # Should be constant
 
     # Aggregate compressed variants
@@ -783,18 +787,26 @@ def create_multi_seed_aggregated_report(
         # This ensures robustness and prevents cherry-picking
         overall_verdict = "PASS" if pass_rate >= PASS_RATE_VALID else "FAIL"
 
+        # Compute confidence intervals and effect size
+        acc_ci = confidence_interval_95(accuracies)
+        delta_ci = confidence_interval_95(deltas)
+        delta_effect_size = cohens_d_one_sample(deltas, mu=0.0)
+
         # Build variant data
         variant_data = {
             "n_seeds": len(variant_results),
             "accuracy": {
                 "mean": acc_mean,
                 "std": acc_std,
-                "values": accuracies
+                "values": accuracies,
+                **({"ci_lower": acc_ci["ci_lower"], "ci_upper": acc_ci["ci_upper"]} if acc_ci else {}),
             },
             "delta_vs_probe": {
                 "mean": delta_mean,
                 "std": delta_std,
-                "values": deltas
+                "values": deltas,
+                **({"ci_lower": delta_ci["ci_lower"], "ci_upper": delta_ci["ci_upper"]} if delta_ci else {}),
+                **({"effect_size": delta_effect_size} if delta_effect_size is not None else {}),
             },
             "param_reduction": {
                 "mean": red_mean,
@@ -1016,7 +1028,8 @@ def create_multi_seed_aggregated_report(
             "accuracy": {
                 "mean": probe_acc_mean,
                 "std": probe_acc_std,
-                "values": probe_accuracies
+                "values": probe_accuracies,
+                **({"ci_lower": probe_acc_ci["ci_lower"], "ci_upper": probe_acc_ci["ci_upper"]} if probe_acc_ci else {}),
             },
             "params": {
                 "mean": probe_params_mean,

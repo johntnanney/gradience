@@ -55,11 +55,11 @@ def extract_compression_metrics(result, variant_name):
     }
 
 def calculate_stats(values):
-    """Calculate mean ± std."""
+    """Calculate mean ± std (sample std with Bessel's correction)."""
     if not values:
         return "N/A", "N/A"
     arr = np.array(values)
-    return arr.mean(), arr.std()
+    return arr.mean(), arr.std(ddof=1) if len(arr) > 1 else 0.0
 
 def main():
     parser = argparse.ArgumentParser(description="Compare compression approaches")

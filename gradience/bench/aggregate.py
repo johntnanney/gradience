@@ -17,6 +17,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
+from gradience.bench.stats_utils import (
+    confidence_interval_95, cohens_d_one_sample,
+)
+
 
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
@@ -401,17 +405,28 @@ def aggregate_variant_stats(results: List[Dict], variant: str) -> Dict[str, Any]
         stats["accuracy_std"] = np.std(accuracies, ddof=1) if len(accuracies) > 1 else 0
         stats["accuracy_min"] = min(accuracies)
         stats["accuracy_max"] = max(accuracies)
-        
+        acc_ci = confidence_interval_95(accuracies)
+        if acc_ci:
+            stats["accuracy_ci_lower"] = acc_ci["ci_lower"]
+            stats["accuracy_ci_upper"] = acc_ci["ci_upper"]
+
     if deltas:
         stats["delta_mean"] = np.mean(deltas)
         stats["delta_std"] = np.std(deltas, ddof=1) if len(deltas) > 1 else 0
         stats["delta_worst"] = min(deltas)  # Most negative delta
         stats["delta_best"] = max(deltas)
-        
+        delta_ci = confidence_interval_95(deltas)
+        if delta_ci:
+            stats["delta_ci_lower"] = delta_ci["ci_lower"]
+            stats["delta_ci_upper"] = delta_ci["ci_upper"]
+        delta_d = cohens_d_one_sample(deltas, mu=0.0)
+        if delta_d is not None:
+            stats["delta_effect_size"] = delta_d
+
     if param_reductions:
         stats["param_reduction_mean"] = np.mean(param_reductions)
         stats["param_reduction_std"] = np.std(param_reductions, ddof=1) if len(param_reductions) > 1 else 0
-        
+
     return stats
 
 
@@ -461,11 +476,13 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
         elif "probe_baseline" in result:
             probe_accuracies.append(result["probe_baseline"].get("accuracy"))
     
+    probe_acc_ci = confidence_interval_95(probe_accuracies) if probe_accuracies else None
     probe_stats = {
         "accuracy_mean": np.mean(probe_accuracies) if probe_accuracies else None,
         "accuracy_std": np.std(probe_accuracies, ddof=1) if len(probe_accuracies) > 1 else 0,
         "accuracy_min": min(probe_accuracies) if probe_accuracies else None,
         "accuracy_max": max(probe_accuracies) if probe_accuracies else None,
+        **({"accuracy_ci_lower": probe_acc_ci["ci_lower"], "accuracy_ci_upper": probe_acc_ci["ci_upper"]} if probe_acc_ci else {}),
     }
     
     # Find all unique variants

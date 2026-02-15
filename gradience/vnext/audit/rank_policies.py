@@ -697,9 +697,9 @@ def analyze_policy_consensus(
     high_conf = [policy_spec.name for policy_spec, sugg in zip(policies, suggestions) 
                  if sugg.confidence > 0.8]
     
-    # Disagreement: coefficient of variation
+    # Disagreement: coefficient of variation (sample std for consistency)
     if len(ranks) > 1 and np.mean(ranks) > 0:
-        disagreement = np.std(ranks) / np.mean(ranks)
+        disagreement = np.std(ranks, ddof=1) / np.mean(ranks)
     else:
         disagreement = 0.0
     

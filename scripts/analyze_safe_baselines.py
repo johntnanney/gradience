@@ -67,7 +67,7 @@ def calculate_safety_stats(values, label):
     arr = np.array(values)
     return {
         "mean": arr.mean(),
-        "std": arr.std(),
+        "std": arr.std(ddof=1) if len(arr) > 1 else 0.0,
         "min": arr.min(),
         "max": arr.max(),
         "count": len(values)

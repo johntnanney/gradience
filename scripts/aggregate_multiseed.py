@@ -87,11 +87,12 @@ def main():
     per_layer_deltas = [m["per_layer_delta"] for m in all_metrics if m["per_layer_delta"] is not None]
     
     def stats(values):
-        """Calculate mean ± std."""
+        """Calculate mean ± std (sample std with Bessel's correction)."""
         if not values:
             return "N/A"
         arr = np.array(values)
-        return f"{arr.mean():.4f} ± {arr.std():.4f}"
+        std = arr.std(ddof=1) if len(arr) > 1 else 0.0
+        return f"{arr.mean():.4f} ± {std:.4f}"
     
     # Print results
     print("=== PROBE BASELINE (r=32) ===")
@@ -125,9 +126,9 @@ def main():
     print("=== DEFENSIBLE CLAIMS ===")
     if len(per_layer_reductions) >= 3:
         mean_reduction = np.mean(per_layer_reductions) * 100
-        std_reduction = np.std(per_layer_reductions) * 100
-        mean_delta = np.mean(per_layer_deltas) 
-        std_delta = np.std(per_layer_deltas)
+        std_reduction = np.std(per_layer_reductions, ddof=1) * 100 if len(per_layer_reductions) > 1 else 0.0
+        mean_delta = np.mean(per_layer_deltas)
+        std_delta = np.std(per_layer_deltas, ddof=1) if len(per_layer_deltas) > 1 else 0.0
         
         print(f"• Per-layer compression achieves {mean_reduction:.1f}% ± {std_reduction:.1f}% parameter reduction")
         print(f"• Accuracy impact: {mean_delta:+.4f} ± {std_delta:.4f} vs probe baseline") 
