@@ -234,7 +234,7 @@ def _unwrap_model_for_save(trainer, model):
     if trainer is not None and hasattr(trainer, "accelerator"):
         try:
             return trainer.accelerator.unwrap_model(model)
-        except Exception:
+        except (AttributeError, RuntimeError):
             pass
     # Common wrapper case
     if hasattr(model, "module"):

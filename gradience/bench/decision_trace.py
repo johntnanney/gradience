@@ -8,6 +8,8 @@ Keeps the "why" behind compression candidate selection explicit.
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Any, Optional
 
+from gradience.bench._util import round_to_allowed_ranks
+
 
 @dataclass
 class RuleRecord:
@@ -104,15 +106,6 @@ def create_decision_trace(probe_rank: int, audit_data: Dict[str, Any]) -> Decisi
         audit_metrics=audit_metrics
     )
 
-
-def round_to_allowed_ranks(target_r: float, allowed_ranks: List[int]) -> int:
-    """Round target rank to nearest allowed rank."""
-    if not allowed_ranks:
-        return max(1, round(target_r))
-    
-    # Find closest allowed rank
-    closest_rank = min(allowed_ranks, key=lambda r: abs(r - target_r))
-    return closest_rank
 
 
 def maybe_add_second_rung_candidates(

@@ -14,8 +14,11 @@ from typing import Dict, Any
 from gradience.bench.constants import CONFIG_HASH_LENGTH
 
 
-def round_to_allowed_ranks(suggested_r: int, allowed_ranks: list[int]) -> int:
+def round_to_allowed_ranks(suggested_r: int | float, allowed_ranks: list[int]) -> int:
     """Round a suggested rank to the nearest allowed rank."""
+    if not allowed_ranks:
+        return max(1, round(suggested_r))
+
     if suggested_r in allowed_ranks:
         return suggested_r
 
@@ -37,35 +40,6 @@ def get_primary_metric_key(config: Dict[str, Any]) -> str:
         # Default fallback
         return "eval_accuracy"
 
-
-def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=None) -> float:
-    """
-    Extract accuracy metric from evaluation results with robust fallback.
-
-    Priority:
-    1. task_profile.primary_metric_key (if available)
-    2. Fallback sequence: eval_accuracy, eval_exact_match, accuracy, exact_match
-
-    Args:
-        eval_results: Dictionary of evaluation metrics
-        task_profile: TaskProfile instance (optional)
-
-    Returns:
-        float: Accuracy value (0.0 if not found)
-    """
-    # Try task profile primary metric key first
-    if task_profile and hasattr(task_profile, 'primary_metric_key'):
-        primary_key = task_profile.primary_metric_key
-        if primary_key in eval_results:
-            return eval_results[primary_key]
-
-    # Fallback sequence
-    fallback_keys = ["eval_accuracy", "eval_exact_match", "accuracy", "exact_match"]
-    for key in fallback_keys:
-        if key in eval_results:
-            return eval_results[key]
-
-    return 0.0
 
 
 def create_config_hash(config: Dict[str, Any]) -> str:

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from gradience.bench.report import render_markdown, write_report
+from gradience.bench.report_simple import render_markdown, write_report
 
 
 class TestBenchReport(unittest.TestCase):

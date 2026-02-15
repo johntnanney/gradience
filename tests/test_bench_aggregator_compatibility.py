@@ -201,7 +201,7 @@ class TestBenchAggregatorCompatibility(unittest.TestCase):
         # Check statistical calculations
         probe_stats = result["probe"]["accuracy"]
         expected_mean = float(np.mean(probe_accuracies))
-        expected_std = float(np.std(probe_accuracies))
+        expected_std = float(np.std(probe_accuracies, ddof=1))
         
         # Check that we get reasonable statistics (allow some floating point variance)
         assert abs(probe_stats["mean"] - expected_mean) < 1e-6

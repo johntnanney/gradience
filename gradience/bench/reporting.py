@@ -733,7 +733,7 @@ def create_multi_seed_aggregated_report(
 
     # Calculate probe statistics
     probe_acc_mean = float(np.mean(probe_accuracies))
-    probe_acc_std = float(np.std(probe_accuracies))
+    probe_acc_std = float(np.std(probe_accuracies, ddof=1)) if len(probe_accuracies) > 1 else 0.0
     probe_params_mean = float(np.mean(probe_params))  # Should be constant
 
     # Aggregate compressed variants
@@ -767,11 +767,11 @@ def create_multi_seed_aggregated_report(
 
         # Calculate statistics
         acc_mean = float(np.mean(accuracies))
-        acc_std = float(np.std(accuracies))
+        acc_std = float(np.std(accuracies, ddof=1)) if len(accuracies) > 1 else 0.0
         delta_mean = float(np.mean(deltas))
-        delta_std = float(np.std(deltas))
+        delta_std = float(np.std(deltas, ddof=1)) if len(deltas) > 1 else 0.0
         red_mean = float(np.mean(reductions))
-        red_std = float(np.std(reductions))
+        red_std = float(np.std(reductions, ddof=1)) if len(reductions) > 1 else 0.0
         params_mean = float(np.mean(params))
 
         # Calculate pass rate
@@ -803,7 +803,7 @@ def create_multi_seed_aggregated_report(
             },
             "params": {
                 "mean": params_mean,
-                "std": float(np.std(params)) if len(params) > 1 else 0.0
+                "std": float(np.std(params, ddof=1)) if len(params) > 1 else 0.0
             },
             "pass_rate": pass_rate,
             "pass_count": pass_count,
@@ -826,7 +826,7 @@ def create_multi_seed_aggregated_report(
             if energy_values:
                 variant_data["compression"]["energy_retained_stats"] = {
                     "mean": float(np.mean(energy_values)),
-                    "std": float(np.std(energy_values)) if len(energy_values) > 1 else 0.0,
+                    "std": float(np.std(energy_values, ddof=1)) if len(energy_values) > 1 else 0.0,
                     "values": energy_values
                 }
 
@@ -1020,7 +1020,7 @@ def create_multi_seed_aggregated_report(
             },
             "params": {
                 "mean": probe_params_mean,
-                "std": float(np.std(probe_params)) if len(probe_params) > 1 else 0.0
+                "std": float(np.std(probe_params, ddof=1)) if len(probe_params) > 1 else 0.0
             }
         },
         "compressed": variants_data,

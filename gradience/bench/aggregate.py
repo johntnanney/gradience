@@ -398,19 +398,19 @@ def aggregate_variant_stats(results: List[Dict], variant: str) -> Dict[str, Any]
     
     if accuracies:
         stats["accuracy_mean"] = np.mean(accuracies)
-        stats["accuracy_std"] = np.std(accuracies) if len(accuracies) > 1 else 0
+        stats["accuracy_std"] = np.std(accuracies, ddof=1) if len(accuracies) > 1 else 0
         stats["accuracy_min"] = min(accuracies)
         stats["accuracy_max"] = max(accuracies)
         
     if deltas:
         stats["delta_mean"] = np.mean(deltas)
-        stats["delta_std"] = np.std(deltas) if len(deltas) > 1 else 0
+        stats["delta_std"] = np.std(deltas, ddof=1) if len(deltas) > 1 else 0
         stats["delta_worst"] = min(deltas)  # Most negative delta
         stats["delta_best"] = max(deltas)
         
     if param_reductions:
         stats["param_reduction_mean"] = np.mean(param_reductions)
-        stats["param_reduction_std"] = np.std(param_reductions) if len(param_reductions) > 1 else 0
+        stats["param_reduction_std"] = np.std(param_reductions, ddof=1) if len(param_reductions) > 1 else 0
         
     return stats
 
@@ -463,7 +463,7 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
     
     probe_stats = {
         "accuracy_mean": np.mean(probe_accuracies) if probe_accuracies else None,
-        "accuracy_std": np.std(probe_accuracies) if len(probe_accuracies) > 1 else 0,
+        "accuracy_std": np.std(probe_accuracies, ddof=1) if len(probe_accuracies) > 1 else 0,
         "accuracy_min": min(probe_accuracies) if probe_accuracies else None,
         "accuracy_max": max(probe_accuracies) if probe_accuracies else None,
     }

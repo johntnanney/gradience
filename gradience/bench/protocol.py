@@ -71,8 +71,6 @@ from gradience.bench.reporting import (  # noqa: F401
 )
 
 from gradience.bench.multi_seed import (  # noqa: F401
-    create_multi_seed_aggregated_report,
-    create_multi_seed_markdown_report,
     run_multi_seed_bench_protocol,
 )
 
@@ -82,7 +80,10 @@ from gradience.bench.preflight import (  # noqa: F401
 )
 
 from gradience.bench.config_schema import validate_config  # noqa: F401
-from gradience.bench.model_setup import HAS_TRAINING_DEPS  # noqa: F401
+from gradience.bench.model_setup import (  # noqa: F401
+    HAS_TRAINING_DEPS, load_config,
+    _unwrap_model_for_save, _save_peft_adapter_only,
+)
 
 from gradience.bench.task_profiles import get_task_profile_from_config  # noqa: F401
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir  # noqa: F401
@@ -105,16 +106,9 @@ from gradience.bench.metadata import (  # noqa: F401
     get_hf_model_revision, get_dataset_revision, extract_model_dataset_info,
 )
 from gradience.bench._util import (  # noqa: F401
-    _extract_accuracy_with_fallback, get_primary_metric_key,
-    create_config_hash, round_to_allowed_ranks,
-)
-from gradience.bench.compression import (  # noqa: F401
-    generate_compression_configs, generate_svd_variant_config,
-    get_rank_source_from_config, _resolve_policy_rank_source,
-    _create_shuffled_rank_pattern,
+    get_primary_metric_key, create_config_hash,
 )
 from gradience.bench.reporting import (  # noqa: F401
-    create_canonical_bench_report, create_markdown_report,
     create_multi_seed_aggregated_report, create_multi_seed_markdown_report,
 )
 from gradience.bench.constants import (
@@ -127,59 +121,6 @@ from gradience.bench.constants import (
     DEFAULT_ACCURACY_TOLERANCE, DEFAULT_SEED,
 )
 
-
-def _unwrap_model_for_save(trainer, model):
-    # Try accelerator unwrap first (works with device_map / accelerate wrapping)
-    if trainer is not None and hasattr(trainer, "accelerator"):
-        try:
-            return trainer.accelerator.unwrap_model(model)
-        except (AttributeError, RuntimeError):
-            pass
-    # Common wrapper case
-    if hasattr(model, "module"):
-        return model.module
-    return model
-
-def _save_peft_adapter_only(trainer, model, output_dir: str | Path, *, label: str = "adapter") -> Path:
-    """
-    Save PEFT adapter weights/config to output_dir.
-
-    Critical invariant:
-      - Never save a full base model here (7B would be catastrophic).
-      - If the model is not a PEFT model, raise loudly.
-    """
-    out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
-
-    m = _unwrap_model_for_save(trainer, model)
-
-    # Guardrail: only PEFT models should pass
-    if not hasattr(m, "peft_config"):
-        raise RuntimeError(
-            f"Bench expected a PEFT model but got {type(m)}. Refusing to save full model. ({label})"
-        )
-
-    # Save adapter weights/config (small)
-    try:
-        m.save_pretrained(out, safe_serialization=True)
-    except TypeError:
-        # Older peft versions may not accept safe_serialization
-        m.save_pretrained(out)
-
-    # Sanity: ensure audit inputs exist
-    cfg = out / "adapter_config.json"
-    if not cfg.exists():
-        raise RuntimeError(f"Adapter save succeeded but adapter_config.json missing at: {cfg} ({label})")
-
-    # adapter_model.* name differs by serializer; prefer safetensors but accept either
-    safetensors_path = out / "adapter_model.safetensors"
-    bin_path = out / "adapter_model.bin"
-    if not safetensors_path.exists() and not bin_path.exists():
-        raise RuntimeError(
-            f"Adapter save succeeded but adapter_model.(safetensors|bin) missing in: {out} ({label})"
-        )
-
-    return out
 
 
 def _get_probe_quality_threshold(task_name: str) -> float:
@@ -194,11 +135,6 @@ def _get_probe_quality_threshold(task_name: str) -> float:
     """
     return TASK_QUALITY_THRESHOLDS.get(task_name.lower(), DEFAULT_TASK_THRESHOLD)
 
-
-def load_config(config_path: str | Path) -> Dict[str, Any]:
-    """Load YAML configuration file."""
-    with open(config_path, 'r') as f:
-        return yaml.safe_load(f)
 
 
 def setup_dataset(config: Dict[str, Any], smoke: bool = False):
