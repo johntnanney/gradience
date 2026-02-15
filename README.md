@@ -45,7 +45,7 @@ pip install gradience
 
 💡 **Common Issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you need the bench extras. **Fix**: `pip install "gradience[bench]"`
 
-📖 **[Complete Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** - GPU setup, RunPod, troubleshooting, cache configuration
+📖 **[Complete Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** - GPU setup, RunPod, troubleshooting, cache configuration
 
 ## Verify installation (10 seconds)
 
@@ -186,7 +186,7 @@ not just a recommendation.
 - **Validation policy** - Quality tolerance thresholds with multi-seed statistical verification
 - **Merge audit** - Spectral compatibility analysis between two LoRA adapters via principal angles, directional agreement, and magnitude balance — produces per-layer verdicts (safe / redundant / conflicting / imbalanced) and merge strategy recommendations
 
-📖 **[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/docs/api_stability.md)** | **[Benchmark guide](https://github.com/gradience-ai/gradience/blob/main/docs/bench_guide.md)**
+📖 **[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/PUBLIC_API.md)** | **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)**
 
 ## Integration with HuggingFace Transformers
 
@@ -304,8 +304,8 @@ Every release is validated with comprehensive CI gates:
 ## Examples
 
 - **[Minimal integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/toy_lora_run.py)** - Add telemetry to any training script
-- **[Complete benchmark](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/full_benchmark.py)** - End-to-end validation workflow
-- **[Custom policies](https://github.com/gradience-ai/gradience/tree/main/examples/config/)** - Define compression strategies
+- **[HF Trainer integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/hf_trainer_example.py)** - End-to-end training with telemetry
+- **[Custom policies](https://github.com/gradience-ai/gradience/tree/main/examples/configs/)** - Define compression strategies
 
 ## Documentation
 
@@ -332,11 +332,11 @@ If you use Gradience in your research, please cite:
   author = {Nanney, John T.},
   year = {2026},
   url = {https://github.com/gradience-ai/gradience},
-  note = {Version 0.9.1}
+  note = {Version 0.9.10}
 }
 ```
 
-**APA Style:** Nanney, J. T. (2026). *Gradience: Evidence-based LoRA compression for language models* (Version 0.9.1) [Computer software]. https://github.com/gradience-ai/gradience
+**APA Style:** Nanney, J. T. (2026). *Gradience: Evidence-based LoRA compression for language models* (Version 0.9.10) [Computer software]. https://github.com/gradience-ai/gradience
 
 **Note for maintainers:** Update version numbers in citation when releasing new versions. Current version should match `pyproject.toml`.
 

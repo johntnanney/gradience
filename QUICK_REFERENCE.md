@@ -3,10 +3,11 @@
 ## Install
 
 ```bash
-git clone https://github.com/johntnanney/gradience.git
-cd gradience
-pip install -e .
-pip install torch transformers peft safetensors datasets
+# Core package (audit, monitor, merge-audit)
+pip install gradience
+
+# Full benchmarking suite
+pip install "gradience[bench]"
 ```
 
 ## HuggingFace Integration

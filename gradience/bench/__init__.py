@@ -65,7 +65,7 @@ def list_available_scripts():
     scripts_path = get_scripts_path()
     if not scripts_path:
         print("⚠️  Scripts not found. Available in source installations only.")
-        print("   Install from source: pip install git+https://github.com/your-repo/gradience.git")
+        print("   Install from source: pip install git+https://github.com/gradience-ai/gradience.git")
         return
     
     scripts_path = Path(scripts_path)

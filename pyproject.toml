@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gradience"
-version = "0.9.8"
+version = "0.9.10"
 description = "Audit-driven LoRA compression with transparent decision traces and statistical validation"
 readme = "README.md"
 license = "Apache-2.0"
@@ -34,10 +34,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/johntnanney/gradience"
-Repository = "https://github.com/johntnanney/gradience"
-Documentation = "https://github.com/johntnanney/gradience#readme"
-"Bug Tracker" = "https://github.com/johntnanney/gradience/issues"
+Homepage = "https://github.com/gradience-ai/gradience"
+Repository = "https://github.com/gradience-ai/gradience"
+Documentation = "https://github.com/gradience-ai/gradience#readme"
+"Bug Tracker" = "https://github.com/gradience-ai/gradience/issues"
 
 [project.optional-dependencies]
 # Benchmarking suite - for running compression validation benchmarks

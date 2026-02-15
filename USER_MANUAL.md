@@ -102,41 +102,37 @@ Both examples:
 
 ## 3. Installation
 
-### 3.1 Install from source (recommended for now)
+### 3.1 Quick install (recommended)
 
-**Option A: Automatic setup (recommended for first-time users)**
 ```bash
-git clone https://github.com/johntnanney/gradience.git
-cd gradience
-./scripts/setup_venv.sh
+# Core package — includes torch + safetensors (audit, monitor, merge-audit)
+pip install gradience
+
+# Full benchmarking suite — adds transformers, datasets, peft
+pip install "gradience[bench]"
 ```
 
-**Option B: Manual setup**
+### 3.2 Install from source (for contributors)
+
 ```bash
-git clone https://github.com/johntnanney/gradience.git
+git clone https://github.com/gradience-ai/gradience.git
 cd gradience
-python -m pip install -U pip
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 > **⚠️ Important:** Always create your virtual environment from the repo root (the directory that contains `pyproject.toml`). This prevents import issues and ensures correct package installation.
 
-### 2.2 Common runtime dependencies (for HF/PEFT examples)
-```bash
-pip install torch transformers peft safetensors datasets
-```
-
-### 2.3 Device note
+### 3.3 Device note
 - `--device cpu` works anywhere.
 - `--device cuda` requires a CUDA-enabled PyTorch build (typically Linux + NVIDIA GPU). On macOS, CUDA is generally not available.
 
 ---
 
-## 3. Golden path (end-to-end)
+## 4. Golden path (end-to-end)
 
-This is the shortest “it works” loop. The same flow appears in the README/quick reference. fileciteturn2file1 fileciteturn2file0
+This is the shortest “it works” loop. The same flow appears in the README/quick reference.
 
-### 3.1 Run a toy LoRA experiment (emits telemetry + PEFT dir)
+### 4.1 Run a toy LoRA experiment (emits telemetry + PEFT dir)
 ```bash
 # CPU
 python examples/vnext/toy_lora_run.py --out runs/toy_run --device cpu
@@ -153,22 +149,22 @@ runs/toy_run/
 └── training/training_args.json    # training config snapshot
 ```
 
-### 3.2 Check the config (pre-flight)
+### 4.2 Check the config (pre-flight)
 ```bash
 gradience check --task sst2 --peft-dir runs/toy_run/peft --training-dir runs/toy_run/training
 ```
 
-### 3.3 Monitor the telemetry (post-flight summary)
+### 4.3 Monitor the telemetry (post-flight summary)
 ```bash
 gradience monitor runs/toy_run/run.jsonl --verbose
 ```
 
-### 3.4 Audit the adapter (efficiency)
+### 4.4 Audit the adapter (efficiency)
 ```bash
 gradience audit --peft-dir runs/toy_run/peft --top-wasteful 10
 ```
 
-### 3.5 Append the audit into telemetry and re-monitor
+### 4.5 Append the audit into telemetry and re-monitor
 ```bash
 gradience audit --peft-dir runs/toy_run/peft --append runs/toy_run/run.jsonl
 gradience monitor runs/toy_run/run.jsonl --verbose

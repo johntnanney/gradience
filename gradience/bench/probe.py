@@ -101,9 +101,6 @@ def run_probe_audit(
     probe_rank = config["lora"]["probe_r"]
     audit_summary["current_r"] = probe_rank
 
-    # Debug: Check if summary has required fields
-    print(f"Debug: audit_summary has stable_rank_mean={audit_summary.get('stable_rank_mean')}, utilization_mean={audit_summary.get('utilization_mean')}, current_r={audit_summary.get('current_r')}")
-
     # Validate LoRA attachment - prevent wasted GPU cycles
     stable_rank_mean = audit_summary.get('stable_rank_mean', 0.0)
     utilization_mean = audit_summary.get('utilization_mean', 0.0)
@@ -189,11 +186,10 @@ def run_probe_audit(
         "suggested_r_global_median": audit_summary.get("suggested_r_global_median"),
         "suggested_r_global_90": audit_summary.get("suggested_r_global_90"),
 
-        # Policy-based global suggestions (Step 7) - with defensive handling for mocks
+        # Policy-based global suggestions (Step 7)
         "policy_global_suggestions": (
             getattr(audit_result, 'policy_global_suggestions', {})
-            if hasattr(audit_result, 'policy_global_suggestions') and
-               not str(type(getattr(audit_result, 'policy_global_suggestions', None))).__contains__('Mock')
+            if isinstance(getattr(audit_result, 'policy_global_suggestions', None), dict)
             else {}
         ),
 
