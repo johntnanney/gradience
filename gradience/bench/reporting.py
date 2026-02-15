@@ -715,7 +715,7 @@ def create_multi_seed_aggregated_report(
     """
     Create aggregated report from multiple seed runs.
 
-    Returns bench_aggregate.json format with mean +/- std statistics.
+    Returns bench_aggregate.json format with mean ± std statistics.
     """
     import numpy as np
     from datetime import datetime
@@ -1086,10 +1086,10 @@ def create_multi_seed_markdown_report(
 - **Validation Level:** {validation_level.title()}
 - **Statistical Power:** {summary["statistical_power"]}
 
-## Probe Baseline (mean +/- std)
+## Probe Baseline (mean ± std)
 
 - **Rank:** {probe_data["rank"]}
-- **Accuracy:** {probe_data["accuracy"]["mean"]:.4f} +/- {probe_data["accuracy"]["std"]:.4f}
+- **Accuracy:** {probe_data["accuracy"]["mean"]:.4f} ± {probe_data["accuracy"]["std"]:.4f}
 - **LoRA params:** {probe_data["params"]["mean"]:,.0f}
 
 ## Compression Results (Aggregated)
@@ -1100,9 +1100,9 @@ def create_multi_seed_markdown_report(
 
     # Add results table rows
     for variant_name, data in compressed_data.items():
-        acc_str = f"{data['accuracy']['mean']:.3f} +/- {data['accuracy']['std']:.3f}"
-        delta_str = f"{data['delta_vs_probe']['mean']:+.3f} +/- {data['delta_vs_probe']['std']:.3f}"
-        red_str = f"{data['param_reduction']['mean']:.1%} +/- {data['param_reduction']['std']:.1%}"
+        acc_str = f"{data['accuracy']['mean']:.3f} ± {data['accuracy']['std']:.3f}"
+        delta_str = f"{data['delta_vs_probe']['mean']:+.3f} ± {data['delta_vs_probe']['std']:.3f}"
+        red_str = f"{data['param_reduction']['mean']:.1%} ± {data['param_reduction']['std']:.1%}"
         pass_rate_str = f"{data['pass_count']}/{data['total_runs']} ({data['pass_rate']:.0%})"
         verdict = data['verdict']
 
@@ -1172,7 +1172,7 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
         # Generate scientific validation statement
         if pass_rate == 1.0:
             validation_status = "\u2705 **validated safe**"
-            detail = f"All {total_runs} seeds pass +/-{acc_tolerance:.3f} tolerance"
+            detail = f"All {total_runs} seeds pass ±{acc_tolerance:.3f} tolerance"
         elif pass_count >= 2 and total_runs >= 3:
             validation_status = "\u26a0\ufe0f  **conditionally promising**"
             failed_count = total_runs - pass_count
@@ -1185,7 +1185,7 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
             detail = f"Only {pass_count}/{total_runs} seeds pass tolerance"
         else:
             validation_status = "\u274c **failed validation**"
-            detail = f"No seeds pass +/-{acc_tolerance:.3f} tolerance"
+            detail = f"No seeds pass ±{acc_tolerance:.3f} tolerance"
 
         md_content += f"- **r={rank}** is {validation_status} ({detail})\n"
 
@@ -1209,8 +1209,8 @@ This benchmark uses a two-tier selection system for defensible recommendations:
 
         md_content += f"""### \U0001f7e2 Safe Variant (Recommended)
 - **Variant:** `{safe["variant"]}`
-- **Parameter reduction:** {red_mean:.1f}% +/- {red_std:.1f}%
-- **Accuracy impact:** {delta_mean:+.4f} +/- {delta_std:.4f} vs probe baseline
+- **Parameter reduction:** {red_mean:.1f}% ± {red_std:.1f}%
+- **Accuracy impact:** {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline
 - **Pass rate:** {safe["pass_count"]}/{safe["total_runs"]} seeds (100%)
 - **Confidence:** {safe["confidence_level"]} - {safe["rationale"]}
 
@@ -1226,8 +1226,8 @@ This benchmark uses a two-tier selection system for defensible recommendations:
 
         md_content += f"""### \U0001f7e1 Aggressive Variant (Higher Risk)
 - **Variant:** `{aggressive["variant"]}`
-- **Parameter reduction:** {red_mean:.1f}% +/- {red_std:.1f}%
-- **Accuracy impact:** {delta_mean:+.4f} +/- {delta_std:.4f} vs probe baseline
+- **Parameter reduction:** {red_mean:.1f}% ± {red_std:.1f}%
+- **Accuracy impact:** {delta_mean:+.4f} ± {delta_std:.4f} vs probe baseline
 - **Pass rate:** {aggressive["pass_count"]}/{aggressive["total_runs"]} seeds ({aggressive["pass_rate"]:.0%})
 - **Confidence:** {aggressive["confidence_level"]} - {aggressive["rationale"]}
 
@@ -1248,10 +1248,10 @@ This benchmark uses a two-tier selection system for defensible recommendations:
     # Add interpretation
     md_content += f"""## Interpretation (Statistical)
 
-- **PASS** means >=80% of seeds passed +/-{acc_tolerance:.3f} accuracy tolerance (stringent threshold)
+- **PASS** means ≥80% of seeds passed ±{acc_tolerance:.3f} accuracy tolerance (stringent threshold)
 - **Safe variants** require 100% pass rate across all seeds
 - **Aggressive variants** require >=60% pass rate but clearly flagged as higher risk
-- **Statistics** are calculated as mean +/- standard deviation across {n_seeds} seeds
+- **Statistics** are calculated as mean ± standard deviation across {n_seeds} seeds
 - **Defensible claims** are supported by variance estimation across multiple random seeds
 - You should still validate these results on your real workload before deployment
 
