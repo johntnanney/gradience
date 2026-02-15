@@ -1,28 +1,49 @@
 # Gradience
 
-**Spectral audit and evidence-based compression for LoRA adapters.** Detect rank waste, generate compression candidates, validate with multi-seed benchmarks, and audit merge compatibility between adapter pairs.
+**Spectral metrics as empirical probes into the geometry of LoRA training.** Measure rank evolution, detect phase transitions, and study how spectral structure relates to generalization -- with reproducible, multi-seed experimental infrastructure.
+
+> If you use Gradience in your research, please cite:
+>
+> ```bibtex
+> @software{gradience2026,
+>   title = {Gradience: Spectral Analysis of Low-Rank Adaptation Dynamics},
+>   author = {Nanney, John T.},
+>   year = {2026},
+>   url = {https://github.com/gradience-ai/gradience},
+>   note = {Version 0.9.10}
+> }
+> ```
+
+## Research questions Gradience helps you investigate
+
+- **How does effective rank evolve during fine-tuning?** Track stable rank, energy concentration, and utilization ratios across layers and training steps.
+- **What geometric signatures distinguish runs that generalize from runs that don't?** Compare spectral profiles across seeds, hyperparameter sweeps, and task families.
+- **Can spectral metrics detect phase transitions in training dynamics?** Monitor when rank structure shifts abruptly and correlate with loss landscape changes.
+- **How much of the learned subspace is actually used?** Quantify per-layer rank waste and map the gap between allocated and effective dimensionality.
+- **When two adapters are merged, do their learned subspaces align or interfere?** Measure principal angles, directional agreement, and magnitude balance between adapter pairs.
 
 ## Who it's for
 
-- **ML engineers shipping LoRA adapters** - Audit efficiency and compress without quality loss
-- **Researchers comparing compression regimes** - Generate reproducible evidence with multi-seed validation
-- **Teams deploying at scale** - Reduce adapter storage and inference costs systematically
+- **ML researchers studying training dynamics** -- Use spectral measurements to probe how low-rank structure emerges and evolves during fine-tuning
+- **Researchers comparing adaptation strategies** -- Generate reproducible, statistically rigorous evidence across seeds, ranks, and tasks
+- **Practitioners applying findings** -- Translate spectral insights into validated compression configurations
 
 ## What you get
 
-- **Audit reports** with spectral analysis, rank utilization, and compression recommendations
-- **Validated compression candidates** with tolerance thresholds and quality gates
-- **Multi-seed benchmark artifacts** proving compression strategies work reliably
-- **Merge compatibility reports** with per-layer spectral analysis of adapter pairs before merging
+- **Spectral measurements** -- Per-layer SVD analysis yielding stable rank, energy concentration, utilization ratios, and rank waste quantification
+- **Training telemetry** -- Structured JSONL recording of spectral evolution across training steps
+- **Reproducible experimental infrastructure** -- Multi-seed benchmarking with statistical aggregation, tolerance-based validation, and automated candidate generation
+- **Merge compatibility analysis** -- Principal angle and directional agreement measurements between adapter pairs, with per-layer geometric characterization
+- **Publication-ready artifacts** -- JSON data, Markdown reports, and aggregate statistics suitable for tables and figures
 
 ## Install
 
 ### Quick Install
 ```bash
-# Core package — includes torch + safetensors (audit, monitor, merge-audit)
+# Core package -- includes torch + safetensors (spectral analysis, merge analysis)
 pip install gradience
 
-# Full benchmarking suite — adds transformers, datasets, peft
+# Full experimental suite -- adds transformers, datasets, peft
 pip install "gradience[bench]"
 
 # Development tools
@@ -43,9 +64,9 @@ pip install torch --index-url https://download.pytorch.org/whl/cu121
 pip install gradience
 ```
 
-💡 **Common Issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you need the bench extras. **Fix**: `pip install "gradience[bench]"`
+**Common issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you need the bench extras. **Fix**: `pip install "gradience[bench]"`
 
-📖 **[Complete Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** - GPU setup, RunPod, troubleshooting, cache configuration
+**[Complete Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** -- GPU setup, RunPod, troubleshooting, cache configuration
 
 ## Verify installation (10 seconds)
 
@@ -55,14 +76,14 @@ pip install gradience
 
 # Test basic functionality - no ML dependencies needed
 gradience --help                # < 3 seconds
-gradience audit --help          # Show audit command options  
+gradience audit --help          # Show audit command options
 gradience --version             # Confirm installation
 
 # Test with sample data (no training required)
 python -c "
 import gradience
-print(f'✅ Gradience {gradience.__version__} installed successfully')
-print('Base package ready for audit workflows')
+print(f'Gradience {gradience.__version__} installed successfully')
+print('Base package ready for spectral analysis workflows')
 
 # Test JSON parsing (works with any audit.json file)
 import json
@@ -75,7 +96,7 @@ sample_audit = {
         'energy_rank_90_p50': 8.0
     }
 }
-print('📊 Sample audit data parsed successfully')
+print('Sample audit data parsed successfully')
 print(f'   Mean stable rank: {sample_audit[\"summary\"][\"stable_rank_mean\"]}')
 print(f'   Rank utilization: {sample_audit[\"summary\"][\"utilization_mean\"]:.1%}')
 "
@@ -83,13 +104,13 @@ print(f'   Rank utilization: {sample_audit[\"summary\"][\"utilization_mean\"]:.1
 
 **Zero drama**: These commands work immediately after `pip install gradience` with no additional setup.
 
-## Quickstart: 60-second CPU test
+## Quickstart: reproduce a spectral analysis in 60 seconds
 
 ```bash
 # Install with ML dependencies
 pip install "gradience[bench]"
 
-# List available configs (guaranteed in package)
+# List available experiment configs (included in package)
 python -c "
 import importlib.resources
 configs = importlib.resources.files('gradience.bench.configs')
@@ -99,7 +120,7 @@ for f in sorted(configs.iterdir()):
         print(f'  {f.name}')
 "
 
-# Copy and run fast CPU benchmark (~60 seconds)
+# Copy and run a fast CPU experiment (~60 seconds)
 python -c "
 import importlib.resources, shutil
 configs = importlib.resources.files('gradience.bench.configs')
@@ -110,87 +131,85 @@ print('Config copied to cpu_test.yaml')
 gradience-bench --config cpu_test.yaml --output results/
 
 # Examine results
-cat results/bench.json  # Main results
-cat results/audit.json  # Detailed analysis
+cat results/bench.json  # Spectral measurements + validation results
+cat results/audit.json  # Per-layer spectral analysis
 ```
 
 **Performance expectations**: First run ~60-90s (model download + training), subsequent runs ~30s (cached).
 
-## What gets produced
+## Experimental artifacts
 
-Every benchmark run generates:
+Every benchmark run produces a complete experimental record:
 
-- **`bench.json`** - Complete validation results with compression verdicts
-- **`bench.md`** - Human-readable report with recommendations  
-- **`compression_configs.json`** - Generated compression candidates (rank suggestions)
-- **`audit.json`** - Spectral analysis of the probe adapter (utilization, energy, rank waste)
-- **`bench_aggregate.json`** - Multi-seed statistical summary (for research)
-- **`merge_audit.json`** - Per-layer spectral compatibility between two adapters (merge workflow)
-- **`merge_audit.md`** - Human-readable merge compatibility report with recommendations
+- **`audit.json`** -- Per-layer spectral decomposition: stable rank, energy concentration, utilization ratios, rank waste
+- **`bench.json`** -- Full validation results with per-seed metrics and statistical comparisons
+- **`bench.md`** -- Human-readable summary of findings
+- **`bench_aggregate.json`** -- Multi-seed statistical aggregation (mean, std, confidence intervals, effect sizes)
+- **`compression_configs.json`** -- Derived rank configurations from spectral analysis (multiple policy variants)
+- **`merge_audit.json`** -- Per-layer geometric compatibility between two adapters (principal angles, directional agreement, magnitude balance)
+- **`merge_audit.md`** -- Human-readable merge compatibility report with per-layer characterization
 
 ## Core commands
 
 ```bash
-# Audit an existing LoRA adapter
+# Measure spectral structure of an existing LoRA adapter
 gradience audit --peft-dir /path/to/adapter --json
 
-# Monitor training telemetry
+# Record training telemetry
 gradience monitor training_run.jsonl --verbose
 
-# Generate rank compression suggestions
+# Analyze per-layer rank utilization
 gradience audit --peft-dir /path/to/adapter --suggest-per-layer
 
-# Audit merge compatibility between two adapters
+# Measure geometric compatibility between two adapters
 gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b --output-dir ./merge_out
 
-# Run complete benchmark protocol
+# Run a complete experimental protocol
 gradience-bench --config config.yaml --output results/
 
-# Validate config before training
+# Validate config before running
 gradience check --peft adapter_config.json --training training_args.json
 ```
 
-## How it works
+## Experimental methodology
 
-Gradience follows a four-stage pipeline to compress LoRA adapters with evidence:
+Gradience implements a four-stage experimental protocol for studying rank structure in LoRA adapters:
 
-1. **Probe** -- Train a high-rank adapter (r=16 or higher) on your task.
-   This establishes a performance ceiling before any compression is attempted.
+1. **Probe** -- Train a high-rank adapter (r=16 or higher) to establish an unconstrained baseline.
+   This captures the full spectral structure the task can express before any dimensionality constraints are imposed.
 
-2. **Audit** -- Run spectral analysis (SVD) on each adapter weight matrix.
-   The audit measures stable rank, energy concentration at the 90th percentile,
-   and per-layer utilization ratios. Layers using only 2 of 16 available rank
-   dimensions are clear candidates for compression.
+2. **Measure** -- Decompose each adapter weight matrix via SVD. Extract stable rank,
+   energy concentration at the 90th percentile, and per-layer utilization ratios.
+   A layer using 2 of 16 available rank dimensions reveals that the learned transformation
+   is intrinsically low-dimensional for that layer.
 
-3. **Compress** -- Generate compression candidates automatically. Multiple
-   policies (energy-based, knee detection, uniform) produce different rank
-   configurations. Each policy maps audit metrics to concrete per-layer rank
-   suggestions, so you get several candidates to validate rather than a
-   single guess.
+3. **Derive** -- Generate rank configurations from the spectral measurements. Multiple
+   derivation policies (energy-based, knee detection, uniform) each map metrics to
+   per-layer rank settings differently, producing a family of configurations
+   to test rather than a single point estimate.
 
-4. **Validate** -- Train each candidate with multiple seeds (3+) and compare
-   against the probe baseline using a tolerance threshold (e.g., 2% accuracy
-   loss). Candidates where all seeds pass are Tier A (validated safe).
-   Candidates where 2 of 3 seeds pass are Tier B (conditionally promising).
-   This multi-seed approach catches compression levels that only work by luck
-   of initialization.
+4. **Validate** -- Train each derived configuration with multiple seeds (3+) and compare
+   against the probe baseline using a tolerance threshold (e.g., 2% accuracy loss).
+   Configurations where all seeds pass are Tier A (statistically reliable).
+   Configurations where 2 of 3 seeds pass are Tier B (suggestive but not conclusive).
+   Multi-seed validation separates genuine spectral findings from initialization artifacts.
 
-The output is a set of validated compression configs with statistical evidence,
-not just a recommendation.
+The result is a set of rank configurations with statistical evidence linking spectral
+measurements to downstream performance.
 
-## Concepts
+## Key concepts
 
-- **Probe adapter** - High-rank (r=16+) baseline to establish performance ceiling
-- **Audit** - Spectral analysis revealing stable rank, utilization, and energy distribution
-- **Candidate generation** - Automated compression config generation (Tier A/B, second rung policies)
-- **Validation policy** - Quality tolerance thresholds with multi-seed statistical verification
-- **Merge audit** - Spectral compatibility analysis between two LoRA adapters via principal angles, directional agreement, and magnitude balance — produces per-layer verdicts (safe / redundant / conflicting / imbalanced) and merge strategy recommendations
+- **Probe adapter** -- High-rank (r=16+) baseline capturing unconstrained spectral structure
+- **Spectral audit** -- SVD-based measurement of stable rank, utilization, and energy distribution per layer
+- **Candidate derivation** -- Mapping spectral measurements to rank configurations via multiple policies
+- **Validation protocol** -- Multi-seed comparison against probe baseline with tolerance thresholds and effect sizes
+- **Merge audit** -- Geometric compatibility analysis between adapter pairs via principal angles, directional agreement, and magnitude balance -- characterizes each layer as aligned, redundant, conflicting, or imbalanced
 
-📖 **[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/PUBLIC_API.md)** | **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)**
+**[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/PUBLIC_API.md)** | **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)**
 
 ## Integration with HuggingFace Transformers
 
-Add telemetry to your existing training with one line:
+Instrument your training loop with one line to capture spectral telemetry:
 
 ```python
 from transformers import Trainer
@@ -202,16 +221,16 @@ trainer.train()
 # Telemetry saved to: <output_dir>/run.jsonl
 ```
 
-Then analyze your run:
+Then analyze the recorded data:
 
 ```bash
-# Quick overview
+# Quick overview of training dynamics
 gradience monitor output/run.jsonl
 
-# Detailed analysis with recommendations  
+# Detailed spectral analysis
 gradience monitor output/run.jsonl --verbose
 
-# Audit the resulting adapter
+# Measure the resulting adapter
 gradience audit --peft-dir output/adapter --layers --json
 ```
 
@@ -221,42 +240,42 @@ gradience audit --peft-dir output/adapter --layers --json
 # 1. Train with telemetry (or use existing adapter)
 python your_training_script.py  # with GradienceCallback
 
-# 2. Quick sanity check
+# 2. Inspect training dynamics
 gradience monitor output/run.jsonl
 
-# 3. Audit adapter efficiency 
+# 3. Measure spectral structure
 gradience audit --peft-dir output/adapter --suggest-per-layer
 
-# 4. Run compression benchmark (generates candidates + validates)
-gradience-bench --config my_config.yaml --output benchmark_results/
+# 4. Run experimental protocol (derive candidates + validate with multiple seeds)
+gradience-bench --config my_config.yaml --output experiment_results/
 
-# 5. Deploy compressed adapter with confidence
-cp benchmark_results/compression_configs.json production/
+# 5. Examine statistical evidence
+cat experiment_results/bench_aggregate.json
 
-# 6. Before merging two adapters, check compatibility
-gradience merge-audit --adapter-a adapter_code/ --adapter-b adapter_chat/ --output-dir merge_check/
+# 6. Before merging adapters, measure geometric compatibility
+gradience merge-audit --adapter-a adapter_code/ --adapter-b adapter_chat/ --output-dir merge_analysis/
 ```
 
 ## Configuration
 
-Benchmark configs specify model, task, compression policies, and validation criteria:
+Experiment configs specify model, task, derivation policies, and validation criteria:
 
 ```yaml
 model:
   name_or_path: "distilbert-base-uncased"
-  
+
 task:
   name: "sst2"
   type: "classification"
-  
+
 lora:
   r: 16              # Probe rank
   target_modules: ["q_lin", "v_lin"]
-  
+
 compression:
   policies: ["energy_p90", "knee_p90", "uniform"]
   tolerance: 0.02    # 2% quality loss threshold
-  
+
 runtime:
   device: "auto"
   seed: [42, 43, 45]  # Multi-seed validation
@@ -279,18 +298,20 @@ runtime:
 Every release is validated with comprehensive CI gates:
 
 - **Package integrity**: Base install, bench extras, and console scripts work correctly across Python 3.10-3.12
-- **Performance guarantees**: CLI help commands complete within documented timing requirements  
+- **Performance guarantees**: CLI help commands complete within documented timing requirements
 - **PyPI readiness**: Wheel contents, config accessibility via importlib.resources, and quickstart functionality
 
-📋 **[Complete CI test matrix](https://github.com/gradience-ai/gradience/blob/main/.github/workflows/pip-install-ready.yml)** - See exactly what we validate before each release  
-📋 **[CI Gates documentation](https://github.com/gradience-ai/gradience/blob/main/CI_GATES.md)** - Detailed testing requirements and performance targets
+**[Complete CI test matrix](https://github.com/gradience-ai/gradience/blob/main/.github/workflows/pip-install-ready.yml)** -- See exactly what we validate before each release
+**[CI Gates documentation](https://github.com/gradience-ai/gradience/blob/main/CI_GATES.md)** -- Detailed testing requirements and performance targets
 
-## What Gradience is NOT
+## What Gradience is
 
-- ❌ **Not AutoML** - Won't tune hyperparameters for you
-- ❌ **Not a training framework** - Works alongside your existing stack  
-- ❌ **Not an oracle** - Provides evidence-based recommendations to validate
-- ❌ **Not a replacement for evaluation** - Always verify on your target metrics
+Gradience is a **research instrument**, not a product. Specifically:
+
+- **A measurement tool** -- It computes spectral metrics (stable rank, energy concentration, utilization) from adapter weights. It does not tune hyperparameters or make architectural decisions.
+- **An experimental protocol** -- It structures multi-seed validation so that findings about rank structure are reproducible and statistically grounded.
+- **A companion to your training stack** -- It instruments and analyzes; it does not replace your trainer, optimizer, or evaluation pipeline.
+- **A source of evidence, not prescriptions** -- Spectral measurements inform your analysis. The interpretation is yours.
 
 ## API Stability
 
@@ -303,20 +324,25 @@ Every release is validated with comprehensive CI gates:
 
 ## Examples
 
-- **[Minimal integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/toy_lora_run.py)** - Add telemetry to any training script
-- **[HF Trainer integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/hf_trainer_example.py)** - End-to-end training with telemetry
-- **[Custom policies](https://github.com/gradience-ai/gradience/tree/main/examples/configs/)** - Define compression strategies
+- **[Minimal integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
+- **[HF Trainer integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
+- **[Experiment configs](https://github.com/gradience-ai/gradience/tree/main/examples/configs/)** -- Define experimental protocols
 
 ## Documentation
 
 Complete documentation available on GitHub:
 
-- **[Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** - Complete setup guide with troubleshooting
-- **[CLI Reference](https://github.com/gradience-ai/gradience/blob/main/docs/cli.md)** - Complete command-line reference and examples
-- **[Configuration Reference](https://github.com/gradience-ai/gradience/blob/main/docs/configs.md)** - YAML config schema and examples
-- **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)** - Understanding benchmark outputs
-- **[Troubleshooting](https://github.com/gradience-ai/gradience/blob/main/docs/troubleshooting.md)** - Common issues and solutions
-- **[RunPod Guide](https://github.com/gradience-ai/gradience/blob/main/docs/runpod.md)** - Optional cloud GPU setup (RunPod-specific)
+- **[Theoretical Foundations](https://github.com/gradience-ai/gradience/blob/main/docs/THEORY.md)** -- Mathematical framework and open questions
+- **[Empirical Findings](https://github.com/gradience-ai/gradience/blob/main/docs/FINDINGS.md)** -- Results obtained with Gradience
+- **[Research Roadmap](https://github.com/gradience-ai/gradience/blob/main/docs/ROADMAP.md)** -- Open questions and planned investigations
+- **[Experiment Guide](https://github.com/gradience-ai/gradience/blob/main/docs/USER_MANUAL.md)** -- Designing and running spectral studies
+- **[Statistical Methodology](https://github.com/gradience-ai/gradience/blob/main/docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
+- **[Spectral Analysis Policies](https://github.com/gradience-ai/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
+- **[Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
+- **[CLI Reference](https://github.com/gradience-ai/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
+- **[Configuration Reference](https://github.com/gradience-ai/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
+- **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs
+- **[Troubleshooting](https://github.com/gradience-ai/gradience/blob/main/docs/troubleshooting.md)** -- Common issues and solutions
 
 ## License
 
@@ -324,19 +350,7 @@ Licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com
 
 ## Citation
 
-If you use Gradience in your research, please cite:
-
-```bibtex
-@software{gradience2026,
-  title = {Gradience: Evidence-Based LoRA Compression for Language Models},
-  author = {Nanney, John T.},
-  year = {2026},
-  url = {https://github.com/gradience-ai/gradience},
-  note = {Version 0.9.10}
-}
-```
-
-**APA Style:** Nanney, J. T. (2026). *Gradience: Evidence-based LoRA compression for language models* (Version 0.9.10) [Computer software]. https://github.com/gradience-ai/gradience
+**APA Style:** Nanney, J. T. (2026). *Gradience: Spectral analysis of low-rank adaptation dynamics* (Version 0.9.10) [Computer software]. https://github.com/gradience-ai/gradience
 
 **Note for maintainers:** Update version numbers in citation when releasing new versions. Current version should match `pyproject.toml`.
 
@@ -346,10 +360,10 @@ See [CHANGELOG.md](https://github.com/gradience-ai/gradience/blob/main/CHANGELOG
 
 ## Security & Responsible Use
 
-Gradience is designed for research and development of efficient language models. Users should:
+Gradience is designed for research into the spectral structure of fine-tuned language models. Users should:
 
-- **Validate outputs**: Always verify compression results meet your accuracy requirements
-- **Resource awareness**: Monitor compute and storage usage, especially in cloud environments  
+- **Validate findings**: Always verify spectral measurements against downstream task metrics
+- **Resource awareness**: Monitor compute and storage usage, especially in cloud environments
 - **Data privacy**: Ensure compliance with data handling requirements for your datasets
 - **Model licensing**: Respect licensing terms of base models and datasets used
 

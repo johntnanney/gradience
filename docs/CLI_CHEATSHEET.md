@@ -2,16 +2,16 @@
 
 ## Most Common Commands (Copy & Paste)
 
-### After Training Completes
+### Post-training analysis
 
 ```bash
-# Quick summary
+# Quick summary of training dynamics
 gradience monitor <output_dir>/run.jsonl
 
-# Detailed analysis with recommendations  
+# Detailed analysis with diagnostic signals
 gradience monitor <output_dir>/run.jsonl --verbose
 
-# Analyze LoRA adapter (if using PEFT)
+# Spectral analysis of LoRA adapter (if using PEFT)
 gradience audit --peft-dir <output_dir>/adapter --layers
 
 # Complete analysis (audit + monitor)
@@ -19,10 +19,10 @@ gradience audit --peft-dir <output_dir>/adapter --append <output_dir>/run.jsonl
 gradience monitor <output_dir>/run.jsonl --verbose
 ```
 
-### Before Training Starts
+### Experiment validation
 
 ```bash
-# Validate config
+# Validate config before launching a run
 gradience check --task <task_type> --peft adapter_config.json --training training_args.json
 
 # From directories
@@ -32,7 +32,7 @@ gradience check --task <task_type> --peft-dir ./peft_out --training-dir ./traine
 ## Task Types
 
 - `text_generation` - GPT-style language modeling
-- `seq_cls` / `sequence_classification` - Text classification  
+- `seq_cls` / `sequence_classification` - Text classification
 - `qa` / `question_answering` - Question answering
 - `easy_classification` - Simple classification (few classes)
 - `hard_classification` - Complex classification (many classes)
@@ -40,13 +40,13 @@ gradience check --task <task_type> --peft-dir ./peft_out --training-dir ./traine
 ## Output Formats
 
 ```bash
-# JSON output (for scripts)
+# JSON output (for analysis scripts and plotting)
 gradience monitor run.jsonl --json
 
 # Pretty JSON
 gradience monitor run.jsonl --json | python -m json.tool
 
-# Verbose human-readable
+# Verbose human-readable (detailed diagnostic evidence)
 gradience monitor run.jsonl --verbose
 ```
 
@@ -56,42 +56,42 @@ gradience monitor run.jsonl --verbose
 # Basic audit (summary only)
 gradience audit --peft-dir adapter
 
-# With per-layer analysis
+# With per-layer spectral analysis
 gradience audit --peft-dir adapter --layers
 
-# With rank suggestions
+# With rank suggestions (identifies overparameterized layers)
 gradience audit --peft-dir adapter --suggest-per-layer
 
-# Top wasteful layers
+# Top underutilized layers by rank
 gradience audit --peft-dir adapter --top-wasteful 10
 
-# Everything in JSON
+# Everything in JSON (for cross-run comparison)
 gradience audit --peft-dir adapter --layers --suggest-per-layer --json
 
-# Append to telemetry
+# Append to telemetry (joint dynamics + spectral analysis)
 gradience audit --peft-dir adapter --append run.jsonl
 ```
 
-## LoRA Compression (SVD Truncation)
+## Rank Structure Analysis via SVD
 
 ```bash
-# Basic truncation (rank 16 → 8)
+# Decompose rank 16 adapter, retain top 8 singular components
 gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8
 
 # With specific alpha scaling mode
 gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8 --alpha-mode keep_ratio
 
-# High compression with detailed report
+# Detailed per-layer energy retention report
 gradience truncate --peft-dir adapter_r16 --out-dir adapter_r4 --rank 4 --verbose --report compression_report.json
 
 # Different data types
 gradience truncate --peft-dir adapter --out-dir adapter_bf16 --rank 8 --dtype bf16
 
-# JSON output for automation
+# JSON output for downstream analysis
 gradience truncate --peft-dir adapter --out-dir compressed --rank 6 --json
 ```
 
-## Debug Commands
+## Diagnostic Commands
 
 ```bash
 # Find alerts in telemetry
@@ -105,6 +105,54 @@ grep '"event":"train_step"' run.jsonl | wc -l
 
 # Extract final metrics
 grep '"event":"run_end"' run.jsonl | jq '.'
+```
+
+## Research Workflows
+
+### Multi-seed comparison
+
+```bash
+# Audit each seed and extract spectral signatures
+for seed in 42 123 7; do
+  gradience audit --peft-dir runs/seed_${seed}/peft --json > spectra_${seed}.json
+  gradience monitor runs/seed_${seed}/run.jsonl --json > dynamics_${seed}.json
+done
+
+# Compare spectral summaries across seeds
+diff <(jq '.summary' spectra_42.json) <(jq '.summary' spectra_123.json)
+```
+
+### Spectral trajectory extraction
+
+```bash
+# Extract per-layer spectral data for external plotting
+gradience audit --peft-dir runs/experiment/peft --layers --json > layer_spectra.json
+
+# Extract training dynamics for loss/lr trajectory analysis
+gradience monitor runs/experiment/run.jsonl --json > dynamics.json
+```
+
+### Cross-adapter geometric comparison
+
+```bash
+# Compare rank utilization across different adapter configurations
+gradience audit --peft-dir runs/r8_experiment/peft --suggest-per-layer --json > r8_structure.json
+gradience audit --peft-dir runs/r16_experiment/peft --suggest-per-layer --json > r16_structure.json
+gradience audit --peft-dir runs/r32_experiment/peft --suggest-per-layer --json > r32_structure.json
+
+# Compare effective rank distributions
+diff r8_structure.json r16_structure.json
+```
+
+### Merge compatibility investigation
+
+```bash
+# Audit adapters trained on different tasks to study structural compatibility
+gradience audit --peft-dir runs/task_a/peft --layers --json > task_a_spectra.json
+gradience audit --peft-dir runs/task_b/peft --layers --json > task_b_spectra.json
+
+# Compare per-layer singular value distributions
+# Layers with similar spectral profiles may merge more cleanly
 ```
 
 ## Real Examples
@@ -123,16 +171,30 @@ gradience audit --peft-dir ./results --append ./results/run.jsonl
 gradience monitor ./results/run.jsonl --verbose
 ```
 
-### After LoRA Fine-tuning
+### Studying rank evolution across configurations
 
 ```bash
-# Check if rank 16 was too high
-gradience audit --peft-dir ./lora_r16 --suggest-per-layer --json
+# Sweep over ranks and audit each
+for rank in 4 8 16 32; do
+  gradience audit --peft-dir ./runs/r${rank}/peft --suggest-per-layer --json > rank_${rank}.json
+done
 
-# Compare two runs
-gradience monitor ./run_r8/run.jsonl --json > r8.json
-gradience monitor ./run_r16/run.jsonl --json > r16.json
-diff r8.json r16.json
+# Compare how rank utilization scales — do higher-rank adapters use the extra capacity?
+# Look at utilization_mean and spectral energy retention across the sweep
+```
+
+### Investigating spectral phase transitions
+
+```bash
+# Monitor telemetry from a long training run
+gradience monitor runs/long_run/run.jsonl --json > dynamics.json
+
+# Audit at multiple checkpoints to track spectral evolution
+for step in 500 1000 2000 5000 10000; do
+  gradience audit --peft-dir runs/long_run/checkpoint_${step}/peft --json > spectra_step_${step}.json
+done
+
+# Look for phase transitions: sudden changes in rank utilization or energy distribution
 ```
 
 ### Debugging Training Failure
@@ -148,33 +210,35 @@ tail -5 failed/run.jsonl | jq '.'
 grep -E "nan|inf" failed/run.jsonl
 ```
 
-### Compressing Adapter After Training
+### Analyzing rank structure after training
 
 ```bash
 # Your training produced ./results/adapter with r=16
-# Compress to r=8 for faster inference
-gradience truncate --peft-dir ./results/adapter --out-dir ./results/adapter_compressed --rank 8
+# Probe how much rank is actually utilized
+gradience truncate --peft-dir ./results/adapter --out-dir ./results/adapter_r8 --rank 8
 
-# Check compression quality
+# Examine the output:
 # Input rank: 16
-# Output rank: 8  
+# Output rank: 8
 # Mean retained energy: 87.3%
 # LoRA parameter reduction: 589,824 → 294,912 (2.0x)
-
-# Use compressed adapter in inference
-# (Same API as original - drop-in replacement)
+#
+# High retained energy at half rank suggests the adapter is overparameterized.
+# Low retained energy would indicate the full rank is structurally necessary.
 ```
 
 ## Pro Tips
 
-1. **Always use `--verbose`** for human analysis
-2. **Always use `--json`** for scripting
-3. **Combine audit + monitor** for complete picture
-4. **Use `--append`** to merge audit into telemetry
+1. **Always use `--verbose`** for exploratory analysis
+2. **Always use `--json`** for reproducible pipelines and cross-run comparison
+3. **Combine audit + monitor** to correlate spectral structure with training dynamics
+4. **Use `--append`** to merge spectral data into the telemetry stream for joint analysis
 5. **Check task type** matches your problem (`text_generation` vs `seq_cls`)
-6. **Audit before truncating** - understand rank utilization first
-7. **Use `keep_ratio`** alpha mode for consistent scaling behavior
-8. **Save truncation reports** with `--report` for reproducibility
+6. **Audit before truncating** -- understand rank utilization before testing compression hypotheses
+7. **Save truncation reports** with `--report` for experiment reproducibility
+8. **Compare across seeds** to distinguish learned structure from initialization artifacts
+9. **Track spectra at checkpoints** to study how rank utilization evolves during training
+10. **Use `--suggest-per-layer`** to identify which layers carry signal vs. noise
 
 ## Environment Variables
 

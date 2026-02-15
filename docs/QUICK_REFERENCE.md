@@ -1,5 +1,7 @@
 # Gradience Quick Reference (vNext)
 
+*A research instrument for studying LoRA training dynamics, rank structure, and spectral geometry.*
+
 ## Install
 
 ```bash
@@ -38,7 +40,7 @@ python examples/vnext/toy_lora_run.py --out runs/toy_run --device cpu
 python examples/vnext/toy_lora_run.py --out runs/toy_run --device cuda
 ```
 
-## Check (pre-flight validation)
+## Check (experiment validation)
 
 ```bash
 # Directory mode
@@ -59,29 +61,29 @@ gradience check --task sst2 --peft-dir <dir> --training-dir <dir> --json
 ## Monitor (telemetry analysis)
 
 ```bash
-# Basic
+# Summary of training dynamics
 gradience monitor runs/toy_run/run.jsonl
 
-# Verbose (show evidence)
+# Detailed evidence with diagnostic signals
 gradience monitor runs/toy_run/run.jsonl --verbose
 
-# JSON summary
+# JSON summary (for downstream analysis scripts)
 gradience monitor runs/toy_run/run.jsonl --json > summary.json
 ```
 
-## Audit (adapter analysis)
+## Audit (spectral analysis of adapter weights)
 
 ```bash
-# Basic audit
+# Spectral audit — singular value decomposition of all LoRA matrices
 gradience audit --peft-dir runs/toy_run/peft
 
-# Show top N wasteful layers
+# Show top N underutilized layers by rank
 gradience audit --peft-dir runs/toy_run/peft --top-wasteful 10
 
-# JSON output
+# JSON output (for plotting, cross-run comparison)
 gradience audit --peft-dir runs/toy_run/peft --json > audit.json
 
-# Append audit metrics into telemetry
+# Append audit metrics into telemetry for joint analysis
 gradience audit --peft-dir runs/toy_run/peft --append runs/toy_run/run.jsonl
 
 # Custom paths
@@ -91,43 +93,113 @@ gradience audit \
   --weights path/to/adapter_model.safetensors
 ```
 
-## Truncate (SVD compression)
+## Truncate (rank structure analysis via SVD)
 
 ```bash
-# Basic truncation
+# Reduce rank and measure retained spectral energy
 gradience truncate --peft-dir runs/toy_run/peft --out-dir runs/compressed --rank 8
 
-# With detailed output
+# With detailed per-layer energy retention
 gradience truncate --peft-dir adapter_r16 --out-dir adapter_r8 --rank 8 --verbose
 
-# JSON output
+# JSON output (energy curves, per-layer statistics)
 gradience truncate --peft-dir adapter --out-dir compressed --rank 4 --json
 
-# Save detailed report
+# Save detailed spectral report
 gradience truncate --peft-dir adapter --out-dir adapter_r6 --rank 6 --report compression.json
 ```
 
-## Combined workflow
+## Research workflow
 
 ```bash
-# 1) Check before training
+# 1) Validate experiment configuration
 gradience check --task sst2 --peft-dir config/peft --training-dir config/training
 
 # 2) Run training (your code)
 python train.py --output runs/experiment
 
-# 3) Monitor telemetry
+# 3) Analyze training dynamics from telemetry
 gradience monitor runs/experiment/run.jsonl --verbose
 
-# 4) Audit adapter
+# 4) Spectral audit — identify rank utilization patterns
 gradience audit --peft-dir runs/experiment/peft --top-wasteful 5
 
-# 5) Append audit + re-monitor
+# 5) Append audit + re-analyze joint signals
 gradience audit --peft-dir runs/experiment/peft --append runs/experiment/run.jsonl
 gradience monitor runs/experiment/run.jsonl --verbose
 
-# 6) Optional: Compress adapter for deployment
+# 6) Optional: Test compression hypothesis (how much rank is actually used?)
 gradience truncate --peft-dir runs/experiment/peft --out-dir runs/experiment/peft_compressed --rank 8
+```
+
+## Extracting spectral trajectories for plotting
+
+```bash
+# Dump per-layer spectral data to JSON for external analysis
+gradience audit --peft-dir runs/seed_42/peft --json > seed_42_spectra.json
+
+# Extract training dynamics as JSON for plotting loss/lr curves
+gradience monitor runs/seed_42/run.jsonl --json > seed_42_dynamics.json
+```
+
+```python
+# Example: load spectral data for plotting
+import json, matplotlib.pyplot as plt
+
+with open("seed_42_spectra.json") as f:
+    spectra = json.load(f)
+# Plot singular value distributions, energy retention, etc.
+```
+
+## Comparing geometric signatures across seeds
+
+```bash
+# Run spectral audit on each seed
+for seed in 42 123 7; do
+  gradience audit --peft-dir runs/seed_${seed}/peft --json > spectra_${seed}.json
+done
+
+# Compare training dynamics across seeds
+for seed in 42 123 7; do
+  gradience monitor runs/seed_${seed}/run.jsonl --json > dynamics_${seed}.json
+done
+
+# Diff summaries to find structural divergence
+diff <(jq '.summary' spectra_42.json) <(jq '.summary' spectra_123.json)
+```
+
+## Correlating metrics with downstream evaluation
+
+```bash
+# 1) Extract spectral audit metrics
+gradience audit --peft-dir runs/experiment/peft --json > spectra.json
+
+# 2) Extract training signals
+gradience monitor runs/experiment/run.jsonl --json > signals.json
+
+# 3) Run your downstream eval
+python eval.py --adapter runs/experiment/peft --output eval_results.json
+
+# 4) Join in analysis script — correlate spectral energy with task accuracy
+python analysis/correlate_spectra_eval.py \
+  --spectra spectra.json \
+  --signals signals.json \
+  --eval eval_results.json
+```
+
+## Configuration presets
+
+```python
+from gradience.vnext.integrations.hf import GradienceCallback
+
+# Dense telemetry — for detailed training dynamics studies
+trainer.add_callback(GradienceCallback())  # default: captures every step
+
+# Lightweight monitoring — for large parameter sweeps
+trainer.add_callback(GradienceCallback())  # stream to per-run JSONL, analyze post-hoc
+
+# Diagnostic mode — verbose alerts for debugging anomalies
+trainer.add_callback(GradienceCallback())  # combine with --verbose on monitor
 ```
 
 ## Python API — TelemetryWriter

@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gradience"
 version = "0.9.10"
-description = "Audit-driven LoRA compression with transparent decision traces and statistical validation"
+description = "Spectral analysis of low-rank adaptation dynamics — measure rank evolution, detect phase transitions, and study training geometry"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
     {name = "John Nanney", email = "johntnanney@gmail.com"}
 ]
-keywords = ["lora", "compression", "audit", "neural-networks", "fine-tuning"]
+keywords = ["lora", "spectral-analysis", "training-dynamics", "low-rank-adaptation", "fine-tuning"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",

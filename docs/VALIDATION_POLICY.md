@@ -1,125 +1,118 @@
-# Gradience Bench Validation Policy v0.1
+# Statistical Methodology for Spectral Compression Studies
 
-This document defines the **PASS criteria policy** for Gradience benchmark results, distinguishing between different levels of validation rigor.
+This document defines the **statistical rigor requirements** for making defensible claims from spectral data in Gradience benchmark experiments.
 
-## 🎯 **Validation Levels**
+## Validation Levels
 
-### **🔬 Screening**
+Gradience classifies every benchmark run by its statistical power, so researchers can calibrate claims to the evidence that supports them.
+
+### Exploratory Analysis (Screening)
 - **Criteria**: Single seed, any training budget
-- **PASS threshold**: ±2.5% accuracy tolerance  
-- **Use case**: Rapid development iteration, initial exploration
-- **Confidence**: Low - no variance estimation
-- **Example**: 1 seed × 200 steps
+- **Tolerance**: +/-2.5% accuracy delta
+- **Purpose**: Hypothesis exploration -- rapidly test whether a compression configuration is worth deeper investigation
+- **Statistical power**: None -- no variance estimation possible
+- **Example**: 1 seed x 200 steps
 
-### **🔬+ Screening Plus**  
-- **Criteria**: Multi-seed but limited budget/seeds (< 3 seeds OR < 500 steps)
-- **PASS threshold**: ±2.5% accuracy tolerance
-- **Use case**: Enhanced development validation, promising candidate verification
-- **Confidence**: Medium - limited statistical power
-- **Example**: 2 seeds × 200 steps, or 3 seeds × 100 steps
+### Preliminary Findings (Screening+)
+- **Criteria**: Multi-seed but limited budget or seeds (< 3 seeds OR < 500 steps)
+- **Tolerance**: +/-2.5% accuracy delta
+- **Purpose**: Narrowing the hypothesis space -- identify promising spectral configurations for rigorous follow-up
+- **Statistical power**: Limited -- partial variance estimation, insufficient for strong claims
+- **Example**: 2 seeds x 200 steps, or 3 seeds x 100 steps
 
-### **✅ Certifiable**
-- **Criteria**: ≥3 seeds AND ≥500 steps
-- **PASS threshold**: ±2.5% accuracy tolerance + statistical significance
-- **Use case**: Production decisions, academic publications, defensible claims  
-- **Confidence**: High - statistical rigor with variance estimation
-- **Example**: 3+ seeds × 500+ steps
+### Publication-Ready Evidence (Certifiable)
+- **Criteria**: >=3 seeds AND >=500 steps
+- **Tolerance**: +/-2.5% accuracy delta + statistical significance testing
+- **Purpose**: Defensible claims in publications -- results that withstand peer review
+- **Statistical power**: Sufficient -- full variance estimation with confidence intervals
+- **Example**: 3+ seeds x 500+ steps
 
-## 📊 **Policy Implementation**
+## Classification Logic
 
-### **Automatic Classification**
+### Automatic Level Assignment
 ```python
 def classify_validation_level(config):
     seeds = compression.get("seeds", [])
     max_steps = train.get("max_steps", 0)
-    
+
     if len(seeds) >= 3 and max_steps >= 500:
         return "certifiable"
     elif len(seeds) > 1:
-        return "screening_plus"  
+        return "screening_plus"
     else:
         return "screening"
 ```
 
-### **Reporting Labels**
+### Where Levels Appear
 - **bench.json**: `env.validation_classification.level`
 - **bench.md**: Header shows validation level + rationale
-- **Verdict analysis**: Console output includes validation level
+- **Console output**: Verdict analysis includes validation level
 
-### **PASS Criteria Interpretation**
+### Interpreting Results by Level
 
-| Level | PASS Means | Suitable For | Statistical Power |
-|-------|------------|--------------|-------------------|
-| **Screening** | Single run within tolerance | Dev iteration | None |
-| **Screening+** | Limited multi-seed validation | Dev validation | Limited |
-| **Certifiable** | Statistically defensible | Production use | Sufficient |
+| Level | Result Means | Supports | Statistical Power |
+|-------|-------------|----------|-------------------|
+| **Exploratory** | Single run within tolerance | Hypothesis generation | None |
+| **Preliminary** | Limited multi-seed agreement | Narrowing candidates | Limited |
+| **Publication-Ready** | Statistically defensible result | Peer-reviewed claims | Sufficient |
 
-## 🚫 **What This Policy Prevents**
+## What Each Level Ensures
 
-1. **False confidence** from single-seed "validation"
-2. **Inappropriate production deployment** based on screening results  
-3. **Statistical claims** without proper variance estimation
-4. **Unrealistic expectations** from mini-validation budgets
+1. **Exploratory** ensures fast iteration without over-interpreting single-seed outcomes -- researchers know the result is a starting point, not a conclusion
+2. **Preliminary** ensures that multi-seed agreement is not mistaken for statistical significance when seed count or training budget is insufficient
+3. **Publication-Ready** ensures that reported results include proper variance estimation, making claims robust to reviewer scrutiny
 
-## ✅ **Best Practices**
+## Experimental Design Guidelines
 
-### **Development Workflow**
-1. **Screening** (50-200 steps) → Rapid experimentation
-2. **Screening+** (200+ steps, 2-3 seeds) → Validate promising candidates
-3. **Certifiable** (500+ steps, 3+ seeds) → Final production validation
+### Research Progression
+1. **Exploratory** (50-200 steps) -- Sweep broadly across rank configurations and policies to identify interesting spectral behavior
+2. **Preliminary** (200+ steps, 2-3 seeds) -- Focus on promising configurations, begin estimating variance to assess stability
+3. **Publication-Ready** (500+ steps, 3+ seeds) -- Full multi-seed protocol with confidence intervals for any result that will appear in a paper
 
-### **Academic/Publication Standards**
-- **Always use Certifiable level** for claims in papers
-- **Report confidence intervals** (mean ± std across seeds)
-- **Include pass rates** (e.g., "2/3 seeds passed tolerance")
+### Publication and Reporting Standards
+- **Always use Publication-Ready level** for claims in papers
+- **Report confidence intervals** (mean +/- std across seeds, with 95% CI)
+- **Report Cohen's d** for effect size when comparing configurations
+- **Include pass rates** across seeds (e.g., "2/3 seeds passed tolerance") to convey result stability
+- **Document the validation level** in your methods section so reviewers can assess rigor
 
-### **Production Deployment**
-- **Minimum Screening+ level** for any production use
+### Applied Use
+- For applied work (deployment, product integration), a minimum of Preliminary level is recommended before acting on results
+- Publication-Ready level is strongly recommended before any high-stakes decision
 
-## 🏛️ **Safe Uniform Baseline Policy**
+## Reference Baselines for Controlled Comparison
 
-### **Policy Definition**
-**Safe uniform baseline** = ≥ 67% seeds PASS AND worst seed Δ ≥ -2.5%
+### Baseline Policy
+A **reference baseline** provides a controlled comparison point for spectral compression experiments.
 
-### **Current Validated Baselines (DistilBERT/SST-2)**
-- **Primary**: Uniform r=20 (25.0% compression, validated 500 steps, n=1 seed)
-- **Conservative**: Uniform r=24 (16.6% compression, validated 500 steps, n=1 seed) 
-- **Avoid**: Uniform r=16 (fails safety policy: 0% pass rate across 3 seeds)
+**Reference baseline criterion**: ≥ 67% seeds PASS AND worst seed Δ ≥ -2.5%
 
-### **Selection Criteria**
-1. **Safety first**: Must meet pass rate AND worst-case delta thresholds
-2. **Efficiency optimization**: Highest compression among safe candidates wins
-3. **Fallback strategy**: If no uniform baseline is safe → recommend per-layer adaptive
+This dual requirement -- majority pass rate plus bounded worst-case degradation -- ensures that the baseline itself is stable enough to serve as a meaningful comparator. A baseline that fails across seeds or shows large worst-case drops would introduce confounding variance into any comparison.
 
-### **Important Limitations**
-**⚠️ TASK/MODEL DEPENDENT:** These baselines are calibrated defaults for DistilBERT on SST-2, not universal truth. **Always validate on your specific task/model combination before production deployment.**
+### Validated Reference Baselines (DistilBERT/SST-2)
 
-### **Implementation Status**
-- **Validation Level**: Screening+ (limited seeds but full training budget)
-- **Next Steps**: Multi-seed validation recommended for Certifiable status
-- **Certifiable level recommended** for critical applications
-- **Additional validation** on real workload always required
+Canonical reference results: `gradience/bench/results/distilbert_sst2_v0.1/`
 
-## 🔄 **Version History**
+- **uniform_median**: 61% compression, 100% pass rate, worst delta = -1.0% -- meets baseline criterion
+- **Uniform r=20**: Primary reference baseline under the criterion above
+- **Uniform r=16**: Does not meet baseline criterion (fails in multi-seed runs) -- not suitable as a stable comparator
 
-- **v0.1**: Initial policy defining screening vs certifiable distinction
-- **Future**: May adjust thresholds based on empirical validation experience
+### Selecting Reference Baselines
+1. **Stability first**: Must meet pass rate AND worst-case delta thresholds to serve as a reliable comparison point
+2. **Then optimize compression**: Among stable baselines, prefer higher compression to make the comparison more informative
+3. **Fallback**: If no uniform baseline is stable, consider per-layer adaptive configurations as the reference
 
-*This policy ensures users understand the statistical limitations of their validation results and make appropriate decisions based on the level of rigor achieved.*
-## Safe Uniform Baseline Policy (Bench)
+### Important Limitations
+**Task/model dependent:** These baselines are calibrated for DistilBERT on SST-2 and should not be assumed to transfer. Always validate reference baselines on your specific task/model combination before using them as comparators in experiments.
 
-Policy definition (verbatim):
-**≥ 67% seeds PASS AND worst seed Δ ≥ -2.5%**
+### Current Baseline Status
+- **Validation Level**: Preliminary (limited seeds, full training budget)
+- **Next Steps**: Multi-seed validation recommended to reach Publication-Ready status
+- **Additional validation** on your specific workload is always required
 
-### Reference Results
+## Version History
 
-📁 **Canonical reference results:** `gradience/bench/results/distilbert_sst2_v0.1/`
+- **v0.1**: Initial methodology defining exploratory, preliminary, and publication-ready evidence levels
+- **Future**: Thresholds may be refined as the community accumulates empirical experience across diverse tasks and models
 
-Validated baselines (DistilBERT + SST-2, Bench v0.1):
-- **uniform_median**: 61% compression, 100% pass rate, worst Δ = -1.0% ✅ POLICY COMPLIANT
-- See frozen artifacts in `gradience/bench/results/distilbert_sst2_v0.1/` for complete results
-
-Current calibrated baselines:
-- **Uniform r=20** — primary safe uniform baseline under the policy above.
-- **Uniform r=16** — observed unsafe/unstable in this benchmark setup (fails policy in multi-seed runs).
-
+*This methodology ensures researchers understand the statistical power of their results and calibrate their claims accordingly.*
