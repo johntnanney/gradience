@@ -15,6 +15,8 @@ experiment:
   version: "1.0"
   base_model: "mistralai/Mistral-7B-v0.1"
   seeds: [42, 123, 456]
+  # Same-task different-seed calibration pairs
+  calibration_pairs: true
 
 adapters:
   sql:
@@ -46,12 +48,19 @@ training:
   torch_dtype: "bfloat16"
 
 merge:
-  methods: ["linear", "ties", "dare_linear", "dare_ties"]
-  linear_coefficients: [0.5, 0.5]
-  ties_density: 0.5
-  dare_linear_density: 0.7
-  dare_ties_density: 0.5
+  methods: ["linear"]
+  weight_grid:
+    - [0.5, 0.5]
+    - [0.3, 0.7]
+    - [0.7, 0.3]
   output_rank: 32
+
+success_criteria:
+  auc_roc: 0.75
+  average_precision: 0.60
+  r_squared_Q_min: 0.30
+  Q_min_threshold: 0.95
+  D_threshold: 0.20
 
 evaluation:
   framework: "lm-evaluation-harness"

@@ -43,7 +43,7 @@ class TestMergeAuditPipeline:
         # Validate JSON content
         with open(output / "merge_audit.json") as f:
             data = json.load(f)
-        assert data["schema_version"] == "gradience.merge_audit/v1"
+        assert data["schema_version"] == "gradience.merge_audit/v2"
         assert data["aggregate"]["overall_verdict"] == "safe"
 
     def test_redundant_detected(self, redundant_pair):
@@ -209,7 +209,7 @@ class TestCLIIntegration:
 
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
         data = json.loads(result.stdout)
-        assert data["schema_version"] == "gradience.merge_audit/v1"
+        assert data["schema_version"] == "gradience.merge_audit/v2"
         assert "aggregate" in data
 
     def test_cli_pretty_output(self, orthogonal_pair):

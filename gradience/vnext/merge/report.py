@@ -69,6 +69,10 @@ def build_report(
     thresholds: VerdictThresholds,
 ) -> MergeAuditReport:
     """Assemble full report from analysis results."""
+
+    def safe_mean(xs: List[float]) -> float:
+        return sum(xs) / len(xs) if xs else 0.0
+
     try:
         from importlib.metadata import version as pkg_version
 
@@ -78,6 +82,13 @@ def build_report(
 
     overlaps = [lv.metrics.mean_overlap for lv in layer_verdicts]
     agreements = [lv.metrics.directional_agreement for lv in layer_verdicts]
+
+    # Symmetric scale metrics (getattr for safety during parallel dev)
+    scale_bounded_ratios = [getattr(lv.metrics, 'scale_bounded_ratio', 0.0) for lv in layer_verdicts]
+    scale_log_ratios = [getattr(lv.metrics, 'scale_log_ratio', 0.0) for lv in layer_verdicts]
+    frob_bounded_ratios = [getattr(lv.metrics, 'frob_bounded_ratio', 0.0) for lv in layer_verdicts]
+    frob_log_ratios = [getattr(lv.metrics, 'frob_log_ratio', 0.0) for lv in layer_verdicts]
+    mag_ratios = [getattr(lv.metrics, 'magnitude_ratio', 0.0) for lv in layer_verdicts]
 
     warnings: List[str] = []
     if only_a:
@@ -139,6 +150,13 @@ def build_report(
             "n_imbalanced": sum(
                 1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED
             ),
+            # Symmetric scale metrics (averaged across layers)
+            "mean_scale_bounded_ratio": round(safe_mean(scale_bounded_ratios), 4),
+            "mean_scale_log_ratio": round(safe_mean(scale_log_ratios), 4),
+            "mean_frob_bounded_ratio": round(safe_mean(frob_bounded_ratios), 4),
+            "mean_frob_log_ratio": round(safe_mean(frob_log_ratios), 4),
+            # Legacy magnitude metrics (kept for backward compat)
+            "mean_magnitude_ratio": round(safe_mean(mag_ratios), 4),
         },
         recommendations=recommendations,
         issues=[],
@@ -157,7 +175,7 @@ def build_report(
 def to_json(report: MergeAuditReport) -> Dict[str, Any]:
     """Convert report to JSON-serializable dict."""
     return {
-        "schema_version": "gradience.merge_audit/v1",
+        "schema_version": "gradience.merge_audit/v2",
         "timestamp": report.timestamp,
         "gradience_version": report.gradience_version,
         "adapter_a": report.adapter_a,
@@ -273,9 +291,9 @@ def to_markdown(report: MergeAuditReport) -> str:
     if report.layer_verdicts:
         lines.append("## Per-Layer Analysis\n")
         lines.append(
-            "| Layer | r_a | r_b | Overlap | Agreement | Mag ratio | Verdict | Strategy |"
+            "| Layer | r_a | r_b | Overlap | Agreement | Scale | Mag ratio | Verdict | Strategy |"
         )
-        lines.append("|---|---:|---:|---:|---:|---:|---|---|")
+        lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|")
 
         for lv in report.layer_verdicts:
             m = lv["metrics"]
@@ -287,6 +305,7 @@ def to_markdown(report: MergeAuditReport) -> str:
                 f"| {m['nominal_rank_b']} "
                 f"| {m['mean_overlap']:.3f} "
                 f"| {m['directional_agreement']:.3f} "
+                f"| {m.get('scale_bounded_ratio', 0.0):.3f} "
                 f"| {m['magnitude_ratio']:.1f}x "
                 f"| {v_emoji} {lv['verdict']} "
                 f"| {lv['suggested_strategy']} |"

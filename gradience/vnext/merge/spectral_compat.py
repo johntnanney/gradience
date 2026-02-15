@@ -18,6 +18,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import torch
 
+from gradience.vnext.merge.scale import symmetric_frobenius_metrics, symmetric_scale_metrics
+
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -40,11 +42,17 @@ class SubspaceMetrics:
     # Directional analysis
     directional_agreement: float  # projection cosine similarity [-1, 1]
 
-    # Scale analysis
+    # Scale analysis (asymmetric, kept for backward compatibility)
     magnitude_ratio: float       # sigma_1(larger) / sigma_1(smaller), >= 1
     frobenius_ratio: float       # ||larger||_F / ||smaller||_F, >= 1
     frobenius_norm_a: float      # ||ΔW_a||_F (scaled)
     frobenius_norm_b: float      # ||ΔW_b||_F (scaled)
+
+    # Symmetric scale analysis (Section 3)
+    scale_bounded_ratio: float   # min(sigma1_A, sigma1_B) / max(sigma1_A, sigma1_B), [0,1]
+    scale_log_ratio: float       # log(sigma1_A) - log(sigma1_B)
+    frob_bounded_ratio: float    # min(||A||_F, ||B||_F) / max(||A||_F, ||B||_F), [0,1]
+    frob_log_ratio: float        # log(||A||_F) - log(||B||_F)
 
     # Rank structure
     effective_rank_a: int
@@ -238,6 +246,10 @@ def compute_subspace_metrics(
     else:
         frob_ratio = float("inf")
 
+    # === Symmetric scale analysis (Section 3) ===
+    sym_scale = symmetric_scale_metrics(s1_max, s2_max, eps=eps)
+    sym_frob = symmetric_frobenius_metrics(frob_a, frob_b, eps=eps)
+
     return SubspaceMetrics(
         principal_angle_cosines=tuple(cos_angles.tolist()),
         mean_overlap=mean_overlap,
@@ -247,6 +259,10 @@ def compute_subspace_metrics(
         frobenius_ratio=frob_ratio,
         frobenius_norm_a=frob_a,
         frobenius_norm_b=frob_b,
+        scale_bounded_ratio=sym_scale["scale_bounded_ratio"],
+        scale_log_ratio=sym_scale["scale_log_ratio"],
+        frob_bounded_ratio=sym_frob["frob_bounded_ratio"],
+        frob_log_ratio=sym_frob["frob_log_ratio"],
         effective_rank_a=eff_rank_a,
         effective_rank_b=eff_rank_b,
         nominal_rank_a=r_a,

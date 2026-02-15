@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Phase 5: Correlation analysis + report generation.
+Phase 5: Correlation analysis + report generation (revised M1 protocol).
 
 Loads all audit JSONs + eval results and computes:
-  1. Pearson/Spearman correlation between spectral metrics and merge quality
-  2. Linear regression: merge_quality ~ overlap + rank_ratio + scale_ratio
-  3. Binary classification: predict "bad merge" (>5% degradation)
-  4. Per-module-type breakdown
-  5. Per-method comparison
+  1. Pearson/Spearman correlation between spectral metrics and Q_min
+  2. Merge outcome prediction evaluation (AUC-ROC, AP, R^2 on Q_min)
+  3. Null control analysis (randomized subspace + layer shuffle)
+  4. Calibration analysis (same-task vs cross-task overlap)
+  5. Per-weight comparison (linear only, weight grid)
 
 Output: correlation_report.json + correlation_report.md
 
 Usage:
-    python scripts/m1_experiment/phase5_analyze.py \\
+    python3 scripts/m1_experiment/phase5_analyze.py \\
         --config scripts/m1_experiment/m1_config.yaml
 """
 
@@ -59,6 +59,14 @@ def load_audit_metrics(audits_dir: Path, pair_name: str, seed: int) -> dict | No
         lv["metrics"].get("stable_rank_ratio", 1.0)
         for lv in layer_verdicts if "metrics" in lv
     ]
+    scale_bounded_ratios = [
+        lv["metrics"].get("scale_bounded_ratio", 0.0)
+        for lv in layer_verdicts if "metrics" in lv
+    ]
+    frob_bounded_ratios = [
+        lv["metrics"].get("frob_bounded_ratio", 0.0)
+        for lv in layer_verdicts if "metrics" in lv
+    ]
 
     def safe_mean(xs):
         return sum(xs) / len(xs) if xs else 0.0
@@ -72,6 +80,44 @@ def load_audit_metrics(audits_dir: Path, pair_name: str, seed: int) -> dict | No
         "mean_directional_agreement": safe_mean(dir_agreements),
         "mean_magnitude_ratio": safe_mean(mag_ratios),
         "mean_stable_rank_ratio": safe_mean(stable_rank_ratios),
+        "mean_scale_bounded_ratio": safe_mean(scale_bounded_ratios),
+        "mean_frob_bounded_ratio": safe_mean(frob_bounded_ratios),
+        "layer_verdicts": layer_verdicts,
+    }
+
+
+def load_calibration_audit_metrics(
+    audits_dir: Path, task: str, seed_a: int, seed_b: int,
+) -> dict | None:
+    """Load aggregate spectral metrics from a calibration audit."""
+    cal_name = f"{task}_seeds_{seed_a}_{seed_b}"
+    audit_path = audits_dir / "calibration" / cal_name / "merge_audit.json"
+    if not audit_path.exists():
+        return None
+    with open(audit_path) as f:
+        data = json.load(f)
+
+    aggregate = data.get("aggregate", {})
+    layer_verdicts = data.get("layer_verdicts", [])
+
+    overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts if "metrics" in lv]
+    dir_agreements = [
+        lv["metrics"].get("directional_agreement", 0.0)
+        for lv in layer_verdicts if "metrics" in lv
+    ]
+
+    def safe_mean(xs):
+        return sum(xs) / len(xs) if xs else 0.0
+
+    return {
+        "pair": cal_name,
+        "task": task,
+        "seed_a": seed_a,
+        "seed_b": seed_b,
+        "pair_type": "calibration",
+        "compatibility_score": aggregate.get("compatibility_score", 0.0),
+        "mean_overlap": safe_mean(overlaps),
+        "mean_directional_agreement": safe_mean(dir_agreements),
         "layer_verdicts": layer_verdicts,
     }
 
@@ -103,18 +149,9 @@ def extract_accuracy(eval_result: dict | None) -> float | None:
     return None
 
 
-def compute_degradation(
-    merged_acc: float | None,
-    baseline_a_acc: float | None,
-    baseline_b_acc: float | None,
-) -> float | None:
-    """Compute worst-case degradation from the better baseline."""
-    if any(x is None for x in [merged_acc, baseline_a_acc, baseline_b_acc]):
-        return None
-    best_baseline = max(baseline_a_acc, baseline_b_acc)
-    if best_baseline == 0:
-        return None
-    return (best_baseline - merged_acc) / best_baseline
+def _weight_label(weights: list[float]) -> str:
+    """Format weight pair as directory-safe label."""
+    return f"linear_w{weights[0]}_{weights[1]}"
 
 
 def main():
@@ -131,14 +168,19 @@ def main():
 
     seeds = config["experiment"]["seeds"]
     task_names = list(config["adapters"].keys())
-    methods = config["merge"]["methods"]
+    weight_grid = config["merge"]["weight_grid"]
+    criteria = config.get("success_criteria", {})
+    calibration_enabled = config["experiment"].get("calibration_pairs", False)
 
     pairs = list(itertools.combinations(task_names, 2))
+    seed_pairs = list(itertools.combinations(seeds, 2))
 
     total_start = time.monotonic()
-    print("Phase 5: Correlation analysis")
+    print("Phase 5: Correlation analysis (revised M1 protocol)")
 
-    # --- Collect all data points ---
+    # ------------------------------------------------------------------
+    # 1. Collect cross-task data points
+    # ------------------------------------------------------------------
     data_points: list[dict[str, Any]] = []
 
     for task_a, task_b in pairs:
@@ -163,57 +205,135 @@ def main():
             baseline_a_acc = extract_accuracy(baseline_a_result)
             baseline_b_acc = extract_accuracy(baseline_b_result)
 
-            for method in methods:
-                # Load merged eval on task A
+            for weights in weight_grid:
+                wlabel = _weight_label(weights)
+
+                # Load merged eval on task A and task B
                 merged_a_result = load_eval_result(
                     evals_dir / "merged",
-                    f"{pair_name}_seed_{seed}_{method}_{eval_task_a}.json",
+                    f"{pair_name}_seed_{seed}_{wlabel}_{eval_task_a}.json",
                 )
                 merged_b_result = load_eval_result(
                     evals_dir / "merged",
-                    f"{pair_name}_seed_{seed}_{method}_{eval_task_b}.json",
+                    f"{pair_name}_seed_{seed}_{wlabel}_{eval_task_b}.json",
                 )
 
                 merged_a_acc = extract_accuracy(merged_a_result)
                 merged_b_acc = extract_accuracy(merged_b_result)
 
-                degradation_a = compute_degradation(merged_a_acc, baseline_a_acc, baseline_a_acc)
-                degradation_b = compute_degradation(merged_b_acc, baseline_b_acc, baseline_b_acc)
-
-                # Worst degradation across both tasks
-                degradations = [d for d in [degradation_a, degradation_b] if d is not None]
-                worst_degradation = max(degradations) if degradations else None
+                # Compute outcomes using the outcomes module
+                outcomes: dict[str, Any] | None = None
+                if all(x is not None for x in [merged_a_acc, merged_b_acc, baseline_a_acc, baseline_b_acc]):
+                    from gradience.vnext.merge.outcomes import compute_merge_outcomes
+                    outcomes = compute_merge_outcomes(
+                        score_A_solo=baseline_a_acc,
+                        score_B_solo=baseline_b_acc,
+                        score_A_merged=merged_a_acc,
+                        score_B_merged=merged_b_acc,
+                    )
 
                 data_points.append({
                     "pair": pair_name,
+                    "pair_type": "cross_task",
                     "seed": seed,
-                    "method": method,
+                    "weights": weights,
+                    "weight_label": wlabel,
                     "mean_overlap": audit["mean_overlap"],
                     "mean_directional_agreement": audit["mean_directional_agreement"],
                     "mean_magnitude_ratio": audit["mean_magnitude_ratio"],
                     "mean_stable_rank_ratio": audit["mean_stable_rank_ratio"],
+                    "mean_scale_bounded_ratio": audit["mean_scale_bounded_ratio"],
+                    "mean_frob_bounded_ratio": audit["mean_frob_bounded_ratio"],
                     "compatibility_score": audit["compatibility_score"],
                     "merged_acc_task_a": merged_a_acc,
                     "merged_acc_task_b": merged_b_acc,
                     "baseline_acc_a": baseline_a_acc,
                     "baseline_acc_b": baseline_b_acc,
-                    "degradation_a": degradation_a,
-                    "degradation_b": degradation_b,
-                    "worst_degradation": worst_degradation,
-                    "is_bad_merge": worst_degradation > 0.05 if worst_degradation is not None else None,
+                    "Q_min": outcomes["Q_min"] if outcomes else None,
+                    "D": outcomes["D"] if outcomes else None,
+                    "retention_A": outcomes["retention_A"] if outcomes else None,
+                    "retention_B": outcomes["retention_B"] if outcomes else None,
+                    "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
                 })
 
-    print(f"  Collected {len(data_points)} data points")
+    # ------------------------------------------------------------------
+    # 2. Collect calibration data points
+    # ------------------------------------------------------------------
+    calibration_points: list[dict[str, Any]] = []
 
-    # --- Statistical analysis ---
-    # Filter to valid points
-    valid = [p for p in data_points if p["worst_degradation"] is not None]
+    if calibration_enabled:
+        for task in task_names:
+            eval_task = config["adapters"][task]["eval_task"]
+            for seed_a, seed_b in seed_pairs:
+                cal_audit = load_calibration_audit_metrics(audits_dir, task, seed_a, seed_b)
+                if cal_audit is None:
+                    continue
+
+                for weights in weight_grid:
+                    wlabel = _weight_label(weights)
+                    cal_dir_name = f"{task}_seeds_{seed_a}_{seed_b}"
+
+                    # Baselines: each seed's solo performance on same task
+                    baseline_a_result = load_eval_result(
+                        evals_dir / "individual",
+                        f"{task}_seed_{seed_a}_{eval_task}.json",
+                    )
+                    baseline_b_result = load_eval_result(
+                        evals_dir / "individual",
+                        f"{task}_seed_{seed_b}_{eval_task}.json",
+                    )
+                    baseline_a_acc = extract_accuracy(baseline_a_result)
+                    baseline_b_acc = extract_accuracy(baseline_b_result)
+
+                    merged_a_result = load_eval_result(
+                        evals_dir / "merged",
+                        f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json",
+                    )
+                    merged_acc = extract_accuracy(merged_a_result)
+
+                    outcomes = None
+                    if all(x is not None for x in [merged_acc, baseline_a_acc, baseline_b_acc]):
+                        from gradience.vnext.merge.outcomes import compute_merge_outcomes
+                        outcomes = compute_merge_outcomes(
+                            score_A_solo=baseline_a_acc,
+                            score_B_solo=baseline_b_acc,
+                            score_A_merged=merged_acc,
+                            score_B_merged=merged_acc,
+                        )
+
+                    calibration_points.append({
+                        "pair": cal_dir_name,
+                        "pair_type": "calibration",
+                        "task": task,
+                        "seed_a": seed_a,
+                        "seed_b": seed_b,
+                        "weights": weights,
+                        "weight_label": wlabel,
+                        "mean_overlap": cal_audit["mean_overlap"],
+                        "mean_directional_agreement": cal_audit["mean_directional_agreement"],
+                        "compatibility_score": cal_audit["compatibility_score"],
+                        "merged_acc": merged_acc,
+                        "baseline_acc_a": baseline_a_acc,
+                        "baseline_acc_b": baseline_b_acc,
+                        "Q_min": outcomes["Q_min"] if outcomes else None,
+                        "D": outcomes["D"] if outcomes else None,
+                        "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
+                    })
+
+    print(f"  Collected {len(data_points)} cross-task data points")
+    print(f"  Collected {len(calibration_points)} calibration data points")
+
+    # ------------------------------------------------------------------
+    # 3. Statistical analysis
+    # ------------------------------------------------------------------
+    valid = [p for p in data_points if p["Q_min"] is not None]
     print(f"  Valid data points (with eval results): {len(valid)}")
 
     report: dict[str, Any] = {
-        "schema_version": "gradience.m1_analysis/v1",
+        "schema_version": "gradience.m1_analysis/v2",
         "n_total_points": len(data_points),
         "n_valid_points": len(valid),
+        "n_calibration_points": len(calibration_points),
     }
 
     if len(valid) >= 5:
@@ -226,81 +346,94 @@ def main():
             dir_agree = np.array([p["mean_directional_agreement"] for p in valid])
             mag_ratio = np.array([p["mean_magnitude_ratio"] for p in valid])
             rank_ratio = np.array([p["mean_stable_rank_ratio"] for p in valid])
-            degradation = np.array([p["worst_degradation"] for p in valid])
+            scale_bounded = np.array([p["mean_scale_bounded_ratio"] for p in valid])
+            frob_bounded = np.array([p["mean_frob_bounded_ratio"] for p in valid])
+            compat_score = np.array([p["compatibility_score"] for p in valid])
+            Q_min_arr = np.array([p["Q_min"] for p in valid])
+            D_arr = np.array([p["D"] for p in valid])
 
-            # 1. Correlation analysis
+            # --- Correlation analysis: spectral metrics vs Q_min ---
             correlations = {}
             for name, values in [
                 ("mean_overlap", overlaps),
                 ("directional_agreement", dir_agree),
                 ("magnitude_ratio", mag_ratio),
                 ("stable_rank_ratio", rank_ratio),
+                ("scale_bounded_ratio", scale_bounded),
+                ("frob_bounded_ratio", frob_bounded),
+                ("compatibility_score", compat_score),
             ]:
-                pearson_r, pearson_p = stats.pearsonr(values, degradation)
-                spearman_r, spearman_p = stats.spearmanr(values, degradation)
+                pearson_r, pearson_p = stats.pearsonr(values, Q_min_arr)
+                spearman_r, spearman_p = stats.spearmanr(values, Q_min_arr)
                 correlations[name] = {
-                    "pearson_r": float(pearson_r),
-                    "pearson_p": float(pearson_p),
-                    "spearman_r": float(spearman_r),
-                    "spearman_p": float(spearman_p),
+                    "vs_Q_min": {
+                        "pearson_r": float(pearson_r),
+                        "pearson_p": float(pearson_p),
+                        "spearman_r": float(spearman_r),
+                        "spearman_p": float(spearman_p),
+                    },
+                }
+                # Also correlate against D
+                pearson_r_d, pearson_p_d = stats.pearsonr(values, D_arr)
+                spearman_r_d, spearman_p_d = stats.spearmanr(values, D_arr)
+                correlations[name]["vs_D"] = {
+                    "pearson_r": float(pearson_r_d),
+                    "pearson_p": float(pearson_p_d),
+                    "spearman_r": float(spearman_r_d),
+                    "spearman_p": float(spearman_p_d),
                 }
             report["correlations"] = correlations
 
-            # 2. Linear regression
-            from sklearn.linear_model import LinearRegression
+            # --- Merge prediction evaluation ---
+            from gradience.vnext.merge.evaluation import merge_prediction_evaluation
 
-            X = np.column_stack([overlaps, rank_ratio, mag_ratio])
-            y = degradation
-            reg = LinearRegression().fit(X, y)
-            r_squared = reg.score(X, y)
-            report["linear_regression"] = {
-                "r_squared": float(r_squared),
-                "coefficients": {
-                    "mean_overlap": float(reg.coef_[0]),
-                    "stable_rank_ratio": float(reg.coef_[1]),
-                    "magnitude_ratio": float(reg.coef_[2]),
-                },
-                "intercept": float(reg.intercept_),
-            }
+            predicted_risk = [1.0 - p["compatibility_score"] for p in valid]
+            actual_bad = [p["is_bad_merge"] for p in valid]
+            actual_Q_min = [p["Q_min"] for p in valid]
 
-            # 3. Binary classification: predict bad merge
-            bad_labels = np.array([p["is_bad_merge"] for p in valid], dtype=float)
-            if bad_labels.sum() > 0 and bad_labels.sum() < len(bad_labels):
-                from sklearn.linear_model import LogisticRegression
-                from sklearn.metrics import accuracy_score, precision_score, recall_score
+            pe = merge_prediction_evaluation(
+                predicted_risk=predicted_risk,
+                actual_bad_merge=actual_bad,
+                actual_Q_min=actual_Q_min,
+                n_calibration_bins=5,
+            )
+            report["prediction_evaluation"] = pe
 
-                clf = LogisticRegression().fit(X, bad_labels)
-                predictions = clf.predict(X)
-                report["binary_classification"] = {
-                    "accuracy": float(accuracy_score(bad_labels, predictions)),
-                    "precision": float(precision_score(bad_labels, predictions, zero_division=0)),
-                    "recall": float(recall_score(bad_labels, predictions, zero_division=0)),
-                    "n_bad_merges": int(bad_labels.sum()),
-                    "n_good_merges": int(len(bad_labels) - bad_labels.sum()),
-                }
-            else:
-                report["binary_classification"] = {
-                    "note": "All merges same class -- cannot fit classifier",
-                    "n_bad_merges": int(bad_labels.sum()),
-                    "n_good_merges": int(len(bad_labels) - bad_labels.sum()),
-                }
-
-            # 4. Per-method comparison
-            method_stats = {}
-            for method in methods:
-                method_points = [p for p in valid if p["method"] == method]
-                if method_points:
-                    degs = [p["worst_degradation"] for p in method_points]
-                    n_bad = sum(1 for d in degs if d > 0.05)
-                    method_stats[method] = {
-                        "n_merges": len(method_points),
-                        "mean_degradation": float(np.mean(degs)),
-                        "std_degradation": float(np.std(degs, ddof=1)) if len(degs) > 1 else 0.0,
-                        "max_degradation": float(max(degs)),
+            # --- Per-weight comparison ---
+            weight_stats = {}
+            for weights in weight_grid:
+                wlabel = _weight_label(weights)
+                weight_points = [p for p in valid if p["weight_label"] == wlabel]
+                if weight_points:
+                    q_vals = [p["Q_min"] for p in weight_points]
+                    d_vals = [p["D"] for p in weight_points]
+                    n_bad = sum(1 for p in weight_points if p["is_bad_merge"])
+                    weight_stats[wlabel] = {
+                        "n_merges": len(weight_points),
+                        "mean_Q_min": float(np.mean(q_vals)),
+                        "std_Q_min": float(np.std(q_vals, ddof=1)) if len(q_vals) > 1 else 0.0,
+                        "min_Q_min": float(min(q_vals)),
+                        "mean_D": float(np.mean(d_vals)),
+                        "std_D": float(np.std(d_vals, ddof=1)) if len(d_vals) > 1 else 0.0,
                         "n_bad_merges": n_bad,
-                        "bad_merge_rate": n_bad / len(method_points),
+                        "bad_merge_rate": n_bad / len(weight_points),
                     }
-            report["per_method"] = method_stats
+            report["per_weight"] = weight_stats
+
+            # --- Null control analysis ---
+            # Attempt to run null controls on a sample of audit data.
+            # This requires per-layer SVD data stored in the audit JSONs.
+            null_control_results = _run_null_controls(audits_dir, pairs, seeds)
+            if null_control_results:
+                report["null_controls"] = null_control_results
+
+            # --- Calibration analysis ---
+            if calibration_points:
+                cal_analysis = _calibration_analysis(
+                    cross_task_points=valid,
+                    calibration_points=calibration_points,
+                )
+                report["calibration_analysis"] = cal_analysis
 
         except ImportError as e:
             report["error"] = f"Missing dependency: {e}. Install scipy and scikit-learn."
@@ -309,23 +442,25 @@ def main():
 
     # --- Success criteria evaluation ---
     report["success_criteria"] = {}
-    if "linear_regression" in report:
-        r2 = report["linear_regression"]["r_squared"]
-        report["success_criteria"]["variance_explained"] = {
-            "value": r2,
-            "threshold": 0.50,
-            "met": r2 >= 0.50,
-        }
-    if "binary_classification" in report and "recall" in report["binary_classification"]:
-        recall = report["binary_classification"]["recall"]
-        report["success_criteria"]["bad_merge_detection"] = {
-            "value": recall,
-            "threshold": 0.80,
-            "met": recall >= 0.80,
-        }
+    if "prediction_evaluation" in report:
+        pe = report["prediction_evaluation"]
+        for metric, threshold in [
+            ("auc_roc", criteria.get("auc_roc", 0.75)),
+            ("average_precision", criteria.get("average_precision", 0.60)),
+            ("r_squared_Q_min", criteria.get("r_squared_Q_min", 0.30)),
+        ]:
+            val = pe.get(metric, 0.0)
+            if val is None:
+                val = 0.0
+            report["success_criteria"][metric] = {
+                "value": val,
+                "threshold": threshold,
+                "met": val >= threshold,
+            }
 
     # Save data points
     report["data_points"] = data_points
+    report["calibration_data_points"] = calibration_points
 
     # --- Write outputs ---
     report_json_path = analysis_dir / "correlation_report.json"
@@ -344,83 +479,278 @@ def main():
     print(f"\nPhase 5 complete in {elapsed:.1f}s")
 
     # Print summary
-    if "success_criteria" in report:
+    if report.get("success_criteria"):
         print("\n--- Success Criteria ---")
         for name, criterion in report["success_criteria"].items():
             status = "PASS" if criterion["met"] else "FAIL"
             print(f"  {name}: {criterion['value']:.3f} vs {criterion['threshold']:.2f} [{status}]")
 
 
+# ----------------------------------------------------------------------
+# Null control analysis
+# ----------------------------------------------------------------------
+
+def _run_null_controls(
+    audits_dir: Path,
+    pairs: list[tuple[str, str]],
+    seeds: list[int],
+) -> dict[str, Any] | None:
+    """Run null controls on audit data to validate geometric metrics.
+
+    For each audit, loads the per-layer SVD data and runs
+    randomized_subspace_control. Compares real overlaps to null
+    distribution (real should be significantly higher for cross-task pairs
+    and even higher for same-task calibration pairs).
+
+    Returns None if the necessary per-layer data is not available.
+    """
+    try:
+        import torch
+        import numpy as np
+        from gradience.vnext.merge.null_controls import randomized_subspace_control
+    except ImportError:
+        return None
+
+    # Sample a subset of audits for efficiency
+    sampled: list[dict[str, Any]] = []
+    for task_a, task_b in pairs[:3]:  # up to 3 pairs
+        for seed in seeds[:1]:  # 1 seed per pair
+            pair_name = f"{task_a}_{task_b}"
+            audit_path = audits_dir / pair_name / f"seed_{seed}" / "merge_audit.json"
+            if not audit_path.exists():
+                continue
+            with open(audit_path) as f:
+                data = json.load(f)
+
+            layer_verdicts = data.get("layer_verdicts", [])
+            real_overlaps = []
+            null_means = []
+
+            for lv in layer_verdicts:
+                metrics = lv.get("metrics", {})
+                svd_data = lv.get("svd_data", {})
+
+                real_overlap = metrics.get("mean_overlap")
+                if real_overlap is None:
+                    continue
+
+                # Need per-layer singular vectors to run null control
+                U_A_list = svd_data.get("U_A")
+                U_B_list = svd_data.get("U_B")
+                if U_A_list is None or U_B_list is None:
+                    continue
+
+                U_A = torch.tensor(U_A_list, dtype=torch.float64)
+                U_B = torch.tensor(U_B_list, dtype=torch.float64)
+
+                null_result = randomized_subspace_control(U_A, U_B, n_random=10)
+                real_overlaps.append(real_overlap)
+                null_means.append(null_result["null_mean_of_means"])
+
+            if real_overlaps:
+                sampled.append({
+                    "pair": pair_name,
+                    "seed": seed,
+                    "n_layers_tested": len(real_overlaps),
+                    "mean_real_overlap": float(np.mean(real_overlaps)),
+                    "mean_null_overlap": float(np.mean(null_means)),
+                    "above_null": float(np.mean(real_overlaps)) > float(np.mean(null_means)),
+                })
+
+    if not sampled:
+        return None
+
+    return {
+        "method": "randomized_subspace_control",
+        "n_audits_tested": len(sampled),
+        "results": sampled,
+        "all_above_null": all(s["above_null"] for s in sampled),
+    }
+
+
+# ----------------------------------------------------------------------
+# Calibration analysis (same-task vs cross-task)
+# ----------------------------------------------------------------------
+
+def _calibration_analysis(
+    cross_task_points: list[dict[str, Any]],
+    calibration_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Compare overlap metrics for same-task pairs vs cross-task pairs.
+
+    Same-task (calibration) pairs should have higher overlap since they
+    are trained on the same data distribution with different seeds.
+    """
+    import numpy as np
+
+    cross_overlaps = [p["mean_overlap"] for p in cross_task_points]
+    cal_overlaps = [p["mean_overlap"] for p in calibration_points if p.get("mean_overlap") is not None]
+
+    cross_compat = [p["compatibility_score"] for p in cross_task_points]
+    cal_compat = [p["compatibility_score"] for p in calibration_points if p.get("compatibility_score") is not None]
+
+    result: dict[str, Any] = {
+        "cross_task_n": len(cross_overlaps),
+        "calibration_n": len(cal_overlaps),
+    }
+
+    if cross_overlaps:
+        result["cross_task_mean_overlap"] = float(np.mean(cross_overlaps))
+        result["cross_task_std_overlap"] = float(np.std(cross_overlaps, ddof=1)) if len(cross_overlaps) > 1 else 0.0
+    if cal_overlaps:
+        result["calibration_mean_overlap"] = float(np.mean(cal_overlaps))
+        result["calibration_std_overlap"] = float(np.std(cal_overlaps, ddof=1)) if len(cal_overlaps) > 1 else 0.0
+
+    if cross_compat:
+        result["cross_task_mean_compat"] = float(np.mean(cross_compat))
+    if cal_compat:
+        result["calibration_mean_compat"] = float(np.mean(cal_compat))
+
+    # Statistical test: calibration overlap should be significantly higher
+    if len(cross_overlaps) >= 2 and len(cal_overlaps) >= 2:
+        from scipy import stats
+        t_stat, p_value = stats.ttest_ind(cal_overlaps, cross_overlaps, alternative="greater")
+        result["ttest_t_stat"] = float(t_stat)
+        result["ttest_p_value"] = float(p_value)
+        result["calibration_higher"] = float(np.mean(cal_overlaps)) > float(np.mean(cross_overlaps))
+
+    return result
+
+
+# ----------------------------------------------------------------------
+# Markdown report
+# ----------------------------------------------------------------------
+
 def _generate_markdown(report: dict, config: dict) -> str:
     """Generate human-readable markdown report."""
     lines = [
-        f"# M1 Controlled Interference Experiment -- Results",
+        "# M1 Controlled Interference Experiment -- Results (Revised Protocol)",
         "",
         f"**Experiment**: {config['experiment']['name']}",
         f"**Base Model**: {config['experiment']['base_model']}",
-        f"**Data Points**: {report['n_valid_points']} valid / {report['n_total_points']} total",
+        f"**Merge Method**: linear only (weight grid: {config['merge']['weight_grid']})",
+        f"**Data Points**: {report['n_valid_points']} valid / {report['n_total_points']} total cross-task",
+        f"**Calibration Points**: {report.get('n_calibration_points', 0)}",
         "",
     ]
 
+    # --- Correlation Analysis ---
     if "correlations" in report:
         lines.extend([
-            "## Correlation Analysis",
+            "## Correlation Analysis (Spectral Metrics vs Q_min)",
             "",
             "| Metric | Pearson r | p-value | Spearman r | p-value |",
             "|--------|-----------|---------|------------|---------|",
         ])
         for name, corr in report["correlations"].items():
+            q = corr["vs_Q_min"]
             lines.append(
-                f"| {name} | {corr['pearson_r']:.3f} | {corr['pearson_p']:.4f} "
-                f"| {corr['spearman_r']:.3f} | {corr['spearman_p']:.4f} |"
+                f"| {name} | {q['pearson_r']:.3f} | {q['pearson_p']:.4f} "
+                f"| {q['spearman_r']:.3f} | {q['spearman_p']:.4f} |"
             )
         lines.append("")
 
-    if "linear_regression" in report:
-        reg = report["linear_regression"]
         lines.extend([
-            "## Linear Regression",
+            "### Correlation with D (Dominance Index)",
             "",
-            f"**R-squared**: {reg['r_squared']:.3f}",
-            "",
-            "| Feature | Coefficient |",
-            "|---------|-------------|",
+            "| Metric | Pearson r | p-value | Spearman r | p-value |",
+            "|--------|-----------|---------|------------|---------|",
         ])
-        for name, coef in reg["coefficients"].items():
-            lines.append(f"| {name} | {coef:.4f} |")
-        lines.append(f"| intercept | {reg['intercept']:.4f} |")
+        for name, corr in report["correlations"].items():
+            d = corr["vs_D"]
+            lines.append(
+                f"| {name} | {d['pearson_r']:.3f} | {d['pearson_p']:.4f} "
+                f"| {d['spearman_r']:.3f} | {d['spearman_p']:.4f} |"
+            )
         lines.append("")
 
-    if "binary_classification" in report:
-        bc = report["binary_classification"]
-        if "accuracy" in bc:
+    # --- Prediction Evaluation ---
+    if "prediction_evaluation" in report:
+        pe = report["prediction_evaluation"]
+        lines.extend([
+            "## Merge Outcome Prediction",
+            "",
+            f"- **AUC-ROC**: {pe['auc_roc']:.3f}" if pe.get("auc_roc") is not None else "- **AUC-ROC**: N/A (single class)",
+            f"- **Average Precision**: {pe['average_precision']:.3f}" if pe.get("average_precision") is not None else "- **Average Precision**: N/A (single class)",
+            f"- **R-squared (Q_min)**: {pe['r_squared_Q_min']:.3f}" if pe.get("r_squared_Q_min") is not None else "- **R-squared (Q_min)**: N/A",
+            f"- Bad merges: {pe['n_bad']} / {pe['n_samples']}",
+            "",
+        ])
+
+        if pe.get("calibration") and pe["calibration"].get("bin_edges"):
+            cal = pe["calibration"]
             lines.extend([
-                "## Bad Merge Detection",
+                "### Calibration (Predicted Risk vs Observed Bad-Merge Rate)",
                 "",
-                f"- **Accuracy**: {bc['accuracy']:.3f}",
-                f"- **Precision**: {bc['precision']:.3f}",
-                f"- **Recall**: {bc['recall']:.3f}",
-                f"- Bad merges: {bc['n_bad_merges']} / {bc['n_bad_merges'] + bc['n_good_merges']}",
-                "",
+                "| Bin | Predicted | Observed | Count |",
+                "|----|-----------|----------|-------|",
             ])
+            for i, (edges, pred, obs, count) in enumerate(zip(
+                cal["bin_edges"], cal["mean_predicted"], cal["mean_observed"], cal["bin_counts"],
+            )):
+                pred_str = f"{pred:.3f}" if pred is not None else "-"
+                obs_str = f"{obs:.3f}" if obs is not None else "-"
+                lines.append(f"| [{edges[0]:.2f}, {edges[1]:.2f}) | {pred_str} | {obs_str} | {count} |")
+            lines.append("")
 
-    if "per_method" in report:
+    # --- Per-Weight Comparison ---
+    if "per_weight" in report:
         lines.extend([
-            "## Per-Method Comparison",
+            "## Per-Weight Comparison",
             "",
-            "| Method | Mean Deg. | Std | Max Deg. | Bad Merges |",
-            "|--------|-----------|-----|----------|------------|",
+            "| Weights | Mean Q_min | Std | Min Q_min | Mean D | Bad Merges |",
+            "|---------|-----------|-----|-----------|--------|------------|",
         ])
-        for method, stats in report["per_method"].items():
+        for wlabel, wstats in report["per_weight"].items():
             lines.append(
-                f"| {method} | {stats['mean_degradation']:.3f} "
-                f"| {stats['std_degradation']:.3f} "
-                f"| {stats['max_degradation']:.3f} "
-                f"| {stats['n_bad_merges']}/{stats['n_merges']} |"
+                f"| {wlabel} | {wstats['mean_Q_min']:.3f} "
+                f"| {wstats['std_Q_min']:.3f} "
+                f"| {wstats['min_Q_min']:.3f} "
+                f"| {wstats['mean_D']:.3f} "
+                f"| {wstats['n_bad_merges']}/{wstats['n_merges']} |"
             )
         lines.append("")
 
-    if "success_criteria" in report:
+    # --- Null Control Analysis ---
+    if "null_controls" in report:
+        nc = report["null_controls"]
+        lines.extend([
+            "## Null Control Analysis",
+            "",
+            f"- **Method**: {nc['method']}",
+            f"- **Audits tested**: {nc['n_audits_tested']}",
+            f"- **All above null**: {nc['all_above_null']}",
+            "",
+            "| Pair | Seed | Layers | Real Overlap | Null Overlap | Above Null |",
+            "|------|------|--------|-------------|-------------|------------|",
+        ])
+        for r in nc["results"]:
+            lines.append(
+                f"| {r['pair']} | {r['seed']} | {r['n_layers_tested']} "
+                f"| {r['mean_real_overlap']:.3f} | {r['mean_null_overlap']:.3f} "
+                f"| {r['above_null']} |"
+            )
+        lines.append("")
+
+    # --- Calibration Analysis ---
+    if "calibration_analysis" in report:
+        ca = report["calibration_analysis"]
+        lines.extend([
+            "## Calibration Analysis (Same-Task vs Cross-Task)",
+            "",
+        ])
+        if "cross_task_mean_overlap" in ca:
+            lines.append(f"- **Cross-task mean overlap**: {ca['cross_task_mean_overlap']:.3f} (n={ca['cross_task_n']})")
+        if "calibration_mean_overlap" in ca:
+            lines.append(f"- **Same-task (calibration) mean overlap**: {ca['calibration_mean_overlap']:.3f} (n={ca['calibration_n']})")
+        if "calibration_higher" in ca:
+            lines.append(f"- **Calibration higher**: {ca['calibration_higher']}")
+        if "ttest_p_value" in ca:
+            lines.append(f"- **t-test (one-sided)**: t={ca['ttest_t_stat']:.3f}, p={ca['ttest_p_value']:.4f}")
+        lines.append("")
+
+    # --- Success Criteria ---
+    if report.get("success_criteria"):
         lines.extend([
             "## Success Criteria",
             "",

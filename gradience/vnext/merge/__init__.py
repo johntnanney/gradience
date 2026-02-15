@@ -75,6 +75,13 @@ from gradience.vnext.merge.executor import (
     execute_merge,
 )
 
+# Phase 2 — M1 protocol modules
+from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
+from gradience.vnext.merge.scale import symmetric_scale_metrics, symmetric_frobenius_metrics
+from gradience.vnext.merge.evaluation import merge_prediction_evaluation
+from gradience.vnext.merge.null_controls import randomized_subspace_control, layer_shuffle_control
+from gradience.vnext.merge.norm_equalized import norm_equalized_merge
+
 __all__ = [
     # Phase 1 — Audit orchestrator
     "merge_audit",
@@ -114,6 +121,19 @@ __all__ = [
     "MergeResult",
     "LayerMergeResult",
     "execute_merge",
+    # M1 protocol — Outcome metrics
+    "compute_merge_outcomes",
+    "is_bad_merge",
+    # M1 protocol — Symmetric scale
+    "symmetric_scale_metrics",
+    "symmetric_frobenius_metrics",
+    # M1 protocol — Evaluation
+    "merge_prediction_evaluation",
+    # M1 protocol — Null controls
+    "randomized_subspace_control",
+    "layer_shuffle_control",
+    # M1 protocol — Norm-equalized merge (M2 stub)
+    "norm_equalized_merge",
 ]
 
 

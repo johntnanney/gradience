@@ -333,3 +333,102 @@ class TestComputeSubspaceMetrics:
             x != x  # NaN check
             for x in [metrics.mean_overlap, metrics.directional_agreement]
         )
+
+
+# ---------------------------------------------------------------------------
+# Symmetric scale fields (Section 3)
+# ---------------------------------------------------------------------------
+
+
+class TestSymmetricScaleFields:
+    """Tests for the symmetric scale fields on SubspaceMetrics."""
+
+    def _make_metrics(self, S_a, S_b, seed=20, rank=8, alpha=16.0):
+        """Helper: build metrics from specified singular value spectra."""
+        torch.manual_seed(seed)
+        U, _, Vt = torch.linalg.svd(
+            torch.randn(64, 48, dtype=torch.float64), full_matrices=False
+        )
+        U_r = U[:, :rank]
+        Vt_r = Vt[:rank, :]
+
+        scaling = alpha / rank
+        sqrt_Sa = torch.sqrt(S_a).unsqueeze(1)
+        A_a = (sqrt_Sa * Vt_r) / (scaling ** 0.5)
+        B_a = (U_r * sqrt_Sa.T) / (scaling ** 0.5)
+
+        sqrt_Sb = torch.sqrt(S_b).unsqueeze(1)
+        A_b = (sqrt_Sb * Vt_r) / (scaling ** 0.5)
+        B_b = (U_r * sqrt_Sb.T) / (scaling ** 0.5)
+
+        return compute_subspace_metrics(
+            A_a.float(), B_a.float(), alpha, rank,
+            A_b.float(), B_b.float(), alpha, rank,
+        )
+
+    def test_scale_bounded_ratio_in_range(self):
+        """scale_bounded_ratio must be in [0, 1]."""
+        S_a = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        S_b = torch.linspace(3.0, 0.5, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S_a, S_b)
+        assert 0.0 <= metrics.scale_bounded_ratio <= 1.0
+
+    def test_frob_bounded_ratio_in_range(self):
+        """frob_bounded_ratio must be in [0, 1]."""
+        S_a = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        S_b = torch.linspace(3.0, 0.5, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S_a, S_b)
+        assert 0.0 <= metrics.frob_bounded_ratio <= 1.0
+
+    def test_identical_adapters_bounded_ratios_near_one(self):
+        """Identical adapters should have bounded ratios close to 1.0."""
+        S = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S, S)
+        assert metrics.scale_bounded_ratio == pytest.approx(1.0, abs=0.05)
+        assert metrics.frob_bounded_ratio == pytest.approx(1.0, abs=0.05)
+
+    def test_identical_adapters_log_ratios_near_zero(self):
+        """Identical adapters should have log ratios close to 0.0."""
+        S = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S, S)
+        assert metrics.scale_log_ratio == pytest.approx(0.0, abs=0.05)
+        assert metrics.frob_log_ratio == pytest.approx(0.0, abs=0.05)
+
+    def test_very_different_magnitudes_bounded_ratios_small(self):
+        """Large magnitude difference -> bounded ratios well below 1."""
+        S_a = torch.linspace(50.0, 10.0, 8, dtype=torch.float64)
+        S_b = torch.linspace(0.5, 0.1, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S_a, S_b)
+        assert metrics.scale_bounded_ratio < 0.05
+        assert metrics.frob_bounded_ratio < 0.05
+
+    def test_json_serialization_includes_new_fields(self):
+        """to_dict() and JSON serialization include the symmetric scale fields."""
+        import json
+
+        S = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S, S)
+        d = metrics.to_dict()
+        json_str = json.dumps(d)
+
+        assert "scale_bounded_ratio" in json_str
+        assert "scale_log_ratio" in json_str
+        assert "frob_bounded_ratio" in json_str
+        assert "frob_log_ratio" in json_str
+
+    def test_backward_compat_old_fields_still_present(self):
+        """Old asymmetric fields are still present alongside new symmetric ones."""
+        S = torch.linspace(5.0, 1.0, 8, dtype=torch.float64)
+        metrics = self._make_metrics(S, S)
+
+        # Old fields still exist
+        assert hasattr(metrics, "magnitude_ratio")
+        assert hasattr(metrics, "frobenius_ratio")
+        assert metrics.magnitude_ratio >= 1.0
+        assert metrics.frobenius_ratio >= 1.0
+
+        # New fields also exist
+        assert hasattr(metrics, "scale_bounded_ratio")
+        assert hasattr(metrics, "scale_log_ratio")
+        assert hasattr(metrics, "frob_bounded_ratio")
+        assert hasattr(metrics, "frob_log_ratio")

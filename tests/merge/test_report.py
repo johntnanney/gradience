@@ -37,6 +37,11 @@ def _make_metrics(**overrides) -> SubspaceMetrics:
         frobenius_ratio=1.1,
         frobenius_norm_a=5.0,
         frobenius_norm_b=4.5,
+        # Symmetric scale metrics
+        scale_bounded_ratio=0.85,
+        scale_log_ratio=0.12,
+        frob_bounded_ratio=0.90,
+        frob_log_ratio=0.08,
         effective_rank_a=3,
         effective_rank_b=3,
         nominal_rank_a=8,
@@ -125,6 +130,28 @@ class TestBuildReport:
         total = agg["n_safe"] + agg["n_redundant"] + agg["n_conflicting"] + agg["n_imbalanced"]
         assert total == 3
 
+    def test_aggregate_has_symmetric_scale_metrics(self):
+        """Aggregate includes the new symmetric scale metric averages."""
+        report = _make_report(n_layers=3)
+        agg = report.aggregate
+
+        for key in (
+            "mean_scale_bounded_ratio",
+            "mean_scale_log_ratio",
+            "mean_frob_bounded_ratio",
+            "mean_frob_log_ratio",
+            "mean_magnitude_ratio",
+        ):
+            assert key in agg, f"Missing aggregate key: {key}"
+            assert isinstance(agg[key], float), f"{key} should be float"
+
+        # Values should match what _make_metrics defaults produce
+        assert agg["mean_scale_bounded_ratio"] == pytest.approx(0.85, abs=1e-3)
+        assert agg["mean_scale_log_ratio"] == pytest.approx(0.12, abs=1e-3)
+        assert agg["mean_frob_bounded_ratio"] == pytest.approx(0.90, abs=1e-3)
+        assert agg["mean_frob_log_ratio"] == pytest.approx(0.08, abs=1e-3)
+        assert agg["mean_magnitude_ratio"] == pytest.approx(1.2, abs=1e-3)
+
 
 class TestToJson:
     """Tests for JSON serialization."""
@@ -141,7 +168,7 @@ class TestToJson:
         report = _make_report()
         data = to_json(report)
         assert "schema_version" in data
-        assert data["schema_version"] == "gradience.merge_audit/v1"
+        assert data["schema_version"] == "gradience.merge_audit/v2"
 
     def test_required_keys(self):
         report = _make_report()
@@ -158,6 +185,31 @@ class TestToJson:
         report = _make_report(n_layers=5)
         data = to_json(report)
         assert len(data["per_layer"]) == 5
+
+    def test_json_includes_symmetric_scale_in_aggregate(self):
+        """JSON output contains the new symmetric scale aggregate fields."""
+        report = _make_report(n_layers=2)
+        data = to_json(report)
+        agg = data["aggregate"]
+
+        for key in (
+            "mean_scale_bounded_ratio",
+            "mean_scale_log_ratio",
+            "mean_frob_bounded_ratio",
+            "mean_frob_log_ratio",
+            "mean_magnitude_ratio",
+        ):
+            assert key in agg, f"Missing JSON aggregate key: {key}"
+
+        # Verify round-trip through JSON serialization
+        json_str = json.dumps(data, indent=2)
+        parsed = json.loads(json_str)
+        assert parsed["aggregate"]["mean_scale_bounded_ratio"] == pytest.approx(0.85, abs=1e-3)
+
+    def test_schema_version_is_v2(self):
+        report = _make_report()
+        data = to_json(report)
+        assert data["schema_version"] == "gradience.merge_audit/v2"
 
 
 class TestToMarkdown:
@@ -186,6 +238,7 @@ class TestToMarkdown:
         assert "Per-Layer Analysis" in md
         assert "Overlap" in md
         assert "Agreement" in md
+        assert "Scale" in md
 
     def test_conflict_details_only_when_present(self):
         """Conflict Details section only appears when conflicts exist."""
@@ -219,7 +272,7 @@ class TestWriteReports:
 
         with open(tmp_path / "output" / "merge_audit.json") as f:
             data = json.load(f)
-        assert data["schema_version"] == "gradience.merge_audit/v1"
+        assert data["schema_version"] == "gradience.merge_audit/v2"
 
     def test_creates_parent_dirs(self, tmp_path):
         report = _make_report()
