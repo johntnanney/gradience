@@ -54,7 +54,7 @@ except ImportError:
 try:
     __version__ = version("gradience")
 except Exception:  # Intentionally broad: outermost fallback for development installs
-    __version__ = "0.9.6"
+    __version__ = "0.9.7"
 
 # Current API: vNext components re-exported for convenience
 from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
