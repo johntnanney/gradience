@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gradience"
-version = "0.9.10"
+version = "0.10.0"
 description = "Spectral analysis of low-rank adaptation dynamics — measure rank evolution, detect phase transitions, and study training geometry"
-readme = "README.md"
+readme = "README_PYPI.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
     {name = "John Nanney", email = "johntnanney@gmail.com"}
 ]
-keywords = ["lora", "spectral-analysis", "training-dynamics", "low-rank-adaptation", "fine-tuning"]
+keywords = ["lora", "spectral-analysis", "training-dynamics", "low-rank-adaptation", "fine-tuning", "merge-audit", "adapter-merge", "compression", "model-compression"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -22,22 +22,25 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+    "Typing :: Typed",
 ]
 dependencies = [
   "pyyaml>=6.0",     # For parsing config files
   "numpy>=1.24.0",   # Core numerical operations (lightweight)
   "packaging",       # For version parsing and compatibility
   "rich>=10.0.0",    # Pretty CLI output and progress bars
+  "scipy>=1.7.0",
   "torch>=2.0.0",    # Core: spectral audit, merge-audit, LoRA weight math
   "safetensors>=0.4.0",  # Core: safe model weight loading
   "typing_extensions>=4.0.0; python_version < '3.11'",  # NotRequired for TypedDicts
 ]
 
 [project.urls]
-Homepage = "https://github.com/gradience-ai/gradience"
-Repository = "https://github.com/gradience-ai/gradience"
-Documentation = "https://github.com/gradience-ai/gradience#readme"
-"Bug Tracker" = "https://github.com/gradience-ai/gradience/issues"
+Homepage = "https://github.com/johntnanney/gradience"
+Repository = "https://github.com/johntnanney/gradience"
+Documentation = "https://github.com/johntnanney/gradience#readme"
+"Bug Tracker" = "https://github.com/johntnanney/gradience/issues"
 
 [project.optional-dependencies]
 # Benchmarking suite - for running compression validation benchmarks
