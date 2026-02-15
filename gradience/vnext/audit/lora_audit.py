@@ -1560,6 +1560,326 @@ def _convert_lora_prefix_to_base_weight_key(lora_prefix: str) -> str:
 
 
 # -----------------------------
+# Extracted helpers for audit_lora_state_dict
+# -----------------------------
+
+def _resolve_layer_alpha(adapter_config, prefix):
+    """Resolve per-layer alpha from adapter config, with pattern matching."""
+    if adapter_config is None:
+        return None
+    alpha = adapter_config.lora_alpha
+    if adapter_config.alpha_pattern:
+        for pat, val in adapter_config.alpha_pattern.items():
+            if pat in prefix:
+                return float(val)
+    return alpha
+
+
+def _compute_relative_perturbation(prefix, base_model_weights, delta_sigma_max, delta_fro_norm, compute_dtype, eps):
+    """Compute relative perturbation metrics from in-memory base weights."""
+    if base_model_weights is None:
+        return None, None
+    base_weight_key = _convert_lora_prefix_to_base_weight_key(prefix)
+    base_weight = base_model_weights.get(base_weight_key)
+    if base_weight is None:
+        return None, None
+
+    base_weight_cpu = base_weight.detach().to(dtype=compute_dtype, device="cpu")
+    base_fro_in_memory = torch.norm(base_weight_cpu, p='fro').item()
+
+    if base_weight_cpu.dim() >= 2:
+        _, s, _ = torch.linalg.svd(base_weight_cpu, full_matrices=False)
+        base_spec_in_memory = s[0].item() if s.numel() > 0 else 0.0
+    else:
+        base_spec_in_memory = base_fro_in_memory
+
+    rel_delta_fro = delta_fro_norm / base_fro_in_memory if base_fro_in_memory > eps else None
+    rel_delta_op = delta_sigma_max / base_spec_in_memory if base_spec_in_memory > eps else None
+    return rel_delta_fro, rel_delta_op
+
+
+def _mean(xs: List[float]) -> float:
+    return float(sum(xs) / len(xs)) if xs else 0.0
+
+
+def _median(xs: List[float]) -> float:
+    if not xs:
+        return 0.0
+    ys = sorted(xs)
+    m = len(ys) // 2
+    if len(ys) % 2 == 1:
+        return float(ys[m])
+    return float(0.5 * (ys[m - 1] + ys[m]))
+
+
+def _weighted_mean(xs: List[float], ws: List[int]) -> float:
+    if not xs or not ws or sum(ws) == 0:
+        return 0.0
+    return float(sum(x * w for x, w in zip(xs, ws)) / sum(ws))
+
+
+def _percentile_int(xs: List[int], q: float) -> float:
+    if not xs:
+        return 0.0
+    ys = sorted(xs)
+    if len(ys) == 1:
+        return float(ys[0])
+    # linear interpolation
+    pos = (len(ys) - 1) * q
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    if lo == hi:
+        return float(ys[lo])
+    return float(ys[lo] * (hi - pos) + ys[hi] * (pos - lo))
+
+
+def _build_structured_policy_data(
+    layers: List[LoRALayerAudit],
+    applied_policies: List[str],
+    policy_global_suggestions: Dict[str, Dict[str, float]]
+) -> Dict[str, Any]:
+    """Build future-proof structured policy data (Schema v1)."""
+
+    # Map internal policy names to user-friendly names
+    policy_name_mapping = {
+        'energy_threshold': 'energy_threshold',
+        'knee_elbow': 'knee_elbow',
+        'entropy_effective': 'entropy_effective',
+        'optimal_hard_threshold': 'optimal_hard_threshold'
+    }
+
+    # Default parameters for each policy
+    default_parameters = {
+        'energy_threshold': {'threshold': 0.90},
+        'knee_elbow': {},
+        'entropy_effective': {},
+        'optimal_hard_threshold': {}
+    }
+
+    # Build per-layer suggestions with rich metadata
+    per_layer_suggestions = []
+    for layer in layers:
+        if not layer.rank_suggestions:
+            continue
+
+        # Calculate importance metrics for this layer
+        energy_raw = layer.frob_sq if hasattr(layer, 'frob_sq') else 0.0
+        frobenius_norm = (layer.frob_sq ** 0.5) if hasattr(layer, 'frob_sq') else 0.0
+        param_count = getattr(layer, 'lora_params', 0)
+        utilization = getattr(layer, 'utilization', 0.0) if hasattr(layer, 'utilization') else 0.0
+
+        importance_raw = (
+            frobenius_norm * 0.6 +           # Primary: magnitude of update
+            (param_count / 10000) * 0.3 +    # Secondary: layer size (normalized)
+            utilization * 100 * 0.1          # Tertiary: how much layer is used
+        )
+
+        layer_data = {
+            "layer_name": layer.layer_name,
+            "allocated_rank": layer.r,
+            "suggestions": {},
+            # New importance metrics for downstream tooling
+            "importance_metrics": {
+                "importance_raw": importance_raw,
+                "energy_raw": energy_raw,
+                "frobenius_norm": frobenius_norm,
+                "param_count": param_count,
+                "utilization": utilization
+            }
+        }
+
+        for policy_internal, suggestion in layer.rank_suggestions.items():
+            if policy_internal in policy_name_mapping and isinstance(suggestion, dict):
+                policy_name = policy_name_mapping[policy_internal]
+
+                # Extract core suggestion data
+                structured_suggestion = {
+                    "k": suggestion.get('k', 0),
+                    "confidence": suggestion.get('confidence', 0.0),
+                    "metadata": suggestion.get('details', {})
+                }
+
+                # Add policy-specific metadata normalization
+                if policy_internal == 'energy_threshold':
+                    metadata = structured_suggestion['metadata']
+                    structured_suggestion['metadata'] = {
+                        "threshold_used": metadata.get('threshold', 0.90),
+                        "energy_captured": metadata.get('actual_energy_captured', 0.0),
+                        "total_energy": metadata.get('total_energy', 0.0)
+                    }
+                elif policy_internal == 'entropy_effective':
+                    metadata = structured_suggestion['metadata']
+                    structured_suggestion['metadata'] = {
+                        "erank_float": metadata.get('erank_float', 0.0),
+                        "entropy": metadata.get('entropy', 0.0),
+                        "max_possible_entropy": metadata.get('max_possible_entropy', 0.0),
+                        "normalized_entropy": metadata.get('normalized_entropy', 0.0)
+                    }
+                elif policy_internal == 'optimal_hard_threshold':
+                    metadata = structured_suggestion['metadata']
+                    structured_suggestion['metadata'] = {
+                        "omega_beta": metadata.get('omega_beta', 0.0),
+                        "beta": metadata.get('beta', 1.0),
+                        "threshold": metadata.get('threshold', 0.0),
+                        "median_sv": metadata.get('median_sv', 0.0)
+                    }
+                elif policy_internal == 'knee_elbow':
+                    metadata = structured_suggestion['metadata']
+                    structured_suggestion['metadata'] = {
+                        "knee_index": metadata.get('knee_index', 0),
+                        "difference_curve_max": metadata.get('difference_curve_max', 0.0),
+                        "smoothing_applied": metadata.get('smoothing_applied', False)
+                    }
+
+                layer_data["suggestions"][policy_name] = structured_suggestion
+
+        if layer_data["suggestions"]:  # Only include layers with suggestions
+            per_layer_suggestions.append(layer_data)
+
+    # Calculate global importance distribution metrics for downstream tooling
+    if per_layer_suggestions:
+        total_energy = sum(layer['importance_metrics']['energy_raw'] for layer in per_layer_suggestions)
+        n_layers = len(per_layer_suggestions)
+        uniform_share = 1.0 / n_layers if n_layers > 0 else 0.0
+
+        # Add energy share and uniform multiplier to each layer
+        max_uniform_mult = 0.0
+        for layer_data in per_layer_suggestions:
+            energy_share = layer_data['importance_metrics']['energy_raw'] / total_energy if total_energy > 0 else uniform_share
+            uniform_mult = energy_share / uniform_share if uniform_share > 0 else 1.0
+
+            layer_data['importance_metrics']['energy_share'] = energy_share
+            layer_data['importance_metrics']['uniform_mult'] = uniform_mult
+            max_uniform_mult = max(max_uniform_mult, uniform_mult)
+
+        # Global distribution characteristics
+        min_uniform_mult_threshold = 1.5  # Same threshold as CLI
+        distribution_is_flat = max_uniform_mult < min_uniform_mult_threshold
+
+        importance_distribution = {
+            "n_layers": n_layers,
+            "total_energy": total_energy,
+            "max_uniform_mult": max_uniform_mult,
+            "distribution_is_flat": distribution_is_flat,
+            "min_uniform_mult_threshold": min_uniform_mult_threshold,
+            "uniform_share": uniform_share
+        }
+    else:
+        importance_distribution = {
+            "n_layers": 0,
+            "total_energy": 0.0,
+            "max_uniform_mult": 0.0,
+            "distribution_is_flat": True,
+            "min_uniform_mult_threshold": 1.5,
+            "uniform_share": 0.0
+        }
+
+    # Build the complete structured schema
+    return {
+        "metadata": {
+            "version": 1,
+            "applied_policies": [policy_name_mapping.get(p, p) for p in applied_policies],
+            "default_parameters": {policy_name_mapping.get(p, p): default_parameters.get(p, {}) for p in applied_policies}
+        },
+        "global_statistics": {
+            policy_name_mapping.get(k, k): v for k, v in policy_global_suggestions.items()
+        },
+        "importance_distribution": importance_distribution,
+        "per_layer": per_layer_suggestions
+    }
+
+
+def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ranks, utilizations, by_type_acc, r90_list, rank_policies):
+    """Aggregate per-layer audit data into summary statistics.
+
+    Returns a dict with keys:
+        stable_rank_mean, stable_rank_median, stable_rank_wmean,
+        eff_rank_mean, util_mean, r90_p50, r90_p90,
+        policy_global_suggestions, by_type, structured_policies,
+        n_layers, total_params
+    """
+    n_layers = len(layers)
+    total_params = int(sum(params_list))
+
+    stable_rank_mean = _mean(stable_ranks)
+    stable_rank_median = _median(stable_ranks)
+    stable_rank_wmean = _weighted_mean(stable_ranks, params_list)
+
+    eff_rank_mean = _mean(effective_ranks)
+    util_mean = _mean(utilizations)
+
+    r90_p50 = _percentile_int(r90_list, 0.50)
+    r90_p90 = _percentile_int(r90_list, 0.90)
+
+    # Compute per-policy global suggestions (Step 5)
+    policy_global_suggestions: Optional[Dict[str, Dict[str, float]]] = None
+    if layers and any(layer.rank_suggestions for layer in layers):
+        policy_global_suggestions = {}
+
+        # Collect all available policy names
+        all_policies = set()
+        for layer in layers:
+            if layer.rank_suggestions:
+                all_policies.update(layer.rank_suggestions.keys())
+
+        for policy_name in all_policies:
+            # Collect k values for this policy across all layers
+            policy_k_values = []
+            for layer in layers:
+                if (layer.rank_suggestions and
+                    policy_name in layer.rank_suggestions and
+                    'k' in layer.rank_suggestions[policy_name]):
+                    k = layer.rank_suggestions[policy_name]['k']
+                    if isinstance(k, (int, float)) and k >= 0:
+                        policy_k_values.append(int(k))
+
+            # Compute global statistics for this policy
+            if policy_k_values:
+                policy_global_suggestions[policy_name] = {
+                    'uniform_median': float(_percentile_int(policy_k_values, 0.50)),
+                    'uniform_p90': float(_percentile_int(policy_k_values, 0.90)),
+                    'uniform_max': float(max(policy_k_values)),
+                    'n_layers': len(policy_k_values)
+                }
+
+    # by-type aggregates
+    by_type: Dict[str, Dict[str, float]] = {}
+    for t, ls in by_type_acc.items():
+        if not ls:
+            continue
+        by_type[t] = {
+            "n_layers": float(len(ls)),
+            "params": float(sum(l.params for l in ls)),
+            "stable_rank_mean": float(sum(l.stable_rank for l in ls) / len(ls)),
+            "utilization_mean": float(sum(l.utilization for l in ls) / len(ls)),
+            "energy_rank_90_p50": float(_percentile_int([l.energy_rank_90 for l in ls], 0.50)),
+            "energy_rank_90_p90": float(_percentile_int([l.energy_rank_90 for l in ls], 0.90)),
+        }
+
+    # Build structured policy schema (v1)
+    structured_policies = None
+    if rank_policies and policy_global_suggestions:
+        structured_policies = _build_structured_policy_data(
+            layers, rank_policies, policy_global_suggestions
+        )
+
+    return {
+        "n_layers": n_layers,
+        "total_params": total_params,
+        "stable_rank_mean": stable_rank_mean,
+        "stable_rank_median": stable_rank_median,
+        "stable_rank_wmean": stable_rank_wmean,
+        "eff_rank_mean": eff_rank_mean,
+        "util_mean": util_mean,
+        "r90_p50": r90_p50,
+        "r90_p90": r90_p90,
+        "policy_global_suggestions": policy_global_suggestions,
+        "by_type": by_type,
+        "structured_policies": structured_policies,
+    }
+
+
+# -----------------------------
 # Main audit entrypoints
 # -----------------------------
 
@@ -1628,14 +1948,7 @@ def audit_lora_state_dict(
             continue
 
         # alpha: best-effort from adapter_config; may be per-layer if patterns exist
-        alpha = None
-        if adapter_config is not None:
-            alpha = adapter_config.lora_alpha
-            if adapter_config.alpha_pattern:
-                for pat, val in adapter_config.alpha_pattern.items():
-                    if pat in prefix:
-                        alpha = float(val)
-                        break
+        alpha = _resolve_layer_alpha(adapter_config, prefix)
 
         # module type inference
         module_type = _infer_module_type(prefix)
@@ -1686,35 +1999,12 @@ def audit_lora_state_dict(
             )
             
             # Compute relative perturbation metrics from in-memory base weights (safe)
-            rel_delta_fro = None
-            rel_delta_op = None
-            if base_model_weights is not None:
-                base_weight_key = _convert_lora_prefix_to_base_weight_key(prefix)
-                base_weight = base_model_weights.get(base_weight_key)
-                
-                if base_weight is not None:
-                    try:
-                        from .gain_metrics import compute_lora_norms
-                        
-                        # Compute base model norms from in-memory weights
-                        base_weight_cpu = base_weight.detach().to(dtype=compute_dtype, device="cpu")
-                        base_fro_in_memory = torch.norm(base_weight_cpu, p='fro').item()
-                        
-                        # Spectral norm via SVD (safe for in-memory computation)
-                        if base_weight_cpu.dim() >= 2:
-                            _, s, _ = torch.linalg.svd(base_weight_cpu, full_matrices=False)
-                            base_spec_in_memory = s[0].item() if s.numel() > 0 else 0.0
-                        else:
-                            base_spec_in_memory = base_fro_in_memory
-                        
-                        # Compute relative perturbation ratios
-                        if base_fro_in_memory > eps:
-                            rel_delta_fro = delta_fro_norm / base_fro_in_memory
-                        if base_spec_in_memory > eps:
-                            rel_delta_op = delta_sigma_max / base_spec_in_memory
-                            
-                    except (ValueError, RuntimeError) as e:
-                        issues.append(f"Failed to compute relative perturbation for {prefix}: {e}")
+            try:
+                rel_delta_fro, rel_delta_op = _compute_relative_perturbation(
+                    prefix, base_model_weights, delta_sigma_max, delta_fro_norm, compute_dtype, eps)
+            except (ValueError, RuntimeError) as e:
+                issues.append(f"Failed to compute relative perturbation for {prefix}: {e}")
+                rel_delta_fro, rel_delta_op = None, None
             
         except (ValueError, RuntimeError) as e:
             issues.append(f"Spectral computation failed for {prefix}: {e}")
@@ -1772,283 +2062,39 @@ def audit_lora_state_dict(
         params_list.append(layer.params)
         r90_list.append(layer.energy_rank_90)
 
-    n_layers = len(layers)
-    total_params = int(sum(params_list))
+    # Aggregate statistics from collected per-layer data
+    agg = _aggregate_audit_statistics(
+        layers, params_list, stable_ranks, effective_ranks,
+        utilizations, by_type_acc, r90_list, rank_policies
+    )
 
-    def _mean(xs: List[float]) -> float:
-        return float(sum(xs) / len(xs)) if xs else 0.0
+    n_layers = agg["n_layers"]
+    total_params = agg["total_params"]
 
-    def _median(xs: List[float]) -> float:
-        if not xs:
-            return 0.0
-        ys = sorted(xs)
-        m = len(ys) // 2
-        if len(ys) % 2 == 1:
-            return float(ys[m])
-        return float(0.5 * (ys[m - 1] + ys[m]))
-
-    def _weighted_mean(xs: List[float], ws: List[int]) -> float:
-        if not xs or not ws or sum(ws) == 0:
-            return 0.0
-        return float(sum(x * w for x, w in zip(xs, ws)) / sum(ws))
-
-    stable_rank_mean = _mean(stable_ranks)
-    stable_rank_median = _median(stable_ranks)
-    stable_rank_wmean = _weighted_mean(stable_ranks, params_list)
-
-    eff_rank_mean = _mean(effective_ranks)
-    util_mean = _mean(utilizations)
-
-    # Future-proof policy schema builder
-    def _build_structured_policy_data(
-        layers: List[LoRALayerAudit], 
-        applied_policies: List[str],
-        policy_global_suggestions: Dict[str, Dict[str, float]]
-    ) -> Dict[str, Any]:
-        """Build future-proof structured policy data (Schema v1)."""
-        
-        # Map internal policy names to user-friendly names
-        policy_name_mapping = {
-            'energy_threshold': 'energy_threshold',
-            'knee_elbow': 'knee_elbow', 
-            'entropy_effective': 'entropy_effective',
-            'optimal_hard_threshold': 'optimal_hard_threshold'
-        }
-        
-        # Default parameters for each policy
-        default_parameters = {
-            'energy_threshold': {'threshold': 0.90},
-            'knee_elbow': {},
-            'entropy_effective': {},
-            'optimal_hard_threshold': {}
-        }
-        
-        # Build per-layer suggestions with rich metadata
-        per_layer_suggestions = []
-        for layer in layers:
-            if not layer.rank_suggestions:
-                continue
-                
-            # Calculate importance metrics for this layer
-            energy_raw = layer.frob_sq if hasattr(layer, 'frob_sq') else 0.0
-            frobenius_norm = (layer.frob_sq ** 0.5) if hasattr(layer, 'frob_sq') else 0.0
-            param_count = getattr(layer, 'lora_params', 0)
-            utilization = getattr(layer, 'utilization', 0.0) if hasattr(layer, 'utilization') else 0.0
-            
-            importance_raw = (
-                frobenius_norm * 0.6 +           # Primary: magnitude of update
-                (param_count / 10000) * 0.3 +    # Secondary: layer size (normalized)
-                utilization * 100 * 0.1          # Tertiary: how much layer is used
-            )
-            
-            layer_data = {
-                "layer_name": layer.layer_name,
-                "allocated_rank": layer.r,
-                "suggestions": {},
-                # New importance metrics for downstream tooling
-                "importance_metrics": {
-                    "importance_raw": importance_raw,
-                    "energy_raw": energy_raw,
-                    "frobenius_norm": frobenius_norm,
-                    "param_count": param_count,
-                    "utilization": utilization
-                }
-            }
-            
-            for policy_internal, suggestion in layer.rank_suggestions.items():
-                if policy_internal in policy_name_mapping and isinstance(suggestion, dict):
-                    policy_name = policy_name_mapping[policy_internal]
-                    
-                    # Extract core suggestion data
-                    structured_suggestion = {
-                        "k": suggestion.get('k', 0),
-                        "confidence": suggestion.get('confidence', 0.0),
-                        "metadata": suggestion.get('details', {})
-                    }
-                    
-                    # Add policy-specific metadata normalization
-                    if policy_internal == 'energy_threshold':
-                        metadata = structured_suggestion['metadata']
-                        structured_suggestion['metadata'] = {
-                            "threshold_used": metadata.get('threshold', 0.90),
-                            "energy_captured": metadata.get('actual_energy_captured', 0.0),
-                            "total_energy": metadata.get('total_energy', 0.0)
-                        }
-                    elif policy_internal == 'entropy_effective':
-                        metadata = structured_suggestion['metadata']
-                        structured_suggestion['metadata'] = {
-                            "erank_float": metadata.get('erank_float', 0.0),
-                            "entropy": metadata.get('entropy', 0.0),
-                            "max_possible_entropy": metadata.get('max_possible_entropy', 0.0),
-                            "normalized_entropy": metadata.get('normalized_entropy', 0.0)
-                        }
-                    elif policy_internal == 'optimal_hard_threshold':
-                        metadata = structured_suggestion['metadata']
-                        structured_suggestion['metadata'] = {
-                            "omega_beta": metadata.get('omega_beta', 0.0),
-                            "beta": metadata.get('beta', 1.0),
-                            "threshold": metadata.get('threshold', 0.0),
-                            "median_sv": metadata.get('median_sv', 0.0)
-                        }
-                    elif policy_internal == 'knee_elbow':
-                        metadata = structured_suggestion['metadata']
-                        structured_suggestion['metadata'] = {
-                            "knee_index": metadata.get('knee_index', 0),
-                            "difference_curve_max": metadata.get('difference_curve_max', 0.0),
-                            "smoothing_applied": metadata.get('smoothing_applied', False)
-                        }
-                    
-                    layer_data["suggestions"][policy_name] = structured_suggestion
-            
-            if layer_data["suggestions"]:  # Only include layers with suggestions
-                per_layer_suggestions.append(layer_data)
-        
-        # Calculate global importance distribution metrics for downstream tooling
-        if per_layer_suggestions:
-            total_energy = sum(layer['importance_metrics']['energy_raw'] for layer in per_layer_suggestions)
-            n_layers = len(per_layer_suggestions)
-            uniform_share = 1.0 / n_layers if n_layers > 0 else 0.0
-            
-            # Add energy share and uniform multiplier to each layer
-            max_uniform_mult = 0.0
-            for layer_data in per_layer_suggestions:
-                energy_share = layer_data['importance_metrics']['energy_raw'] / total_energy if total_energy > 0 else uniform_share
-                uniform_mult = energy_share / uniform_share if uniform_share > 0 else 1.0
-                
-                layer_data['importance_metrics']['energy_share'] = energy_share
-                layer_data['importance_metrics']['uniform_mult'] = uniform_mult
-                max_uniform_mult = max(max_uniform_mult, uniform_mult)
-            
-            # Global distribution characteristics
-            min_uniform_mult_threshold = 1.5  # Same threshold as CLI
-            distribution_is_flat = max_uniform_mult < min_uniform_mult_threshold
-            
-            importance_distribution = {
-                "n_layers": n_layers,
-                "total_energy": total_energy,
-                "max_uniform_mult": max_uniform_mult,
-                "distribution_is_flat": distribution_is_flat,
-                "min_uniform_mult_threshold": min_uniform_mult_threshold,
-                "uniform_share": uniform_share
-            }
-        else:
-            importance_distribution = {
-                "n_layers": 0,
-                "total_energy": 0.0,
-                "max_uniform_mult": 0.0,
-                "distribution_is_flat": True,
-                "min_uniform_mult_threshold": 1.5,
-                "uniform_share": 0.0
-            }
-        
-        # Build the complete structured schema
-        return {
-            "metadata": {
-                "version": 1,
-                "applied_policies": [policy_name_mapping.get(p, p) for p in applied_policies],
-                "default_parameters": {policy_name_mapping.get(p, p): default_parameters.get(p, {}) for p in applied_policies}
-            },
-            "global_statistics": {
-                policy_name_mapping.get(k, k): v for k, v in policy_global_suggestions.items()
-            },
-            "importance_distribution": importance_distribution,
-            "per_layer": per_layer_suggestions
-        }
-
-    # energy_rank_90 summary percentiles
-    def _percentile_int(xs: List[int], q: float) -> float:
-        if not xs:
-            return 0.0
-        ys = sorted(xs)
-        if len(ys) == 1:
-            return float(ys[0])
-        # linear interpolation
-        pos = (len(ys) - 1) * q
-        lo = int(math.floor(pos))
-        hi = int(math.ceil(pos))
-        if lo == hi:
-            return float(ys[lo])
-        return float(ys[lo] * (hi - pos) + ys[hi] * (pos - lo))
-
-    r90_p50 = _percentile_int(r90_list, 0.50)
-    r90_p90 = _percentile_int(r90_list, 0.90)
-
-    # Compute per-policy global suggestions (Step 5)
-    policy_global_suggestions: Optional[Dict[str, Dict[str, float]]] = None
-    if layers and any(layer.rank_suggestions for layer in layers):
-        policy_global_suggestions = {}
-        
-        # Collect all available policy names
-        all_policies = set()
-        for layer in layers:
-            if layer.rank_suggestions:
-                all_policies.update(layer.rank_suggestions.keys())
-        
-        for policy_name in all_policies:
-            # Collect k values for this policy across all layers
-            policy_k_values = []
-            for layer in layers:
-                if (layer.rank_suggestions and 
-                    policy_name in layer.rank_suggestions and 
-                    'k' in layer.rank_suggestions[policy_name]):
-                    k = layer.rank_suggestions[policy_name]['k']
-                    if isinstance(k, (int, float)) and k >= 0:
-                        policy_k_values.append(int(k))
-            
-            # Compute global statistics for this policy
-            if policy_k_values:
-                policy_global_suggestions[policy_name] = {
-                    'uniform_median': float(_percentile_int(policy_k_values, 0.50)),
-                    'uniform_p90': float(_percentile_int(policy_k_values, 0.90)),
-                    'uniform_max': float(max(policy_k_values)),
-                    'n_layers': len(policy_k_values)
-                }
-
-    # by-type aggregates
-    by_type: Dict[str, Dict[str, float]] = {}
-    for t, ls in by_type_acc.items():
-        if not ls:
-            continue
-        by_type[t] = {
-            "n_layers": float(len(ls)),
-            "params": float(sum(l.params for l in ls)),
-            "stable_rank_mean": float(sum(l.stable_rank for l in ls) / len(ls)),
-            "utilization_mean": float(sum(l.utilization for l in ls) / len(ls)),
-            "energy_rank_90_p50": float(_percentile_int([l.energy_rank_90 for l in ls], 0.50)),
-            "energy_rank_90_p90": float(_percentile_int([l.energy_rank_90 for l in ls], 0.90)),
-        }
-
-    # Build structured policy schema (v1) 
-    structured_policies = None
-    if rank_policies and policy_global_suggestions:
-        structured_policies = _build_structured_policy_data(
-            layers, rank_policies, policy_global_suggestions
-        )
-    
     # Audit completion summary
     print(f"✅ Audit completed: processed {n_layers} layers, {total_params:,} parameters", file=sys.stderr)
     if issues:
         print(f"⚠️  Found {len(issues)} issues during audit", file=sys.stderr)
-    
+
     return LoRAAuditResult(
         peft_dir=None,
         adapter_config_path=None,
         adapter_weights_path=None,
         total_lora_params=total_params,
         n_layers=n_layers,
-        stable_rank_mean=stable_rank_mean,
-        stable_rank_median=stable_rank_median,
-        stable_rank_weighted_mean=stable_rank_wmean,
-        effective_rank_mean=eff_rank_mean,
-        utilization_mean=util_mean,
-        energy_rank_90_p50=r90_p50,
-        energy_rank_90_p90=r90_p90,
-        by_type=by_type,
+        stable_rank_mean=agg["stable_rank_mean"],
+        stable_rank_median=agg["stable_rank_median"],
+        stable_rank_weighted_mean=agg["stable_rank_wmean"],
+        effective_rank_mean=agg["eff_rank_mean"],
+        utilization_mean=agg["util_mean"],
+        energy_rank_90_p50=agg["r90_p50"],
+        energy_rank_90_p90=agg["r90_p90"],
+        by_type=agg["by_type"],
         layers=layers,
         # Legacy field for backward compatibility
-        policy_global_suggestions=policy_global_suggestions,
+        policy_global_suggestions=agg["policy_global_suggestions"],
         # New structured schema (v1)
-        policies=structured_policies,
+        policies=agg["structured_policies"],
         issues=issues,
     )
 

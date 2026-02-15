@@ -2110,6 +2110,210 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
     print("✅ Preflight checks complete!\n")
 
 
+def _handle_invalid_probe(
+    probe_rank: int,
+    audit_data: Dict[str, Any],
+    config: Dict[str, Any],
+    output_path: Path,
+    smoke: bool,
+) -> Dict[str, Any]:
+    """Create a minimal report when the probe is invalid and return early."""
+    # Create minimal report for invalid probe and exit early
+    verdict_analysis = compute_verdicts(
+        probe_results={},
+        variant_results={},
+        config=config,
+        output_path=output_path,
+        smoke=smoke
+    )
+
+    decision_trace = DecisionTrace(probe_rank=probe_rank)
+    canonical_report = create_canonical_bench_report(
+        probe_results={},
+        variant_results={},
+        verdict_analysis=verdict_analysis,
+        audit_data=audit_data,
+        compression_configs={},
+        config=config,
+        output_dir=output_path,
+        decision_trace=decision_trace
+    )
+
+    # Write report files
+    report_path = output_path / "bench.json"
+    with open(report_path, 'w') as f:
+        json.dump(canonical_report, f, indent=2, ensure_ascii=False)
+
+    return canonical_report
+
+
+def _run_escalation_and_update(
+    variant_results,
+    verdict_analysis,
+    compression_configs,
+    config,
+    probe_results,
+    config_path,
+    output_path,
+    smoke,
+    stage_manager,
+    resume,
+):
+    """Run the escalation round and enrich verdicts with stability metadata.
+
+    Returns (verdict_analysis, escalation_trace, variant_results, compression_configs).
+    Note: variant_results and compression_configs may be mutated (updated with escalation results).
+    """
+    # Step 3.6a: Escalation round (safety fallback)
+    compression = config.get("compression", {})
+    escalation_config = compression.get("escalation", {})
+
+    esc_configs, escalation_trace = run_escalation_round(
+        variant_results=variant_results,
+        verdicts=verdict_analysis["verdicts"],
+        compression_configs=compression_configs,
+        config=config,
+        probe_rank=config["lora"]["probe_r"],
+        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
+        escalation_config=escalation_config,
+    )
+
+    if esc_configs:
+        print(f"\n{'='*50}")
+        print(f"ESCALATION ROUND: {len(esc_configs)} safer candidate(s)")
+        print(f"{'='*50}")
+
+        esc_results = run_all_compressed_variants(
+            config_path=config_path,
+            output_dir=output_path,
+            compression_configs=esc_configs,
+            smoke=smoke,
+            stage_manager=stage_manager,
+            resume=resume,
+        )
+
+        # Merge escalation results into the main result sets
+        variant_results.update(esc_results)
+        compression_configs.update(esc_configs)
+
+        # Re-compute verdicts with expanded result set
+        verdict_analysis = compute_verdicts(
+            probe_results=probe_results,
+            variant_results=variant_results,
+            config=config,
+            output_path=output_path,
+            smoke=smoke,
+        )
+
+        esc_verdicts = {
+            k: verdict_analysis["verdicts"][k]
+            for k in esc_configs if k in verdict_analysis["verdicts"]
+        }
+        escalation_trace = update_escalation_trace_with_results(
+            trace=escalation_trace,
+            escalation_verdicts=esc_verdicts,
+            original_best_compression=verdict_analysis.get("best_compression"),
+        )
+
+        print(f"Escalation complete: {len(escalation_trace.escalation_trace)} entries")
+        if escalation_trace.final_recommendation:
+            print(f"Final recommendation: {escalation_trace.final_recommendation}")
+
+    # Enrich all verdicts with stability metadata
+    enrich_verdicts_with_stability(
+        verdicts=verdict_analysis["verdicts"],
+        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
+        escalation_trace=escalation_trace,
+        catastrophic_margin=escalation_config.get("catastrophic_margin"),
+    )
+
+    # Write verdict analysis to JSON
+    verdict_path = output_path / "verdicts.json"
+    with open(verdict_path, 'w') as f:
+        json.dump(verdict_analysis, f, indent=2, ensure_ascii=False)
+
+    return verdict_analysis, escalation_trace, variant_results, compression_configs
+
+
+def _update_policy_scoreboard(
+    verdict_analysis: Dict[str, Any],
+    compression_configs: Dict[str, Any],
+    config: Dict[str, Any],
+    output_path: Path,
+) -> None:
+    """Update policy scoreboard with benchmark results (side-effect only).
+
+    Writes policy_scoreboard_snapshot.json to output_path if policy results exist.
+    """
+    # Step 3.7: Update policy scoreboard with results
+    try:
+        from gradience.vnext.policy_scoreboard import PolicyScoreboard, create_policy_result_from_bench_data
+
+        scoreboard = PolicyScoreboard()
+
+        # Extract policy results from verdict analysis and compression configs
+        config_name = config.get("name", "unknown_config")
+        model_name = config.get("model", {}).get("model_name", "unknown_model")
+        task_name = config.get("task", {}).get("task_name", "unknown_task")
+
+        policy_results = []
+
+        # Process each compression variant that was tested
+        for variant_name, variant_config in compression_configs.items():
+            if variant_config.get("status") != "ready":
+                continue
+
+            # Get policy information from variant config
+            policy_type = variant_config.get("policy_type", "unknown")
+            if policy_type == "unknown":
+                continue  # Skip non-policy variants
+
+            suggested_rank = variant_config.get("suggested_r", 0)
+            actual_rank = variant_config.get("actual_r", 0)
+
+            # Get performance results from verdict analysis
+            variant_verdict = verdict_analysis.get("verdicts", {}).get(variant_name)
+            if variant_verdict:
+                passed = variant_verdict.get("verdict") == "PASS"
+                performance_delta = variant_verdict.get("performance_delta", 0.0)
+
+                # Collect all performance results for optimal rank calculation
+                all_results = {}
+                for vname, vverdict in verdict_analysis.get("verdicts", {}).items():
+                    if vverdict.get("performance_delta") is not None:
+                        all_results[vname] = vverdict.get("performance_delta", 0.0)
+
+                # Create policy result
+                policy_result = create_policy_result_from_bench_data(
+                    config_name=config_name,
+                    model_name=model_name,
+                    task_name=task_name,
+                    policy_name=policy_type,
+                    suggested_rank=suggested_rank,
+                    actual_rank=actual_rank,
+                    performance_delta=performance_delta,
+                    passed=passed,
+                    all_results=all_results,
+                    seed=config.get("train", {}).get("seed", DEFAULT_SEED)
+                )
+
+                policy_results.append(policy_result)
+
+        # Add results to scoreboard
+        if policy_results:
+            scoreboard.add_benchmark_results(config_name, model_name, task_name, policy_results)
+            print(f"📊 Updated policy scoreboard with {len(policy_results)} policy results")
+
+            # Export snapshot to output directory
+            snapshot_path = output_path / "policy_scoreboard_snapshot.json"
+            scoreboard.export_snapshot(snapshot_path)
+
+    except ImportError:
+        print("⚠️  Policy scoreboard not available (vnext module not found)")
+    except (TypeError, ValueError, OSError) as e:
+        print(f"⚠️  Policy scoreboard update failed: {e}")
+
+
 def run_bench_protocol(
     config_path: str | Path,
     output_dir: str | Path,
@@ -2211,33 +2415,7 @@ def run_bench_protocol(
             print("⚠️" * 15)
             print("")
 
-            # Create minimal report for invalid probe and exit early
-            verdict_analysis = compute_verdicts(
-                probe_results={},
-                variant_results={},
-                config=config,
-                output_path=output_path,
-                smoke=smoke
-            )
-
-            decision_trace = DecisionTrace(probe_rank=probe_rank)
-            canonical_report = create_canonical_bench_report(
-                probe_results={},
-                variant_results={},
-                verdict_analysis=verdict_analysis,
-                audit_data=audit_data,
-                compression_configs={},
-                config=config,
-                output_dir=output_path,
-                decision_trace=decision_trace
-            )
-
-            # Write report files
-            report_path = output_path / "bench.json"
-            with open(report_path, 'w') as f:
-                json.dump(canonical_report, f, indent=2, ensure_ascii=False)
-
-            return canonical_report
+            return _handle_invalid_probe(probe_rank, audit_data, config, output_path, smoke)
 
     # Check if config generation can be skipped
     skip_config_gen = resume and stage_manager and stage_manager.should_skip_config_generation()
@@ -2302,141 +2480,13 @@ def run_bench_protocol(
         smoke=smoke
     )
 
-    # Step 3.6a: Escalation round (safety fallback)
-    compression = config.get("compression", {})
-    escalation_config = compression.get("escalation", {})
-
-    esc_configs, escalation_trace = run_escalation_round(
-        variant_results=variant_results,
-        verdicts=verdict_analysis["verdicts"],
-        compression_configs=compression_configs,
-        config=config,
-        probe_rank=config["lora"]["probe_r"],
-        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
-        escalation_config=escalation_config,
+    verdict_analysis, escalation_trace, variant_results, compression_configs = _run_escalation_and_update(
+        variant_results, verdict_analysis, compression_configs,
+        config, probe_results, config_path, output_path,
+        smoke, stage_manager, resume
     )
 
-    if esc_configs:
-        print(f"\n{'='*50}")
-        print(f"ESCALATION ROUND: {len(esc_configs)} safer candidate(s)")
-        print(f"{'='*50}")
-
-        esc_results = run_all_compressed_variants(
-            config_path=config_path,
-            output_dir=output_path,
-            compression_configs=esc_configs,
-            smoke=smoke,
-            stage_manager=stage_manager,
-            resume=resume,
-        )
-
-        # Merge escalation results into the main result sets
-        variant_results.update(esc_results)
-        compression_configs.update(esc_configs)
-
-        # Re-compute verdicts with expanded result set
-        verdict_analysis = compute_verdicts(
-            probe_results=probe_results,
-            variant_results=variant_results,
-            config=config,
-            output_path=output_path,
-            smoke=smoke,
-        )
-
-        esc_verdicts = {
-            k: verdict_analysis["verdicts"][k]
-            for k in esc_configs if k in verdict_analysis["verdicts"]
-        }
-        escalation_trace = update_escalation_trace_with_results(
-            trace=escalation_trace,
-            escalation_verdicts=esc_verdicts,
-            original_best_compression=verdict_analysis.get("best_compression"),
-        )
-
-        print(f"Escalation complete: {len(escalation_trace.escalation_trace)} entries")
-        if escalation_trace.final_recommendation:
-            print(f"Final recommendation: {escalation_trace.final_recommendation}")
-
-    # Enrich all verdicts with stability metadata
-    enrich_verdicts_with_stability(
-        verdicts=verdict_analysis["verdicts"],
-        acc_tolerance=verdict_analysis.get("acc_tolerance", DEFAULT_ACCURACY_TOLERANCE),
-        escalation_trace=escalation_trace,
-        catastrophic_margin=escalation_config.get("catastrophic_margin"),
-    )
-
-    # Write verdict analysis to JSON
-    verdict_path = output_path / "verdicts.json"
-    with open(verdict_path, 'w') as f:
-        json.dump(verdict_analysis, f, indent=2, ensure_ascii=False)
-
-    # Step 3.7: Update policy scoreboard with results
-    try:
-        from gradience.vnext.policy_scoreboard import PolicyScoreboard, create_policy_result_from_bench_data
-
-        scoreboard = PolicyScoreboard()
-
-        # Extract policy results from verdict analysis and compression configs
-        config_name = config.get("name", "unknown_config")
-        model_name = config.get("model", {}).get("model_name", "unknown_model")
-        task_name = config.get("task", {}).get("task_name", "unknown_task")
-
-        policy_results = []
-
-        # Process each compression variant that was tested
-        for variant_name, variant_config in compression_configs.items():
-            if variant_config.get("status") != "ready":
-                continue
-
-            # Get policy information from variant config
-            policy_type = variant_config.get("policy_type", "unknown")
-            if policy_type == "unknown":
-                continue  # Skip non-policy variants
-
-            suggested_rank = variant_config.get("suggested_r", 0)
-            actual_rank = variant_config.get("actual_r", 0)
-
-            # Get performance results from verdict analysis
-            variant_verdict = verdict_analysis.get("verdicts", {}).get(variant_name)
-            if variant_verdict:
-                passed = variant_verdict.get("verdict") == "PASS"
-                performance_delta = variant_verdict.get("performance_delta", 0.0)
-
-                # Collect all performance results for optimal rank calculation
-                all_results = {}
-                for vname, vverdict in verdict_analysis.get("verdicts", {}).items():
-                    if vverdict.get("performance_delta") is not None:
-                        all_results[vname] = vverdict.get("performance_delta", 0.0)
-
-                # Create policy result
-                policy_result = create_policy_result_from_bench_data(
-                    config_name=config_name,
-                    model_name=model_name,
-                    task_name=task_name,
-                    policy_name=policy_type,
-                    suggested_rank=suggested_rank,
-                    actual_rank=actual_rank,
-                    performance_delta=performance_delta,
-                    passed=passed,
-                    all_results=all_results,
-                    seed=config.get("train", {}).get("seed", DEFAULT_SEED)
-                )
-
-                policy_results.append(policy_result)
-
-        # Add results to scoreboard
-        if policy_results:
-            scoreboard.add_benchmark_results(config_name, model_name, task_name, policy_results)
-            print(f"📊 Updated policy scoreboard with {len(policy_results)} policy results")
-
-            # Export snapshot to output directory
-            snapshot_path = output_path / "policy_scoreboard_snapshot.json"
-            scoreboard.export_snapshot(snapshot_path)
-
-    except ImportError:
-        print("⚠️  Policy scoreboard not available (vnext module not found)")
-    except (TypeError, ValueError, OSError) as e:
-        print(f"⚠️  Policy scoreboard update failed: {e}")
+    _update_policy_scoreboard(verdict_analysis, compression_configs, config, output_path)
 
     # Load audit data for canonical report
     probe_audit_path = output_path / f"probe_r{probe_rank}" / "audit.json"

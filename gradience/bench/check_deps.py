@@ -6,7 +6,7 @@ Provides exact install commands without stack traces.
 
 import importlib.util
 import sys
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 def check_module(module_name: str) -> bool:
@@ -31,7 +31,7 @@ def get_module_version(module_name: str) -> str:
         return "not found"
 
 
-def check_dependencies() -> Dict[str, Dict[str, any]]:
+def check_dependencies() -> Dict[str, Dict[str, Any]]:
     """Check all Gradience dependencies and categorize them."""
     
     deps = {

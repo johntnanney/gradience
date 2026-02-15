@@ -1132,7 +1132,7 @@ def _get_version_info():
         ).decode().strip()
         version_info["git_sha"] = git_sha[:12]  # Short SHA
     except (FileNotFoundError, subprocess.CalledProcessError, OSError):
-        version_info["git_sha"] = None
+        version_info["git_sha"] = "unknown"
 
     return version_info
 
@@ -2533,28 +2533,22 @@ def _display_recommendations(layer_name: str, rationale: dict, is_flagged: bool,
 
 
 # ---------------------------------------------------------------------------
-# main
+# CLI subcommand setup helpers
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="gradience",
-        description="Spectral telemetry and restraint-first diagnostics for neural network training",
-    )
-
-    subparsers = parser.add_subparsers(dest="command", help="Command to run")
-
-    # verify
+def _setup_verify_command(subparsers):
     verify_parser = subparsers.add_parser("verify", help="Verify installation")
     verify_parser.set_defaults(func=cmd_verify)
 
-    # report
+
+def _setup_report_command(subparsers):
     report_parser = subparsers.add_parser("report", help="Generate report from telemetry")
     report_parser.add_argument("file", help="Path to telemetry JSONL file")
     report_parser.set_defaults(func=cmd_report)
 
-    # check
+
+def _setup_check_command(subparsers):
     check_parser = subparsers.add_parser("check", help="Validate a config and emit restraint-first recommendations")
     check_parser.add_argument(
         "config",
@@ -2615,7 +2609,8 @@ def main() -> None:
 
     check_parser.set_defaults(func=cmd_check)
 
-    # audit
+
+def _setup_audit_command(subparsers):
     audit_parser = subparsers.add_parser(
         "audit",
         help="Audit a PEFT LoRA adapter directory for rank/utilization waste",
@@ -2726,7 +2721,8 @@ def main() -> None:
     )
     audit_parser.set_defaults(func=cmd_audit)
 
-    # merge-audit
+
+def _setup_merge_audit_command(subparsers):
     merge_audit_parser = subparsers.add_parser(
         "merge-audit",
         help="Audit spectral compatibility between two PEFT LoRA adapters",
@@ -2779,7 +2775,8 @@ def main() -> None:
     )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 
-    # merge-plan
+
+def _setup_merge_plan_command(subparsers):
     merge_plan_parser = subparsers.add_parser(
         "merge-plan",
         help="Generate a merge plan from two PEFT LoRA adapters",
@@ -2828,7 +2825,8 @@ def main() -> None:
     )
     merge_plan_parser.set_defaults(func=cmd_merge_plan)
 
-    # merge
+
+def _setup_merge_command(subparsers):
     merge_parser = subparsers.add_parser(
         "merge",
         help="Execute a merge plan to produce a PEFT-compatible adapter",
@@ -2858,7 +2856,8 @@ def main() -> None:
     )
     merge_parser.set_defaults(func=cmd_merge)
 
-    # explain
+
+def _setup_explain_command(subparsers):
     explain_parser = subparsers.add_parser(
         "explain",
         help="Explain disagreement analysis for a specific layer from audit JSON"
@@ -2882,7 +2881,8 @@ def main() -> None:
     )
     explain_parser.set_defaults(func=cmd_explain)
 
-    # truncate  
+
+def _setup_truncate_command(subparsers):
     truncate_parser = subparsers.add_parser(
         "truncate",
         help="SVD truncate a PEFT LoRA adapter to a smaller rank"
@@ -2894,7 +2894,7 @@ def main() -> None:
         help="Path to input PEFT adapter directory"
     )
     truncate_parser.add_argument(
-        "--out-dir", 
+        "--out-dir",
         type=str,
         required=True,
         help="Path to output directory for truncated adapter"
@@ -2914,7 +2914,7 @@ def main() -> None:
     truncate_parser.add_argument(
         "--dtype",
         choices=["fp16", "bf16", "fp32"],
-        default="fp16", 
+        default="fp16",
         help="Data type for saved weights (default: fp16)"
     )
     truncate_parser.add_argument(
@@ -2929,12 +2929,13 @@ def main() -> None:
     )
     truncate_parser.add_argument(
         "--verbose",
-        action="store_true", 
+        action="store_true",
         help="Show detailed per-module statistics"
     )
     truncate_parser.set_defaults(func=cmd_truncate)
 
-    # monitor
+
+def _setup_monitor_command(subparsers):
     monitor_parser = subparsers.add_parser(
         "monitor",
         help="Analyze a vNext telemetry JSONL run and emit alerts/recommendations",
@@ -2955,12 +2956,34 @@ def main() -> None:
     monitor_parser.add_argument("--json", action="store_true", help="Output JSON instead of pretty text")
     monitor_parser.set_defaults(func=cmd_monitor)
 
-    args = parser.parse_args()
 
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="gradience",
+        description="Spectral telemetry and restraint-first diagnostics for neural network training",
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+
+    _setup_verify_command(subparsers)
+    _setup_report_command(subparsers)
+    _setup_check_command(subparsers)
+    _setup_audit_command(subparsers)
+    _setup_merge_audit_command(subparsers)
+    _setup_merge_plan_command(subparsers)
+    _setup_merge_command(subparsers)
+    _setup_explain_command(subparsers)
+    _setup_truncate_command(subparsers)
+    _setup_monitor_command(subparsers)
+
+    args = parser.parse_args()
     if args.command is None:
         parser.print_help()
         sys.exit(0)
-
     args.func(args)
 
 

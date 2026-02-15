@@ -157,7 +157,7 @@ def get_git_tag() -> Optional[str]:
     return None
 
 
-def get_hf_model_revision(model_id: str) -> Optional[Dict[str, str]]:
+def get_hf_model_revision(model_id: str) -> Optional[Dict[str, Optional[str]]]:
     """Get the revision hash for a HuggingFace model."""
     try:
         from huggingface_hub import model_info

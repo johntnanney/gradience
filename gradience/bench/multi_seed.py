@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import datetime
-import yaml
+import yaml  # type: ignore[import-untyped]
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
