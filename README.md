@@ -9,8 +9,8 @@
 >   title = {Gradience: Spectral Analysis of Low-Rank Adaptation Dynamics},
 >   author = {Nanney, John T.},
 >   year = {2026},
->   url = {https://github.com/gradience-ai/gradience},
->   note = {Version 0.9.10}
+>   url = {https://github.com/johntnanney/gradience},
+>   note = {Version 0.10.0}
 > }
 > ```
 

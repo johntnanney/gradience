@@ -57,7 +57,7 @@ except ImportError:
 try:
     __version__ = version("gradience")
 except PackageNotFoundError:
-    __version__ = "0.9.10"
+    __version__ = "0.10.0"
 
 # Current API: vNext components re-exported for convenience
 from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
