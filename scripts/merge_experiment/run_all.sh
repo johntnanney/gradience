@@ -30,6 +30,7 @@
 # ===========================================================================
 
 set -e
+set -o pipefail
 
 SCRIPT_DIR="scripts/merge_experiment"
 WORKSPACE="${MERGE_WORKSPACE:-/workspace/merge_experiment}"

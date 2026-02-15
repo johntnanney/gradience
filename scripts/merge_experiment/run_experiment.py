@@ -129,8 +129,19 @@ def run_merges(
     output_dir: Path,
     output_rank: int = 8,
     output_alpha: float = 16.0,
+    strategy_kwargs: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Path]:
-    """Execute all 3 merge strategies."""
+    """Execute all 3 merge strategies.
+
+    Parameters
+    ----------
+    strategy_kwargs : optional per-strategy keyword arguments forwarded
+        to ``plan_from_audit()``.  Keys are strategy names, values are
+        dicts of kwargs.  Example::
+
+            {"uniform_linear": {"coefficients": (0.6, 0.4)},
+             "overlap_ties": {"trim_fraction": 0.3}}
+    """
     print("\n--- Phase 3: Executing merges ---")
     strategies = ["uniform_linear", "audit_aware", "overlap_ties"]
     merged_dirs: Dict[str, Path] = {}
@@ -140,13 +151,19 @@ def run_merges(
         merge_dir = output_dir / f"merged_{strategy}"
         merge_dir.mkdir(parents=True, exist_ok=True)
 
+        kwargs: Dict[str, Any] = {
+            "output_rank": output_rank,
+            "output_alpha": output_alpha,
+        }
+        if strategy_kwargs and strategy in strategy_kwargs:
+            kwargs.update(strategy_kwargs[strategy])
+
         plan = plan_from_audit(
             strategy,
             report,
             str(adapter_a_dir),
             str(adapter_b_dir),
-            output_rank=output_rank,
-            output_alpha=output_alpha,
+            **kwargs,
         )
 
         result = execute_merge(plan, merge_dir, verbose=True)
