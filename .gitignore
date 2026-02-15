@@ -172,3 +172,4 @@ PYPI_README_IMPROVEMENTS.md
 !examples/**/*.bin
 !examples/**/*.yaml
 !examples/**/*.md
+.worktrees/
