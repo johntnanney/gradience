@@ -12,6 +12,8 @@ from gradience.vnext.merge.strategies import (
     LayerMergeConfig,
     LinearMerge,
     TIESMerge,
+    DARELinearMerge,
+    DARETIESMerge,
     get_strategy,
 )
 
@@ -215,3 +217,126 @@ class TestLayerMergeConfig:
         assert config.coefficients == (0.5, 0.5)
         assert config.target_rank is None
         assert config.trim_fraction == 0.0
+
+
+# ---------------------------------------------------------------------------
+# DARELinearMerge
+# ---------------------------------------------------------------------------
+
+
+class TestDARELinearMerge:
+    def test_output_shape_preserved(self, simple_dW_pair, make_config):
+        """Output has the same shape as inputs."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_linear", trim_fraction=0.3)
+        strategy = get_strategy("dare_linear")
+        torch.manual_seed(0)
+        result = strategy.merge(dW_a, dW_b, config)
+        assert result.shape == dW_a.shape
+
+    def test_no_dropout_equals_linear(self, simple_dW_pair, make_config):
+        """With trim_fraction=0.0 (no dropout), DARE-Linear = Linear."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_linear", trim_fraction=0.0)
+        strategy = get_strategy("dare_linear")
+        result = strategy.merge(dW_a, dW_b, config)
+        expected = 0.5 * dW_a + 0.5 * dW_b
+        torch.testing.assert_close(result, expected)
+
+    def test_full_dropout_gives_zeros(self, simple_dW_pair, make_config):
+        """With trim_fraction=1.0, all params dropped -> zeros."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_linear", trim_fraction=1.0)
+        strategy = get_strategy("dare_linear")
+        result = strategy.merge(dW_a, dW_b, config)
+        torch.testing.assert_close(result, torch.zeros_like(result))
+
+    def test_rescaling_preserves_expected_value(self, make_config):
+        """After drop+rescale, expected value matches original."""
+        torch.manual_seed(42)
+        # Large tensor for statistical convergence
+        dW_a = torch.ones(1000, 1000)
+        dW_b = torch.ones(1000, 1000)
+        config = make_config(strategy="dare_linear", trim_fraction=0.3, coefficients=(0.5, 0.5))
+        strategy = get_strategy("dare_linear")
+        # Average over many trials
+        results = []
+        for seed in range(50):
+            torch.manual_seed(seed)
+            r = strategy.merge(dW_a, dW_b, config)
+            results.append(r.mean().item())
+        avg = sum(results) / len(results)
+        # Expected: 0.5 * 1.0 + 0.5 * 1.0 = 1.0
+        assert abs(avg - 1.0) < 0.05, f"Expected ~1.0, got {avg}"
+
+    def test_deterministic_with_same_seed(self, simple_dW_pair, make_config):
+        """Same manual seed -> same result."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_linear", trim_fraction=0.5)
+        strategy = get_strategy("dare_linear")
+        torch.manual_seed(99)
+        r1 = strategy.merge(dW_a, dW_b, config)
+        torch.manual_seed(99)
+        r2 = strategy.merge(dW_a, dW_b, config)
+        torch.testing.assert_close(r1, r2)
+
+
+# ---------------------------------------------------------------------------
+# DARETIESMerge
+# ---------------------------------------------------------------------------
+
+
+class TestDARETIESMerge:
+    def test_output_shape_preserved(self, simple_dW_pair, make_config):
+        """Output has the same shape as inputs."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_ties", trim_fraction=0.3)
+        strategy = get_strategy("dare_ties")
+        torch.manual_seed(0)
+        result = strategy.merge(dW_a, dW_b, config)
+        assert result.shape == dW_a.shape
+
+    def test_no_dropout_equals_ties(self, simple_dW_pair, make_config):
+        """With trim_fraction=0.0, DARE-TIES = TIES (no DARE dropout applied)."""
+        dW_a, dW_b = simple_dW_pair
+        config_dare = make_config(strategy="dare_ties", trim_fraction=0.0)
+        config_ties = make_config(strategy="ties", trim_fraction=0.0)
+        dare_strategy = get_strategy("dare_ties")
+        ties_strategy = get_strategy("ties")
+        result_dare = dare_strategy.merge(dW_a, dW_b, config_dare)
+        result_ties = ties_strategy.merge(dW_a, dW_b, config_ties)
+        torch.testing.assert_close(result_dare, result_ties)
+
+    def test_full_dropout_gives_zeros(self, simple_dW_pair, make_config):
+        """With trim_fraction=1.0, all params dropped -> zeros."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_ties", trim_fraction=1.0)
+        strategy = get_strategy("dare_ties")
+        result = strategy.merge(dW_a, dW_b, config)
+        torch.testing.assert_close(result, torch.zeros_like(result))
+
+    def test_deterministic_with_same_seed(self, simple_dW_pair, make_config):
+        """Same manual seed -> same result."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="dare_ties", trim_fraction=0.5)
+        strategy = get_strategy("dare_ties")
+        torch.manual_seed(99)
+        r1 = strategy.merge(dW_a, dW_b, config)
+        torch.manual_seed(99)
+        r2 = strategy.merge(dW_a, dW_b, config)
+        torch.testing.assert_close(r1, r2)
+
+
+# ---------------------------------------------------------------------------
+# Updated factory tests
+# ---------------------------------------------------------------------------
+
+
+class TestGetStrategyExtended:
+    def test_dare_linear(self):
+        s = get_strategy("dare_linear")
+        assert isinstance(s, DARELinearMerge)
+
+    def test_dare_ties(self):
+        s = get_strategy("dare_ties")
+        assert isinstance(s, DARETIESMerge)

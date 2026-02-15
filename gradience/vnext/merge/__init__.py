@@ -59,6 +59,8 @@ from gradience.vnext.merge.strategies import (
     MergeStrategy,
     LinearMerge,
     TIESMerge,
+    DARELinearMerge,
+    DARETIESMerge,
     get_strategy,
 )
 from gradience.vnext.merge.refactor import refactor_to_lora
@@ -99,6 +101,8 @@ __all__ = [
     "MergeStrategy",
     "LinearMerge",
     "TIESMerge",
+    "DARELinearMerge",
+    "DARETIESMerge",
     "get_strategy",
     # Phase 2 — SVD refactoring
     "refactor_to_lora",

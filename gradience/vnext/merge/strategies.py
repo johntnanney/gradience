@@ -264,12 +264,124 @@ class TIESMerge(MergeStrategy):
 
 
 # ---------------------------------------------------------------------------
+# DARE helpers
+# ---------------------------------------------------------------------------
+
+
+def _dare_dropout(task_vector: Tensor, drop_fraction: float) -> Tensor:
+    """Randomly drop parameters and rescale survivors by 1/(1-p).
+
+    Implements the DARE (Drop And REscale) sparsification from
+    Yu et al., 2023 ("Language Models are Super Mario").
+
+    Parameters
+    ----------
+    task_vector : tensor of any shape
+    drop_fraction : probability of dropping each parameter (0 = no drop, 1 = all dropped)
+
+    Returns
+    -------
+    Sparsified and rescaled tensor with same shape.
+    """
+    if drop_fraction <= 0.0:
+        return task_vector.clone()
+    if drop_fraction >= 1.0:
+        return torch.zeros_like(task_vector)
+
+    # Bernoulli mask: 1 = keep, 0 = drop
+    mask = torch.bernoulli(torch.full_like(task_vector, 1.0 - drop_fraction))
+    # Rescale kept values so E[output] = input
+    rescale = 1.0 / (1.0 - drop_fraction)
+    return task_vector * mask * rescale
+
+
+# ---------------------------------------------------------------------------
+# DARE-Linear merge
+# ---------------------------------------------------------------------------
+
+
+class DARELinearMerge(MergeStrategy):
+    """DARE + Linear: random dropout with rescaling, then weighted average.
+
+    For each task vector:
+    1. Randomly drop parameters with probability ``trim_fraction``
+    2. Rescale surviving parameters by ``1 / (1 - trim_fraction)``
+    3. Weighted linear combination of the sparsified task vectors
+
+    This reduces parameter interference while preserving the expected
+    value of the merged output (Yu et al., 2023).
+
+    When ``trim_fraction=0.0``, this is identical to ``LinearMerge``.
+    """
+
+    def merge(
+        self,
+        dW_a: Tensor,
+        dW_b: Tensor,
+        config: LayerMergeConfig,
+    ) -> Tensor:
+        coeff_a, coeff_b = config.coefficients
+        drop_fraction = config.trim_fraction
+
+        # DARE sparsification
+        sparse_a = _dare_dropout(dW_a, drop_fraction)
+        sparse_b = _dare_dropout(dW_b, drop_fraction)
+
+        # Linear combination
+        return coeff_a * sparse_a + coeff_b * sparse_b
+
+
+# ---------------------------------------------------------------------------
+# DARE-TIES merge
+# ---------------------------------------------------------------------------
+
+
+class DARETIESMerge(MergeStrategy):
+    """DARE + TIES: random dropout with rescaling, then TIES pipeline.
+
+    For each task vector:
+    1. DARE: randomly drop with probability ``trim_fraction``, rescale by ``1/(1-p)``
+    2. TIES: elect majority sign across sparsified task vectors
+    3. TIES: disjoint mean of values agreeing with elected sign
+
+    Note: ``trim_fraction`` controls the DARE dropout probability.  The TIES
+    magnitude trim step is *not* applied separately -- DARE sparsification
+    replaces it.  This follows the DARE-TIES formulation from Yu et al. (2023).
+
+    When ``trim_fraction=0.0``, this is identical to ``TIESMerge`` with no trim.
+    """
+
+    def merge(
+        self,
+        dW_a: Tensor,
+        dW_b: Tensor,
+        config: LayerMergeConfig,
+    ) -> Tensor:
+        coeff_a, coeff_b = config.coefficients
+        drop_fraction = config.trim_fraction
+
+        # Scale by coefficients
+        tv_a = coeff_a * dW_a
+        tv_b = coeff_b * dW_b
+
+        # DARE sparsification (replaces TIES magnitude trim)
+        tv_a_sparse = _dare_dropout(tv_a, drop_fraction)
+        tv_b_sparse = _dare_dropout(tv_b, drop_fraction)
+
+        # TIES: elect sign + disjoint mean
+        elected = _elect_sign([tv_a_sparse, tv_b_sparse])
+        return _disjoint_mean([tv_a_sparse, tv_b_sparse], elected)
+
+
+# ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
 
 _STRATEGIES = {
     "linear": LinearMerge,
     "ties": TIESMerge,
+    "dare_linear": DARELinearMerge,
+    "dare_ties": DARETIESMerge,
 }
 
 
@@ -278,7 +390,7 @@ def get_strategy(name: str) -> MergeStrategy:
 
     Parameters
     ----------
-    name : ``"linear"`` or ``"ties"``
+    name : ``"linear"``, ``"ties"``, ``"dare_linear"``, or ``"dare_ties"``
 
     Returns
     -------
