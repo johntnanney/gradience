@@ -175,9 +175,11 @@ def run_evaluations(
     output_dir: Path,
     max_samples: int = 500,
     device: str = "cuda",
+    template_mode: str = "custom",
 ) -> List[Dict[str, Any]]:
     """Evaluate all adapters on both MNLI and QNLI."""
     print("\n--- Phase 4: Evaluating adapters ---")
+    print(f"  Template mode: {template_mode}")
 
     # Import evaluate module from this directory
     sys.path.insert(0, str(Path(__file__).parent))
@@ -207,6 +209,7 @@ def run_evaluations(
                 dataset_name=dataset,
                 max_samples=max_samples,
                 device=device,
+                template_mode=template_mode,
             )
             result["adapter_name"] = adapter_name
 
@@ -293,14 +296,26 @@ def main():
     parser.add_argument(
         "--adapter-a-repo",
         type=str,
-        required=True,
-        help="HuggingFace repo for MNLI adapter",
+        default=None,
+        help="HuggingFace repo for MNLI adapter (or use --adapter-a-dir)",
     )
     parser.add_argument(
         "--adapter-b-repo",
         type=str,
-        required=True,
-        help="HuggingFace repo for QNLI adapter",
+        default=None,
+        help="HuggingFace repo for QNLI adapter (or use --adapter-b-dir)",
+    )
+    parser.add_argument(
+        "--adapter-a-dir",
+        type=str,
+        default=None,
+        help="Local path to MNLI adapter (alternative to --adapter-a-repo)",
+    )
+    parser.add_argument(
+        "--adapter-b-dir",
+        type=str,
+        default=None,
+        help="Local path to QNLI adapter (alternative to --adapter-b-repo)",
     )
     parser.add_argument(
         "--output-rank",
@@ -328,12 +343,28 @@ def main():
         help="Device for evaluation (default: cuda)",
     )
     parser.add_argument(
+        "--template-mode",
+        type=str,
+        default="custom",
+        choices=["predibase", "custom"],
+        help="Prompt template mode for evaluation (default: custom)",
+    )
+    parser.add_argument(
         "--skip-eval",
         action="store_true",
         help="Skip evaluation phase (only audit + merge)",
     )
 
     args = parser.parse_args()
+
+    # Validate adapter source: must provide either repo pair or dir pair
+    use_local = args.adapter_a_dir is not None and args.adapter_b_dir is not None
+    use_remote = args.adapter_a_repo is not None and args.adapter_b_repo is not None
+    if not use_local and not use_remote:
+        parser.error(
+            "Provide either --adapter-a-dir/--adapter-b-dir "
+            "OR --adapter-a-repo/--adapter-b-repo"
+        )
 
     workspace = Path(args.workspace)
     workspace.mkdir(parents=True, exist_ok=True)
@@ -345,10 +376,17 @@ def main():
     print("  Merge Execution & Validation Experiment")
     print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Workspace: {workspace}")
+    print(f"  Template mode: {args.template_mode}")
     print("=" * 70)
 
-    # Phase 1: Download
-    adapter_a_dir, adapter_b_dir = download_adapters(args)
+    # Phase 1: Get adapters (download from Hub or use local paths)
+    if use_local:
+        adapter_a_dir = Path(args.adapter_a_dir)
+        adapter_b_dir = Path(args.adapter_b_dir)
+        print(f"\n  Using local adapter A: {adapter_a_dir}")
+        print(f"  Using local adapter B: {adapter_b_dir}")
+    else:
+        adapter_a_dir, adapter_b_dir = download_adapters(args)
 
     # Phase 2: Audit
     report = run_audit(adapter_a_dir, adapter_b_dir, output_dir)
@@ -370,6 +408,7 @@ def main():
             output_dir=output_dir,
             max_samples=args.max_eval_samples,
             device=args.device,
+            template_mode=args.template_mode,
         )
 
         # Phase 5: Collect

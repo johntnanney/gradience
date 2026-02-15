@@ -21,10 +21,40 @@ Usage::
 from __future__ import annotations
 
 import re
+from typing import Literal
+
+TemplateMode = Literal["predibase", "custom"]
 
 
 # ---------------------------------------------------------------------------
-# MNLI prompts
+# Predibase templates (numeric output — from lora_bakeoff metadata.yaml)
+# ---------------------------------------------------------------------------
+
+_PREDIBASE_MNLI_TEMPLATE = (
+    "You are given a premise and a hypothesis below. If the premise entails the "
+    "hypothesis, return 0. If the premise contradicts the hypothesis, return 2. "
+    "Otherwise, if the premise does neither, return 1.\n\n"
+    "### Premise: {premise}\n\n"
+    "### Hypothesis: {hypothesis}\n\n"
+    "### Label: "
+)
+
+_PREDIBASE_QNLI_TEMPLATE = (
+    "You are provided a question and a corresponding response below. If the "
+    "response properly answers the question, please return 0. Otherwise, please "
+    "return 1.\n\n"
+    "### Question: {question}\n\n"
+    "### Response: {sentence}\n\n"
+    "### Label: "
+)
+
+# Numeric → word label maps for Predibase output parsing
+_PREDIBASE_MNLI_MAP = {0: "entailment", 1: "neutral", 2: "contradiction"}
+_PREDIBASE_QNLI_MAP = {0: "entailment", 1: "not_entailment"}
+
+
+# ---------------------------------------------------------------------------
+# Custom templates (word-label output — for self-trained adapters)
 # ---------------------------------------------------------------------------
 
 _MNLI_TEMPLATE = """Classify the relationship between the premise and hypothesis.
@@ -58,6 +88,7 @@ def format_mnli_prompt(
     premise: str,
     hypothesis: str,
     few_shot: bool = True,
+    template_mode: TemplateMode = "custom",
 ) -> str:
     """Format an MNLI example as a prompted NLI task.
 
@@ -65,12 +96,17 @@ def format_mnli_prompt(
     ----------
     premise : the premise text
     hypothesis : the hypothesis text
-    few_shot : if True, include 3-shot examples (recommended)
+    few_shot : if True, include 3-shot examples (ignored for predibase mode)
+    template_mode : "predibase" for numeric output, "custom" for word labels
 
     Returns
     -------
     Formatted prompt string ready for causal LM generation.
     """
+    if template_mode == "predibase":
+        return _PREDIBASE_MNLI_TEMPLATE.format(
+            premise=premise.strip(), hypothesis=hypothesis.strip()
+        )
     template = _MNLI_FEW_SHOT if few_shot else _MNLI_TEMPLATE
     return template.format(premise=premise.strip(), hypothesis=hypothesis.strip())
 
@@ -106,6 +142,7 @@ def format_qnli_prompt(
     question: str,
     sentence: str,
     few_shot: bool = True,
+    template_mode: TemplateMode = "custom",
 ) -> str:
     """Format a QNLI example as a prompted entailment task.
 
@@ -113,12 +150,17 @@ def format_qnli_prompt(
     ----------
     question : the question text
     sentence : the candidate answer sentence
-    few_shot : if True, include 2-shot examples (recommended)
+    few_shot : if True, include 2-shot examples (ignored for predibase mode)
+    template_mode : "predibase" for numeric output, "custom" for word labels
 
     Returns
     -------
     Formatted prompt string ready for causal LM generation.
     """
+    if template_mode == "predibase":
+        return _PREDIBASE_QNLI_TEMPLATE.format(
+            question=question.strip(), sentence=sentence.strip()
+        )
     template = _QNLI_FEW_SHOT if few_shot else _QNLI_TEMPLATE
     return template.format(question=question.strip(), sentence=sentence.strip())
 
@@ -165,5 +207,34 @@ def parse_nli_response(response: str) -> str:
         return "neutral"
     if "entailment" in text:
         return "entailment"
+
+    return "unknown"
+
+
+def parse_nli_response_numeric(response: str, task: str) -> str:
+    """Extract an NLI label from numeric output (Predibase-style adapters).
+
+    Predibase adapters output digits (0/1/2) instead of word labels.
+    This parser extracts the first digit and maps it to a canonical label.
+
+    Parameters
+    ----------
+    response : raw generated text from the model
+    task : "mnli" or "qnli" — determines the digit→label mapping
+
+    Returns
+    -------
+    Canonical lowercase label string, or "unknown" if no valid digit found.
+    """
+    label_map = _PREDIBASE_MNLI_MAP if task == "mnli" else _PREDIBASE_QNLI_MAP
+    text = response.strip()
+
+    # Extract first digit character
+    for ch in text:
+        if ch.isdigit():
+            num = int(ch)
+            if num in label_map:
+                return label_map[num]
+            break  # found a digit but it's out of range
 
     return "unknown"

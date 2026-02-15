@@ -40,6 +40,7 @@ from prompt_templates import (
     format_mnli_prompt,
     format_qnli_prompt,
     parse_nli_response,
+    parse_nli_response_numeric,
 )
 
 
@@ -113,6 +114,7 @@ def evaluate_nli(
     device: str = "cuda",
     dtype: str = "float16",
     max_new_tokens: int = 5,
+    template_mode: str = "custom",
 ) -> Dict[str, Any]:
     """Evaluate an adapter (or base model) on NLI via prompted generation.
 
@@ -126,11 +128,16 @@ def evaluate_nli(
     device : "cuda" or "cpu"
     dtype : "float16" or "bfloat16"
     max_new_tokens : max tokens to generate per example
+    template_mode : "predibase" for numeric output, "custom" for word labels
 
     Returns
     -------
     Dict with accuracy, per-example predictions, and metadata.
     """
+    # Predibase outputs single digits — fewer tokens needed
+    if template_mode == "predibase" and max_new_tokens > 3:
+        max_new_tokens = 3
+
     # Load model
     model, tokenizer = load_model_and_tokenizer(
         base_model_name, adapter_dir, device, dtype
@@ -158,12 +165,18 @@ def evaluate_nli(
     start_time = time.monotonic()
 
     for i, example in enumerate(ds):
-        # Format prompt
+        # Format prompt (mode-aware)
         if dataset_name == "mnli":
-            prompt = format_mnli_prompt(example["premise"], example["hypothesis"])
+            prompt = format_mnli_prompt(
+                example["premise"], example["hypothesis"],
+                template_mode=template_mode,
+            )
             gold_label = label_map[example["label"]]
         else:  # qnli
-            prompt = format_qnli_prompt(example["question"], example["sentence"])
+            prompt = format_qnli_prompt(
+                example["question"], example["sentence"],
+                template_mode=template_mode,
+            )
             gold_label = label_map[example["label"]]
 
         # Generate
@@ -182,8 +195,11 @@ def evaluate_nli(
         generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
         response = tokenizer.decode(generated_ids, skip_special_tokens=True)
 
-        # Parse label
-        predicted_label = parse_nli_response(response)
+        # Parse label (mode-aware)
+        if template_mode == "predibase":
+            predicted_label = parse_nli_response_numeric(response, task=dataset_name)
+        else:
+            predicted_label = parse_nli_response(response)
         is_correct = predicted_label == gold_label
         if is_correct:
             correct += 1
@@ -222,6 +238,7 @@ def evaluate_nli(
         "total_time_seconds": round(total_time, 1),
         "base_model": base_model_name,
         "adapter_dir": adapter_dir,
+        "template_mode": template_mode,
         "prediction_distribution": pred_dist,
         "predictions": predictions,
     }
@@ -237,6 +254,48 @@ def evaluate_nli(
         torch.cuda.empty_cache()
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Quick validation (for template discovery timebox)
+# ---------------------------------------------------------------------------
+
+
+def quick_validate(
+    base_model_name: str,
+    adapter_dir: str,
+    dataset_name: str,
+    template_mode: str = "predibase",
+    n_samples: int = 100,
+    device: str = "cuda",
+    threshold: float = 0.70,
+) -> tuple:
+    """Run a fast validation and return (accuracy, passed).
+
+    Parameters
+    ----------
+    base_model_name : HuggingFace model identifier
+    adapter_dir : path to PEFT adapter directory
+    dataset_name : "mnli" or "qnli"
+    template_mode : prompt template mode
+    n_samples : number of validation samples
+    device : "cuda" or "cpu"
+    threshold : minimum accuracy to pass
+
+    Returns
+    -------
+    (accuracy, passed) where passed = accuracy >= threshold
+    """
+    result = evaluate_nli(
+        base_model_name=base_model_name,
+        adapter_dir=adapter_dir,
+        dataset_name=dataset_name,
+        max_samples=n_samples,
+        device=device,
+        template_mode=template_mode,
+    )
+    accuracy = result["accuracy"]
+    return accuracy, accuracy >= threshold
 
 
 # ---------------------------------------------------------------------------
@@ -281,6 +340,13 @@ def main():
         help="Device (default: cuda)",
     )
     parser.add_argument(
+        "--template-mode",
+        type=str,
+        default="custom",
+        choices=["predibase", "custom"],
+        help="Prompt template mode (default: custom)",
+    )
+    parser.add_argument(
         "--output",
         type=str,
         required=True,
@@ -295,6 +361,7 @@ def main():
         dataset_name=args.dataset,
         max_samples=args.max_samples,
         device=args.device,
+        template_mode=args.template_mode,
     )
 
     output_path = Path(args.output)
