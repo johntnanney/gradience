@@ -1,21 +1,23 @@
 """
-Merge Compatibility Audit — Public API.
+Merge Audit & Execution — Public API.
 
-Given two PEFT LoRA adapter directories, analyse per-layer spectral
+Phase 1 — Analysis: Given two PEFT LoRA adapters, analyse per-layer spectral
 compatibility and produce ``merge_audit.json`` / ``merge_audit.md``.
 
-Phase 1 — analysis only, no actual merging.
+Phase 2 — Execution: Generate a merge plan from the audit report, then
+execute the plan to produce a PEFT-compatible merged adapter.
 
 Quick-start::
 
-    from gradience.vnext.merge import merge_audit
+    from gradience.vnext.merge import merge_audit, plan_from_audit, execute_merge
 
-    report = merge_audit(
-        adapter_a_dir="./adapter_a",
-        adapter_b_dir="./adapter_b",
-        output_dir="./merge_output",
-    )
-    print(report.aggregate["overall_verdict"])  # "safe" | "conflicting" | ...
+    # Phase 1: Audit
+    report = merge_audit("./adapter_a", "./adapter_b")
+
+    # Phase 2: Plan + Execute
+    plan = plan_from_audit("audit_aware", report, "./adapter_a", "./adapter_b")
+    result = execute_merge(plan, "./merged_adapter")
+    print(f"Reconstruction error: {result.mean_reconstruction_error:.4f}")
 """
 
 from __future__ import annotations
@@ -51,17 +53,37 @@ from gradience.vnext.merge.verdicts import (
     assess_overall,
 )
 
+# Phase 2 — merge execution
+from gradience.vnext.merge.strategies import (
+    LayerMergeConfig,
+    MergeStrategy,
+    LinearMerge,
+    TIESMerge,
+    get_strategy,
+)
+from gradience.vnext.merge.refactor import refactor_to_lora
+from gradience.vnext.merge.plan import (
+    MergePlan,
+    plan_from_audit,
+    PLAN_STRATEGIES,
+)
+from gradience.vnext.merge.executor import (
+    MergeResult,
+    LayerMergeResult,
+    execute_merge,
+)
+
 __all__ = [
-    # Orchestrator
+    # Phase 1 — Audit orchestrator
     "merge_audit",
-    # Data structures
+    # Phase 1 — Data structures
     "AdapterInfo",
     "SubspaceMetrics",
     "CompatibilityVerdict",
     "LayerVerdict",
     "VerdictThresholds",
     "MergeAuditReport",
-    # Helpers (for advanced use)
+    # Phase 1 — Helpers
     "load_adapter",
     "match_layers",
     "extract_factors",
@@ -72,6 +94,22 @@ __all__ = [
     "to_json",
     "to_markdown",
     "write_reports",
+    # Phase 2 — Merge strategies
+    "LayerMergeConfig",
+    "MergeStrategy",
+    "LinearMerge",
+    "TIESMerge",
+    "get_strategy",
+    # Phase 2 — SVD refactoring
+    "refactor_to_lora",
+    # Phase 2 — Planning
+    "MergePlan",
+    "plan_from_audit",
+    "PLAN_STRATEGIES",
+    # Phase 2 — Execution
+    "MergeResult",
+    "LayerMergeResult",
+    "execute_merge",
 ]
 
 

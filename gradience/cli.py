@@ -2126,6 +2126,155 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# merge-plan
+# ---------------------------------------------------------------------------
+
+def cmd_merge_plan(args: argparse.Namespace) -> None:
+    """Generate a merge plan from two PEFT LoRA adapters."""
+    adapter_a = getattr(args, "adapter_a", None)
+    adapter_b = getattr(args, "adapter_b", None)
+    strategy = getattr(args, "strategy", "uniform_linear")
+    output_dir = getattr(args, "output_dir", None)
+    output_rank = int(getattr(args, "output_rank", 8))
+    output_alpha = float(getattr(args, "output_alpha", 16.0))
+    verbose = getattr(args, "verbose", False)
+
+    if not adapter_a or not adapter_b:
+        print("Error: --adapter-a and --adapter-b are both required")
+        sys.exit(1)
+
+    for label, path_str in [("adapter-a", adapter_a), ("adapter-b", adapter_b)]:
+        p = Path(path_str)
+        if not p.is_dir():
+            print(f"Error: --{label} path does not exist or is not a directory: {p}")
+            sys.exit(1)
+
+    if output_dir is None:
+        print("Error: --output-dir is required")
+        sys.exit(1)
+
+    try:
+        from gradience.vnext.merge import merge_audit, plan_from_audit, PLAN_STRATEGIES
+    except ImportError as e:
+        print(f"Error: Failed to import merge modules: {e}")
+        sys.exit(1)
+
+    if strategy not in PLAN_STRATEGIES:
+        print(f"Error: Unknown strategy '{strategy}'. Available: {sorted(PLAN_STRATEGIES.keys())}")
+        sys.exit(1)
+
+    # Step 1: Run merge audit
+    if verbose:
+        print("Running merge audit...")
+    try:
+        report = merge_audit(
+            adapter_a_dir=adapter_a,
+            adapter_b_dir=adapter_b,
+            verbose=verbose,
+        )
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error during audit: {e}")
+        sys.exit(1)
+
+    # Step 2: Generate plan
+    if verbose:
+        print(f"\nGenerating merge plan (strategy={strategy})...")
+
+    kwargs: Dict[str, Any] = {
+        "output_rank": output_rank,
+        "output_alpha": output_alpha,
+    }
+    plan = plan_from_audit(strategy, report, adapter_a, adapter_b, **kwargs)
+
+    # Step 3: Write plan
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    plan_path = out / "merge_plan.json"
+    plan.to_json(plan_path)
+
+    print(f"\nMerge plan generated:")
+    print(f"  Strategy: {plan.strategy_name}")
+    print(f"  Layers: {len(plan.layer_configs)}")
+    print(f"  Output rank: {plan.output_rank}")
+    print(f"  Output alpha: {plan.output_alpha}")
+    print(f"  Plan file: {plan_path}")
+    print(f"\nTo execute: gradience merge --plan {plan_path} --output-dir <DIR>")
+
+
+# ---------------------------------------------------------------------------
+# merge
+# ---------------------------------------------------------------------------
+
+def cmd_merge(args: argparse.Namespace) -> None:
+    """Execute a merge plan to produce a PEFT-compatible adapter."""
+    plan_path = getattr(args, "plan", None)
+    output_dir = getattr(args, "output_dir", None)
+    compute_dtype = getattr(args, "compute_dtype", "float64")
+    verbose = getattr(args, "verbose", False)
+
+    if not plan_path:
+        print("Error: --plan is required")
+        sys.exit(1)
+
+    p = Path(plan_path)
+    if not p.is_file():
+        print(f"Error: Plan file not found: {p}")
+        sys.exit(1)
+
+    if output_dir is None:
+        print("Error: --output-dir is required")
+        sys.exit(1)
+
+    try:
+        from gradience.vnext.merge import MergePlan, execute_merge
+    except ImportError as e:
+        print(f"Error: Failed to import merge modules: {e}")
+        sys.exit(1)
+
+    # Load plan
+    try:
+        plan = MergePlan.from_json(p)
+    except (json.JSONDecodeError, KeyError, ValueError) as e:
+        print(f"Error: Failed to parse merge plan: {e}")
+        sys.exit(1)
+
+    if verbose:
+        print(f"Plan: {plan.strategy_name}")
+        print(f"  Adapter A: {plan.adapter_a_dir}")
+        print(f"  Adapter B: {plan.adapter_b_dir}")
+        print(f"  Layers: {len(plan.layer_configs)}")
+        print(f"  Output rank: {plan.output_rank}")
+
+    # Execute merge
+    try:
+        result = execute_merge(
+            plan,
+            output_dir,
+            compute_dtype=compute_dtype,
+            verbose=verbose,
+        )
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error during merge: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Merge failed: {e}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+    print(f"\nMerge complete:")
+    print(f"  Output: {result.output_dir}")
+    print(f"  Mean reconstruction error: {result.mean_reconstruction_error:.4f}")
+    print(f"  Max reconstruction error: {result.max_reconstruction_error:.4f}")
+    print(f"  Time: {result.total_time_seconds:.1f}s")
+    print(f"\nOutput files:")
+    print(f"  {result.output_dir / 'adapter_config.json'}")
+    print(f"  {result.output_dir / 'adapter_model.safetensors'}")
+    print(f"  {result.output_dir / 'merge_result.json'}")
+
+
+# ---------------------------------------------------------------------------
 # explain
 # ---------------------------------------------------------------------------
 
@@ -2629,6 +2778,85 @@ def main() -> None:
         help="Show per-layer analysis table and progress",
     )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
+
+    # merge-plan
+    merge_plan_parser = subparsers.add_parser(
+        "merge-plan",
+        help="Generate a merge plan from two PEFT LoRA adapters",
+    )
+    merge_plan_parser.add_argument(
+        "--adapter-a",
+        type=str,
+        required=True,
+        help="Path to the first PEFT adapter directory",
+    )
+    merge_plan_parser.add_argument(
+        "--adapter-b",
+        type=str,
+        required=True,
+        help="Path to the second PEFT adapter directory",
+    )
+    merge_plan_parser.add_argument(
+        "--strategy",
+        type=str,
+        default="uniform_linear",
+        choices=["uniform_linear", "audit_aware", "overlap_ties"],
+        help="Merge planning strategy (default: uniform_linear)",
+    )
+    merge_plan_parser.add_argument(
+        "--output-rank",
+        type=int,
+        default=8,
+        help="Target rank for the merged LoRA adapter (default: 8)",
+    )
+    merge_plan_parser.add_argument(
+        "--output-alpha",
+        type=float,
+        default=16.0,
+        help="LoRA alpha for the merged adapter (default: 16.0)",
+    )
+    merge_plan_parser.add_argument(
+        "--output-dir",
+        type=str,
+        required=True,
+        help="Directory to write merge_plan.json",
+    )
+    merge_plan_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show progress during audit and planning",
+    )
+    merge_plan_parser.set_defaults(func=cmd_merge_plan)
+
+    # merge
+    merge_parser = subparsers.add_parser(
+        "merge",
+        help="Execute a merge plan to produce a PEFT-compatible adapter",
+    )
+    merge_parser.add_argument(
+        "--plan",
+        type=str,
+        required=True,
+        help="Path to merge_plan.json file",
+    )
+    merge_parser.add_argument(
+        "--output-dir",
+        type=str,
+        required=True,
+        help="Directory to write merged adapter",
+    )
+    merge_parser.add_argument(
+        "--compute-dtype",
+        choices=["float64", "float32", "fp64", "fp32"],
+        default="float64",
+        help="Precision for SVD computation (default: float64)",
+    )
+    merge_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show per-layer progress during merge",
+    )
+    merge_parser.set_defaults(func=cmd_merge)
 
     # explain
     explain_parser = subparsers.add_parser(
