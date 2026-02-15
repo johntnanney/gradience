@@ -19,40 +19,33 @@
 
 ### Quick Install
 ```bash
-# Core package (audit, monitor, compress)
+# Core package — includes torch + safetensors (audit, monitor, merge-audit)
 pip install gradience
 
-# Full benchmarking suite (includes transformers, datasets, peft)  
+# Full benchmarking suite — adds transformers, datasets, peft
 pip install "gradience[bench]"
 
 # Development tools
 pip install "gradience[dev]"
 ```
 
-### PyTorch Installation (Important)
+### PyTorch Variant Selection (Optional)
 
-**For CPU-only usage:**
+`pip install gradience` auto-installs a default PyTorch build. To use a specific variant (CPU-only or a particular CUDA version), install PyTorch **before** Gradience:
+
 ```bash
-# Install PyTorch CPU first (recommended)
+# CPU-only (smaller download)
 pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install "gradience[bench]"
-```
+pip install gradience
 
-**For CUDA GPU usage:**
-```bash
-# Install PyTorch with CUDA support first (replace cu121 with your CUDA version)
+# CUDA 12.1
 pip install torch --index-url https://download.pytorch.org/whl/cu121
-pip install "gradience[bench]"
+pip install gradience
 ```
 
-**Auto PyTorch (may not choose optimal version):**
-```bash
-pip install "gradience[bench]"  # Will install PyTorch automatically
-```
+💡 **Common Issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you need the bench extras. **Fix**: `pip install "gradience[bench]"`
 
-💡 **Common Issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you installed the base package. **Fix**: `pip install "gradience[bench]"`
-
-📖 **[Complete Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** - GPU setup, RunPod, troubleshooting, cache configuration
+📖 **[Complete Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** - GPU setup, RunPod, troubleshooting, cache configuration
 
 ## Verify installation (10 seconds)
 
@@ -272,8 +265,8 @@ runtime:
 ## Requirements
 
 - **Python 3.10+**
-- **PyTorch** (install separately or via `[bench]` extra)  
-- **Optional**: transformers, peft, datasets (for benchmarking)
+- **PyTorch** and **safetensors** (auto-installed with `pip install gradience`)
+- **Optional**: transformers, peft, datasets (for benchmarking via `pip install "gradience[bench]"`)
 
 ## Performance
 

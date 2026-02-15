@@ -5,15 +5,15 @@
 ## TL;DR - Quick Install
 
 ```bash
-# Core package (audit, monitor, compress)
+# Core package — includes torch + safetensors (audit, monitor, merge-audit)
 pip install gradience
 
-# Full ML stack (recommended for most users)
+# Full ML stack — adds transformers, datasets, peft (recommended for benchmarking)
 pip install "gradience[bench]"
 
-# With separate PyTorch (advanced users)
-pip install torch torchvision torchaudio  # from pytorch.org
-pip install "gradience[bench]"
+# Pre-select a specific PyTorch variant, then install Gradience
+pip install torch --index-url https://download.pytorch.org/whl/cpu  # or cu121
+pip install gradience
 ```
 
 ## Supported Environments
@@ -39,27 +39,34 @@ pip install "gradience[bench]"
 ### Method 1: Standard Install (Recommended)
 
 ```bash
-# Install with full benchmarking capabilities
+# Install core — includes torch + safetensors for audit/merge-audit
+pip install gradience
+
+# Or install with full benchmarking capabilities
 pip install "gradience[bench]"
 
 # Verify installation
 gradience --help           # Should complete in <3 seconds
-gradience-bench --help     # Should complete in <15 seconds (first run)
+gradience-bench --help     # Should complete in <15 seconds (first run, with [bench])
 ```
 
-**What you get:**
-- Core Gradience tools (audit, monitor, compress)
+**What you get with core:**
+- Spectral audit, merge-audit, monitor, compress
+- PyTorch + safetensors (auto-installed)
+
+**What [bench] adds:**
 - HuggingFace integration (transformers, peft, datasets)
-- CPU-compatible PyTorch (will work on any machine)
+- Benchmarking protocol and evaluation
 
 ### Method 2: CPU-Only Install
 
 ```bash
-# Install CPU-only PyTorch first
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Pre-install CPU-only PyTorch (smaller download)
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# Then install Gradience
-pip install "gradience[bench]"
+# Then install Gradience (will skip PyTorch since it's already present)
+pip install gradience            # core only
+pip install "gradience[bench]"   # or with bench extras
 ```
 
 **When to use:**
@@ -73,13 +80,13 @@ pip install "gradience[bench]"
 #### CUDA (Nvidia)
 
 ```bash
-# For CUDA 12.1 (most common)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Pre-install PyTorch with CUDA 12.1 (most common)
+pip install torch --index-url https://download.pytorch.org/whl/cu121
 
-# For CUDA 11.8 (older systems)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Or CUDA 11.8 (older systems)
+pip install torch --index-url https://download.pytorch.org/whl/cu118
 
-# Then install Gradience
+# Then install Gradience (skips PyTorch since it's already present)
 pip install "gradience[bench]"
 
 # Verify GPU detection

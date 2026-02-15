@@ -251,7 +251,12 @@ def main() -> int:
     print()
 
     # Import heavy dependencies only when actually running (not for --help)
-    from .protocol import run_bench_protocol
+    try:
+        from .protocol import run_bench_protocol
+    except ImportError as e:
+        print(f"\nMissing bench dependencies: {e}")
+        print('Install with: pip install "gradience[bench]"')
+        sys.exit(1)
     
     try:
         # Handle device override by modifying config temporarily

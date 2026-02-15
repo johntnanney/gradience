@@ -43,11 +43,17 @@ jobs:
         gradience --help
         echo "✅ gradience --help completed"
         
-    - name: Verify minimal dependencies
+    - name: Verify dependency split
       run: |
-        # Should only have core deps, no torch/transformers
-        pip list | grep -E "^(torch|transformers)" && exit 1 || echo "✅ No heavy ML deps in base install"
-        pip list | grep -E "^(pyyaml|numpy|packaging|rich)" && echo "✅ Core deps present"
+        # torch and safetensors should be present in base install
+        pip list | grep -E "^torch " || (echo "❌ torch missing from base install" && exit 1)
+        pip list | grep -E "^safetensors " || (echo "❌ safetensors missing from base install" && exit 1)
+        echo "✅ Core ML deps (torch, safetensors) present"
+        # Bench deps should NOT be in base install
+        pip list | grep -E "^(transformers|peft|datasets) " && (echo "❌ Bench deps found in base install" && exit 1) || true
+        echo "✅ No bench deps (transformers, peft, datasets) in base install"
+        # Other core deps should be present
+        pip list | grep -E "^(PyYAML|numpy|packaging|rich)" && echo "✅ Core deps present"
 
   bench-extras:
     name: "B. Bench Extras Test"
@@ -69,7 +75,7 @@ jobs:
     - name: Install bench extras
       run: |
         python -m pip install --upgrade pip
-        # Install with CPU-only torch to avoid GPU requirements
+        # Pre-install CPU-only torch to avoid downloading GPU wheels
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         pip install ".[bench]"
         
@@ -259,7 +265,7 @@ jobs:
         timeout 3s gradience --help || (echo "❌ gradience --help took >3s" && exit 1)
         echo "✅ gradience --help completed within 3s"
         
-        # Install bench extras for bench test
+        # Install bench extras for bench test (torch already present from base install)
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         pip install ".[bench]"
         
