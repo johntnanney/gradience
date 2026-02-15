@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gradience"
-version = "0.9.4"
+version = "0.9.6"
 description = "Audit-driven LoRA compression with transparent decision traces and statistical validation"
 readme = "README.md"
 license = "Apache-2.0"
@@ -28,6 +28,8 @@ dependencies = [
   "numpy>=1.24.0",   # Core numerical operations (lightweight)
   "packaging",       # For version parsing and compatibility
   "rich>=10.0.0",    # Pretty CLI output and progress bars
+  "torch>=2.0.0",    # Core: spectral audit, merge-audit, LoRA weight math
+  "safetensors>=0.4.0",  # Core: safe model weight loading
   "typing_extensions>=4.0.0; python_version < '3.11'",  # NotRequired for TypedDicts
 ]
 
@@ -39,29 +41,26 @@ Documentation = "https://github.com/johntnanney/gradience#readme"
 
 [project.optional-dependencies]
 # Benchmarking suite - for running compression validation benchmarks
-# NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
-# Then: pip install gradience[bench]
+# Install with: pip install "gradience[bench]"
 bench = [
   "transformers>=4.35.0,<5",
   "peft>=0.7.0,<1",
   "datasets>=2.14.0",
-  "safetensors>=0.4.0",
   "accelerate>=0.20.0",
+  "evaluate>=0.4.0",         # For benchmark metrics
   "sentencepiece>=0.1.99",
   "protobuf>=3.20.0",
-  "scikit-learn>=1.3.0",   # For metrics
-  "pandas>=2.0.0",         # For data analysis
+  "scikit-learn>=1.3.0",     # For metrics
+  "pandas>=2.0.0",           # For data analysis
 ]
 
 # Hugging Face integration only (lighter than full bench)
-# NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
-# Then: pip install gradience[hf]
+# Install with: pip install "gradience[hf]"
 hf = [
   "transformers>=4.35.0,<5",
   "peft>=0.7.0,<1",
-  "safetensors>=0.4.0",
-  "sentencepiece>=0.1.99",  # For tokenizers
-  "protobuf>=3.20.0",       # For tokenizers
+  "sentencepiece>=0.1.99",   # For tokenizers
+  "protobuf>=3.20.0",        # For tokenizers
 ]
 
 # Development tools - for contributors
@@ -84,8 +83,7 @@ fast = [
 ]
 
 # All optional dependencies for full functionality
-# NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
-# Then: pip install gradience[all]
+# Install with: pip install "gradience[all]"
 all = [
   "gradience[bench,hf,dev,fast]",
 ]

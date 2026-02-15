@@ -82,6 +82,7 @@ from gradience.bench.preflight import (  # noqa: F401
 )
 
 from gradience.bench.config_schema import validate_config  # noqa: F401
+from gradience.bench.model_setup import HAS_TRAINING_DEPS  # noqa: F401
 
 from gradience.bench.task_profiles import get_task_profile_from_config  # noqa: F401
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir  # noqa: F401
@@ -203,8 +204,11 @@ def load_config(config_path: str | Path) -> Dict[str, Any]:
 def setup_dataset(config: Dict[str, Any], smoke: bool = False):
     """Load and prepare dataset based on config using task profile."""
     if not HAS_TRAINING_DEPS:
-        raise ImportError("Training dependencies not available (transformers, datasets, peft)")
-    
+        raise ImportError(
+            'Bench dependencies not available (transformers, datasets, peft). '
+            'Install with: pip install "gradience[bench]"'
+        )
+
     # Get task profile for this configuration
     task_profile = get_task_profile_from_config(config)
     
@@ -228,8 +232,11 @@ def setup_dataset(config: Dict[str, Any], smoke: bool = False):
 def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
     """Setup base model, tokenizer, and LoRA configuration."""
     if not HAS_TRAINING_DEPS:
-        raise ImportError("Training dependencies not available (transformers, peft)")
-    
+        raise ImportError(
+            'Bench dependencies not available (transformers, peft). '
+            'Install with: pip install "gradience[bench]"'
+        )
+
     model_config = config["model"]
     model_name = model_config["name"]
     model_type = model_config.get("type", "seqcls")  # Default to sequence classification
@@ -292,7 +299,10 @@ def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
 def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_config: Dict[str, Any], device: str = "cpu"):
     """Setup model and tokenizer with compressed LoRA configuration."""
     if not HAS_TRAINING_DEPS:
-        raise ImportError("Training dependencies not available (transformers, peft)")
+        raise ImportError(
+            'Bench dependencies not available (transformers, peft). '
+            'Install with: pip install "gradience[bench]"'
+        )
     
     model_config = config["model"]
     model_name = model_config["name"]
@@ -698,8 +708,8 @@ def run_probe_training(
     """
     if not HAS_TRAINING_DEPS:
         raise ImportError(
-            "Training dependencies not available. "
-            "Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
+            'Bench dependencies not available (transformers, peft, datasets). '
+            'Install with: pip install "gradience[bench]"'
         )
     
     # Load configuration
@@ -1171,8 +1181,8 @@ def run_compressed_variant_training(
     """
     if not HAS_TRAINING_DEPS:
         raise ImportError(
-            "Training dependencies not available. "
-            "Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
+            'Bench dependencies not available (transformers, peft, datasets). '
+            'Install with: pip install "gradience[bench]"'
         )
     
     # Load configuration

@@ -591,7 +591,7 @@ def load_adapter_state_dict(weights_path: Union[str, Path], *, map_location: str
             )
         return safetensors_load_file(str(p), device=map_location)  # type: ignore[arg-type]
 
-    obj = torch.load(str(p), map_location=map_location)
+    obj = torch.load(str(p), map_location=map_location, weights_only=True)
     if isinstance(obj, dict):
         # common patterns
         if "state_dict" in obj and isinstance(obj["state_dict"], dict):
