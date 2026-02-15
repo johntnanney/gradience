@@ -4,8 +4,8 @@ Phase 4: Evaluate all adapters via lm-evaluation-harness.
 
 Evaluates:
   - 12 individual adapters (each on its own task)
-  - 72 merged adapters (each on both constituent tasks + MMLU subset)
-  - Total: ~156 evaluation runs
+  - 54 cross-task merged adapters (6 pairs x 3 seeds x 3 weights, on both tasks)
+  - 36 calibration merged adapters (4 tasks x 3 seed-pairs x 3 weights, on own task)
 
 Output: JSON results per adapter in workspace/evals/.
 
@@ -41,13 +41,9 @@ def load_config(config_path: str, smoke: bool = False) -> dict:
     return config
 
 
-# Map M1 task eval_task names to lm-eval-harness task names
-EVAL_TASK_MAP = {
-    "sql_generation": "sql_generation",  # custom task or use exact match
-    "mmlu": "mmlu",
-    "gsm8k": "gsm8k",
-    "humaneval": "humaneval",
-}
+def _weight_label(weights: list[float]) -> str:
+    """Format weight pair as directory-safe label, e.g. 'linear_w0.5_0.5'."""
+    return f"linear_w{weights[0]}_{weights[1]}"
 
 
 def run_lm_eval(
@@ -144,9 +140,10 @@ def main():
     base_model = config["experiment"]["base_model"]
     seeds = config["experiment"]["seeds"]
     task_names = list(config["adapters"].keys())
-    methods = config["merge"]["methods"]
+    weight_grid = config["merge"]["weight_grid"]
     max_samples = config["evaluation"]["max_eval_samples"]
     device = config["runtime"]["device"]
+    calibration_enabled = config["experiment"].get("calibration_pairs", False)
 
     total_start = time.monotonic()
 
@@ -174,36 +171,63 @@ def main():
                 device=device,
             )
 
-    # --- Part B: Evaluate merged adapters on both constituent tasks + MMLU ---
-    print("\nPhase 4b: Evaluating merged adapters")
+    # --- Part B: Evaluate cross-task merged adapters on both constituent tasks ---
+    print("\nPhase 4b: Evaluating cross-task merged adapters")
     merged_eval_dir = evals_dir / "merged"
     merged_eval_dir.mkdir(parents=True, exist_ok=True)
 
     pairs = list(itertools.combinations(task_names, 2))
-    general_task = config["evaluation"]["general_capability"]
 
     for task_a, task_b in pairs:
         pair_name = f"{task_a}_{task_b}"
-        eval_tasks_for_pair = [
-            config["adapters"][task_a]["eval_task"],
-            config["adapters"][task_b]["eval_task"],
-            general_task,
-        ]
-        # Deduplicate (e.g., if one task's eval_task is already mmlu)
-        eval_tasks_for_pair = list(dict.fromkeys(eval_tasks_for_pair))
+        eval_task_a = config["adapters"][task_a]["eval_task"]
+        eval_task_b = config["adapters"][task_b]["eval_task"]
+
+        # Evaluate merged adapter on both constituent tasks
+        eval_tasks_for_pair = list(dict.fromkeys([eval_task_a, eval_task_b]))
 
         for seed in seeds:
-            for method in methods:
-                merge_dir = merges_dir / pair_name / f"seed_{seed}" / method
+            for weights in weight_grid:
+                wlabel = _weight_label(weights)
+                merge_dir = merges_dir / pair_name / f"seed_{seed}" / wlabel
                 if not merge_dir.exists():
                     continue
 
                 for eval_task in eval_tasks_for_pair:
                     output_path = (
                         merged_eval_dir
-                        / f"{pair_name}_seed_{seed}_{method}_{eval_task}.json"
+                        / f"{pair_name}_seed_{seed}_{wlabel}_{eval_task}.json"
                     )
-                    print(f"  Evaluating {pair_name}/seed_{seed}/{method} on {eval_task}...")
+                    print(f"  Evaluating {pair_name}/seed_{seed}/{wlabel} on {eval_task}...")
+                    run_lm_eval(
+                        base_model=base_model,
+                        adapter_dir=str(merge_dir),
+                        task=eval_task,
+                        output_path=output_path,
+                        max_samples=max_samples,
+                        device=device,
+                    )
+
+    # --- Part C: Evaluate calibration merged adapters on their shared task ---
+    if calibration_enabled:
+        print("\nPhase 4c: Evaluating calibration merged adapters")
+        seed_pairs = list(itertools.combinations(seeds, 2))
+
+        for task in task_names:
+            eval_task = config["adapters"][task]["eval_task"]
+            for seed_a, seed_b in seed_pairs:
+                cal_dir_name = f"{task}_seeds_{seed_a}_{seed_b}"
+                for weights in weight_grid:
+                    wlabel = _weight_label(weights)
+                    merge_dir = merges_dir / "calibration" / cal_dir_name / wlabel
+                    if not merge_dir.exists():
+                        continue
+
+                    output_path = (
+                        merged_eval_dir
+                        / f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json"
+                    )
+                    print(f"  Evaluating calibration/{cal_dir_name}/{wlabel} on {eval_task}...")
                     run_lm_eval(
                         base_model=base_model,
                         adapter_dir=str(merge_dir),
