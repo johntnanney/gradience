@@ -308,4 +308,5 @@ class TestPlanStrategiesRegistry:
         """All expected strategies are in the PLAN_STRATEGIES registry."""
         assert set(PLAN_STRATEGIES.keys()) == {
             "uniform_linear", "audit_aware", "overlap_ties",
+            "dare_linear", "dare_ties",
         }

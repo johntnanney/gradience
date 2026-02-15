@@ -6,11 +6,13 @@ use per layer, what coefficients, target rank, and trim fractions.  Plans
 are generated from a MergeAuditReport and can be serialized to/from JSON
 for inspection, modification, and reproducible execution.
 
-Three planning strategies are provided:
+Five planning strategies are provided:
 
 - **uniform_linear**: Equal-weight linear merge on all shared layers.
 - **audit_aware**: Uses per-layer verdicts to choose strategy and coefficients.
 - **overlap_ties**: TIES on all layers with overlap-proportional trim density.
+- **dare_linear**: DARE random dropout before weighted linear combination.
+- **dare_ties**: DARE random dropout before the TIES pipeline.
 
 Usage::
 
@@ -314,6 +316,91 @@ def plan_overlap_ties(
     )
 
 
+def plan_dare_linear(
+    report: MergeAuditReport,
+    adapter_a_dir: str,
+    adapter_b_dir: str,
+    coefficients: Tuple[float, float] = (0.5, 0.5),
+    output_rank: int = 8,
+    output_alpha: float = 16.0,
+    dare_drop_fraction: float = 0.3,
+) -> MergePlan:
+    """DARE-Linear merge on all shared layers.
+
+    Applies DARE random dropout (controlled by ``dare_drop_fraction``) before
+    a weighted linear combination.  The ``trim_fraction`` field in each
+    LayerMergeConfig carries the DARE drop probability.
+    """
+    layer_names = _shared_layer_names(report)
+
+    layer_configs = tuple(
+        LayerMergeConfig(
+            module_prefix=name,
+            strategy="dare_linear",
+            coefficients=coefficients,
+            target_rank=output_rank,
+            trim_fraction=dare_drop_fraction,
+        )
+        for name in layer_names
+    )
+
+    return MergePlan(
+        plan_id=str(uuid.uuid4()),
+        strategy_name="dare_linear",
+        adapter_a_dir=adapter_a_dir,
+        adapter_b_dir=adapter_b_dir,
+        output_rank=output_rank,
+        output_alpha=output_alpha,
+        layer_configs=layer_configs,
+        metadata=_make_metadata(
+            report, "dare_linear",
+            {"coefficients": list(coefficients), "dare_drop_fraction": dare_drop_fraction},
+        ),
+    )
+
+
+def plan_dare_ties(
+    report: MergeAuditReport,
+    adapter_a_dir: str,
+    adapter_b_dir: str,
+    coefficients: Tuple[float, float] = (0.5, 0.5),
+    output_rank: int = 8,
+    output_alpha: float = 16.0,
+    dare_drop_fraction: float = 0.5,
+) -> MergePlan:
+    """DARE-TIES merge on all shared layers.
+
+    Applies DARE random dropout (controlled by ``dare_drop_fraction``) before
+    running the TIES pipeline (sign election + disjoint mean).
+    """
+    layer_names = _shared_layer_names(report)
+
+    layer_configs = tuple(
+        LayerMergeConfig(
+            module_prefix=name,
+            strategy="dare_ties",
+            coefficients=coefficients,
+            target_rank=output_rank,
+            trim_fraction=dare_drop_fraction,
+        )
+        for name in layer_names
+    )
+
+    return MergePlan(
+        plan_id=str(uuid.uuid4()),
+        strategy_name="dare_ties",
+        adapter_a_dir=adapter_a_dir,
+        adapter_b_dir=adapter_b_dir,
+        output_rank=output_rank,
+        output_alpha=output_alpha,
+        layer_configs=layer_configs,
+        metadata=_make_metadata(
+            report, "dare_ties",
+            {"coefficients": list(coefficients), "dare_drop_fraction": dare_drop_fraction},
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # Dispatch
 # ---------------------------------------------------------------------------
@@ -322,6 +409,8 @@ PLAN_STRATEGIES: Dict[str, Callable[..., MergePlan]] = {
     "uniform_linear": plan_uniform_linear,
     "audit_aware": plan_audit_aware,
     "overlap_ties": plan_overlap_ties,
+    "dare_linear": plan_dare_linear,
+    "dare_ties": plan_dare_ties,
 }
 
 
@@ -336,7 +425,8 @@ def plan_from_audit(
 
     Parameters
     ----------
-    strategy_name : one of ``"uniform_linear"``, ``"audit_aware"``, ``"overlap_ties"``
+    strategy_name : one of ``"uniform_linear"``, ``"audit_aware"``, ``"overlap_ties"``,
+        ``"dare_linear"``, ``"dare_ties"``
     report : MergeAuditReport from a prior merge_audit() call
     adapter_a_dir : path to adapter A
     adapter_b_dir : path to adapter B
