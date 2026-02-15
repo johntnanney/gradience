@@ -113,7 +113,7 @@ shutil.copy(configs / 'distilbert_sst2_ci.yaml', './cpu_test.yaml')
 print('Config copied to cpu_test.yaml')
 "
 
-gradience bench cpu_test.yaml --output-dir results/
+gradience-bench --config cpu_test.yaml --output results/
 
 # Examine results
 cat results/bench.json  # Main results
@@ -150,6 +150,34 @@ gradience-bench --config config.yaml --output results/
 # Validate config before training
 gradience check --peft adapter_config.json --training training_args.json
 ```
+
+## How it works
+
+Gradience follows a four-stage pipeline to compress LoRA adapters with evidence:
+
+1. **Probe** -- Train a high-rank adapter (r=16 or higher) on your task.
+   This establishes a performance ceiling before any compression is attempted.
+
+2. **Audit** -- Run spectral analysis (SVD) on each adapter weight matrix.
+   The audit measures stable rank, energy concentration at the 90th percentile,
+   and per-layer utilization ratios. Layers using only 2 of 16 available rank
+   dimensions are clear candidates for compression.
+
+3. **Compress** -- Generate compression candidates automatically. Multiple
+   policies (energy-based, knee detection, uniform) produce different rank
+   configurations. Each policy maps audit metrics to concrete per-layer rank
+   suggestions, so you get several candidates to validate rather than a
+   single guess.
+
+4. **Validate** -- Train each candidate with multiple seeds (3+) and compare
+   against the probe baseline using a tolerance threshold (e.g., 2% accuracy
+   loss). Candidates where all seeds pass are Tier A (validated safe).
+   Candidates where 2 of 3 seeds pass are Tier B (conditionally promising).
+   This multi-seed approach catches compression levels that only work by luck
+   of initialization.
+
+The output is a set of validated compression configs with statistical evidence,
+not just a recommendation.
 
 ## Concepts
 
@@ -233,7 +261,7 @@ runtime:
 
 ## Requirements
 
-- **Python 3.9+**
+- **Python 3.10+**
 - **PyTorch** (install separately or via `[bench]` extra)  
 - **Optional**: transformers, peft, datasets (for benchmarking)
 
@@ -247,7 +275,7 @@ runtime:
 
 Every release is validated with comprehensive CI gates:
 
-- **Package integrity**: Base install, bench extras, and console scripts work correctly across Python 3.9-3.12
+- **Package integrity**: Base install, bench extras, and console scripts work correctly across Python 3.10-3.12
 - **Performance guarantees**: CLI help commands complete within documented timing requirements  
 - **PyPI readiness**: Wheel contents, config accessibility via importlib.resources, and quickstart functionality
 
@@ -301,11 +329,11 @@ If you use Gradience in your research, please cite:
   author = {Nanney, John T.},
   year = {2026},
   url = {https://github.com/gradience-ai/gradience},
-  note = {Version 0.9.0}
+  note = {Version 0.9.1}
 }
 ```
 
-**APA Style:** Nanney, J. T. (2026). *Gradience: Evidence-based LoRA compression for language models* (Version 0.9.0) [Computer software]. https://github.com/gradience-ai/gradience
+**APA Style:** Nanney, J. T. (2026). *Gradience: Evidence-based LoRA compression for language models* (Version 0.9.1) [Computer software]. https://github.com/gradience-ai/gradience
 
 **Note for maintainers:** Update version numbers in citation when releasing new versions. Current version should match `pyproject.toml`.
 

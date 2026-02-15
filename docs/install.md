@@ -19,7 +19,7 @@ pip install "gradience[bench]"
 ## Supported Environments
 
 ### Python Versions
-- **✅ Python 3.9, 3.10, 3.11, 3.12** (tested in CI)
+- **✅ Python 3.10, 3.11, 3.12** (tested in CI)
 - **❌ Python 3.8** - Not supported (requires newer typing features)
 - **❌ Python 3.13+** - Not yet tested (may work but not guaranteed)
 
@@ -100,7 +100,7 @@ python -c "import torch; print(f'MPS available: {torch.backends.mps.is_available
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/gradience.git
+git clone https://github.com/johntnanney/gradience.git
 cd gradience
 
 # Create virtual environment
@@ -446,7 +446,7 @@ If you're still having issues:
 - Fresh virtual environment: `python -m venv fresh_env && source fresh_env/bin/activate`
 - Update pip: `pip install --upgrade pip`
 
-**Still stuck?** File an issue at [github.com/yourusername/gradience/issues](https://github.com/yourusername/gradience/issues) with:
+**Still stuck?** File an issue at [github.com/johntnanney/gradience/issues](https://github.com/johntnanney/gradience/issues) with:
 - Operating system and Python version
 - Complete error message
 - Output of `pip list | grep -E "gradience|torch|transformers"`

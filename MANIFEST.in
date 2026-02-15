@@ -21,12 +21,6 @@ recursive-include gradience/bench/policies *.yaml *.yml *.md
 # Include any JSON schema files
 recursive-include gradience *.json
 
-# Include all runner scripts for benchmarking and RunPod
-recursive-include scripts *.sh *.py
-
-# Include scripts that are part of the package (if any)
-recursive-include gradience/bench/scripts *.sh *.py
-
 # Exclude development and cache files
 global-exclude *.pyc
 global-exclude *.pyo

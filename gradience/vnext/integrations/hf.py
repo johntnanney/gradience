@@ -26,7 +26,7 @@ from ..types import (
     ConfigSnapshot,
     LoRAConfigSnapshot,
     OptimizerConfigSnapshot,
-    TaskProfile,
+    TaskFamily,
     TrainingConfigSnapshot,
 )
 
@@ -61,7 +61,7 @@ class GradienceCallbackConfig:
 
     # Optional metadata (NOT required)
     dataset_name: Optional[str] = None
-    task_profile: Optional[Union[str, TaskProfile]] = None
+    task_profile: Optional[Union[str, TaskFamily]] = None
     notes: Optional[str] = None
 
     # Telemetry privacy knobs (if your TelemetryWriter supports them)
@@ -86,16 +86,16 @@ class GradienceCallbackConfig:
     guard_prune_newer_on_rollback: bool = True
 
 
-def _coerce_task_profile(tp: Optional[Union[str, TaskProfile]]) -> TaskProfile:
+def _coerce_task_profile(tp: Optional[Union[str, TaskFamily]]) -> TaskFamily:
     if tp is None:
-        return TaskProfile.UNKNOWN
-    if isinstance(tp, TaskProfile):
+        return TaskFamily.UNKNOWN
+    if isinstance(tp, TaskFamily):
         return tp
     # Accept strings like "easy_classification"
     try:
-        return TaskProfile(str(tp))
+        return TaskFamily(str(tp))
     except Exception:
-        return TaskProfile.UNKNOWN
+        return TaskFamily.UNKNOWN
 
 
 def _best_effort_model_name(model: Any) -> str:
@@ -189,7 +189,7 @@ def build_conservative_config_snapshot(
     model: Any,
     *,
     dataset_name: Optional[str] = None,
-    task_profile: Optional[Union[str, TaskProfile]] = None,
+    task_profile: Optional[Union[str, TaskFamily]] = None,
     notes: Optional[str] = None,
 ) -> ConfigSnapshot:
     """

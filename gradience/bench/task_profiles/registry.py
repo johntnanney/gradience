@@ -4,15 +4,22 @@ Task profile registry for Bench.
 
 from typing import Dict, Type
 from .base import TaskProfile
-from .seqcls_glue import GLUESequenceClassificationProfile
-from .gsm8k_causal_lm import GSM8KCausalLMProfile
 
 
-# Registry of available task profiles
-TASK_PROFILES: Dict[str, Type[TaskProfile]] = {
-    "seqcls_glue": GLUESequenceClassificationProfile,
-    "gsm8k_causal_lm": GSM8KCausalLMProfile,
+# Registry of available task profiles (lazy loaded)
+TASK_PROFILES: Dict[str, str] = {
+    "seqcls_glue": ".seqcls_glue:GLUESequenceClassificationProfile",
+    "gsm8k_causal_lm": ".gsm8k_causal_lm:GSM8KCausalLMProfile",
 }
+
+
+def _load_profile_class(module_class_path: str) -> Type[TaskProfile]:
+    """Lazy load a profile class."""
+    module_path, class_name = module_class_path.split(":")
+    # Import relative to this package
+    full_module = f"gradience.bench.task_profiles{module_path}"
+    module = __import__(full_module, fromlist=[class_name])
+    return getattr(module, class_name)
 
 
 def get_task_profile(profile_name: str) -> TaskProfile:
@@ -32,7 +39,8 @@ def get_task_profile(profile_name: str) -> TaskProfile:
         available = list(TASK_PROFILES.keys())
         raise ValueError(f"Unknown task profile '{profile_name}'. Available profiles: {available}")
     
-    return TASK_PROFILES[profile_name]()
+    profile_class = _load_profile_class(TASK_PROFILES[profile_name])
+    return profile_class()
 
 
 def get_task_profile_from_config(cfg: Dict[str, any]) -> TaskProfile:

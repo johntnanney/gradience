@@ -32,7 +32,7 @@ compression:
 audit:
   base_model: "distilbert-base-uncased"           # Explicit base model required
   compute_udr: true                              # Explicit opt-in required
-  # base_norms_cache: "/workspace/cache/base_norms" # Optional: custom cache location
+  # base_norms_cache: "./cache/base_norms" # Optional: custom cache location
 
 runtime:
   device: "cpu"

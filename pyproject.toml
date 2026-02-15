@@ -1,16 +1,16 @@
 [build-system]
-requires = ["setuptools>=77.0.3", "wheel"]
+requires = ["setuptools>=70.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "gradience"
-version = "0.9.0"
+version = "0.9.1"
 description = "Audit-driven LoRA compression with transparent decision traces and statistical validation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-    {name = "John Nanney", email = "john@example.com"}
+    {name = "John Nanney", email = "johntnanney@gmail.com"}
 ]
 keywords = ["lora", "compression", "audit", "neural-networks", "fine-tuning"]
 classifiers = [
@@ -24,10 +24,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "pyyaml",          # For parsing config files
-  "numpy>=1.20.0",   # Core numerical operations (lightweight)
+  "pyyaml>=6.0",     # For parsing config files
+  "numpy>=1.24.0",   # Core numerical operations (lightweight)
   "packaging",       # For version parsing and compatibility
   "rich>=10.0.0",    # Pretty CLI output and progress bars
+  "typing_extensions>=4.0.0; python_version < '3.11'",  # NotRequired for TypedDicts
 ]
 
 [project.urls]
@@ -41,8 +42,8 @@ Documentation = "https://github.com/johntnanney/gradience#readme"
 # NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
 # Then: pip install gradience[bench]
 bench = [
-  "transformers>=4.35.0",
-  "peft>=0.7.0", 
+  "transformers>=4.35.0,<5",
+  "peft>=0.7.0,<1",
   "datasets>=2.14.0",
   "safetensors>=0.4.0",
   "accelerate>=0.20.0",
@@ -56,8 +57,8 @@ bench = [
 # NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
 # Then: pip install gradience[hf]
 hf = [
-  "transformers>=4.35.0",
-  "peft>=0.7.0",
+  "transformers>=4.35.0,<5",
+  "peft>=0.7.0,<1",
   "safetensors>=0.4.0",
   "sentencepiece>=0.1.99",  # For tokenizers
   "protobuf>=3.20.0",       # For tokenizers
@@ -68,6 +69,7 @@ hf = [
 dev = [
   "pytest>=7.0.0",
   "pytest-cov>=4.0.0",     # Coverage reporting
+  "pytest-timeout>=2.2.0", # Test timeouts
   "build>=0.10.0",         # Package building
   "ruff>=0.1.0",           # Linting and formatting
   "mypy>=1.5.0",           # Type checking
@@ -85,23 +87,7 @@ fast = [
 # NOTE: Install PyTorch separately first: https://pytorch.org/get-started/
 # Then: pip install gradience[all]
 all = [
-  "transformers>=4.35.0",
-  "peft>=0.7.0",
-  "datasets>=2.14.0", 
-  "accelerate>=0.20.0",
-  "safetensors>=0.4.0",
-  "sentencepiece>=0.1.99",
-  "protobuf>=3.20.0",
-  "scikit-learn>=1.3.0",
-  "pandas>=2.0.0",
-  "pytest>=7.0.0",
-  "pytest-cov>=4.0.0",
-  "build>=0.10.0",
-  "ruff>=0.1.0",
-  "mypy>=1.5.0",
-  "pre-commit>=3.0.0",
-  "twine>=4.0.0",
-  "hf_transfer>=0.1.4",
+  "gradience[bench,hf,dev,fast]",
 ]
 
 [project.scripts]
@@ -118,3 +104,41 @@ include-package-data = true
 [tool.setuptools.package-data]
 "gradience.bench.configs" = ["*.yaml", "**/*.yaml"]
 "gradience.bench.policies" = ["*.yaml", "**/*.yaml"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B905",   # zip without strict (Python 3.10 compat)
+    "SIM108", # ternary operator (readability preference)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "SIM300"]
+"scripts/*" = ["E402"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = false
+exclude = ["tests/", "scripts/", "dev/", "docs/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --tb=short --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+filterwarnings = [
+    "error::DeprecationWarning",
+    "ignore::DeprecationWarning:gradience",
+    "ignore:datetime.datetime.utcnow:DeprecationWarning",
+]
+timeout = 30

@@ -7,12 +7,11 @@ This directory contains example artifacts and fixtures to help you understand Gr
 ```
 examples/
 ├── adapters/                  # Sample LoRA adapters
-│   ├── tiny_lora/            # Minimal LoRA for testing
-│   └── gsm8k_r16/            # GSM8K fine-tuned adapter
+│   └── tiny_lora/            # Minimal LoRA for testing
 ├── bench_artifacts/           # Bench output examples
 │   ├── bench.json            # Single-seed bench result
 │   ├── bench_aggregate.json  # Multi-seed aggregated result
-│   └── bench_markdown.md     # Human-readable report
+│   └── bench.md              # Human-readable report
 ├── telemetry/                 # JSONL telemetry examples
 │   ├── training_log.jsonl    # Training telemetry stream
 │   └── callback_output.jsonl # HuggingFace callback output
@@ -26,18 +25,18 @@ examples/
 ### Audit an Adapter
 ```bash
 # Audit the tiny example adapter
-gradience audit examples/adapters/tiny_lora/
+gradience audit --peft-dir examples/adapters/tiny_lora/
 
 # With rank suggestions
-gradience audit examples/adapters/tiny_lora/ --suggest
+gradience audit --peft-dir examples/adapters/tiny_lora/ --layers --suggest-per-layer
 ```
 
 ### Run a Smoke Bench
 ```bash
 # Quick GSM8K bench (~5 minutes)
-gradience bench \
+gradience-bench \
     --config examples/configs/smoke_gsm8k.yaml \
-    --output-dir bench_output/
+    --output bench_output/
 ```
 
 ### Inspect Artifacts

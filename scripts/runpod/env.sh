@@ -11,9 +11,9 @@
 # This script redirects all HF caches to /workspace/ to avoid filling /root/
 #
 # Usage:
-#   source scripts/runpod/env.sh
-#   # OR
-#   source /workspace/gradience/scripts/runpod/env.sh
+#   source scripts/runpod/env.sh   # From gradience repo root
+#   # OR install gradience and run manually:
+#   curl -sSL https://raw.githubusercontent.com/your-org/gradience/main/scripts/runpod/env.sh | bash
 
 set -euo pipefail
 
@@ -80,7 +80,11 @@ fi
 # Instructions for persistence
 if [[ -d "/workspace" ]]; then
     echo -e "\n${BLUE}💡 To make this persistent, add to your RunPod startup:${NC}"
+    echo -e "   # Option 1: If you have gradience repo cloned:"
     echo -e "   echo 'source /workspace/gradience/scripts/runpod/env.sh' >> ~/.bashrc"
+    echo -e ""
+    echo -e "   # Option 2: Download script directly:"
+    echo -e "   echo 'curl -sSL https://raw.githubusercontent.com/your-org/gradience/main/scripts/runpod/env.sh | bash' >> ~/.bashrc"
 fi
 
 echo -e "\n${GREEN}🎉 Environment setup complete!${NC}"

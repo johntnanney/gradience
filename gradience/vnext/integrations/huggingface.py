@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+import warnings
+warnings.warn(
+    "gradience.vnext.integrations.huggingface is deprecated. "
+    "Use gradience.vnext.integrations.hf instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import time
 from dataclasses import asdict, is_dataclass
 from pathlib import Path

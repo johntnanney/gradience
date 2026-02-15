@@ -154,9 +154,9 @@ class TestGSM8KProfile:
             "test": mock_dataset
         }
         
-        # Mock load_dataset
+        # Mock load_dataset at the point it's imported within the method
         from unittest.mock import patch
-        with patch('gradience.bench.task_profiles.gsm8k_causal_lm.load_dataset') as mock_load:
+        with patch('datasets.load_dataset') as mock_load:
             mock_load.return_value = mock_ds
             
             cfg = {

@@ -31,13 +31,17 @@ TELEMETRY_SCHEMA_VERSION: str = "gradience.vnext.telemetry/v1"
 # Core enums
 # ---------------------------------------------------------------------------
 
-class TaskProfile(str, Enum):
+class TaskFamily(str, Enum):
     """Coarse task family labels used for policy decisions."""
 
     EASY_CLASSIFICATION = "easy_classification"
     HARD_REASONING = "hard_reasoning"
     GENERATION = "generation"
     UNKNOWN = "unknown"
+
+
+# Backward-compat alias (avoid breaking imports that use the old name).
+TaskProfile = TaskFamily
 
 
 class Severity(str, Enum):
@@ -189,7 +193,7 @@ class ConfigSnapshot:
     dataset_name: Optional[str] = None
 
     # Coarse task family label (used by policy).
-    task_profile: TaskProfile = TaskProfile.UNKNOWN
+    task_profile: TaskFamily = TaskFamily.UNKNOWN
 
     # Nested config components
     optimizer: OptimizerConfigSnapshot = field(default_factory=OptimizerConfigSnapshot)
@@ -214,11 +218,11 @@ class ConfigSnapshot:
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> "ConfigSnapshot":
-        tp = d.get("task_profile", TaskProfile.UNKNOWN.value)
+        tp = d.get("task_profile", TaskFamily.UNKNOWN.value)
         try:
-            task_profile = TaskProfile(tp)
+            task_profile = TaskFamily(tp)
         except Exception:
-            task_profile = TaskProfile.UNKNOWN
+            task_profile = TaskFamily.UNKNOWN
 
         return ConfigSnapshot(
             model_name=d.get("model_name"),

@@ -2,9 +2,11 @@
 """
 Test 7: Tiny HF model integration test for UDR/SDI end-to-end pipeline.
 
+INTEGRATION TEST: Downloads real models (tiny ones for fast CI)
+
 Uses tiny models specifically designed for testing to validate:
 - Base model loading and norm computation
-- Real LoRA adapter processing
+- Real LoRA adapter processing  
 - Complete audit.json schema output
 - CLI flag behavior
 
@@ -240,6 +242,7 @@ class TestUDRIntegration:
 class TestCLIBehavior:
     """Test CLI flag behavior for UDR."""
     
+    @pytest.mark.slow
     def test_no_udr_flag_disables_udr(self):
         """Test 8a: --no-udr flag prevents UDR computation."""
         # Create simple synthetic adapter for testing
@@ -260,12 +263,17 @@ class TestCLIBehavior:
             with (adapter_dir / "adapter_config.json").open('w') as f:
                 json.dump(config, f)
             
-            # Create dummy weights
+            # Create dummy weights using flexible format
             weights = {
                 "model.layer.0.dense.lora_A.weight": torch.randn(4, 64),
                 "model.layer.0.dense.lora_B.weight": torch.randn(64, 4),
             }
-            torch.save(weights, adapter_dir / "adapter_model.bin")
+            # Use flexible format (safetensors preferred, torch fallback)
+            try:
+                from safetensors.torch import save_file
+                save_file(weights, adapter_dir / "adapter_model.safetensors")
+            except ImportError:
+                torch.save(weights, adapter_dir / "adapter_model.bin")
             
             # Create dummy base norms cache
             base_norms = {
@@ -297,6 +305,7 @@ class TestCLIBehavior:
             udr_keys = [k for k in audit_result.keys() if 'udr' in k.lower() or 'sdi' in k.lower()]
             assert len(udr_keys) == 0, f"UDR keys present despite --no-udr flag: {udr_keys}"
     
+    @pytest.mark.slow  
     def test_base_model_flag_enables_udr(self):
         """Test 8b: --base-model flag enables UDR computation."""
         # This test requires transformers, so we'll make it conditional
@@ -321,12 +330,17 @@ class TestCLIBehavior:
             with (adapter_dir / "adapter_config.json").open('w') as f:
                 json.dump(config, f)
             
-            # Create tiny weights
+            # Create tiny weights using flexible format
             weights = {
                 "base_model.transformer.h.0.attn.c_attn.lora_A.weight": torch.randn(2, 48),
                 "base_model.transformer.h.0.attn.c_attn.lora_B.weight": torch.randn(144, 2),
             }
-            torch.save(weights, adapter_dir / "adapter_model.bin")
+            # Use flexible format (safetensors preferred, torch fallback)
+            try:
+                from safetensors.torch import save_file
+                save_file(weights, adapter_dir / "adapter_model.safetensors")
+            except ImportError:
+                torch.save(weights, adapter_dir / "adapter_model.bin")
             
             # Test with --base-model flag (may fail if model loading fails)
             cmd = [
@@ -352,6 +366,7 @@ class TestCLIBehavior:
             # At minimum, should have n_layers_with_udr field
             assert "n_layers_with_udr" in audit_result, "Missing n_layers_with_udr field with --base-model"
     
+    @pytest.mark.slow
     def test_bad_base_model_gives_useful_error(self):
         """Test 8c: Bad --base-model gives useful error."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -365,7 +380,12 @@ class TestCLIBehavior:
                 json.dump(config, f)
             
             weights = {"dummy.lora_A.weight": torch.randn(4, 64)}
-            torch.save(weights, adapter_dir / "adapter_model.bin")
+            # Use flexible format (safetensors preferred, torch fallback)
+            try:
+                from safetensors.torch import save_file
+                save_file(weights, adapter_dir / "adapter_model.safetensors")
+            except ImportError:
+                torch.save(weights, adapter_dir / "adapter_model.bin")
             
             # Test with non-existent model
             cmd = [

@@ -461,7 +461,7 @@ def create_policy_result_from_bench_data(config_name: str,
                         rank_part = variant_name.split('r')[-1].split('_')[0]
                         best_rank = int(rank_part)
                         break
-                except:
+                except (ValueError, IndexError):
                     pass
         
         optimal_rank = best_rank if best_rank else actual_rank

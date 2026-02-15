@@ -146,6 +146,24 @@ coverage.xml
 *.cover
 .hypothesis/
 
+# Experiment and seed outputs (local dev)
+seed_*/
+exp*/
+*_output/
+*_extracted/
+_artifacts/
+
+# Bench aggregate files (generated)
+bench_aggregate.json
+bench_aggregate.md
+seed_summary.json
+
+# One-off dev scripts and docs
+demo_*.py
+test_priority_*.yaml
+CI_REQUIREMENTS.md
+PYPI_README_IMPROVEMENTS.md
+
 # Exceptions for example fixtures (these should be included)
 !examples/
 !examples/**/*.json

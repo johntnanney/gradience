@@ -4,7 +4,7 @@
 # Use case: Comprehensive Evidence Pack demonstration with variance estimation
 # Runtime: ~45-90 minutes (3 seeds × ~15-30 min per seed)
 #
-# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp01_mistral_gsm8k_multiseed.yaml --output /workspace/evidence_runs/exp01_multiseed
+# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp01_mistral_gsm8k_multiseed.yaml --output ./results/exp01_multiseed
 
 bench_version: "0.1"
 
@@ -74,7 +74,7 @@ compression:
 audit:
   base_model: "mistralai/Mistral-7B-v0.1"
   compute_udr: true
-  # base_norms_cache: "/workspace/gradience_cache/mistral_base_norms"  # Uncomment for persistent cache
+  # base_norms_cache: "./cache/mistral_base_norms"  # Uncomment for persistent cache
 
 runtime:
   device: cuda                    # GPU required

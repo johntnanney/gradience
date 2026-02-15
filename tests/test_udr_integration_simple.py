@@ -86,7 +86,12 @@ def create_realistic_test_adapter(out_dir: Path, model_type: str = "gpt2") -> Pa
     with (adapter_dir / "adapter_config.json").open('w') as f:
         json.dump(config, f, indent=2)
     
-    torch.save(weights, adapter_dir / "adapter_model.bin")
+    # Save weights using flexible format (safetensors preferred, torch fallback)
+    try:
+        from safetensors.torch import save_file
+        save_file(weights, adapter_dir / "adapter_model.safetensors")
+    except ImportError:
+        torch.save(weights, adapter_dir / "adapter_model.pt")
     
     return adapter_dir
 

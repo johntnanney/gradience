@@ -21,7 +21,7 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, Iterable, List, Optional
 
-from ..types import ConfigSnapshot, Recommendation, Severity, SignalSnapshot, TaskProfile
+from ..types import ConfigSnapshot, Recommendation, Severity, SignalSnapshot, TaskFamily
 
 
 # ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ def _classify_target_modules(mods: Iterable[str]) -> Dict[str, List[str]]:
     return {"attn": attn, "mlp": mlp, "other": other}
 
 
-def _infer_task_profile_from_dataset_name(dataset_name: Optional[str]) -> Optional[TaskProfile]:
+def _infer_task_profile_from_dataset_name(dataset_name: Optional[str]) -> Optional[TaskFamily]:
     """Best-effort inference when task_profile is UNKNOWN."""
 
     if not dataset_name:
@@ -95,11 +95,11 @@ def _infer_task_profile_from_dataset_name(dataset_name: Optional[str]) -> Option
 
     # Hard reasoning / exact-match generation style
     if any(k in d for k in ("gsm8k", "svamp", "math", "aqua", "asdiv", "multiarith", "proof", "reason")):
-        return TaskProfile.HARD_REASONING
+        return TaskFamily.HARD_REASONING
 
     # Easy-ish classification
     if any(k in d for k in ("sst", "sst2", "mnli", "qqp", "qnli", "rte", "cola", "mrpc", "sentiment", "classification")):
-        return TaskProfile.EASY_CLASSIFICATION
+        return TaskFamily.EASY_CLASSIFICATION
 
     return None
 
@@ -147,7 +147,7 @@ def check_config(config: ConfigSnapshot) -> List[Recommendation]:
     # Resolve task profile (prefer explicit)
     task_profile = config.task_profile
     inferred = None
-    if task_profile == TaskProfile.UNKNOWN:
+    if task_profile == TaskFamily.UNKNOWN:
         inferred = _infer_task_profile_from_dataset_name(config.dataset_name)
         if inferred is not None:
             task_profile = inferred
@@ -180,7 +180,7 @@ def check_config(config: ConfigSnapshot) -> List[Recommendation]:
     # ------------------------------------------------------------------
     # Task family: HARD_REASONING
     # ------------------------------------------------------------------
-    if task_profile == TaskProfile.HARD_REASONING:
+    if task_profile == TaskFamily.HARD_REASONING:
         # (1) LR: dominant restraint lever in our LoRA studies
         if lr is None:
             recs.append(
@@ -349,7 +349,7 @@ def check_config(config: ConfigSnapshot) -> List[Recommendation]:
     # ------------------------------------------------------------------
     # Task family: EASY_CLASSIFICATION
     # ------------------------------------------------------------------
-    elif task_profile == TaskProfile.EASY_CLASSIFICATION:
+    elif task_profile == TaskFamily.EASY_CLASSIFICATION:
         # For easy tasks, prioritize efficiency; many configs saturate.
         if r is not None and r > 16:
             recs.append(

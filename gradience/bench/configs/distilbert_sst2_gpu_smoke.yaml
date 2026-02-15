@@ -1,0 +1,38 @@
+bench_version: "0.1"
+
+model:
+  name: "distilbert-base-uncased"
+
+task:
+  dataset: "glue"
+  subset: "sst2"
+  metric: "accuracy"
+
+train:
+  seed: 42
+  max_steps: 300
+  eval_steps: 100
+  lr: 0.00005  # 5e-5 as a proper float
+  weight_decay: 0.01
+  per_device_train_batch_size: 16  # Larger batch size for GPU
+  per_device_eval_batch_size: 64   # Larger eval batch for GPU
+
+lora:
+  probe_r: 16
+  alpha: 16
+  dropout: 0.0
+  target_modules: ["q_lin","k_lin","v_lin","out_lin"]
+
+compression:
+  allowed_ranks: [1,2,4,8,16,32]
+  acc_tolerance: 0.005
+  fast_mode: true
+
+runtime:
+  device: "auto"  # Will use GPU if available, CPU otherwise
+  smoke_max_steps: 150      # More steps for GPU smoke test
+  smoke_train_samples: 500  # More samples for better GPU utilization
+  smoke_eval_samples: 500
+  # Artifact hygiene - keep evidence, don't hoard weights
+  keep_adapter_weights: false
+  keep_checkpoints: false

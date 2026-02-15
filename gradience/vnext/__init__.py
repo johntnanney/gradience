@@ -17,6 +17,7 @@ Everything else is internal and may change without notice.
 
 from .types import (
     TELEMETRY_SCHEMA_VERSION,
+    TaskFamily,
     TaskProfile,
     Severity,
     LoRAConfigSnapshot,
@@ -53,6 +54,7 @@ except ImportError:
 
 __all__ = [
     "TELEMETRY_SCHEMA_VERSION",
+    "TaskFamily",
     "TaskProfile",
     "Severity",
     "LoRAConfigSnapshot",

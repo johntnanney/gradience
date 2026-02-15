@@ -1101,62 +1101,60 @@ def cmd_monitor(args: argparse.Namespace) -> None:
 def _get_version_info():
     """Extract Gradience version and git SHA if available."""
     version_info = {}
-    
+
     try:
-        # Try to get package version (prefer importlib.metadata over deprecated pkg_resources)
-        try:
-            from importlib.metadata import version
-            version_info["gradience_version"] = version("gradience")
-        except:
-            try:
-                import pkg_resources
-                version_info["gradience_version"] = pkg_resources.get_distribution("gradience").version
-            except:
-                version_info["gradience_version"] = "development"
-    except:
-        version_info["gradience_version"] = "unknown"
-    
+        from importlib.metadata import version, PackageNotFoundError
+        version_info["gradience_version"] = version("gradience")
+    except (ImportError, PackageNotFoundError):
+        version_info["gradience_version"] = "development"
+
     # Try to get git SHA
     try:
         import subprocess
         import os
         # Look for git in the current directory
         git_sha = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], 
+            ["git", "rev-parse", "HEAD"],
             cwd=os.path.dirname(__file__),
             stderr=subprocess.DEVNULL
         ).decode().strip()
         version_info["git_sha"] = git_sha[:12]  # Short SHA
-    except:
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         version_info["git_sha"] = None
-        
+
     return version_info
 
 
 def _analyze_policy_disagreements(
-    layers: List[Any], 
+    layers: List[Any],
     name_mapping: Dict[str, str],
     importance_config: Optional[Dict[str, Any]] = None,
     rationale_verbosity: str = "flagged_only"
 ) -> Dict[str, Any]:
     """Analyze policy disagreements and return structured data for JSON output.
-    
+
     Args:
         layers: List of layer objects with rank suggestions
         name_mapping: Mapping of internal policy names to user-friendly names
         importance_config: Configuration for importance thresholds
         rationale_verbosity: "full" or "flagged_only" - controls detail level for non-flagged layers
-    
+
     Returns detailed flagging rationale for each layer, suitable for machine consumption.
     """
+    from gradience.policy_analysis import (
+        compute_layer_importance_scores,
+        compute_energy_distribution,
+        filter_disagreement_layers,
+    )
+
     # Extract importance configuration with defaults
     if importance_config is None:
         importance_config = {}
-    
+
     quantile_threshold = importance_config.get('quantile_threshold', 0.75)
     min_uniform_mult = importance_config.get('uniform_mult_gate', 1.5)
     importance_metric = importance_config.get('metric', 'energy_share')
-    
+
     if not layers:
         return {
             "schema_version": 1,
@@ -1165,57 +1163,12 @@ def _analyze_policy_disagreements(
             "reason": "no_layers",
             "layers": []
         }
-    
-    # Step 1: Calculate importance scores and disagreement metrics for all layers
-    importance_scores = []
-    layer_analysis = []
-    
-    for layer in layers:
-        if not hasattr(layer, 'rank_suggestions') or not layer.rank_suggestions:
-            continue
-            
-        # Extract k values for all policies
-        k_values = []
-        layer_policies = []
-        for policy_internal, suggestion in layer.rank_suggestions.items():
-            if isinstance(suggestion, dict) and 'k' in suggestion:
-                k = suggestion['k']
-                if isinstance(k, (int, float)) and k >= 0:
-                    k_values.append(int(k))
-                    layer_policies.append(name_mapping.get(policy_internal, policy_internal))
-        
-        if len(k_values) >= 2:  # Need at least 2 policies to measure disagreement
-            policy_spread = max(k_values) - min(k_values)
-            max_k = max(k_values)
-            
-            # Calculate layer importance using multiple factors
-            frobenius_norm = (getattr(layer, 'frob_sq', 0.0) ** 0.5) if hasattr(layer, 'frob_sq') else 0.0
-            param_count = getattr(layer, 'params', 0)
-            utilization = getattr(layer, 'utilization', 0.0) if hasattr(layer, 'utilization') else 0.0
-            energy_raw = getattr(layer, 'frob_sq', 0.0) if hasattr(layer, 'frob_sq') else 0.0
-            
-            # Legacy importance score for compatibility
-            importance_raw = (
-                frobenius_norm * 0.6 +           
-                (param_count / 10000) * 0.3 +    
-                utilization * 100 * 0.1          
-            )
-            
-            importance_scores.append(importance_raw)
-            layer_analysis.append({
-                'layer': layer,
-                'layer_name': getattr(layer, 'name', 'unknown'),
-                'k_values': k_values,
-                'policy_spread': policy_spread,
-                'max_k': max_k,
-                'policies': layer_policies,
-                'energy_raw': energy_raw,
-                'frobenius_norm': frobenius_norm,
-                'param_count': param_count,
-                'utilization': utilization,
-                'importance_raw': importance_raw
-            })
-    
+
+    # Shared computation steps 1-3
+    layer_analysis, importance_scores = compute_layer_importance_scores(
+        layers, name_mapping, importance_config
+    )
+
     if not layer_analysis:
         return {
             "schema_version": 1,
@@ -1224,48 +1177,34 @@ def _analyze_policy_disagreements(
             "reason": "no_disagreements",
             "layers": []
         }
-    
-    # Step 2: Calculate energy shares and uniform multipliers
-    total_energy = sum(analysis['energy_raw'] for analysis in layer_analysis)
+
+    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = \
+        compute_energy_distribution(layer_analysis, min_uniform_mult)
+
     n_layers = len(layer_analysis)
-    uniform_share = 1.0 / n_layers if n_layers > 0 else 0.0
-    
-    for analysis in layer_analysis:
-        energy_share = analysis['energy_raw'] / total_energy if total_energy > 0 else uniform_share
-        uniform_mult = energy_share / uniform_share if uniform_share > 0 else 1.0
-        
-        analysis['energy_share'] = energy_share
-        analysis['uniform_mult'] = uniform_mult
-        analysis['importance'] = analysis['importance_raw']
-    
-    # Step 3: Flat distribution gate
-    max_uniform_mult = max(analysis['uniform_mult'] for analysis in layer_analysis)
-    distribution_is_flat = max_uniform_mult < min_uniform_mult
-    
-    # Step 4: Calculate thresholds
     quantile_pct = quantile_threshold * 100
-    importance_threshold = np.percentile(importance_scores, quantile_pct) if importance_scores else 0
-    
+
     # Step 5: Apply smart filtering and generate flagging rationale
+    # (JSON output needs detailed per-layer rationale, so we build it here
+    #  rather than using filter_disagreement_layers directly)
     flagged_layers = []
     all_layers = []
-    
+
     for analysis in layer_analysis:
         layer_name = analysis['layer_name']
         energy_share = analysis['energy_share']
         uniform_mult = analysis['uniform_mult']
         policy_spread = analysis['policy_spread']
         max_k = analysis['max_k']
-        
+
         # Check spread filter
         spread_threshold = max(3, 0.5 * max_k)
         meets_spread_threshold = policy_spread >= spread_threshold
-        
+
         # Calculate priority score for Bench ordering
-        # priority_score = spread_norm * uniform_mult (higher = more urgent)
         spread_norm = max(0.0, policy_spread / spread_threshold) if spread_threshold > 0 else 0.0
         priority_score = spread_norm * uniform_mult
-        
+
         # Build flagging rationale - full version first (will be condensed later if needed)
         flagging_rationale = {
             "spread": int(policy_spread),
@@ -1278,43 +1217,40 @@ def _analyze_policy_disagreements(
             "priority_score": float(priority_score),
             "is_flat_distribution": bool(distribution_is_flat),
             "quantile_threshold": float(quantile_threshold),
-            "meets_quantile_threshold": False,  # Will be set below
-            "passed_gate": False,  # Will be set below
-            "flagged_as_high_impact": False,  # Will be set below
+            "meets_quantile_threshold": False,
+            "passed_gate": False,
+            "flagged_as_high_impact": False,
             "k_values": [int(k) for k in analysis['k_values']],
             "policies": analysis['policies']
         }
-        
+
         layer_data = {
             "layer_name": layer_name,
             "flagging_rationale": flagging_rationale
         }
-        
+
         # Only consider layers with significant disagreement
         if meets_spread_threshold:
-            # Check quantile threshold if distribution is not flat
             if not distribution_is_flat:
                 energy_shares = [a['energy_share'] for a in layer_analysis]
                 energy_quantile = np.percentile(energy_shares, quantile_pct)
                 meets_quantile_threshold = energy_share >= energy_quantile
                 flagging_rationale["meets_quantile_threshold"] = bool(meets_quantile_threshold)
                 flagging_rationale["energy_quantile_threshold"] = float(energy_quantile)
-                
-                # High-impact: above quantile AND above uniform threshold
+
                 passed_gate = meets_quantile_threshold and uniform_mult >= min_uniform_mult
                 flagging_rationale["passed_gate"] = bool(passed_gate)
                 flagging_rationale["flagged_as_high_impact"] = bool(passed_gate)
-                
+
                 if passed_gate:
                     flagged_layers.append(layer_data)
             else:
-                flagging_rationale["meets_quantile_threshold"] = None  # N/A for flat distributions
+                flagging_rationale["meets_quantile_threshold"] = None
                 flagging_rationale["passed_gate"] = False
                 flagging_rationale["flagged_as_high_impact"] = False
-        
+
         # Condense rationale for non-flagged layers if verbosity is "flagged_only"
         if rationale_verbosity == "flagged_only" and not flagging_rationale.get("flagged_as_high_impact", False):
-            # Create condensed rationale with only essential info + failure reasons
             failed_reasons = []
             if not meets_spread_threshold:
                 failed_reasons.append("insufficient_spread")
@@ -1324,51 +1260,41 @@ def _analyze_policy_disagreements(
                 failed_reasons.append("below_uniform_mult_threshold")
             if distribution_is_flat:
                 failed_reasons.append("flat_distribution")
-            
-            # Replace full rationale with truly condensed version (essential fields only)
+
             flagging_rationale = {
                 "spread": int(policy_spread),
                 "importance_share": float(energy_share),
                 "uniform_mult": float(uniform_mult),
                 "priority_score": float(priority_score),
-                "failed_reasons": failed_reasons  # Condensation-specific field
+                "failed_reasons": failed_reasons
             }
             layer_data["flagging_rationale"] = flagging_rationale
-        
+
         all_layers.append(layer_data)
-    
+
     # Get version and timestamp information
     version_info = _get_version_info()
-    
+
     import time
     timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    
+
     # Return structured analysis with complete schema
     return {
         "schema_version": 1,
         "computed_at": timestamp_iso,
         "computed_with": version_info,
         "disagreement_config": {
-            # Core thresholds
             "quantile_threshold": float(quantile_threshold),
             "uniform_mult_gate": float(min_uniform_mult),
             "importance_metric": importance_metric,
-            
-            # Derived/computed parameters
             "quantile_pct": float(quantile_pct),
             "min_uniform_mult_threshold": float(min_uniform_mult),
-            
-            # Spread calculation parameters
             "spread_base_threshold": 3,
-            "spread_dynamic_factor": 0.5,  # 0.5 * max_k
+            "spread_dynamic_factor": 0.5,
             "spread_calculation_formula": "max(3, 0.5 * max_k_for_layer)",
-            
-            # Algorithm parameters
             "flat_detection_enabled": True,
             "spread_filter_enabled": True,
             "quantile_filter_enabled": True,
-            
-            # Schema metadata
             "config_capture_version": "1.0",
             "algorithm_name": "energy_share_uniform_multiplier_gate"
         },
@@ -1470,157 +1396,52 @@ def _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_unifo
 
 
 def _print_policy_disagreement_summary(
-    layers: List[Any], 
+    layers: List[Any],
     name_mapping: Dict[str, str],
     importance_config: Optional[Dict[str, Any]] = None,
     rationale_verbosity: str = "flagged_only"
 ) -> None:
     """Print smart policy disagreement analysis weighted by layer importance.
-    
+
     Args:
         layers: List of layer objects with rank suggestions
-        name_mapping: Mapping of internal policy names to user-friendly names  
+        name_mapping: Mapping of internal policy names to user-friendly names
         importance_config: Configuration for importance thresholds:
             - quantile_threshold: Quantile threshold for energy share filtering (default: 0.75)
             - uniform_mult_gate: Uniform multiplier gate threshold (default: 1.5)
             - metric: Energy importance metric to use (default: 'energy_share')
     """
-    # Extract importance configuration with defaults
+    from gradience.policy_analysis import (
+        compute_layer_importance_scores,
+        compute_energy_distribution,
+        filter_disagreement_layers,
+    )
+
     if importance_config is None:
         importance_config = {}
-    
+
     quantile_threshold = importance_config.get('quantile_threshold', 0.75)
     min_uniform_mult = importance_config.get('uniform_mult_gate', 1.5)
-    importance_metric = importance_config.get('metric', 'energy_share')
+
     if not layers:
         return
-    
-    # Step 1: Calculate importance scores for all layers
-    importance_scores = []
-    layer_analysis = []
-    
-    for layer in layers:
-        if not hasattr(layer, 'rank_suggestions') or not layer.rank_suggestions:
-            continue
-            
-        # Extract k values for all policies
-        k_values = []
-        layer_policies = []
-        for policy_internal, suggestion in layer.rank_suggestions.items():
-            if isinstance(suggestion, dict) and 'k' in suggestion:
-                k = suggestion['k']
-                if isinstance(k, (int, float)) and k >= 0:
-                    k_values.append(int(k))
-                    layer_policies.append(name_mapping.get(policy_internal, policy_internal))
-        
-        if len(k_values) >= 2:  # Need at least 2 policies to measure disagreement
-            policy_spread = max(k_values) - min(k_values)
-            max_k = max(k_values)
-            
-            # Calculate layer importance using multiple factors:
-            # 1. Frobenius norm magnitude (||ΔW||_F) - primary importance signal
-            frobenius_norm = (getattr(layer, 'frob_sq', 0.0) ** 0.5) if hasattr(layer, 'frob_sq') else 0.0
-            
-            # 2. Parameter count - larger layers matter more
-            param_count = getattr(layer, 'params', 0)
-            
-            # 3. Energy/utilization - how much this layer is actually being used
-            utilization = getattr(layer, 'utilization', 0.0) if hasattr(layer, 'utilization') else 0.0
-            
-            # Calculate energy (sum of squared singular values)
-            energy_raw = getattr(layer, 'frob_sq', 0.0) if hasattr(layer, 'frob_sq') else 0.0
-            
-            # Legacy importance score for reporting (keep for display)
-            importance_raw = (
-                frobenius_norm * 0.6 +           # Primary: magnitude of update
-                (param_count / 10000) * 0.3 +    # Secondary: layer size (normalized)
-                utilization * 100 * 0.1          # Tertiary: how much layer is used
-            )
-            
-            importance_scores.append(importance_raw)
-            layer_analysis.append({
-                'layer': layer,
-                'layer_name': getattr(layer, 'name', getattr(layer, 'layer_name', 'unknown')),
-                'spread': policy_spread,
-                'max_k': max_k,
-                'min_k': min(k_values),
-                'policies': layer_policies,
-                'k_values': k_values,
-                'importance_raw': importance_raw,  # Legacy score for display
-                'energy_raw': energy_raw,         # Energy for share calculation
-                'frobenius_norm': frobenius_norm,
-                'param_count': param_count,
-                'utilization': utilization
-            })
-    
+
+    # Shared computation steps 1-3
+    layer_analysis, importance_scores = compute_layer_importance_scores(
+        layers, name_mapping, importance_config
+    )
+
     if not importance_scores:
         return
-    
-    # Step 2: Calculate energy shares and uniform multipliers
-    import numpy as np
-    
-    # Calculate total energy across all layers
-    total_energy = sum(analysis['energy_raw'] for analysis in layer_analysis)
-    n_layers = len(layer_analysis)
-    uniform_share = 1.0 / n_layers
-    
-    # Add energy share and uniform multiplier to each layer analysis
-    for analysis in layer_analysis:
-        # Energy share (scale-free, sums to 1.0)
-        energy_share = analysis['energy_raw'] / total_energy if total_energy > 0 else uniform_share
-        analysis['energy_share'] = energy_share
-        
-        # Uniform multiplier: how much more/less than uniform distribution
-        analysis['uniform_mult'] = energy_share / uniform_share
-        
-        # For display: use importance_raw but decisions will use uniform_mult
-        analysis['importance'] = analysis['importance_raw']
-    
-    # Step 3: Flat distribution gate - check if any layer is meaningfully above uniform
-    max_uniform_mult = max(analysis['uniform_mult'] for analysis in layer_analysis)
-    distribution_is_flat = max_uniform_mult < min_uniform_mult
-    
-    # Calculate importance threshold using configurable quantile
-    quantile_pct = quantile_threshold * 100  # Convert to percentile
-    importance_threshold = np.percentile(importance_scores, quantile_pct) if importance_scores else 0
-    
-    # Step 3: Apply smart filtering: high spread AND high importance
-    smart_disagreement_layers = []
-    all_disagreement_layers = []
-    
-    for analysis in layer_analysis:
-        policy_spread = analysis['spread']
-        max_k = analysis['max_k']
-        importance = analysis['importance']
-        energy_share = analysis['energy_share']
-        uniform_mult = analysis['uniform_mult']
-        
-        # Spread threshold: >= max(3, 0.5 * max_k) as recommended
-        spread_threshold = max(3, int(0.5 * max_k)) if max_k > 0 else 3
-        high_spread = policy_spread >= spread_threshold
-        
-        # Calculate priority score for Bench ordering
-        spread_norm = max(0.0, policy_spread / spread_threshold) if spread_threshold > 0 else 0.0
-        priority_score = spread_norm * uniform_mult
-        analysis['priority_score'] = priority_score
-        
-        if high_spread:
-            all_disagreement_layers.append(analysis)
-            
-            # NEW SMART FILTER: high spread AND (meaningful energy share) AND above uniform threshold
-            # Only mark as high-impact if:
-            # 1. Distribution is NOT flat (at least one layer is meaningfully above uniform)
-            # 2. Layer is above configurable quantile by energy share 
-            # 3. Layer is above configurable uniform multiplier threshold
-            if not distribution_is_flat:
-                # Calculate energy share quantile for this non-flat distribution
-                energy_shares = [a['energy_share'] for a in layer_analysis]
-                energy_quantile = np.percentile(energy_shares, quantile_pct)
-                
-                # High-impact: above quantile AND above uniform threshold
-                if energy_share >= energy_quantile and uniform_mult >= min_uniform_mult:
-                    smart_disagreement_layers.append(analysis)
-    
+
+    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = \
+        compute_energy_distribution(layer_analysis, min_uniform_mult)
+
+    smart_disagreement_layers, all_disagreement_layers = filter_disagreement_layers(
+        layer_analysis, importance_scores, quantile_threshold,
+        min_uniform_mult, distribution_is_flat
+    )
+
     # Step 4: Smart output - handle flat vs concentrated distributions differently
     if all_disagreement_layers:
         
