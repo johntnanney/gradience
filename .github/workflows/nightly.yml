@@ -1,0 +1,65 @@
+name: Nightly
+
+on:
+  schedule:
+    # Run nightly at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    name: "Dependency Compatibility"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install latest dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run tests with latest deps
+      run: |
+        python -m pytest tests/ -v --tb=short
+
+    - name: Check for deprecation warnings
+      run: |
+        python -m pytest tests/ -W error::DeprecationWarning -W error::PendingDeprecationWarning --tb=short 2>&1 || echo "⚠️ Deprecation warnings found"
+
+  security-audit:
+    name: "Security Audit"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install package and audit tool
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+        pip install pip-audit
+
+    - name: Run pip-audit
+      run: |
+        pip-audit --desc --fix --dry-run || echo "⚠️ Vulnerabilities found - review above"
+
+    - name: Check for yanked packages
+      run: |
+        pip-audit --require-hashes=false || true

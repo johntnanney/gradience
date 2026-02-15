@@ -106,7 +106,7 @@ class TelemetryWriter:
     def __del__(self):
         try:
             self.close()
-        except:
+        except Exception:
             pass
 
 

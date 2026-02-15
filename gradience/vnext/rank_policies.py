@@ -3,7 +3,16 @@ Compatibility shim for gradience.vnext.rank_policies
 
 This module has been moved to gradience.vnext.audit.rank_policies.
 This shim provides backward compatibility for existing imports.
+It will be removed in v1.0.
 """
+
+import warnings
+warnings.warn(
+    "gradience.vnext.rank_policies is deprecated. "
+    "Use gradience.vnext.audit.rank_policies instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # Re-export everything from the new location
 from gradience.vnext.audit.rank_policies import *

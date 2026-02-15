@@ -60,11 +60,19 @@ def run_minimal_training(out_dir: Path) -> bool:
             return False
             
         # Check required outputs
-        required_files = ["run.jsonl", "peft/adapter_config.json", "peft/adapter_model.bin"]
+        required_files = ["run.jsonl", "peft/adapter_config.json"]
         for f in required_files:
             if not (out_dir / f).exists():
                 print(f"   ❌ Missing required file: {f}")
                 return False
+        
+        # Check for any adapter weights file (flexible format)
+        peft_dir = out_dir / "peft"
+        weight_files = ["adapter_model.safetensors", "adapter_model.bin", "adapter_model.pt", "pytorch_model.bin"]
+        weight_found = any((peft_dir / wf).exists() for wf in weight_files)
+        if not weight_found:
+            print(f"   ❌ Missing adapter weights (expected one of: {weight_files})")
+            return False
         
         print(f"   ✅ Training completed successfully")
         return True

@@ -4,7 +4,7 @@
 # Use case: Standard reference run for LoRA compression evaluation
 # Runtime: ~5-10 minutes on CPU, suitable for CI and local testing
 #
-# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp02_distilbert_sst2.yaml --output /workspace/evidence_runs/exp02
+# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp02_distilbert_sst2.yaml --output ./results/exp02
 
 bench_version: "0.1"
 
@@ -48,7 +48,7 @@ compression:
 audit:
   base_model: "distilbert-base-uncased"
   compute_udr: true
-  # base_norms_cache: "/workspace/gradience_cache/base_norms"  # Uncomment for persistent cache
+  # base_norms_cache: "./cache/base_norms"  # Uncomment for persistent cache
 
 runtime:
   device: "cpu"                       # CPU-friendly for wide compatibility

@@ -79,7 +79,12 @@ class TestCpuSmokeComprehensive(unittest.TestCase):
             "base_model.model.layer.0.self_attn.v_proj.lora_A.weight": torch.randn(8, 64),
             "base_model.model.layer.0.self_attn.v_proj.lora_B.weight": torch.randn(64, 8),
         }
-        torch.save(weights, peft_dir / "adapter_model.bin")
+        # Save weights using flexible format (safetensors preferred, torch fallback)
+        try:
+            from safetensors.torch import save_file
+            save_file(weights, peft_dir / "adapter_model.safetensors")
+        except ImportError:
+            torch.save(weights, peft_dir / "adapter_model.pt")
         
         # Test audit pipeline
         from gradience.vnext.audit import audit_lora_peft_dir

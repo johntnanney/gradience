@@ -1,0 +1,48 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+*.egg
+
+# Development
+.venv
+venv
+env
+.tox
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov/
+.coverage
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# CI/CD
+.github
+
+# Development files
+dev/
+scripts/
+tests/
+docs/
+examples/
+*.md
+!README.md
+
+# Outputs and caches
+*.log
+*.jsonl
+results/
+output/
+ci_smoke_test/

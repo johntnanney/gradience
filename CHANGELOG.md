@@ -8,6 +8,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 *No unreleased changes yet.*
 
+## [0.9.1] - 2026-02-07
+
+### Added
+- **Two-Tier Selection System**: Defensible recommendations based on multi-seed validation evidence
+  - Tier A (validated safe): 3/3 seeds pass tolerance threshold
+  - Tier B (conditionally promising): 2/3 seeds pass with detailed explanations
+  - Evidence-based transparency in markdown reports with honest validation statements
+- **Candidate Diversity Improvements**: Enhanced deduplication logic prevents rank collisions
+  - "Second rung" mapping for policy collisions without additional compute cost
+  - More aggressive rank selection when conflicts occur
+  - Preserved diversity across compression candidates in FAST mode
+- **Scientific Honesty in Validation Evidence**: Per-rank validation evidence section
+  - Explicit per-rank validation statements matching evidence pack
+  - Clear indicators for validated safe, conditionally promising, unreliable, and failed variants
+  - Complete transparency about which compression levels can be trusted across independent random seeds
+
+### Changed
+- **Multi-seed aggregation logic**: Improved statistical validation with honest verdict reporting
+- **Markdown report generation**: Enhanced with per-rank evidence section before two-tier recommendations
+- **Fast mode candidate selection**: Better diversity preservation through collision resolution
+
+### Fixed
+- **Rank collision handling**: Prevents duplicate ranks in candidate generation
+- **Evidence transparency**: Eliminates over-optimistic claims in benchmark reports
+
 ## [0.9.0] - 2026-02-06
 
 ### Added
@@ -47,6 +72,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Security & Responsible Use**: Brief guidance on validation, resource awareness, data privacy
 - **Release Management**: Links to GitHub releases for detailed release notes
 - **Release Checklist**: Systematic version management process to prevent citation inconsistencies
+
+## [0.8.6] - 2026-02-03
+
+### Added
+- Comprehensive monitoring and reliability features for production use
+- Professional release notes for v0.8.5
+
+## [0.8.5] - 2026-01-31
+
+### Fixed
+- Per-layer rank validation false failures with degrade-to-uniform fallback logic
+- Version bump for clean release
+
+## [0.8.4-patch1] - 2026-01-30
+
+### Fixed
+- Empty `rank_pattern` crash and `rank_pattern` KeyError in compression pipeline
+- `run_bench --help` made fast by deferring heavy imports from module load time
+
+## [0.8.4] - 2026-01-30
+
+### Fixed
+- `rank_pattern` KeyError with explicit schema contract for compression configs
+- Probe quality gate "undertrained" check corrected
+
+### Added
+- Blessed Evidence Pack runner as canonical RunPod entrypoint
+- Evidence Pack configs canonicalized in dedicated directory
+- Truth commands as acceptance gate scripts
+
+### Changed
+- Eliminated hardcoded paths in dev scripts and tests for CI portability
+- Restricted pytest collection to `tests/` directory only
+
+## [0.8.3] - 2026-01-28
+
+### Fixed
+- `policy_global_suggestions` robustness in `generate_compression_configs`
+
+## [0.8.2] - 2026-01-28
+
+### Changed
+- `protocol.py` refactored to use true module alias instead of star-import
+
+## [0.8.1] - 2026-01-28
+
+### Fixed
+- UDR norms computation via `state_dict` for GPU RunPod compatibility
+- Module name canonicalization for adapter layer matching
+- Schema stability improvements for audit output
+
+## [0.8.0] - 2026-01-28
+
+### Added
+- Comprehensive JSON bloat prevention and UX enhancements for benchmark output
+- Cleaner, more compact audit and bench JSON artifacts
 
 ## [v0.7.1] - 2026-01-26
 

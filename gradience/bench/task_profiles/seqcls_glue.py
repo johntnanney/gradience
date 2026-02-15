@@ -2,14 +2,16 @@
 GLUE sequence classification task profile.
 """
 
-from typing import Dict, Any, Tuple
+from __future__ import annotations
+from typing import Dict, Any, Tuple, TYPE_CHECKING
 from pathlib import Path
 
-from datasets import Dataset, load_dataset
-from transformers import (
-    PreTrainedModel, PreTrainedTokenizerBase, Trainer, 
-    TrainingArguments, DataCollatorWithPadding
-)
+if TYPE_CHECKING:
+    from datasets import Dataset
+    from transformers import (
+        PreTrainedModel, PreTrainedTokenizerBase, Trainer, 
+        TrainingArguments, DataCollatorWithPadding
+    )
 
 
 class GLUESequenceClassificationProfile:
@@ -21,6 +23,8 @@ class GLUESequenceClassificationProfile:
     
     def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
         """Load GLUE dataset from config."""
+        from datasets import Dataset, load_dataset
+        
         task_config = cfg["task"]
         dataset = load_dataset(task_config["dataset"], task_config["subset"])
         
@@ -91,6 +95,8 @@ class GLUESequenceClassificationProfile:
     def build_trainer(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                      tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any], callbacks) -> Trainer:
         """Build trainer for sequence classification."""
+        from transformers import TrainingArguments, Trainer, DataCollatorWithPadding
+        
         train_config = cfg["train"]
         
         # Build training arguments
@@ -99,7 +105,7 @@ class GLUESequenceClassificationProfile:
             max_steps=train_config.get("max_steps", 500),
             per_device_train_batch_size=train_config.get("per_device_train_batch_size", 8),
             per_device_eval_batch_size=train_config.get("per_device_eval_batch_size", 32),
-            learning_rate=train_config.get("lr", 5e-5),
+            learning_rate=train_config.get("learning_rate", 5e-5),
             weight_decay=train_config.get("weight_decay", 0.01),
             warmup_ratio=train_config.get("warmup_ratio", 0.1),
             logging_steps=train_config.get("logging_steps", 50),
@@ -126,6 +132,7 @@ class GLUESequenceClassificationProfile:
                 tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate sequence classification model and return consistent eval_accuracy."""
         import numpy as np
+        from transformers import TrainingArguments, Trainer, DataCollatorWithPadding
         
         train_config = cfg["train"]
         

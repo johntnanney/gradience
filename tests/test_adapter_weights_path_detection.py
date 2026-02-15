@@ -29,12 +29,13 @@ class TestAdapterWeightsPathDetection(unittest.TestCase):
         import shutil
         shutil.rmtree(self.test_dir)
     
-    def _create_fake_adapter_file(self, path: Path) -> None:
-        """Create a fake empty adapter_model.safetensors file."""
+    def _create_fake_adapter_file(self, path: Path, mtime: float = None) -> None:
+        """Create a fake adapter file with explicit mtime for deterministic ordering."""
         path.parent.mkdir(parents=True, exist_ok=True)
         path.touch()
-        # Set a distinct modification time to help with newest file detection
-        time.sleep(0.001)  # Ensure different mtimes
+        if mtime is not None:
+            os.utime(path, (mtime, mtime))
+            os.utime(path.parent, (mtime, mtime))
     
     def test_strategy_1_peft_directory_priority(self):
         """Test that peft/adapter_model.safetensors takes highest priority."""
@@ -50,46 +51,49 @@ class TestAdapterWeightsPathDetection(unittest.TestCase):
     
     def test_strategy_2_newest_checkpoint_directory(self):
         """Test checkpoint-* directory selection by newest modification time."""
+        base = time.time()
         # Create multiple checkpoint directories with different timestamps
-        self._create_fake_adapter_file(self.variant_dir / "checkpoint-100" / "adapter_model.safetensors")
-        time.sleep(0.01)  # Ensure distinct modification times
-        self._create_fake_adapter_file(self.variant_dir / "checkpoint-200" / "adapter_model.safetensors")
-        time.sleep(0.01)
+        self._create_fake_adapter_file(
+            self.variant_dir / "checkpoint-100" / "adapter_model.safetensors", mtime=base)
+        self._create_fake_adapter_file(
+            self.variant_dir / "checkpoint-200" / "adapter_model.safetensors", mtime=base + 1)
         newest_path = self.variant_dir / "checkpoint-300" / "adapter_model.safetensors"
-        self._create_fake_adapter_file(newest_path)
-        
+        self._create_fake_adapter_file(newest_path, mtime=base + 2)
+
         result = find_adapter_weights_path(self.variant_dir)
-        
+
         expected = str(newest_path)
         self.assertEqual(result, expected)
     
     def test_strategy_3_fallback_to_any_subdirectory(self):
         """Test fallback to newest adapter_model.safetensors in any subdirectory."""
+        base = time.time()
         # Create files in various subdirectories (no peft or checkpoint-* dirs)
-        self._create_fake_adapter_file(self.variant_dir / "old_dir" / "adapter_model.safetensors")
-        time.sleep(0.01)
-        self._create_fake_adapter_file(self.variant_dir / "some_dir" / "adapter_model.safetensors")
-        time.sleep(0.01)
+        self._create_fake_adapter_file(
+            self.variant_dir / "old_dir" / "adapter_model.safetensors", mtime=base)
+        self._create_fake_adapter_file(
+            self.variant_dir / "some_dir" / "adapter_model.safetensors", mtime=base + 1)
         newest_path = self.variant_dir / "newest_dir" / "adapter_model.safetensors"
-        self._create_fake_adapter_file(newest_path)
-        
+        self._create_fake_adapter_file(newest_path, mtime=base + 2)
+
         result = find_adapter_weights_path(self.variant_dir)
-        
+
         expected = str(newest_path)
         self.assertEqual(result, expected)
     
     def test_checkpoint_directory_naming_variations(self):
         """Test that different checkpoint-* naming patterns are handled."""
+        base = time.time()
         # Test various checkpoint directory naming patterns
-        self._create_fake_adapter_file(self.variant_dir / "checkpoint-1" / "adapter_model.safetensors")
-        time.sleep(0.01)
-        self._create_fake_adapter_file(self.variant_dir / "checkpoint-50" / "adapter_model.safetensors") 
-        time.sleep(0.01)
+        self._create_fake_adapter_file(
+            self.variant_dir / "checkpoint-1" / "adapter_model.safetensors", mtime=base)
+        self._create_fake_adapter_file(
+            self.variant_dir / "checkpoint-50" / "adapter_model.safetensors", mtime=base + 1)
         newest_path = self.variant_dir / "checkpoint-1000" / "adapter_model.safetensors"
-        self._create_fake_adapter_file(newest_path)
-        
+        self._create_fake_adapter_file(newest_path, mtime=base + 2)
+
         result = find_adapter_weights_path(self.variant_dir)
-        
+
         expected = str(newest_path)
         self.assertEqual(result, expected)
     
@@ -108,20 +112,21 @@ class TestAdapterWeightsPathDetection(unittest.TestCase):
     
     def test_search_order_comprehensive(self):
         """Test complete search order: peft > checkpoint-* > any subdirectory."""
+        base = time.time()
         # Strategy 3: Create file in random subdirectory (lowest priority)
-        self._create_fake_adapter_file(self.variant_dir / "random" / "adapter_model.safetensors")
-        
+        self._create_fake_adapter_file(
+            self.variant_dir / "random" / "adapter_model.safetensors", mtime=base)
+
         # Strategy 2: Create newer file in checkpoint directory (medium priority)
-        time.sleep(0.01)
-        self._create_fake_adapter_file(self.variant_dir / "checkpoint-100" / "adapter_model.safetensors")
-        
+        self._create_fake_adapter_file(
+            self.variant_dir / "checkpoint-100" / "adapter_model.safetensors", mtime=base + 1)
+
         # Strategy 1: Create newest file in peft directory (highest priority)
-        time.sleep(0.01)
         peft_path = self.variant_dir / "peft" / "adapter_model.safetensors"
-        self._create_fake_adapter_file(peft_path)
-        
+        self._create_fake_adapter_file(peft_path, mtime=base + 2)
+
         result = find_adapter_weights_path(self.variant_dir)
-        
+
         # Should return peft path despite being created last
         expected = str(peft_path)
         self.assertEqual(result, expected)

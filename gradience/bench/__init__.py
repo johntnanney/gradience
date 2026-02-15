@@ -10,7 +10,42 @@ This package is intentionally minimal in v0.1 (one model, one task).
 import os
 from pathlib import Path
 
-__all__ = ['get_scripts_path', 'list_available_scripts']
+__all__ = [
+    'get_scripts_path',
+    'list_available_scripts',
+    # Typed data structures (re-exported for convenience)
+    'BenchConfig',
+    'ModelConfig',
+    'LoRAConfig',
+    'TrainConfig',
+    'TaskConfig',
+    'CompressionConfig',
+    'AuditConfig',
+    'RuntimeConfig',
+    'EvalResult',
+    'VariantResult',
+    'ProbeResult',
+    'VariantVerdict',
+    'GPUDeviceInfo',
+    'EnvironmentInfo',
+]
+
+from gradience.bench.types import (  # noqa: E402
+    BenchConfig,
+    ModelConfig,
+    LoRAConfig,
+    TrainConfig,
+    TaskConfig,
+    CompressionConfig,
+    AuditConfig,
+    RuntimeConfig,
+    EvalResult,
+    VariantResult,
+    ProbeResult,
+    VariantVerdict,
+    GPUDeviceInfo,
+    EnvironmentInfo,
+)
 
 def get_scripts_path():
     """Get the path to bench runner scripts (available in source installs)."""

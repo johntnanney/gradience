@@ -236,7 +236,7 @@ def start_heartbeat(stage_name: str,
         seed: Random seed for the run (for debugging context)
     
     Example:
-        start_heartbeat("eval_probe", output_dir="/workspace/evidence_runs/exp01", interval=30, seed=42)
+        start_heartbeat("eval_probe", output_dir="./results/experiment_01", interval=30, seed=42)
     """
     _global_heartbeat.start_heartbeat(stage_name, output_dir, interval, log_to_file, seed)
 

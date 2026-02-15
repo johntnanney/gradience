@@ -2,9 +2,12 @@
 Base task profile protocol for Bench.
 """
 
-from typing import Protocol, Dict, Any, Tuple
-from datasets import Dataset
-from transformers import Trainer, PreTrainedTokenizerBase, PreTrainedModel
+from __future__ import annotations
+from typing import Protocol, Dict, Any, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datasets import Dataset
+    from transformers import Trainer, PreTrainedTokenizerBase, PreTrainedModel
 
 
 class TaskProfile(Protocol):

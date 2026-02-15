@@ -2,16 +2,18 @@
 GSM8K causal language modeling task profile.
 """
 
+from __future__ import annotations
 import re
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, TYPE_CHECKING
 
-from datasets import Dataset, load_dataset
-from transformers import (
-    PreTrainedModel, PreTrainedTokenizerBase, Trainer, 
-    TrainingArguments, DataCollatorForLanguageModeling, 
-    AutoModelForCausalLM
-)
-import torch
+if TYPE_CHECKING:
+    from datasets import Dataset
+    from transformers import (
+        PreTrainedModel, PreTrainedTokenizerBase, Trainer, 
+        TrainingArguments, DataCollatorForLanguageModeling, 
+        AutoModelForCausalLM
+    )
+    import torch
 
 
 class GSM8KCausalLMProfile:
@@ -23,6 +25,8 @@ class GSM8KCausalLMProfile:
     
     def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
         """Load GSM8K dataset."""
+        from datasets import Dataset, load_dataset
+        
         # GSM8K has train/test splits, we'll use test as validation
         dataset = load_dataset("gsm8k", "main")
         
@@ -114,6 +118,8 @@ class GSM8KCausalLMProfile:
     def build_trainer(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                      tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any], callbacks) -> Trainer:
         """Build trainer for causal language modeling."""
+        from transformers import TrainingArguments, Trainer, DataCollatorForLanguageModeling
+        
         train_config = cfg["train"]
         
         # Build training arguments
@@ -151,6 +157,8 @@ class GSM8KCausalLMProfile:
     def evaluate(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                 tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate model using generation and exact match."""
+        import torch
+        
         # Use raw validation dataset for generation
         val_dataset = tokenized_ds["validation"]
         

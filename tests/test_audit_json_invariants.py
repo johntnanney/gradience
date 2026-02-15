@@ -39,7 +39,12 @@ class TestAuditJsonInvariants(unittest.TestCase):
             "base_model.model.layer.0.self_attn.v_proj.lora_A.weight": torch.randn(4, 64), 
             "base_model.model.layer.0.self_attn.v_proj.lora_B.weight": torch.randn(64, 4),
         }
-        torch.save(weights, self.peft_dir / "adapter_model.bin")
+        # Save weights using flexible format (safetensors preferred, torch fallback)
+        try:
+            from safetensors.torch import save_file
+            save_file(weights, self.peft_dir / "adapter_model.safetensors")
+        except ImportError:
+            torch.save(weights, self.peft_dir / "adapter_model.pt")
 
     def tearDown(self):
         """Clean up temporary files."""

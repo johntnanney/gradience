@@ -4,7 +4,7 @@
 # Use case: Quick validation of GPU Evidence Pack pipeline (~5 minutes)
 # Runtime: Ultra-fast for CI/CD and sanity checking
 #
-# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp01_mistral_gsm8k_smoke.yaml --output /workspace/evidence_runs/exp01_smoke
+# Usage: python -m gradience.bench.run_bench --config gradience/bench/configs/evidence/exp01_mistral_gsm8k_smoke.yaml --output ./results/exp01_smoke
 
 bench_version: "0.1"
 
