@@ -1,0 +1,71 @@
+# M1 Controlled Interference Experiment — Master Configuration
+#
+# Train 4 specialized LoRA adapters on Mistral-7B (3 seeds each),
+# run pairwise merge-audit, merge with 4 methods, and evaluate.
+#
+# Usage:
+#   python scripts/m1_experiment/phase1_train.py --config scripts/m1_experiment/m1_config.yaml
+#   python scripts/m1_experiment/phase2_audit.py --config scripts/m1_experiment/m1_config.yaml
+#   python scripts/m1_experiment/phase3_merge.py --config scripts/m1_experiment/m1_config.yaml
+#   python scripts/m1_experiment/phase4_evaluate.py --config scripts/m1_experiment/m1_config.yaml
+#   python scripts/m1_experiment/phase5_analyze.py --config scripts/m1_experiment/m1_config.yaml
+
+experiment:
+  name: "m1_controlled_interference"
+  version: "1.0"
+  base_model: "mistralai/Mistral-7B-v0.1"
+  seeds: [42, 123, 456]
+
+adapters:
+  sql:
+    dataset: "b-mc2/sql-create-context"
+    max_train_samples: 10000
+    eval_task: "sql_generation"
+  chat:
+    dataset: "yahma/alpaca-cleaned"
+    max_train_samples: 10000
+    eval_task: "mmlu"
+  math:
+    dataset: "gsm8k"
+    subset: "main"
+    max_train_samples: 7473
+    eval_task: "gsm8k"
+  code:
+    dataset: "sahil2801/CodeAlpaca-20k"
+    max_train_samples: 10000
+    eval_task: "humaneval"
+
+training:
+  rank: 32
+  alpha: 32
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
+  learning_rate: 5.0e-5
+  max_steps: 1200
+  batch_size: 1
+  gradient_accumulation: 16
+  torch_dtype: "bfloat16"
+
+merge:
+  methods: ["linear", "ties", "dare_linear", "dare_ties"]
+  linear_coefficients: [0.5, 0.5]
+  ties_density: 0.5
+  dare_linear_density: 0.7
+  dare_ties_density: 0.5
+  output_rank: 32
+
+evaluation:
+  framework: "lm-evaluation-harness"
+  general_capability: "mmlu"
+  general_capability_subjects: ["abstract_algebra", "college_mathematics", "formal_logic"]
+  max_eval_samples: 500
+
+runtime:
+  device: "cuda"
+  workspace: "/workspace/m1"
+
+# Smoke test overrides (used with --smoke flag)
+smoke:
+  max_steps: 5
+  max_train_samples: 50
+  max_eval_samples: 10
+  seeds: [42]
