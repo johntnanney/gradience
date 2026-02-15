@@ -45,7 +45,7 @@ class HangDiagnostics:
                 "cpu_percent": psutil.cpu_percent(interval=1),
                 "load_avg": os.getloadavg() if hasattr(os, 'getloadavg') else None
             }
-        except Exception as e:
+        except (OSError, AttributeError) as e:
             return {"error": f"Failed to collect system info: {e}"}
     
     @staticmethod
@@ -69,7 +69,7 @@ class HangDiagnostics:
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
             return processes
-        except Exception as e:
+        except (OSError, AttributeError) as e:
             return [{"error": f"Failed to collect process info: {e}"}]
     
     @staticmethod
@@ -86,7 +86,7 @@ class HangDiagnostics:
             return "nvidia-smi timeout"
         except FileNotFoundError:
             return "nvidia-smi not found (no NVIDIA GPU or drivers)"
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             return f"GPU info error: {e}"
     
     @staticmethod
@@ -104,7 +104,7 @@ class HangDiagnostics:
                     "write_time": io_counters.write_time
                 }
             return {"error": "No disk I/O counters available"}
-        except Exception as e:
+        except (OSError, AttributeError) as e:
             return {"error": f"Failed to get disk I/O info: {e}"}
     
     @staticmethod
@@ -116,7 +116,7 @@ class HangDiagnostics:
         try:
             with open(log_file, 'r') as f:
                 return f.readlines()[-lines:]
-        except Exception as e:
+        except (OSError, UnicodeDecodeError) as e:
             return [f"Failed to read log file: {e}"]
     
     @classmethod
@@ -180,7 +180,7 @@ SYSTEM RESOURCES
             for thread_id, frame in sys._current_frames().items():
                 report += f"\nThread {thread_id}:\n"
                 report += ''.join(traceback.format_stack(frame))
-        except Exception as e:
+        except (RuntimeError, AttributeError) as e:
             report += f"Failed to get stack traces: {e}\n"
         
         report += f"\n{divider}\nEND DIAGNOSTIC DUMP\n{divider}\n"
@@ -194,7 +194,7 @@ SYSTEM RESOURCES
                 with open(dump_file, 'w') as f:
                     f.write(report)
                 report += f"\nDiagnostic dump saved to: {dump_file}\n"
-            except Exception as e:
+            except (OSError, PermissionError) as e:
                 report += f"\nFailed to save diagnostic dump: {e}\n"
         
         return report
@@ -280,7 +280,7 @@ class WatchdogTimer:
                     try:
                         if hasattr(signal, 'SIGUSR1'):
                             os.kill(os.getpid(), signal.SIGUSR1)
-                    except Exception:
+                    except (OSError, ValueError):
                         pass
                     
                     # Mark as no longer running to avoid repeated dumps
@@ -331,15 +331,15 @@ def setup_stack_trace_handler():
         
         try:
             faulthandler.dump_traceback()
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             print(f"Faulthandler failed: {e}")
-            
+
             # Fallback manual stack trace
             try:
                 for thread_id, frame in sys._current_frames().items():
                     print(f"\nThread {thread_id}:")
                     traceback.print_stack(frame)
-            except Exception as e2:
+            except (RuntimeError, AttributeError) as e2:
                 print(f"Manual stack trace failed: {e2}")
         
         print("="*60)
@@ -351,14 +351,14 @@ def setup_stack_trace_handler():
         try:
             signal.signal(signal.SIGUSR1, dump_stack_traces)
             print("📡 Stack trace signal handler installed (kill -USR1 <pid> to trigger)")
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"Warning: Could not install signal handler: {e}")
     
     # Enable faulthandler for better crash diagnostics
     try:
         faulthandler.enable()
         print("🔧 Faulthandler enabled for crash diagnostics")
-    except Exception as e:
+    except (RuntimeError, OSError) as e:
         print(f"Warning: Could not enable faulthandler: {e}")
 
 

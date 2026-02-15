@@ -1,16 +1,25 @@
-"""Compression candidate generation for bench protocol."""
+"""
+Compression config generation for bench protocol.
+
+Generates candidate compression variants from audit results,
+handles de-duplication, capping, and SVD variant configs.
+
+Extracted from protocol.py.
+"""
 
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
 from gradience.peft_utils import normalize_rank_pattern, normalize_alpha_pattern
-from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
-from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
-from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
+from gradience.bench._util import round_to_allowed_ranks
+from gradience.bench.decision_trace import create_decision_trace, maybe_add_second_rung_candidates
+from gradience.bench.constants import (
+    CONSERVATISM_SCORES, DEFAULT_MAX_CANDIDATES, DEFAULT_SEED,
+    SHUFFLE_SEED_OFFSET, DEFAULT_POST_TUNE_STEPS, DEFAULT_POST_TUNE_LR_SCALE,
+)
 
 
 def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
@@ -53,41 +62,6 @@ def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) ->
         return None
 
 
-def _get_probe_quality_threshold(task_name: str) -> float:
-    """
-    Get task-specific minimum probe accuracy threshold for compression certification.
-
-    Args:
-        task_name: Task identifier (e.g., 'sst2', 'mnli', etc.)
-
-    Returns:
-        Minimum accuracy threshold for considering probe sufficiently trained
-    """
-    # Task-specific quality thresholds based on typical performance
-    task_thresholds = {
-        "sst2": 0.75,       # SST-2 sentiment: 75% minimum
-        "mnli": 0.70,       # MNLI entailment: 70% minimum
-        "qnli": 0.75,       # QNLI question entailment: 75% minimum
-        "qqp": 0.80,        # QQP paraphrase: 80% minimum
-        "rte": 0.60,        # RTE small dataset: 60% minimum
-        "wnli": 0.55,       # WNLI very small: 55% minimum
-        "cola": 0.70,       # CoLA linguistic: 70% minimum
-        "mrpc": 0.75,       # MRPC paraphrase: 75% minimum
-        "stsb": 0.80,       # STS-B regression converted to classification
-    }
-
-    return task_thresholds.get(task_name.lower(), 0.70)  # Default 70% for unknown tasks
-
-
-def round_to_allowed_ranks(suggested_r: int, allowed_ranks: list[int]) -> int:
-    """Round a suggested rank to the nearest allowed rank."""
-    if suggested_r in allowed_ranks:
-        return suggested_r
-
-    # Find closest allowed rank
-    return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
-
-
 def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: int) -> Dict[str, int]:
     """
     Create a shuffled control by redistributing ranks across different modules.
@@ -110,7 +84,7 @@ def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: i
     rank_values = list(original_rank_pattern.values())
 
     # Create deterministic shuffle using seed + offset
-    rng = random.Random(seed + 10000)  # Fixed offset for reproducibility
+    rng = random.Random(seed + SHUFFLE_SEED_OFFSET)
 
     # Shuffle the rank values while keeping module names fixed
     shuffled_ranks = rank_values.copy()
@@ -127,7 +101,7 @@ def generate_svd_variant_config(
     audit_data: Dict[str, Any],
     probe_rank: int,
     lora_config: Dict[str, Any],
-    allowed_ranks: List[int]
+    allowed_ranks: list[int]
 ) -> Dict[str, Any]:
     """
     Generate a compression config for a single SVD truncation variant.
@@ -223,8 +197,8 @@ def generate_svd_variant_config(
     if post_tune_config.get("enabled", False):
         variant_config["post_tune"] = {
             "enabled": True,
-            "steps": post_tune_config.get("steps", 100),
-            "lr_scale": post_tune_config.get("lr_scale", 0.1)
+            "steps": post_tune_config.get("steps", DEFAULT_POST_TUNE_STEPS),
+            "lr_scale": post_tune_config.get("lr_scale", DEFAULT_POST_TUNE_LR_SCALE)
         }
 
     return variant_config
@@ -261,7 +235,7 @@ def generate_compression_configs(
     probe_dir: Path,
     config: Dict[str, Any],
     fast_mode: bool = True,
-    max_candidates: int = 4
+    max_candidates: int = DEFAULT_MAX_CANDIDATES
 ) -> Dict[str, Dict[str, Any]]:
     """
     Step 3.4: Generate compression configs from probe audit with candidate control.
@@ -294,7 +268,7 @@ def generate_compression_configs(
     if config_max_candidates is not None:
         max_candidates = config_max_candidates
 
-    print(f"🎯 Candidate Control Settings:")
+    print(f"\U0001f3af Candidate Control Settings:")
     print(f"   Fast mode: {fast_mode}")
     print(f"   Max candidates: {max_candidates}")
     if config_candidate_policies:
@@ -302,7 +276,7 @@ def generate_compression_configs(
 
     # Load audit results
     audit_path = probe_dir / "audit.json"
-    print(f"📋 Loading audit results from: {audit_path}")
+    print(f"\U0001f4cb Loading audit results from: {audit_path}")
     with open(audit_path, 'r') as f:
         audit_data = json.load(f)
 
@@ -340,7 +314,7 @@ def generate_compression_configs(
         })
 
     # Gather policy-based candidates (robust handling of various schema versions)
-    print("🎯 Analyzing policy-based rank suggestions...")
+    print("\U0001f3af Analyzing policy-based rank suggestions...")
     policy_suggestions = (
         audit_data.get("policy_global_suggestions")
         or audit_data.get("policy_suggestions")
@@ -356,10 +330,10 @@ def generate_compression_configs(
     # Fast mode candidates (priority=1)
     # If explicit candidate_policies specified in config, use only those
     if config_candidate_policies:
-        print(f"⚡ Generating explicit candidate policies: {config_candidate_policies}")
+        print(f"\u26a1 Generating explicit candidate policies: {config_candidate_policies}")
         requested_policies = set(config_candidate_policies)
     else:
-        print("⚡ Generating default fast mode candidates...")
+        print("\u26a1 Generating default fast mode candidates...")
         # Default fast mode: energy_p90, knee_p90, erank_p90
         requested_policies = {"energy_p90", "knee_p90", "erank_p90"}
 
@@ -375,7 +349,7 @@ def generate_compression_configs(
             add_candidate(
                 "energy_p90", "energy",
                 energy90["uniform_p90"],
-                conservatism_score=3.0,  # Medium conservative
+                conservatism_score=CONSERVATISM_SCORES["energy_p90"],
                 priority=1
             )
 
@@ -391,7 +365,7 @@ def generate_compression_configs(
             add_candidate(
                 "knee_p90", "knee",
                 knee["uniform_p90"],
-                conservatism_score=2.0,  # Less conservative (finds elbows)
+                conservatism_score=CONSERVATISM_SCORES["knee_p90"],
                 priority=1
             )
 
@@ -407,19 +381,19 @@ def generate_compression_configs(
             add_candidate(
                 "erank_p90", "erank",
                 erank["uniform_p90"],
-                conservatism_score=1.5,  # Least conservative (entropy-based)
+                conservatism_score=CONSERVATISM_SCORES["erank_p90"],
                 priority=1
             )
 
     # Full mode additional candidates (priority=2)
     if not fast_mode:
-        print("🎯 Generating additional full mode candidates...")
+        print("\U0001f3af Generating additional full mode candidates...")
         # Legacy median/p90 from audit
         if "suggested_r_global_median" in audit_data:
             add_candidate(
                 "uniform_median", "legacy",
                 audit_data["suggested_r_global_median"],
-                conservatism_score=4.0,  # Very conservative
+                conservatism_score=CONSERVATISM_SCORES["uniform_median"],
                 priority=2
             )
 
@@ -427,7 +401,7 @@ def generate_compression_configs(
             add_candidate(
                 "uniform_p90", "legacy",
                 audit_data["suggested_r_global_90"],
-                conservatism_score=3.5,  # Conservative
+                conservatism_score=CONSERVATISM_SCORES["uniform_p90"],
                 priority=2
             )
 
@@ -436,7 +410,7 @@ def generate_compression_configs(
             add_candidate(
                 "oht_p90", "oht",
                 policy_suggestions["oht"]["uniform_p90"],
-                conservatism_score=2.5,  # Medium
+                conservatism_score=CONSERVATISM_SCORES["oht_p90"],
                 priority=2
             )
 
@@ -445,12 +419,12 @@ def generate_compression_configs(
             add_candidate(
                 "energy_median", "energy",
                 policy_suggestions["energy_90"]["uniform_median"],
-                conservatism_score=3.5,  # More conservative than p90
+                conservatism_score=CONSERVATISM_SCORES["energy_median"],
                 priority=2
             )
 
     # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
-    print(f"🔄 Processing {len(candidates)} initial candidates...")
+    print(f"\U0001f504 Processing {len(candidates)} initial candidates...")
     rank_to_candidates = {}
     for candidate in candidates:
         rank = candidate["actual_r"]
@@ -461,7 +435,7 @@ def generate_compression_configs(
     print(f"   found candidates for ranks: {sorted(rank_to_candidates.keys())}")
 
     # Enhanced deduplication: keep diversity by mapping duplicates to "second rung" alternatives
-    print("🎯 De-duplicating candidates by rank with diversity preservation...")
+    print("\U0001f3af De-duplicating candidates by rank with diversity preservation...")
     deduplicated_candidates = []
     used_ranks = set()
 
@@ -478,7 +452,7 @@ def generate_compression_configs(
             used_ranks.add(rank)
         else:
             # Multiple candidates for same rank - apply diversity preservation
-            print(f"   🔀 Rank collision at r={rank}: {len(rank_candidates)} candidates")
+            print(f"   \U0001f500 Rank collision at r={rank}: {len(rank_candidates)} candidates")
 
             # Sort by priority (1=fast_mode first), then conservatism (lower first)
             sorted_candidates = sorted(rank_candidates, key=lambda c: (c["priority"], c["conservatism_score"]))
@@ -495,7 +469,7 @@ def generate_compression_configs(
             for i, displaced_candidate in enumerate(sorted_candidates[1:], 1):
                 next_rank = find_next_aggressive_rank(rank, used_ranks, allowed_ranks)
                 if next_rank is not None:
-                    print(f"     📍 Remapping {displaced_candidate['policy_type']} from r={rank} → r={next_rank} (second rung)")
+                    print(f"     \U0001f4cd Remapping {displaced_candidate['policy_type']} from r={rank} \u2192 r={next_rank} (second rung)")
                     displaced_candidate["actual_r"] = next_rank
                     displaced_candidate["name"] = f"{displaced_candidate['policy_type']}_r{next_rank}"
                     displaced_candidate["dedup_note"] = f"Remapped from r={rank} to avoid collision (second rung)"
@@ -507,11 +481,11 @@ def generate_compression_configs(
                     deduplicated_candidates.append(displaced_candidate)
                     used_ranks.add(next_rank)
                 else:
-                    print(f"     ❌ No available second rung for {displaced_candidate['policy_type']} (r={rank})")
+                    print(f"     \u274c No available second rung for {displaced_candidate['policy_type']} (r={rank})")
                     # Could not find alternative - candidate is dropped
 
     # Step 2: Filter by mode (fast_mode keeps only priority=1)
-    print(f"📋 Applying {'fast' if fast_mode else 'full'} mode filtering...")
+    print(f"\U0001f4cb Applying {'fast' if fast_mode else 'full'} mode filtering...")
     if fast_mode:
         filtered_candidates = [c for c in deduplicated_candidates if c["priority"] == 1]
     else:
@@ -521,7 +495,7 @@ def generate_compression_configs(
 
     # Step 3: Cap candidates by conservatism/diversity
     if len(filtered_candidates) > max_candidates:
-        print(f"⚖️  Applying candidate limit (max {max_candidates})...")
+        print(f"\u2696\ufe0f  Applying candidate limit (max {max_candidates})...")
         # Sort by conservatism score for diversity (keep range of conservative to aggressive)
         filtered_candidates.sort(key=lambda c: c["conservatism_score"])
 
@@ -588,18 +562,11 @@ def generate_compression_configs(
                 "status": "ready",
                 "reason": None,
                 "policy_type": "per_layer",
-                "conservatism_score": 2.0  # Medium conservatism
+                "conservatism_score": CONSERVATISM_SCORES["per_layer"]
             }
 
     # Skip legacy SVD and per_layer_shuffled logic - handled by policy system above
     # All candidate generation is now done, proceed to final filtering
-
-    # NOTE: Old logic below is disabled but left for reference
-    # The new policy system handles all candidate generation above
-    try:
-        pass  # Placeholder - old logic removed
-    except Exception:
-        pass  # Handle any remaining old logic gracefully
 
     # Jump directly to final candidate control section
     # (All legacy logic removed - policy system handles everything)
@@ -613,7 +580,7 @@ def generate_compression_configs(
         original_rank_pattern = compression_configs["per_layer"]["rank_pattern"]
         shuffled_rank_pattern = _create_shuffled_rank_pattern(
             original_rank_pattern,
-            seed=config.get("train", {}).get("seed", 42)
+            seed=config.get("train", {}).get("seed", DEFAULT_SEED)
         )
 
         # Create alpha pattern matching the shuffled ranks
@@ -635,7 +602,7 @@ def generate_compression_configs(
             # Attach same audit metadata for consistency
             "_audit_layers": audit_data.get("layers", []),
             "_probe_rank": probe_rank,
-            "_shuffle_seed": config.get("train", {}).get("seed", 42) + 10000,  # Deterministic offset
+            "_shuffle_seed": config.get("train", {}).get("seed", DEFAULT_SEED) + SHUFFLE_SEED_OFFSET,
             "config": {
                 **lora_config,
                 "rank_pattern": shuffled_rank_pattern,
@@ -708,7 +675,7 @@ def generate_compression_configs(
             compression_configs[variant_name] = svd_variant_config
 
     # Apply second rung decision logic (audit-driven compression candidates)
-    print("🎯 Evaluating second rung compression candidates...")
+    print("\U0001f3af Evaluating second rung compression candidates...")
     decision_trace = create_decision_trace(probe_rank, audit_data)
 
     # Collect both existing names and used ranks to avoid duplicates
@@ -746,6 +713,9 @@ def generate_compression_configs(
         }
         print(f"   Added {candidate['name']}: r={candidate['actual_r']} ({candidate['policy_type']})")
 
+    # Store decision trace for reporting
+    globals()['_last_decision_trace'] = decision_trace
+
     # Apply final candidate control (remove old logic artifacts and enforce caps)
     final_configs = {}
 
@@ -770,7 +740,7 @@ def generate_compression_configs(
 
     # Print candidate summary
     if len(final_configs) > 0:
-        print(f"📊 Bench candidate control: {len(final_configs)} variants generated")
+        print(f"\U0001f4ca Bench candidate control: {len(final_configs)} variants generated")
         if fast_mode:
             print("   Mode: FAST (energy_p90, knee_p90, erank_p90)")
         else:
@@ -794,7 +764,7 @@ def generate_compression_configs(
     # Final candidate generation summary
     total_configs = len(final_configs)
     ready_configs = sum(1 for cfg in final_configs.values() if cfg.get("status") == "ready")
-    print(f"✅ Candidate generation completed: {ready_configs}/{total_configs} configs ready for training")
+    print(f"\u2705 Candidate generation completed: {ready_configs}/{total_configs} configs ready for training")
 
     # Return both configs and decision trace
     return final_configs, decision_trace

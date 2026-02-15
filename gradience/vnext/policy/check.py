@@ -627,7 +627,7 @@ def check_run(
             maybe = signals.extras.get("lora_audit")
             if isinstance(maybe, dict):
                 audit = maybe
-    except Exception:
+    except (AttributeError, KeyError, TypeError):
         audit = None
 
     if config is not None and config.lora.r is not None and audit is not None:
@@ -641,15 +641,15 @@ def check_run(
 
             try:
                 util_f = float(audit_util) if audit_util is not None else None
-            except Exception:
+            except (ValueError, TypeError):
                 util_f = None
             try:
                 sr_f = float(audit_sr) if audit_sr is not None else None
-            except Exception:
+            except (ValueError, TypeError):
                 sr_f = None
             try:
                 e90_f = float(energy_p90) if energy_p90 is not None else None
-            except Exception:
+            except (ValueError, TypeError):
                 e90_f = None
 
             # Decide whether rank looks "oversized".
@@ -676,7 +676,7 @@ def check_run(
                     if isinstance(total_params, (int, float)) and cur_r > 0:
                         est_new_params = float(total_params) * (float(suggested_r) / float(cur_r))
                         est_savings = 1.0 - (float(suggested_r) / float(cur_r))
-                except Exception:
+                except (ValueError, TypeError, ZeroDivisionError):
                     est_new_params = None
                     est_savings = None
 
@@ -741,7 +741,7 @@ def check_run(
                                     },
                                 )
                             )
-                except Exception:
+                except (AttributeError, KeyError, TypeError, ValueError):
                     # Don't let type parsing break monitor.
                     pass
 
@@ -750,7 +750,7 @@ def check_run(
     try:
         extras = getattr(signals, 'extras', None) or {}
         lora_audit = extras.get('lora_audit') if isinstance(extras, dict) else None
-    except Exception:
+    except (AttributeError, KeyError, TypeError):
         lora_audit = None
 
     def _get_current_r(cfg):
@@ -761,14 +761,14 @@ def check_run(
             l = getattr(cfg, 'lora', None)
             if l is not None and hasattr(l, 'r'):
                 return int(l.r)
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
         # Dict-like config
         try:
             l = cfg.get('lora') if hasattr(cfg, 'get') else None
             if isinstance(l, dict) and 'r' in l:
                 return int(l['r'])
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
         return None
 
@@ -779,15 +779,15 @@ def check_run(
         util = lora_audit.get('utilization_mean')
         try:
             s_med = int(s_med) if s_med is not None else None
-        except Exception:
+        except (ValueError, TypeError):
             s_med = None
         try:
             s_p90 = int(s_p90) if s_p90 is not None else None
-        except Exception:
+        except (ValueError, TypeError):
             s_p90 = None
         try:
             util = float(util) if util is not None else None
-        except Exception:
+        except (ValueError, TypeError):
             util = None
 
         # Conservative trigger
@@ -816,7 +816,7 @@ def check_run(
     # If we have any actionable recommendation, drop the noise-only config_ok.
     try:
         has_actionable = any(getattr(r, 'action', None) != 'config_ok' for r in recs)
-    except Exception:
+    except (AttributeError, TypeError):
         has_actionable = False
     if has_actionable:
         recs = [r for r in recs if getattr(r, 'action', None) != 'config_ok']

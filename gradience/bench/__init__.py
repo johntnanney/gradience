@@ -57,7 +57,7 @@ def get_scripts_path():
             return str(scripts_dir)
         else:
             return None
-    except Exception:
+    except (OSError, TypeError):
         return None
 
 def list_available_scripts():

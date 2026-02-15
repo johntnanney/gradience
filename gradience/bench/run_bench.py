@@ -317,7 +317,7 @@ def main() -> int:
         print("\nTo run bench, install dependencies:")
         print("  pip install transformers>=4.20.0 peft>=0.4.0 datasets torch pyyaml")
         return 1
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: top-level CLI error handler
         print(f"\nBenchmark failed: {e}")
         if args.verbose:
             import traceback

@@ -10,6 +10,7 @@ Consolidates multiple seed runs into a single aggregate report with:
 """
 
 import json
+import re
 import argparse
 import numpy as np
 from pathlib import Path
@@ -20,8 +21,52 @@ from typing import List, Dict, Any, Optional, Tuple
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return None
+
+def _extract_seed_id(run_path: Path) -> Any:
+    """Extract seed ID from a seed run directory.
+
+    Fallback hierarchy:
+    1. bench.json  → top-level ``seed`` or ``config_metadata.seed``
+    2. config.yaml → ``train.seed`` (regex, no YAML dependency required)
+    3. Directory name parsing (``seed_42`` → 42)
+    """
+    # 1. Try bench.json (canonical after the seed-injection patch)
+    bj = run_path / "bench.json"
+    j = _read_json(bj)
+    if isinstance(j, dict):
+        s = j.get("seed")
+        if s is not None:
+            return s
+        s = (j.get("config_metadata") or {}).get("seed")
+        if s is not None:
+            return s
+
+    # 2. Fallback: parse config.yaml with lightweight regex (no yaml import)
+    #    Prefer train.seed (nested under 'train:' block) over a bare seed:.
+    cfg_path = run_path / "config.yaml"
+    if cfg_path.exists():
+        try:
+            text = cfg_path.read_text(encoding="utf-8")
+            # 2a. Look for seed nested under a 'train:' block (indented)
+            m = re.search(
+                r'^train:\s*\n(?:[ \t]+\S[^\n]*\n)*?[ \t]+seed:\s*(\d+)',
+                text,
+                re.MULTILINE,
+            )
+            if m:
+                return int(m.group(1))
+            # 2b. Any top-level or indented seed: line (first match wins)
+            m = re.search(r'^\s*seed:\s*(\d+)', text, re.MULTILINE)
+            if m:
+                return int(m.group(1))
+        except OSError:
+            pass
+
+    # 3. Directory name (original behaviour)
+    m = re.search(r'seed_(\d+)', run_path.name)
+    return int(m.group(1)) if m else run_path.name
 
 def _find_probe_dir(seed_dir: Path) -> Optional[Path]:
     # Prefer probe_r* directories
@@ -465,6 +510,7 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
         "task": task,
         "validation_level": "Certifiable",
         "n_seeds": n_seeds,
+        "seeds": [_extract_seed_id(p) for p in run_paths],
         "seed_runs": [str(p) for p in run_paths],
         "probe_baseline": probe_stats,
         "variant_results": variant_aggregates,
@@ -522,7 +568,11 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append(f"- **Model:** {data['model']}")
     lines.append(f"- **Task:** {data['task']}")
     lines.append(f"- **Validation Level:** {data['validation_level']}")
-    lines.append(f"- **Seeds:** {data['n_seeds']}")
+    seed_ids = data.get("seeds", [])
+    seed_str = f"{data['n_seeds']}"
+    if seed_ids:
+        seed_str += f" ({', '.join(str(s) for s in seed_ids)})"
+    lines.append(f"- **Seeds:** {seed_str}")
     lines.append("")
     
     # Probe baseline
@@ -537,26 +587,45 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     # Compression results table
     lines.append("## Compression Results")
     lines.append("")
-    lines.append("| Variant | Pass Rate | Worst Δ | Mean Accuracy | Param Reduction | Policy Status |")
-    lines.append("|---------|-----------|---------|---------------|-----------------|---------------|")
-    
+    lines.append("| Variant | Rank Policy | Pass Rate | Worst Δ | Mean Accuracy | Param Reduction | Policy Status |")
+    lines.append("|---------|-------------|-----------|---------|---------------|-----------------|---------------|")
+
     for variant in sorted(data["variant_results"].keys()):
         stats = data["variant_results"][variant]
         if stats.get("status") == "no_data":
             continue
-            
+
         policy = data["policy_compliance"].get(variant, {})
-        
+
+        # Extract policy_origin from compression metadata if available
+        policy_origin = stats.get("compression", {}).get("policy_origin", "—") if isinstance(stats.get("compression"), dict) else "—"
+
         pass_rate = f"{stats.get('pass_rate', 0):.0%}"
         worst_delta = f"{stats.get('delta_worst', 0):.3f}" if stats.get('delta_worst') is not None else "N/A"
         mean_acc = f"{stats.get('accuracy_mean', 0):.3f}" if stats.get('accuracy_mean') is not None else "N/A"
         param_red = f"{stats.get('param_reduction_mean', 0):.1%}" if stats.get('param_reduction_mean') else "N/A"
         policy_status = "✅ COMPLIANT" if policy.get("policy_compliant") else "❌ FAIL"
-        
-        lines.append(f"| {variant} | {pass_rate} | {worst_delta} | {mean_acc} | {param_red} | {policy_status} |")
+
+        lines.append(f"| {variant} | {policy_origin} | {pass_rate} | {worst_delta} | {mean_acc} | {param_red} | {policy_status} |")
     
     lines.append("")
     
+    # Candidate selection section (if available from protocol-driven path)
+    selection = data.get("config_metadata", {}).get("candidate_selection") if isinstance(data.get("config_metadata"), dict) else None
+    if selection:
+        lines.append("## Candidate Selection")
+        lines.append("")
+        mode_label = "Fast (energy, knee, erank policies)" if selection.get("mode") == "fast" else f"Full (capped at {selection.get('max_candidates', '?')})"
+        lines.append(f"- **Mode:** {mode_label}")
+        lines.append(f"- **Policies evaluated:** {selection.get('total_policies_evaluated', '?')}")
+        lines.append(f"- **After de-duplication:** {selection.get('after_dedup', '?')} unique ranks")
+        lines.append(f"- **Final candidates:** {selection.get('final_count', '?')}")
+        for evt in selection.get("dedup_events", []):
+            kept = evt.get("kept", "?")
+            policies = ", ".join(evt.get("policies", []))
+            lines.append(f"- **r={evt.get('rank', '?')}:** {policies} all mapped here, kept `{kept}`")
+        lines.append("")
+
     # Safety Policy
     lines.append("## Safety Policy")
     lines.append("")
@@ -654,7 +723,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
             lines.append(scoreboard_table)
     except ImportError:
         pass  # Scoreboard not available
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
         pass  # Scoreboard failed, continue without it
     
     lines.append("")

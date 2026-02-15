@@ -70,12 +70,12 @@ def infer_module_type(name: str) -> str:
 
 try:
     import yaml  # type: ignore
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     yaml = None
 
 try:
     from safetensors.torch import load_file as safetensors_load_file  # type: ignore
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     safetensors_load_file = None
 
 
@@ -198,7 +198,7 @@ class LoRALayerAudit:
                 if getattr(self, 'frob_sq', None) is not None:
                     import math
                     d['frob_norm_scaled'] = scale * math.sqrt(max(float(self.frob_sq), 0.0))
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
         return d
@@ -294,7 +294,7 @@ class LoRAAuditResult:
                 return None
             try:
                 k = float(k)
-            except Exception:
+            except (ValueError, TypeError):
                 return None
             for r in (1,2,4,8,16,32):
                 if k <= r:
@@ -325,7 +325,7 @@ class LoRAAuditResult:
                     continue
                 try:
                     scale = float(alpha) / float(r)
-                except Exception:
+                except (ValueError, TypeError):
                     continue
                 sigma = getattr(l, 'sigma_max', None)
                 if sigma is not None:
@@ -342,7 +342,7 @@ class LoRAAuditResult:
                 out['delta_frob_norm_scaled_mean'] = float(sum(frob_scaled) / len(frob_scaled))
                 out['delta_frob_norm_scaled_p50'] = _pct(frob_scaled, 0.50)
                 out['delta_frob_norm_scaled_p90'] = _pct(frob_scaled, 0.90)
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
         # UDR summary statistics
@@ -367,8 +367,8 @@ class LoRAAuditResult:
                 out['sdi_median'] = _pct(sdi_values, 0.50)
                 out['sdi_p90'] = _pct(sdi_values, 0.90)
                 out['sdi_mean'] = float(sum(sdi_values) / len(sdi_values))
-                
-        except Exception:
+
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
         # Gain metrics
@@ -379,7 +379,7 @@ class LoRAAuditResult:
             out['per_layer_gain'] = gain_metrics['per_layer']
             out['global_gain'] = gain_metrics['global']
             out['composition'] = gain_metrics['composition']  # Add composition analysis
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
         return out
@@ -424,7 +424,7 @@ class LoRAAuditResult:
             filtered = {k: v for k, v in payload.items() if k in fields}
             # If SignalSnapshot has other required args, this will raise -> fallback to dict
             return SignalSnapshot(**filtered)
-        except Exception:
+        except (AttributeError, KeyError, TypeError, ValueError):
             return payload
 
 
@@ -487,11 +487,11 @@ def load_peft_adapter_config(path: Union[str, Path]) -> LoRAAdapterConfig:
 
     try:
         r_int = int(r) if r is not None else None
-    except Exception:
+    except (ValueError, TypeError):
         r_int = None
     try:
         a_float = float(alpha) if alpha is not None else None
-    except Exception:
+    except (ValueError, TypeError):
         a_float = None
 
     return LoRAAdapterConfig(
@@ -850,7 +850,7 @@ def low_rank_stable_rank(
                             
                         policy_results[key] = policy_data
                         
-                    except Exception as e:
+                    except (ValueError, RuntimeError, TypeError, ZeroDivisionError) as e:
                         policy_results[policy_name] = {
                             'k': 0,
                             'confidence': 0.0,
@@ -1359,7 +1359,7 @@ def load_base_model_norms(
                 import json
                 with cache_path.open('r') as f:
                     return json.load(f)
-            except Exception as e:
+            except (json.JSONDecodeError, OSError) as e:
                 issues.append(f"Failed to load base norms cache {cache_path}: {e}")
     
     # Try to compute from base model if provided
@@ -1371,11 +1371,11 @@ def load_base_model_norms(
             if norms is not None and base_norms_cache is not None:
                 try:
                     cache_base_model_norms(norms, base_norms_cache)
-                except Exception as e:
+                except (OSError, TypeError) as e:
                     issues.append(f"Failed to cache base norms to {base_norms_cache}: {e}")
             
             return norms
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError) as e:
             issues.append(f"Failed to compute base model norms for {base_model_id}: {e}")
     
     return None
@@ -1419,7 +1419,7 @@ def compute_base_model_norms(
         # Load model config to understand architecture
         try:
             config = AutoConfig.from_pretrained(base_model_id)
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError) as e:
             issues.append(f"Failed to load config for {base_model_id}: {e}")
             return None
         
@@ -1431,7 +1431,7 @@ def compute_base_model_norms(
                 device_map="cpu",
                 trust_remote_code=True,
             )
-        except Exception as e:
+        except Exception as e:  # Intentionally broad: HF model loading can fail in unpredictable ways
             issues.append(f"Failed to load model {base_model_id}: {e}")
             return None
         
@@ -1464,7 +1464,7 @@ def compute_base_model_norms(
                     try:
                         _, s, _ = torch.linalg.svd(param_cpu, full_matrices=False)
                         sigma_max = float(s[0]) if len(s) > 0 else 0.0
-                    except Exception as svd_e:
+                    except (RuntimeError, ValueError) as svd_e:
                         # Fallback: use matrix norm if SVD fails
                         sigma_max = float(torch.norm(param_cpu, p=2))
                         issues.append(f"SVD failed for {param_name}, using L2 norm: {svd_e}")
@@ -1481,7 +1481,7 @@ def compute_base_model_norms(
                     else:
                         issues.append(f"Skipping {param_name}: zero norm detected")
                     
-                except Exception as e:
+                except (ValueError, RuntimeError) as e:
                     issues.append(f"Failed to compute norms for {param_name}: {e}")
                     continue
         
@@ -1496,7 +1496,7 @@ def compute_base_model_norms(
         
         return norms_dict
         
-    except Exception as e:
+    except Exception as e:  # Intentionally broad: base model norm computation has many failure modes
         issues.append(f"Base model norm computation failed: {e}")
         return None
 
@@ -1623,7 +1623,7 @@ def audit_lora_state_dict(
 
         try:
             A2, B2, r = _orient_lora_factors(A, B)
-        except Exception as e:
+        except (ValueError, RuntimeError) as e:
             issues.append(f"Could not orient LoRA factors for {prefix}: {e}")
             continue
 
@@ -1713,10 +1713,10 @@ def audit_lora_state_dict(
                         if base_spec_in_memory > eps:
                             rel_delta_op = delta_sigma_max / base_spec_in_memory
                             
-                    except Exception as e:
+                    except (ValueError, RuntimeError) as e:
                         issues.append(f"Failed to compute relative perturbation for {prefix}: {e}")
             
-        except Exception as e:
+        except (ValueError, RuntimeError) as e:
             issues.append(f"Spectral computation failed for {prefix}: {e}")
             continue
 
@@ -1762,7 +1762,7 @@ def audit_lora_state_dict(
         module_type = infer_module_type(str(layer_name or ''))
         try:
             layer.module_type = module_type
-        except Exception:
+        except (AttributeError, TypeError):
             pass
         by_type_acc.setdefault(module_type, []).append(layer)
 
@@ -2084,7 +2084,7 @@ def audit_lora_peft_dir(
     if cfg_path is not None and cfg_path.exists():
         try:
             adapter_config = load_peft_adapter_config(cfg_path)
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             issues.append(f"Failed to load adapter config {cfg_path}: {e}")
 
     if w_path is None or not w_path.exists():
@@ -2113,7 +2113,7 @@ def audit_lora_peft_dir(
     print(f"📁 Loading adapter weights from: {w_path}", file=sys.stderr)
     try:
         sd = load_adapter_state_dict(w_path, map_location=map_location)
-    except Exception as e:
+    except (OSError, RuntimeError, ValueError) as e:
         issues.append(f"Failed to load adapter weights {w_path}: {e}")
         return LoRAAuditResult(
             peft_dir=str(d),

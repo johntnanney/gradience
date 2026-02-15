@@ -64,7 +64,7 @@ class StageStateManager:
             
             with open(self.state_file, 'w') as f:
                 json.dump(self._state, f, indent=2)
-        except Exception as e:
+        except (OSError, TypeError, ValueError) as e:
             print(f"Warning: Could not save stage state to {self.state_file}: {e}")
     
     def mark_stage_completed(self, stage_name: str, metadata: Optional[Dict[str, Any]] = None):
@@ -286,7 +286,7 @@ class StageStateManager:
                         if not (probe_dir / "audit.json").exists():
                             del self._state["stages"][stage_name]
                             cleaned_stages.append(stage_name)
-                except Exception:
+                except (ValueError, IndexError):
                     # If parsing fails, remove the entry
                     del self._state["stages"][stage_name]
                     cleaned_stages.append(stage_name)
