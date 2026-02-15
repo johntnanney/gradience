@@ -124,7 +124,7 @@ def compute_full_spectrum(
         try:
             U, S, Vh = torch.linalg.svd(W, full_matrices=False)
             singular_values = S.cpu().tolist()
-        except Exception:
+        except (RuntimeError, ValueError):
             # Fallback for numerical issues
             singular_values = [1.0]
         

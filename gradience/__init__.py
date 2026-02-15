@@ -4,13 +4,15 @@ Gradience: Telemetry-first observability for LoRA / PEFT fine-tuning
 Gradience is a flight recorder + mechanic for LoRA runs:
 - Flight recorder: emits stable JSONL telemetry (gradience.vnext.telemetry/v1)
 - Mechanic: audits adapters and provides conservative rank compression suggestions
+- Merge auditor: spectral compatibility analysis between LoRA adapter pairs
 
 ## Public API (Stability Guaranteed)
 
 CLI Commands:
     gradience check        # Config validation and recommendations
-    gradience monitor      # Live run monitoring and alerts  
+    gradience monitor      # Live run monitoring and alerts
     gradience audit        # Post-hoc LoRA adapter analysis
+    gradience merge-audit  # Spectral compatibility between two adapters
 
 HuggingFace Integration:
     from gradience.vnext.integrations.hf import GradienceCallback
@@ -27,11 +29,19 @@ Rank Suggestions:
         PerLayerRankSuggestionReport,
     )
 
+Merge Compatibility Audit:
+    from gradience.vnext.merge import (
+        merge_audit,
+        VerdictThresholds,
+        MergeAuditReport,
+        CompatibilityVerdict,
+    )
+
 ## Internal Implementation
 
 Everything else is internal and may change.
 
-Legacy components (DEPRECATED) have been moved to docs/legacy/
+Legacy components (DEPRECATED) have been removed.
 For current usage, see: README.md, QUICK_REFERENCE.md, USER_MANUAL.md, PUBLIC_API.md
 """
 
@@ -43,90 +53,47 @@ except ImportError:
 
 try:
     __version__ = version("gradience")
-except PackageNotFoundError:
-    # Fallback for development installs or editable installs
-    __version__ = "0.9.1+local"
+except Exception:  # Intentionally broad: outermost fallback for development installs
+    __version__ = "0.9.4"
 
-# Current API: vNext components
-# For stable telemetry, use: gradience.vnext.telemetry
-# For HF integration, use: gradience.vnext.integrations.hf
-
-# Legacy components (maintained for backward compatibility, but deprecated)
-import warnings
-
-# Optional torch-dependent imports (legacy components)
-try:
-    # Spectral analysis (legacy - for new code use gradience.vnext.audit)
-    from gradience.spectral import SpectralAnalyzer
-
-    # Structural analysis (legacy)  
-    from gradience.structural import (
-        StructuralAnalyzer,
-        StructuralMetrics,
-        compute_muon_ratio,
-        get_weight_decay_from_optimizer,
-    )
-    _TORCH_AVAILABLE = True
-except ImportError:
-    # Create placeholder classes that provide helpful error messages
-    class SpectralAnalyzer:
-        def __init__(self, *args, **kwargs):
-            raise ImportError(
-                "SpectralAnalyzer requires PyTorch. Install PyTorch from https://pytorch.org/get-started/ then: pip install gradience[bench]"
-            )
-    
-    class StructuralAnalyzer:
-        def __init__(self, *args, **kwargs):
-            raise ImportError(
-                "StructuralAnalyzer requires PyTorch. Install PyTorch from https://pytorch.org/get-started/ then: pip install gradience[bench]"
-            )
-    
-    def StructuralMetrics(*args, **kwargs):
-        raise ImportError(
-            "StructuralMetrics requires PyTorch. Install PyTorch from https://pytorch.org/get-started/ then: pip install gradience[bench]"
-        )
-    
-    def compute_muon_ratio(*args, **kwargs):
-        raise ImportError(
-            "compute_muon_ratio requires PyTorch. Install PyTorch from https://pytorch.org/get-started/ then: pip install gradience[bench]"
-        )
-    
-    def get_weight_decay_from_optimizer(*args, **kwargs):
-        raise ImportError(
-            "get_weight_decay_from_optimizer requires PyTorch. Install PyTorch from https://pytorch.org/get-started/ then: pip install gradience[bench]"
-        )
-    
-    _TORCH_AVAILABLE = False
+# Current API: vNext components re-exported for convenience
+from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
 
 # Stable public API (thin wrappers around CLI/module entrypoints)
 from gradience import api
 
+# Deprecated Guard functionality
+import warnings
 
-def __getattr__(name):
-    """Lazy imports with deprecation warnings for legacy telemetry classes."""
-    if name in ("TelemetryWriter", "TelemetryReader"):
-        import warnings
-        warnings.warn(
-            f"gradience.{name} is deprecated. "
-            f"Use gradience.vnext.telemetry.TelemetryWriter or "
-            f"gradience.vnext.telemetry_reader.TelemetryReader instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        from gradience import telemetry
-        return getattr(telemetry, name)
-    raise AttributeError(f"module 'gradience' has no attribute {name!r}")
+def _deprecated_guard_import():
+    warnings.warn(
+        "Guard functionality has been moved to docs/legacy/ and is no longer supported. "
+        "Use gradience.vnext.integrations for framework integration instead.",
+        DeprecationWarning,
+        stacklevel=3
+    )
+    raise ImportError("Guard functionality is deprecated. See docs/legacy/ for archived code.")
+
+# Create placeholder functions that raise deprecation warnings
+def Guard(*args, **kwargs):
+    _deprecated_guard_import()
+
+def GuardConfig(*args, **kwargs):
+    _deprecated_guard_import()
+
+def create_guard(*args, **kwargs):
+    _deprecated_guard_import()
 
 __all__ = [
     # Stable public API
     "api",
 
-    # Current (but legacy) - use gradience.vnext for new code
-    "SpectralAnalyzer",
-    "StructuralAnalyzer",
-    "StructuralMetrics",
-    "compute_muon_ratio",
-    "get_weight_decay_from_optimizer",
+    # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",
+
+    # Deprecated (will raise ImportError with helpful message)
+    "Guard",
+    "GuardConfig",
+    "create_guard",
 ]

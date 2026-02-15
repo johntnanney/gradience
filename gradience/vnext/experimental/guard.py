@@ -168,21 +168,21 @@ class LoRAGuard:
             try:
                 if not torch.isfinite(torch.tensor(loss)):
                     return "nan_loss"
-            except Exception:
-                # If loss can't be converted, ignore it.
+            except (ValueError, TypeError, RuntimeError):
+                # If loss can't be converted to tensor, ignore it.
                 pass
 
         if grad_norm is not None:
             try:
                 if not torch.isfinite(torch.tensor(grad_norm)):
                     return "nan_grad"
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 pass
 
             try:
                 if float(grad_norm) > self.grad_threshold:
                     return "grad_explosion"
-            except Exception:
+            except (ValueError, TypeError):
                 pass
 
         return None

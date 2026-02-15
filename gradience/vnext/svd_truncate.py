@@ -123,7 +123,7 @@ def _parse_and_pair_lora_matrices(
                     "B": (lora_B_key, lora_B)
                 }
                 
-            except Exception as e:
+            except (KeyError, ValueError, RuntimeError) as e:
                 print(f"Warning: Failed to process LoRA A key '{key}': {e}")
                 continue
     
@@ -416,7 +416,7 @@ def svd_truncate_peft_dir(
             try:
                 shutil.copy2(item, out_dir / item.name)
                 copied_files.append(item.name)
-            except Exception as e:
+            except (OSError, PermissionError) as e:
                 print(f"Warning: Failed to copy {item.name}: {e}")
     
     # 5. Generate a simple README for the truncated adapter

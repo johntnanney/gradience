@@ -1,6 +1,6 @@
 # Gradience
 
-**Spectral audit and evidence-based compression for LoRA adapters.** Detect rank waste, generate compression candidates, and validate with multi-seed benchmarks.
+**Spectral audit and evidence-based compression for LoRA adapters.** Detect rank waste, generate compression candidates, validate with multi-seed benchmarks, and audit merge compatibility between adapter pairs.
 
 ## Who it's for
 
@@ -13,6 +13,7 @@
 - **Audit reports** with spectral analysis, rank utilization, and compression recommendations
 - **Validated compression candidates** with tolerance thresholds and quality gates
 - **Multi-seed benchmark artifacts** proving compression strategies work reliably
+- **Merge compatibility reports** with per-layer spectral analysis of adapter pairs before merging
 
 ## Install
 
@@ -131,6 +132,8 @@ Every benchmark run generates:
 - **`compression_configs.json`** - Generated compression candidates (rank suggestions)
 - **`audit.json`** - Spectral analysis of the probe adapter (utilization, energy, rank waste)
 - **`bench_aggregate.json`** - Multi-seed statistical summary (for research)
+- **`merge_audit.json`** - Per-layer spectral compatibility between two adapters (merge workflow)
+- **`merge_audit.md`** - Human-readable merge compatibility report with recommendations
 
 ## Core commands
 
@@ -143,6 +146,9 @@ gradience monitor training_run.jsonl --verbose
 
 # Generate rank compression suggestions
 gradience audit --peft-dir /path/to/adapter --suggest-per-layer
+
+# Audit merge compatibility between two adapters
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b --output-dir ./merge_out
 
 # Run complete benchmark protocol
 gradience-bench --config config.yaml --output results/
@@ -182,9 +188,10 @@ not just a recommendation.
 ## Concepts
 
 - **Probe adapter** - High-rank (r=16+) baseline to establish performance ceiling
-- **Audit** - Spectral analysis revealing stable rank, utilization, and energy distribution  
+- **Audit** - Spectral analysis revealing stable rank, utilization, and energy distribution
 - **Candidate generation** - Automated compression config generation (Tier A/B, second rung policies)
 - **Validation policy** - Quality tolerance thresholds with multi-seed statistical verification
+- **Merge audit** - Spectral compatibility analysis between two LoRA adapters via principal angles, directional agreement, and magnitude balance — produces per-layer verdicts (safe / redundant / conflicting / imbalanced) and merge strategy recommendations
 
 📖 **[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/docs/api_stability.md)** | **[Benchmark guide](https://github.com/gradience-ai/gradience/blob/main/docs/bench_guide.md)**
 
@@ -232,6 +239,9 @@ gradience-bench --config my_config.yaml --output benchmark_results/
 
 # 5. Deploy compressed adapter with confidence
 cp benchmark_results/compression_configs.json production/
+
+# 6. Before merging two adapters, check compatibility
+gradience merge-audit --adapter-a adapter_code/ --adapter-b adapter_chat/ --output-dir merge_check/
 ```
 
 ## Configuration
@@ -292,9 +302,9 @@ Every release is validated with comprehensive CI gates:
 ## API Stability
 
 **Stable interfaces** (backwards compatible):
-- CLI commands (`gradience audit`, `gradience-bench`, etc.)
+- CLI commands (`gradience audit`, `gradience merge-audit`, `gradience-bench`, etc.)
 - Config schema (YAML structure)
-- Output artifacts (`audit.json`, `bench.json`, `bench.md`)
+- Output artifacts (`audit.json`, `bench.json`, `bench.md`, `merge_audit.json`, `merge_audit.md`)
 
 **Experimental features** are clearly marked and may change.
 

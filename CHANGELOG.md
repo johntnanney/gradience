@@ -6,7 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-*No unreleased changes yet.*
+### Added — Merge Compatibility Audit
+
+New `gradience merge-audit` command for spectral compatibility analysis between two PEFT LoRA adapters before merging.
+
+- **`gradience/vnext/merge/` module** (5 files, ~1,400 lines)
+  - `__init__.py` — Public API orchestrator: `merge_audit()` function
+  - `spectral_compat.py` — QR-based SVD, principal angle analysis, subspace overlap metrics
+  - `verdicts.py` — Five-branch decision tree: SAFE / REDUNDANT / CONFLICTING / IMBALANCED
+  - `report.py` — `MergeAuditReport` dataclass, JSON/Markdown report generation
+  - `io.py` — Adapter loading, layer matching, factor extraction (reuses `vnext.audit` infrastructure)
+
+- **CLI**: `gradience merge-audit --adapter-a <dir> --adapter-b <dir>` with flags:
+  - `--output-dir` — Write `merge_audit.json` and `merge_audit.md`
+  - `--thresholds {default,conservative,permissive}` — Verdict sensitivity presets
+  - `--energy-threshold` — Energy fraction for effective rank (default: 0.90)
+  - `--compute-dtype {float64,float32}` — SVD precision
+  - `--json` / `--verbose` — Output control
+
+- **Python API**:
+  ```python
+  from gradience.vnext.merge import merge_audit, VerdictThresholds
+  report = merge_audit(adapter_a_dir="./a", adapter_b_dir="./b")
+  ```
+
+- **Artifacts**: `merge_audit.json` (schema `gradience.merge_audit/v1`) and `merge_audit.md`
+
+- **Tests**: 79 tests in `tests/test_merge_audit.py` covering spectral metrics, verdicts, edge cases, IO, and CLI
+
+- **GPU test protocol**: `scripts/merge_audit_test/` — 6-script RunPod A40 test suite for validating merge-audit against real HuggingFace adapters (Predibase LoRA Land collection)
+
+## [v0.9.4] - 2026-02-12
+
+### Fixed - Aggregate Metadata Consistency
+
+Three fixes for internally inconsistent aggregate artifact metadata:
+
+1. **Aggregate owns validation_classification** — No longer copies single-seed `env.validation_classification` (which had `is_multiseed: false`, `n_seeds: 1`). Aggregate now computes its own with correct `is_multiseed: true`, `n_seeds: 3`, and rationale reflecting multi-seed reality.
+
+2. **Selection trace final_count fixed** — Was off-by-one (`len(final_configs) - 1` subtracted for a key not yet added), producing `final_count: 0` when 1 candidate ran. Added `final_candidates` list naming what actually evaluated.
+
+3. **effective_overrides in config_metadata** — `embedded_config` shows what the user configured (e.g. `variants_to_test: ["per_layer"]`), new `effective_overrides` shows what actually ran (e.g. `variants_evaluated: ["energy_p90"]`, `fast_mode: true`). Eliminates config-vs-execution confusion.
+
+## [v0.9.3] - 2026-02-10
+
+### Fixed - Bench Artifact Credibility
+
+Four fixes to improve public-demo quality of bench aggregate reports (bench_aggregate.json / bench_aggregate.md):
+
+1. **Seed IDs now report real values** — `"seeds": [42, 123, 456]` instead of `["unknown", "unknown", "unknown"]`. Bug was in `protocol.py:2975` reading from wrong dict path. Fixed in both protocol and standalone aggregator.
+
+2. **Candidate selection is now explained** — New "Candidate Selection" section in bench_aggregate.md showing mode (fast/full), policies evaluated, de-duplication events, and final candidate count. Selection trace stored in `config_metadata.candidate_selection`.
+
+3. **Rank policy disambiguated from compression method** — Added `policy_origin` field to compression metadata (e.g., `"energy"`, `"knee"`, `"erank"`). New "Rank Policy" column in markdown tables separates *how the rank was chosen* from *how compression was applied* (always `svd_truncate`).
+
+4. **Audit decision trace in aggregate** — New `audit_summary` section in aggregate JSON with probe rank, per-policy suggestions (suggested_r, actual_r, dedup annotations), and selection reasoning. Rendered as "Audit Context" section in markdown with policy suggestion table.
+
+### Added
+- `tests/test_bench_credibility.py` — 31 tests covering all credibility and consistency fixes
+- `_extract_seed_id()` helper in `aggregate.py` for parsing seed IDs from directory names
 
 ## [0.9.1] - 2026-02-07
 
@@ -37,41 +95,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - **PyPI-Ready Documentation Suite**: Complete professional documentation for package distribution
-  - Comprehensive troubleshooting guide with symptom→fix patterns
-  - RunPod cloud GPU setup guide (optional, cloud-specific)  
-  - Artifacts & evidence documentation for research reproducibility
+  - Comprehensive troubleshooting guide with symptom-fix patterns
+  - RunPod cloud GPU setup guide (optional, cloud-specific)
+  - Artifacts and evidence documentation for research reproducibility
   - CLI reference with exit codes and fast mode explanations
   - Configuration reference with guaranteed package examples
   - Installation guide with environment-specific instructions
 - **Install Tier Tag System**: All documentation commands tagged with (base), (bench), or (gpu) requirements
-- **Idiot-proof Installation Guidance**: 
-  - Explicit PyTorch installation guidance (CPU vs CUDA)
-  - ModuleNotFoundError callouts in README
-  - Clear bench extras story with troubleshooting
 
 ### Changed
-- **README Restructure**: Transformed from "lab notebook" to PyPI-first landing page
-  - Professional user onboarding flow: Who it's for → What you get → Install → Quickstart
-  - Performance guarantees documented (CLI operations, dependency loading)
-  - Clear 3-tier installation system (base, bench extras, development)
-  - Organized documentation section with logical progression
+- **README Restructure**: Transformed from lab notebook to PyPI-first landing page
 - **PyPI Compatibility**: All relative links converted to absolute GitHub URLs
 - **Quickstart Workflow**: Uses importlib.resources for guaranteed config availability after pip install
-- **Citation Block**: Version-aware citations matching current release (v0.9.0, 2026)
 
 ### Fixed
-- **Package Distribution**: Comprehensive CI testing matrix for "pip install ready" validation
-  - Tests across multiple Python versions (3.9-3.12) and platforms
-  - Validates base install, bench extras, packaging correctness, and CLI performance
-  - Local testing script for pre-release validation
-  - Console script verification and help command timing
-- **PyPI Landing Page**: Eliminates broken relative links and ensures quickstart works from installed wheel
-
-### Documentation  
-- **Professional Footer**: Added license, citation (APA + BibTeX), changelog links
-- **Security & Responsible Use**: Brief guidance on validation, resource awareness, data privacy
-- **Release Management**: Links to GitHub releases for detailed release notes
-- **Release Checklist**: Systematic version management process to prevent citation inconsistencies
+- **Package Distribution**: Comprehensive CI testing matrix for pip install validation
 
 ## [0.8.6] - 2026-02-03
 

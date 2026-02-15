@@ -7,84 +7,86 @@ rank selection heuristics (OHT, entropy effective rank, knee/elbow, etc).
 """
 
 import torch
-from gradience.vnext.rank_policies import (
-    get_available_policies,
-    apply_policy as apply_rank_policy, 
+import numpy as np
+from gradience.vnext.audit.rank_policies import (
+    apply_rank_policy,
     RankPolicySpec,
-    get_policy_summary
+    RankSuggestion,
+    analyze_policy_consensus,
+    get_standard_policies,
 )
 
 def test_rank_policies():
     """Test rank policies on synthetic singular value data."""
-    
+
     # Create test singular values with clear rank structure
     # Simulate a rank-4 matrix with noise
     signal_values = torch.tensor([10.0, 5.0, 2.0, 1.0])  # Clear signal
     noise_values = torch.tensor([0.1, 0.08, 0.05, 0.03, 0.01, 0.005]) # Noise floor
     singular_values = torch.cat([signal_values, noise_values])
-    
+    s_np = singular_values.numpy()
+
     print("🔍 Testing Rank Selection Policies")
     print("=" * 50)
     print(f"Input singular values: {singular_values.tolist()}")
     print(f"Expected rank (visual inspection): ~4")
     print()
-    
+
     # Test individual policies
-    policies = get_available_policies()
-    print(f"📋 Available policies: {policies}")
+    policies = get_standard_policies()
+    print(f"📋 Available policies: {[p.name for p in policies]}")
     print()
-    
+
     # Apply all policies and compare
+    shape = (768, 768)
+    r_alloc = len(s_np)
+
     results = {}
-    for policy_name in policies:
+    for policy_spec in policies:
         try:
-            policy_spec = RankPolicySpec(name=policy_name)
-            result = apply_rank_policy(singular_values, policy=policy_spec)
-            results[policy_name] = result
+            result = apply_rank_policy(policy_spec, s_np, shape, r_alloc)
+            results[policy_spec.name] = result
         except Exception as e:
-            print(f"⚠️  Policy {policy_name} failed: {e}")
-            results[policy_name] = None
-    
+            print(f"⚠️  Policy {policy_spec.name} failed: {e}")
+            results[policy_spec.name] = None
+
     print("📊 Policy Comparison:")
     print("-" * 70)
-    print(f"{'Policy':<20} {'Rank':<6} {'Confidence':<12} {'Key Metadata'}")
+    print(f"{'Policy':<25} {'Rank':<6} {'Confidence':<12} {'Key Metadata'}")
     print("-" * 70)
-    
+
     for policy_name, result in results.items():
-        if 'error' not in result.metadata:
-            key_info = ""
-            if policy_name.startswith("energy"):
-                key_info = f"energy={result.metadata.get('actual_energy_captured', 0):.2f}"
-            elif policy_name == "entropy_effective":
-                key_info = f"eff_rank={result.metadata.get('effective_rank_raw', 0):.1f}"
-            elif policy_name == "oht":
-                key_info = f"snr={result.metadata.get('signal_to_noise_ratio', 0):.1f}"
-            elif policy_name == "knee_elbow":
-                key_info = f"elbow_idx={result.metadata.get('elbow_index', -1)}"
-            elif policy_name == "stable_rank_ceil":
-                key_info = f"stable={result.metadata.get('stable_rank_raw', 0):.1f}"
-            
-            print(f"{policy_name:<20} {result.suggested_rank:<6} {result.confidence:<12.2f} {key_info}")
-        else:
-            print(f"{policy_name:<20} {'ERROR':<6} {'0.00':<12} {result.metadata['error'][:30]}...")
-    
+        if result is None:
+            print(f"{policy_name:<25} {'ERROR':<6}")
+            continue
+        key_info = ""
+        if 'actual_energy_captured' in result.details:
+            key_info = f"energy={result.details.get('actual_energy_captured', 0):.2f}"
+        elif 'erank_float' in result.details:
+            key_info = f"eff_rank={result.details.get('erank_float', 0):.1f}"
+        elif 'tau' in result.details:
+            key_info = f"tau={result.details.get('tau', 0):.2f}"
+        elif 'knee_index' in result.details:
+            key_info = f"elbow_idx={result.details.get('knee_index', -1)}"
+        elif 'stable_rank' in result.details:
+            key_info = f"stable={result.details.get('stable_rank', 0):.1f}"
+
+        print(f"{policy_name:<25} {result.k:<6} {result.confidence:<12.2f} {key_info}")
+
     print()
-    
-    # Test policy summary
-    summary = get_policy_summary(singular_values, ["energy_90", "entropy_effective", "oht", "knee_elbow"])
-    
-    print("🎯 Policy Summary:")
-    consensus = summary["rank_consensus"]
-    print(f"  Median suggestion: {consensus['median']}")
-    print(f"  Range: {consensus['range']}")
-    print(f"  High confidence policies: {consensus['high_confidence']}")
-    
-    sv_stats = summary["singular_values_stats"]
-    print(f"  Condition number: {sv_stats['ratio_max_min']:.1f}")
-    
+
+    # Test consensus analysis
+    consensus = analyze_policy_consensus(policies, s_np, shape, r_alloc)
+
+    print("🎯 Policy Consensus:")
+    print(f"  Median suggestion: {consensus.median_k}")
+    print(f"  Range: {consensus.k_range}")
+    print(f"  High confidence policies: {consensus.high_confidence_policies}")
+    print(f"  Disagreement score: {consensus.disagreement_score:.2f}")
+
     print()
     print("✅ All policies tested successfully!")
-    
+
     return results
 
 def test_audit_integration():
@@ -93,28 +95,28 @@ def test_audit_integration():
     import json
     from pathlib import Path
     from gradience.vnext.audit.lora_audit import audit_lora_state_dict
-    
+
     print("\n🔗 Testing Audit Integration")
     print("=" * 50)
-    
+
     # Create mock LoRA state dict
     state_dict = {
-        "base_model.model.bert.encoder.layer.0.attention.self.query.lora_A.default.weight": 
+        "base_model.model.bert.encoder.layer.0.attention.self.query.lora_A.default.weight":
             torch.randn(8, 768, dtype=torch.float16) * 0.1,
         "base_model.model.bert.encoder.layer.0.attention.self.query.lora_B.default.weight":
             torch.randn(768, 8, dtype=torch.float16) * 0.1,
     }
-    
+
     # Test without policies (backward compatibility)
     result_basic = audit_lora_state_dict(state_dict)
     print(f"✅ Basic audit (no policies): {len(result_basic.layers)} layers")
-    
+
     # Test with policies enabled
     rank_policies = ["energy_90", "entropy_effective", "oht"]
     result_with_policies = audit_lora_state_dict(state_dict, rank_policies=rank_policies)
-    
+
     print(f"✅ Enhanced audit (with policies): {len(result_with_policies.layers)} layers")
-    
+
     # Check that policy results are included
     layer = result_with_policies.layers[0]
     if layer.policy_rank_suggestions:
@@ -125,13 +127,13 @@ def test_audit_integration():
             print(f"  {policy}: rank={rank}, confidence={conf:.2f}")
     else:
         print("⚠️  No policy results found")
-    
+
     print("✅ Integration test completed!")
 
 
 if __name__ == "__main__":
     # Test the policy system
     results = test_rank_policies()
-    
+
     # Test integration with audit system
     test_audit_integration()

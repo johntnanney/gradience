@@ -71,7 +71,7 @@ class HeartbeatLogger:
                 start_msg = f"[{timestamp}] Starting stage: {stage_name}\n"
                 with open(self._log_file, "a") as f:
                     f.write(start_msg)
-            except Exception as e:
+            except (OSError, PermissionError) as e:
                 # If log file setup fails, continue without logging to file
                 print(f"[heartbeat] Warning: Could not set up log file at {self._output_dir}: {e}")
                 self._log_file = None
@@ -137,9 +137,9 @@ class HeartbeatLogger:
                     with open(self._log_file, "a") as f:
                         f.write(end_msg)
                         f.flush()
-                except Exception:
+                except (OSError, PermissionError):
                     pass  # Don't crash if log write fails
-        
+
         # Reset state
         self._thread = None
         self._stop_event = None
@@ -174,10 +174,10 @@ class HeartbeatLogger:
                         with open(self._log_file, "a") as f:
                             f.write(log_msg)
                             f.flush()
-                    except Exception:
+                    except (OSError, PermissionError):
                         pass  # Don't crash heartbeat on log write failures
-                        
-        except Exception as e:
+
+        except Exception as e:  # Intentionally broad: background thread must not crash
             # Log any unexpected errors but don't crash
             try:
                 error_msg = f"[heartbeat] ERROR: {e}\n"
@@ -185,7 +185,7 @@ class HeartbeatLogger:
                 if self._log_file:
                     with open(self._log_file, "a") as f:
                         f.write(error_msg)
-            except Exception:
+            except Exception:  # Intentionally broad: last-resort error handler in thread
                 pass
     
     def update_stage(self, new_stage_name: str) -> None:
@@ -210,7 +210,7 @@ class HeartbeatLogger:
                     with open(self._log_file, "a") as f:
                         f.write(log_msg)
                         f.flush()
-                except Exception:
+                except (OSError, PermissionError):
                     pass
 
 

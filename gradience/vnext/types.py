@@ -357,7 +357,7 @@ class Recommendation:
         sev = d.get("severity", Severity.INFO.value)
         try:
             severity = Severity(sev)
-        except Exception:
+        except (ValueError, KeyError):
             severity = Severity.INFO
 
         return Recommendation(
