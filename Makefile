@@ -1,5 +1,5 @@
 # Gradience Development Makefile
-.PHONY: setup setup-cache verify-version install test lint format clean help demo-gain-audit sensitivity-check
+.PHONY: setup setup-cache verify-version install test lint format clean help demo-gain-audit sensitivity-check build publish publish-test
 
 help: ## Show this help message
 	@echo "Gradience Development Commands:"
@@ -101,6 +101,24 @@ check: lint format-check test-quick ## Run all code quality checks
 # Release workflow  
 pre-release: verify-version test lint ## Run all checks before release
 	@echo "✅ All pre-release checks passed!"
+
+build: clean ## Build sdist and wheel
+	@echo "📦 Building package..."
+	@python3 -m build
+	@echo "✅ Build complete. Artifacts in dist/"
+
+publish: pre-release build ## Build and publish to PyPI
+	@echo "🚀 Publishing to PyPI..."
+	@python3 -m twine check dist/*
+	@python3 -m twine upload dist/*
+	@echo "✅ Published to PyPI!"
+
+publish-test: pre-release build ## Build and publish to TestPyPI
+	@echo "🧪 Publishing to TestPyPI..."
+	@python3 -m twine check dist/*
+	@python3 -m twine upload --repository testpypi dist/*
+	@echo "✅ Published to TestPyPI!"
+	@echo "Install with: pip install -i https://test.pypi.org/simple/ gradience==0.10.0"
 
 # Version management
 bump-patch: ## Bump patch version (0.4.2 -> 0.4.3)
