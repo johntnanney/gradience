@@ -62,11 +62,21 @@ def format_code(example: dict) -> str:
     """Format code generation example from docstring.
 
     Dataset: sahil2801/CodeAlpaca-20k
-    Fields: prompt, completion
+    Fields: instruction, input (optional), output
     """
+    instruction = example["instruction"]
+    inp = example.get("input", "")
+    output = example["output"]
+
+    if inp and inp.strip():
+        return (
+            f"### Instruction:\n{instruction}\n\n"
+            f"### Input:\n{inp}\n\n"
+            f"### Code:\n{output}"
+        )
     return (
-        f"### Instruction:\n{example['prompt']}\n\n"
-        f"### Code:\n{example['completion']}"
+        f"### Instruction:\n{instruction}\n\n"
+        f"### Code:\n{output}"
     )
 
 
