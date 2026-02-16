@@ -1,7 +1,7 @@
 # M1 Controlled Interference Experiment — Master Configuration
 #
-# Train 4 specialized LoRA adapters on Mistral-7B (3 seeds each),
-# run pairwise merge-audit, merge with 4 methods, and evaluate.
+# Train 3 specialized LoRA adapters on Mistral-7B (3 seeds each),
+# run pairwise merge-audit, merge, and evaluate.
 #
 # Usage:
 #   python scripts/m1_experiment/phase1_train.py --config scripts/m1_experiment/m1_config.yaml
@@ -19,10 +19,6 @@ experiment:
   calibration_pairs: true
 
 adapters:
-  sql:
-    dataset: "b-mc2/sql-create-context"
-    max_train_samples: 10000
-    eval_task: "sql_generation"
   chat:
     dataset: "yahma/alpaca-cleaned"
     max_train_samples: 10000
