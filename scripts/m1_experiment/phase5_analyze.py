@@ -43,7 +43,7 @@ def load_audit_metrics(audits_dir: Path, pair_name: str, seed: int) -> dict | No
 
     # Extract key metrics from aggregate and layer-level data
     aggregate = data.get("aggregate", {})
-    layer_verdicts = data.get("layer_verdicts", [])
+    layer_verdicts = data.get("per_layer", data.get("layer_verdicts", []))
 
     # Compute mean metrics across layers
     overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts if "metrics" in lv]
@@ -98,7 +98,7 @@ def load_calibration_audit_metrics(
         data = json.load(f)
 
     aggregate = data.get("aggregate", {})
-    layer_verdicts = data.get("layer_verdicts", [])
+    layer_verdicts = data.get("per_layer", data.get("layer_verdicts", []))
 
     overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts if "metrics" in lv]
     dir_agreements = [
@@ -522,7 +522,7 @@ def _run_null_controls(
             with open(audit_path) as f:
                 data = json.load(f)
 
-            layer_verdicts = data.get("layer_verdicts", [])
+            layer_verdicts = data.get("per_layer", data.get("layer_verdicts", []))
             real_overlaps = []
             null_means = []
 
