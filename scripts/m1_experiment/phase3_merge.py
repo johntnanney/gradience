@@ -52,6 +52,10 @@ def load_audit_report(audit_dir: Path) -> MergeAuditReport:
         matching=data["matching"],
         layer_verdicts=data.get("per_layer", data.get("layer_verdicts", [])),
         aggregate=data["aggregate"],
+        recommendations=data.get("recommendations", []),
+        issues=data.get("issues", []),
+        warnings=data.get("warnings", []),
+        thresholds=data.get("thresholds", {}),
     )
 
 
