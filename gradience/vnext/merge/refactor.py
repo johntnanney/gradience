@@ -98,12 +98,21 @@ def refactor_to_lora(
     orig_dtype = dW.dtype
     dW_compute = dW.to(dtype)
 
-    U, S, Vt = torch.linalg.svd(dW_compute, full_matrices=False)
-
-    # Truncate to target_rank
-    U_r = U[:, :target_rank]           # (d_out, target_rank)
-    S_r = S[:target_rank]              # (target_rank,)
-    Vt_r = Vt[:target_rank, :]         # (target_rank, d_in)
+    # Use randomized SVD when we only need a small number of components
+    # relative to the matrix size. For merged LoRA adapters, dW is at most
+    # rank ~2r (sum of two rank-r matrices), so we never need a full SVD
+    # on the (d_out x d_in) matrix.
+    d_out, d_in = dW_compute.shape
+    if target_rank < min(d_out, d_in) // 2:
+        # torch.svd_lowrank is O(d*r^2) vs O(d*min(d_out,d_in)) for full SVD
+        # Use niter=4 for good accuracy on well-conditioned low-rank matrices
+        U_r, S_r, V_r = torch.svd_lowrank(dW_compute, q=target_rank, niter=4)
+        Vt_r = V_r.T
+    else:
+        U, S, Vt = torch.linalg.svd(dW_compute, full_matrices=False)
+        U_r = U[:, :target_rank]
+        S_r = S[:target_rank]
+        Vt_r = Vt[:target_rank, :]
 
     # Factor: we need scaling * B @ A ≈ dW
     # dW ≈ U_r @ diag(S_r) @ Vt_r
