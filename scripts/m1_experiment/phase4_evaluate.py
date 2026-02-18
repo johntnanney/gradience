@@ -121,12 +121,18 @@ def run_lm_eval(
         )
 
         if result.returncode != 0:
-            print(f"      [ERROR] lm_eval failed: {result.stderr[-500:]}")
-            # Save error info
+            # Print last 500 chars of both stdout and stderr for visibility
+            print(f"      [ERROR] lm_eval failed (rc={result.returncode}):")
+            if result.stderr:
+                print(f"        stderr: ...{result.stderr[-500:]}")
+            if result.stdout:
+                print(f"        stdout: ...{result.stdout[-500:]}")
+            # Save error info — capture more context from both streams
             error_data = {
                 "error": True,
                 "returncode": result.returncode,
-                "stderr": result.stderr[-2000:],
+                "stderr": result.stderr[-5000:],
+                "stdout": result.stdout[-5000:],
             }
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, "w") as f:

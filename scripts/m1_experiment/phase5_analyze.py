@@ -131,28 +131,47 @@ def load_eval_result(evals_dir: Path, filename: str) -> dict | None:
         return json.load(f)
 
 
-def extract_accuracy(eval_result: dict | None) -> float | None:
-    """Extract the primary accuracy metric from an eval result."""
+def extract_accuracy(eval_result: dict | None, task_name: str | None = None) -> float | None:
+    """Extract the primary accuracy metric from an eval result.
+
+    Args:
+        eval_result: Parsed lm-eval results JSON.
+        task_name: The lm-eval task name (e.g., "mmlu", "gsm8k", "mbpp").
+            If provided, looks for the aggregate key first, which is important
+            for tasks like MMLU that return 60+ subtask keys alongside one
+            aggregate key.
+    """
     if eval_result is None:
         return None
     if eval_result.get("error"):
         return None
 
-    # lm-eval-harness result format
+    _METRIC_KEYS = [
+        "acc,none", "acc_norm,none",
+        "exact_match,strict-match", "exact_match,none",
+        "pass_at_1,none", "pass@1,none", "pass@1",
+    ]
+
     results = eval_result.get("results", {})
-    for task_name, task_results in results.items():
-        # Try common metric keys (exact matches first)
-        for key in [
-            "acc,none", "acc_norm,none",
-            "exact_match,strict-match", "exact_match,none",
-            "pass@1,none", "pass@1",
-        ]:
+
+    # Prefer the aggregate task key if provided (e.g., "mmlu" over "mmlu_abstract_algebra")
+    if task_name and task_name in results:
+        task_results = results[task_name]
+        for key in _METRIC_KEYS:
             if key in task_results:
                 return task_results[key]
 
-        # Fallback: search for any key containing "acc" or "pass@1"
+    # Fallback: iterate all result keys
+    for tname, task_results in results.items():
+        for key in _METRIC_KEYS:
+            if key in task_results:
+                return task_results[key]
+
+        # Last resort: search for any key containing acc/pass
         for key, val in task_results.items():
-            if isinstance(val, (int, float)) and ("acc" in key or "pass@" in key or "exact_match" in key):
+            if isinstance(val, (int, float)) and (
+                "acc" in key or "pass@" in key or "pass_at" in key or "exact_match" in key
+            ):
                 return val
 
     return None
@@ -211,8 +230,8 @@ def main():
                 evals_dir / "individual",
                 f"{task_b}_seed_{seed}_{eval_task_b}.json",
             )
-            baseline_a_acc = extract_accuracy(baseline_a_result)
-            baseline_b_acc = extract_accuracy(baseline_b_result)
+            baseline_a_acc = extract_accuracy(baseline_a_result, eval_task_a)
+            baseline_b_acc = extract_accuracy(baseline_b_result, eval_task_b)
 
             for weights in weight_grid:
                 wlabel = _weight_label(weights)
@@ -227,8 +246,8 @@ def main():
                     f"{pair_name}_seed_{seed}_{wlabel}_{eval_task_b}.json",
                 )
 
-                merged_a_acc = extract_accuracy(merged_a_result)
-                merged_b_acc = extract_accuracy(merged_b_result)
+                merged_a_acc = extract_accuracy(merged_a_result, eval_task_a)
+                merged_b_acc = extract_accuracy(merged_b_result, eval_task_b)
 
                 # Compute outcomes using the outcomes module
                 outcomes: dict[str, Any] | None = None
@@ -291,14 +310,14 @@ def main():
                         evals_dir / "individual",
                         f"{task}_seed_{seed_b}_{eval_task}.json",
                     )
-                    baseline_a_acc = extract_accuracy(baseline_a_result)
-                    baseline_b_acc = extract_accuracy(baseline_b_result)
+                    baseline_a_acc = extract_accuracy(baseline_a_result, eval_task)
+                    baseline_b_acc = extract_accuracy(baseline_b_result, eval_task)
 
                     merged_a_result = load_eval_result(
                         evals_dir / "merged",
                         f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json",
                     )
-                    merged_acc = extract_accuracy(merged_a_result)
+                    merged_acc = extract_accuracy(merged_a_result, eval_task)
 
                     outcomes = None
                     if all(x is not None for x in [merged_acc, baseline_a_acc, baseline_b_acc]):
