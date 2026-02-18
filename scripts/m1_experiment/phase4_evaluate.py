@@ -84,6 +84,14 @@ def run_lm_eval(
     lm_eval_out = output_path.parent / f".lm_eval_tmp_{output_path.stem}"
     lm_eval_out.mkdir(parents=True, exist_ok=True)
 
+    # Check if results already exist from a previous run in the temp dir
+    existing = _find_lm_eval_results(lm_eval_out)
+    if existing and not existing.get("error"):
+        print(f"      [RECOVERED] {output_path.name} from {lm_eval_out.name}")
+        with open(output_path, "w") as f:
+            json.dump(existing, f, indent=2)
+        return existing
+
     # Build lm_eval command
     cmd = [
         sys.executable, "-m", "lm_eval",
