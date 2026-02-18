@@ -141,10 +141,19 @@ def extract_accuracy(eval_result: dict | None) -> float | None:
     # lm-eval-harness result format
     results = eval_result.get("results", {})
     for task_name, task_results in results.items():
-        # Try common metric keys
-        for key in ["acc,none", "acc_norm,none", "exact_match,strict-match", "pass@1"]:
+        # Try common metric keys (exact matches first)
+        for key in [
+            "acc,none", "acc_norm,none",
+            "exact_match,strict-match", "exact_match,none",
+            "pass@1,none", "pass@1",
+        ]:
             if key in task_results:
                 return task_results[key]
+
+        # Fallback: search for any key containing "acc" or "pass@1"
+        for key, val in task_results.items():
+            if isinstance(val, (int, float)) and ("acc" in key or "pass@" in key or "exact_match" in key):
+                return val
 
     return None
 

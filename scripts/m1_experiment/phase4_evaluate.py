@@ -3,9 +3,9 @@
 Phase 4: Evaluate all adapters via lm-evaluation-harness.
 
 Evaluates:
-  - 12 individual adapters (each on its own task)
-  - 54 cross-task merged adapters (6 pairs x 3 seeds x 3 weights, on both tasks)
-  - 36 calibration merged adapters (4 tasks x 3 seed-pairs x 3 weights, on own task)
+  - 9 individual adapters (each on its own task)
+  - Cross-task merged adapters (on both constituent tasks)
+  - Calibration merged adapters (on their shared task)
 
 Output: JSON results per adapter in workspace/evals/.
 
@@ -46,6 +46,21 @@ def _weight_label(weights: list[float]) -> str:
     return f"linear_w{weights[0]}_{weights[1]}"
 
 
+def _find_lm_eval_results(search_dir: Path) -> dict | None:
+    """Search for lm-eval results_*.json in a directory tree.
+
+    lm-eval writes results into subdirectories named after the model args
+    (with path separators replaced by __). This function searches recursively
+    for the most recent results file.
+    """
+    results_files = sorted(search_dir.rglob("results_*.json"))
+    if not results_files:
+        return None
+    # Use the most recent one
+    with open(results_files[-1]) as f:
+        return json.load(f)
+
+
 def run_lm_eval(
     base_model: str,
     adapter_dir: str | None,
@@ -63,6 +78,11 @@ def run_lm_eval(
         with open(output_path) as f:
             return json.load(f)
 
+    # Use a dedicated temp directory for lm-eval output to avoid clutter
+    # lm-eval creates subdirs based on model args, so we give it a clean dir
+    lm_eval_out = output_path.parent / f".lm_eval_tmp_{output_path.stem}"
+    lm_eval_out.mkdir(parents=True, exist_ok=True)
+
     # Build lm_eval command
     cmd = [
         sys.executable, "-m", "lm_eval",
@@ -71,7 +91,7 @@ def run_lm_eval(
         "--tasks", task,
         "--batch_size", "auto",
         "--device", device,
-        "--output_path", str(output_path.parent),
+        "--output_path", str(lm_eval_out),
         "--log_samples",
     ]
 
@@ -91,28 +111,27 @@ def run_lm_eval(
         )
 
         if result.returncode != 0:
-            print(f"      [ERROR] lm_eval failed: {result.stderr[:200]}")
+            print(f"      [ERROR] lm_eval failed: {result.stderr[-500:]}")
             # Save error info
             error_data = {
                 "error": True,
                 "returncode": result.returncode,
-                "stderr": result.stderr[:1000],
+                "stderr": result.stderr[-2000:],
             }
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, "w") as f:
                 json.dump(error_data, f, indent=2)
             return error_data
 
-        # Parse results from lm_eval output directory
-        results_dir = output_path.parent
-        results_files = list(results_dir.glob("results_*.json"))
-        if results_files:
-            with open(results_files[-1]) as f:
-                results = json.load(f)
-            # Save a normalized copy
+        # Find results in lm-eval's output tree
+        results = _find_lm_eval_results(lm_eval_out)
+        if results:
+            # Save a normalized copy at our expected path
             with open(output_path, "w") as f:
                 json.dump(results, f, indent=2)
             return results
+        else:
+            print(f"      [WARN] No results_*.json found in {lm_eval_out}")
 
     except subprocess.TimeoutExpired:
         print(f"      [TIMEOUT] lm_eval timed out")
@@ -128,6 +147,10 @@ def main():
     parser = argparse.ArgumentParser(description="M1 Phase 4: Evaluate adapters")
     parser.add_argument("--config", required=True, help="Path to m1_config.yaml")
     parser.add_argument("--smoke", action="store_true", help="Smoke test")
+    parser.add_argument(
+        "--recover", action="store_true",
+        help="Recover results from a previous lm-eval run (scans for results_*.json)",
+    )
     args = parser.parse_args()
 
     config = load_config(args.config, smoke=args.smoke)
@@ -144,6 +167,30 @@ def main():
     max_samples = config["evaluation"]["max_eval_samples"]
     device = config["runtime"]["device"]
     calibration_enabled = config["experiment"].get("calibration_pairs", False)
+
+    # --- Recovery mode: salvage results from previous lm-eval runs ---
+    if args.recover:
+        print("Recovery mode: scanning for existing lm-eval results...")
+        recovered = 0
+        for results_file in evals_dir.rglob("results_*.json"):
+            # Already in a proper location, skip
+            pass
+
+        # Scan for lm-eval output directories (pattern: __path__segments__)
+        for subdir in sorted(evals_dir.rglob("__*")):
+            if not subdir.is_dir():
+                continue
+            results = _find_lm_eval_results(subdir)
+            if results is None:
+                continue
+            # The directory name encodes the adapter path
+            # We can't perfectly reverse-map, but we print what we find
+            print(f"  Found results in: {subdir.name}")
+            recovered += 1
+
+        print(f"  Found {recovered} result directories")
+        print("  Run without --recover to re-evaluate missing items")
+        return
 
     total_start = time.monotonic()
 

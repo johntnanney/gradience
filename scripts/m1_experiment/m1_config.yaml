@@ -31,7 +31,7 @@ adapters:
   code:
     dataset: "sahil2801/CodeAlpaca-20k"
     max_train_samples: 10000
-    eval_task: "humaneval"
+    eval_task: "mbpp"
 
 training:
   rank: 32
