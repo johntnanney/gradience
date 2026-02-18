@@ -102,6 +102,7 @@ def run_lm_eval(
         "--device", device,
         "--output_path", str(lm_eval_out),
         "--log_samples",
+        "--confirm_run_unsafe_code",
     ]
 
     if adapter_dir:
