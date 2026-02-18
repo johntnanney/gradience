@@ -117,7 +117,7 @@ def run_lm_eval(
             cmd,
             capture_output=True,
             text=True,
-            timeout=1800,  # 30 min timeout per eval
+            timeout=None,  # No timeout — generation tasks (gsm8k) can take hours
         )
 
         if result.returncode != 0:

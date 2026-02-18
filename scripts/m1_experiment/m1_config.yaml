@@ -62,7 +62,7 @@ evaluation:
   framework: "lm-evaluation-harness"
   general_capability: "mmlu"
   general_capability_subjects: ["abstract_algebra", "college_mathematics", "formal_logic"]
-  max_eval_samples: 500
+  max_eval_samples: 200
 
 runtime:
   device: "cuda"
