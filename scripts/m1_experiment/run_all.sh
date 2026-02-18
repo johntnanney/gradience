@@ -14,6 +14,9 @@
 
 set -euo pipefail
 
+# Allow lm-eval to execute generated code for pass@1 benchmarks (mbpp, humaneval)
+export HF_ALLOW_CODE_EVAL="1"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG="${SCRIPT_DIR}/m1_config.yaml"
 

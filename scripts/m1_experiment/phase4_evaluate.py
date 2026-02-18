@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import os
 import subprocess
 import sys
 import time
@@ -152,6 +153,10 @@ def main():
         help="Recover results from a previous lm-eval run (scans for results_*.json)",
     )
     args = parser.parse_args()
+
+    # Allow lm-eval to execute generated code for pass@1 benchmarks (mbpp, humaneval).
+    # Without this, code eval tasks fail with a safety disclaimer.
+    os.environ["HF_ALLOW_CODE_EVAL"] = "1"
 
     config = load_config(args.config, smoke=args.smoke)
     workspace = Path(config["runtime"]["workspace"])
