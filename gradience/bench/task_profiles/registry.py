@@ -2,7 +2,7 @@
 Task profile registry for Bench.
 """
 
-from typing import Dict, Type
+from typing import Any, Dict, Type
 from .base import TaskProfile
 
 
@@ -19,7 +19,8 @@ def _load_profile_class(module_class_path: str) -> Type[TaskProfile]:
     # Import relative to this package
     full_module = f"gradience.bench.task_profiles{module_path}"
     module = __import__(full_module, fromlist=[class_name])
-    return getattr(module, class_name)
+    cls: Type[TaskProfile] = getattr(module, class_name)
+    return cls
 
 
 def get_task_profile(profile_name: str) -> TaskProfile:
@@ -43,7 +44,7 @@ def get_task_profile(profile_name: str) -> TaskProfile:
     return profile_class()
 
 
-def get_task_profile_from_config(cfg: Dict[str, any]) -> TaskProfile:
+def get_task_profile_from_config(cfg: Dict[str, Any]) -> TaskProfile:
     """
     Get task profile from configuration.
     

@@ -83,9 +83,10 @@ class LoRAConfigSnapshot:
 
     @property
     def alpha_over_r(self) -> Optional[float]:
-        if self.alpha is None or self.r in (None, 0):
+        r = self.r
+        if self.alpha is None or r is None or r == 0:
             return None
-        return float(self.alpha) / float(self.r)
+        return float(self.alpha) / float(r)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

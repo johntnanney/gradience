@@ -118,7 +118,7 @@ publish-test: pre-release build ## Build and publish to TestPyPI
 	@python3 -m twine check dist/*
 	@python3 -m twine upload --repository testpypi dist/*
 	@echo "✅ Published to TestPyPI!"
-	@echo "Install with: pip install -i https://test.pypi.org/simple/ gradience==0.10.0"
+	@echo "Install with: pip install -i https://test.pypi.org/simple/ gradience==0.11.0"
 
 # Version management
 bump-patch: ## Bump patch version (0.4.2 -> 0.4.3)

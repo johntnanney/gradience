@@ -26,6 +26,8 @@ from typing import Tuple
 import torch
 from torch import Tensor
 
+from gradience.exceptions import MergeError
+
 
 # dtype mapping (shared with merge/__init__.py)
 _DTYPE_MAP = {
@@ -72,22 +74,22 @@ def refactor_to_lora(
         If target_rank is invalid or dW is not 2-D.
     """
     if dW.ndim != 2:
-        raise ValueError(f"dW must be 2-D, got shape {dW.shape}")
+        raise MergeError(f"dW must be 2-D, got shape {dW.shape}")
 
     d_out, d_in = dW.shape
     max_rank = min(d_out, d_in)
 
     if target_rank < 1:
-        raise ValueError(f"target_rank must be >= 1, got {target_rank}")
+        raise MergeError(f"target_rank must be >= 1, got {target_rank}")
     if target_rank > max_rank:
-        raise ValueError(
+        raise MergeError(
             f"target_rank ({target_rank}) exceeds max possible rank "
             f"({max_rank}) for shape {dW.shape}"
         )
 
     dtype = _DTYPE_MAP.get(compute_dtype)
     if dtype is None:
-        raise ValueError(
+        raise MergeError(
             f"Unsupported compute_dtype '{compute_dtype}'. "
             f"Choose from: {sorted(_DTYPE_MAP.keys())}"
         )

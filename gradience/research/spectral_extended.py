@@ -253,7 +253,7 @@ class RankTracker:
     """
     
     window_size: int = 100
-    _history: List[Dict[str, float]] = field(default_factory=list)
+    _history: List[Dict[str, Any]] = field(default_factory=list)
     
     def __post_init__(self):
         self._history = []
@@ -274,7 +274,7 @@ class RankTracker:
         if len(self._history) > self.window_size * 10:
             self._history = self._history[-self.window_size * 5:]
     
-    def get_trajectory(self, layer_name: Optional[str] = None) -> List[Dict[str, float]]:
+    def get_trajectory(self, layer_name: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get rank trajectory for a layer (or all if None)."""
         if layer_name is None:
             return self._history
@@ -288,21 +288,21 @@ class RankTracker:
         
         recent = traj[-self.window_size:] if len(traj) > self.window_size else traj
         
-        steps = [h["step"] for h in recent]
-        ranks = [h["effective_rank"] for h in recent]
-        
+        steps: List[float] = [float(h["step"]) for h in recent]
+        ranks: List[float] = [float(h["effective_rank"]) for h in recent]
+
         # Linear regression for slope
         n = len(steps)
         mean_s = sum(steps) / n
         mean_r = sum(ranks) / n
-        
+
         num = sum((s - mean_s) * (r - mean_r) for s, r in zip(steps, ranks))
         den = sum((s - mean_s)**2 for s in steps)
-        
+
         if den < 1e-10:
             return 0.0
-        
-        return num / den  # Δrank / Δstep
+
+        return float(num / den)  # Δrank / Δstep
     
     def compute_rank_volatility(self, layer_name: Optional[str] = None) -> Optional[float]:
         """Compute volatility (std) of effective rank."""

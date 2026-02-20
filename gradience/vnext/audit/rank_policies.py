@@ -28,6 +28,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from gradience.exceptions import AuditError, ConfigError
+
 
 # =============================================================================
 # Data Structures  
@@ -47,7 +49,7 @@ class RankPolicySpec:
         }
         if self.name not in valid_policies:
             available = ', '.join(sorted(valid_policies))
-            raise ValueError(f"Unknown policy '{self.name}'. Available: {available}")
+            raise ConfigError(f"Unknown policy '{self.name}'. Available: {available}")
 
 
 @dataclass(frozen=True)
@@ -55,7 +57,7 @@ class RankSuggestion:
     """Result from applying a rank selection policy."""
     k: int                              # Suggested rank
     confidence: float                   # 0.0 to 1.0 confidence score
-    details: Dict[str, Union[float, int, str]]  # Policy-specific metadata
+    details: Dict[str, Union[float, int, str, None]]  # Policy-specific metadata
     
     def __post_init__(self):
         """Validate suggestion."""
@@ -93,11 +95,11 @@ def apply_rank_policy(
     """
     # Input validation
     if not isinstance(s, np.ndarray) or s.ndim != 1:
-        raise ValueError(f"Expected 1D numpy array for singular values, got shape {s.shape}")
+        raise AuditError(f"Expected 1D numpy array for singular values, got shape {s.shape}")
     if len(s) > r_alloc:
-        raise ValueError(f"len(s)={len(s)} > r_alloc={r_alloc}")
+        raise AuditError(f"len(s)={len(s)} > r_alloc={r_alloc}")
     if not all(s[i] >= s[i+1] for i in range(len(s)-1)):
-        raise ValueError("Singular values must be in descending order")
+        raise AuditError("Singular values must be in descending order")
     
     # Route to specific policy implementation
     policy_name = policy_spec.name
@@ -115,7 +117,7 @@ def apply_rank_policy(
         result = _stable_rank_ceil_policy(s, shape, r_alloc, params, eps)
     else:
         # Should not reach here due to RankPolicySpec validation
-        raise ValueError(f"Unhandled policy: {policy_name}")
+        raise ConfigError(f"Unhandled policy: {policy_name}")
     
     # Add backward compatibility mapping for metadata fields
     details = dict(result.details)  # Make a copy to avoid modifying frozen dataclass
@@ -129,9 +131,10 @@ def apply_rank_policy(
         # Add signal_to_noise_ratio if missing (calculate from available data)
         if 'signal_to_noise_ratio' not in details and 'median_sv' in details:
             # Simple approximation: assume largest SV is signal, median is noise
-            if len(s) > 0:
+            median_sv = details['median_sv']
+            if len(s) > 0 and median_sv is not None:
                 signal = float(s[0]) if len(s) > 0 else 1.0
-                noise = details['median_sv']
+                noise = float(median_sv)
                 details['signal_to_noise_ratio'] = signal / noise if noise > 0 else float('inf')
         
         # Add noise_level from policy params if it was passed
@@ -483,7 +486,7 @@ def _knee_elbow_policy(
     
     # GUARDRAIL: Detect flat spectrum using "last ~10-15%" rule
     # If knee lands in the last ~15% of ranks, treat as "no knee detected"
-    flat_threshold = params.get('flat_threshold', 0.1)  # Configurable threshold
+    flat_threshold = float(params.get('flat_threshold', 0.1))  # Configurable threshold
     last_15_percent_cutoff = max(1, int(0.85 * r))  # Last ~15% of spectrum
     
     if knee_idx >= last_15_percent_cutoff or knee_diff_max < flat_threshold:
@@ -592,7 +595,7 @@ def create_entropy_policy(rounding: str = 'ceil') -> RankPolicySpec:
     return RankPolicySpec('entropy_effective', {'rounding': rounding})
 
 
-def create_oht_policy(noise_level: float = None) -> RankPolicySpec:
+def create_oht_policy(noise_level: float | None = None) -> RankPolicySpec:
     """Create optimal hard threshold (Gavish-Donoho) policy.
     
     Uses the exact Gavish-Donoho cubic approximation for ω(β).
@@ -601,7 +604,7 @@ def create_oht_policy(noise_level: float = None) -> RankPolicySpec:
         noise_level: For backward compatibility. Parameter is accepted but not used
                     as OHT policy computes optimal threshold automatically.
     """
-    params = {}
+    params: Dict[str, Union[float, int, str]] = {}
     if noise_level is not None:
         # Store for backward compatibility but don't use in computation
         params['noise_level'] = noise_level

@@ -31,6 +31,8 @@ from typing import Optional, Tuple
 import torch
 from torch import Tensor
 
+from gradience.exceptions import ConfigError
+
 
 # ---------------------------------------------------------------------------
 # Per-layer merge configuration
@@ -377,7 +379,7 @@ class DARETIESMerge(MergeStrategy):
 # Factory
 # ---------------------------------------------------------------------------
 
-_STRATEGIES = {
+_STRATEGIES: dict[str, type[LinearMerge] | type[TIESMerge] | type[DARELinearMerge] | type[DARETIESMerge]] = {
     "linear": LinearMerge,
     "ties": TIESMerge,
     "dare_linear": DARELinearMerge,
@@ -403,7 +405,7 @@ def get_strategy(name: str) -> MergeStrategy:
     """
     cls = _STRATEGIES.get(name)
     if cls is None:
-        raise ValueError(
+        raise ConfigError(
             f"Unknown merge strategy '{name}'. "
             f"Available: {sorted(_STRATEGIES.keys())}"
         )

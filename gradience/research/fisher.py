@@ -245,8 +245,8 @@ def compute_fisher_spectral_properties(
     
     # Power iteration for top eigenvalues
     # F = (1/n) G^T G, so Fv = (1/n) G^T (G v)
-    eigenvalues = []
-    V = []  # Eigenvectors for deflation
+    eigenvalues: list[float] = []
+    V: list[torch.Tensor] = []  # Eigenvectors for deflation
     
     for k in range(n_eigenvalues):
         v = torch.randn(d, device=G.device)
@@ -345,7 +345,7 @@ def compute_natural_gradient_alignment(
     if norm_g < 1e-8 or norm_ng < 1e-8:
         return 0.0
     
-    alignment = (dot / (norm_g * norm_ng)).item()
+    alignment: float = (dot / (norm_g * norm_ng)).item()
     return abs(alignment)  # Take absolute value
 
 

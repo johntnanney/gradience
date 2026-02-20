@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import datetime
-import yaml  # type: ignore[import-untyped]
+import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -20,7 +20,7 @@ def run_multi_seed_bench_protocol(
     config_path: str | Path,
     output_dir: str | Path,
     seeds: list[int],
-    variants_to_test: list[str] = None,
+    variants_to_test: Optional[list[str]] = None,
     smoke: bool = False,
     ci: bool = False
 ) -> Dict[str, Any]:
@@ -39,7 +39,7 @@ def run_multi_seed_bench_protocol(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # HYGIENE: Start heartbeat for multi-seed coordination (prevent SSH timeouts)
-    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed="coordinator")
+    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed=None)
 
     print(f"Gradience Multi-Seed Bench Protocol v0.1")
     print("=" * 50)

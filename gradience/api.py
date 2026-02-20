@@ -24,8 +24,11 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence, Optional
 import json
 import os
+import logging
 import subprocess
 import sys
+
+logger = logging.getLogger(__name__)
 
 
 # -----------------------------
@@ -92,6 +95,7 @@ def _run(
     If *log_path* is provided, stdout/stderr are written to that file.
     Otherwise, the process inherits the current stdout/stderr.
     """
+    logger.debug("Running command: %s", argv)
     merged_env = os.environ.copy()
     if env:
         merged_env.update({k: str(v) for k, v in env.items()})
@@ -114,6 +118,7 @@ def _run(
         list(argv),
         cwd=str(cwd) if cwd else None,
         env=merged_env,
+        text=True,
         check=check,
     )
     return proc.returncode
@@ -121,7 +126,8 @@ def _run(
 
 def _read_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 # -----------------------------
@@ -145,6 +151,7 @@ def run_bench(
     Equivalent to:
       python -m gradience.bench.run_bench --config <yaml> --output <dir> [--smoke] [--ci]
     """
+    logger.debug("Starting bench run: config=%s output=%s smoke=%s ci=%s", config, output, smoke, ci)
     config_p = Path(config)
     output_p = Path(output)
     output_p.mkdir(parents=True, exist_ok=True)
@@ -193,6 +200,7 @@ def aggregate_bench_runs(
     Equivalent to:
       python -m gradience.bench.aggregate <run_dir>... --output <dir> [--include-smoke]
     """
+    logger.debug("Aggregating %d bench runs to %s", len(runs), output)
     run_paths = [Path(r) for r in runs]
     output_p = Path(output)
     output_p.mkdir(parents=True, exist_ok=True)
@@ -242,6 +250,7 @@ def audit(
 
     We intentionally treat `gradience` CLI as the stable surface and avoid importing internals.
     """
+    logger.debug("Running audit: peft_dir=%s", peft_dir)
     peft_p = Path(peft_dir)
 
     argv = [
@@ -284,6 +293,7 @@ def monitor(
     Equivalent to:
       python -m gradience monitor <run.jsonl> [--verbose] [...]
     """
+    logger.debug("Running monitor: run_jsonl=%s", run_jsonl)
     run_p = Path(run_jsonl)
 
     argv = [
@@ -309,11 +319,13 @@ def monitor(
 
 def load_bench_report(output_dir: str | Path) -> dict[str, Any]:
     """Load <output_dir>/bench.json."""
+    logger.debug("Loading bench report from %s", output_dir)
     p = Path(output_dir) / "bench.json"
     return _read_json(p)
 
 
 def load_bench_aggregate(output_dir: str | Path) -> dict[str, Any]:
     """Load <output_dir>/bench_aggregate.json."""
+    logger.debug("Loading bench aggregate from %s", output_dir)
     p = Path(output_dir) / "bench_aggregate.json"
     return _read_json(p)

@@ -34,18 +34,17 @@ if TYPE_CHECKING:
     from ..experimental.guard import LoRAGuard
 
 # Optional import so the base package doesn't require transformers unless used.
+_TRANSFORMERS_IMPORT_ERROR: Optional[ImportError] = None
 try:
-    from transformers import TrainerCallback  # type: ignore
-    from transformers.trainer_callback import TrainerControl, TrainerState  # type: ignore
-    from transformers.training_args import TrainingArguments  # type: ignore
+    from transformers import TrainerCallback
+    from transformers.trainer_callback import TrainerControl, TrainerState
+    from transformers.training_args import TrainingArguments
 except ImportError as _e:  # pragma: no cover
     TrainerCallback = object  # type: ignore
     TrainerControl = Any  # type: ignore
     TrainerState = Any  # type: ignore
     TrainingArguments = Any  # type: ignore
     _TRANSFORMERS_IMPORT_ERROR = _e
-else:
-    _TRANSFORMERS_IMPORT_ERROR = None
 
 
 @dataclass
@@ -234,7 +233,7 @@ def build_conservative_config_snapshot(
         batch_size=int(bs) if bs is not None else None,
         gradient_accumulation=int(gas) if gas is not None else None,
         max_steps=int(max_steps) if isinstance(max_steps, int) and max_steps > 0 else None,
-        epochs=float(num_epochs) if num_epochs is not None else None,
+        epochs=int(num_epochs) if num_epochs is not None else None,
         dtype="fp16" if fp16 else ("bf16" if bf16 else None),
         extras={},
     )
@@ -264,6 +263,10 @@ class GradienceCallback(TrainerCallback):
     - dataset_name/task_profile are optional
     """
 
+    config: GradienceCallbackConfig
+    writer: Optional[TelemetryWriter]
+    guard: Optional[LoRAGuard]
+
     def __init__(self, config: Optional[GradienceCallbackConfig] = None):
         if _TRANSFORMERS_IMPORT_ERROR is not None:  # pragma: no cover
             raise ImportError(
@@ -283,7 +286,8 @@ class GradienceCallback(TrainerCallback):
     def on_train_begin(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs.get("model", None)
 
-        out_dir = Path(self.config.output_dir or getattr(args, "output_dir", "."))
+        _out: Union[str, Path] = self.config.output_dir or str(getattr(args, "output_dir", "."))
+        out_dir = Path(_out)
         out_dir.mkdir(parents=True, exist_ok=True)
         path = out_dir / self.config.filename  # default: run.jsonl
 
@@ -655,9 +659,10 @@ class GradienceCallback(TrainerCallback):
             return
         
         # Log final guard stats if enabled
+        final_step = int(getattr(state, "global_step", 0))
         if self.guard is not None:
             # Final summary metrics (not an alert code)
-            self.writer.metrics(None, kind="guard", metrics={
+            self.writer.metrics(final_step, kind="guard", metrics={
                 "action": "summary",
                 "ring_size": self.config.guard_ring_size,
                 "snapshot_count": self.guard.snapshot_count(),

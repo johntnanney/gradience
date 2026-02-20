@@ -409,9 +409,9 @@ class LoRAAnalyzer:
         
         # Find worst conditioning
         worst_kappa_A = max(kappa_As.values())
-        worst_kappa_A_layer = max(kappa_As, key=kappa_As.get)
+        worst_kappa_A_layer = max(kappa_As, key=lambda k: kappa_As[k])
         worst_kappa_B = max(kappa_Bs.values())
-        worst_kappa_B_layer = max(kappa_Bs, key=kappa_Bs.get)
+        worst_kappa_B_layer = max(kappa_Bs, key=lambda k: kappa_Bs[k])
         
         # Adapter health: inverse of worst conditioning
         worst_kappa = max(worst_kappa_A, worst_kappa_B)
@@ -450,7 +450,7 @@ class LoRAAnalyzer:
         self.structural_history.append(metrics)
         return metrics
     
-    def _find_adapters(self) -> Dict[str, Dict[str, nn.Parameter]]:
+    def _find_adapters(self) -> Dict[str, Dict[str, Any]]:
         """Find all LoRA adapter pairs in the model."""
         adapters = {}
         
@@ -501,11 +501,11 @@ class LoRAAnalyzer:
             return 'unknown'
     
     def _analyze_adapter(
-        self, 
-        name: str, 
-        A: torch.Tensor, 
+        self,
+        name: str,
+        A: torch.Tensor,
         B: torch.Tensor,
-        alpha: float = None,
+        alpha: float | None = None,
     ) -> LoRALayerMetrics:
         """Analyze a single LoRA adapter pair."""
         
@@ -554,11 +554,11 @@ class LoRAAnalyzer:
                 nominal_rank=nominal_rank,
                 alpha=alpha,
                 scaling=scaling,
-                a_shape=tuple(A.shape),
+                a_shape=(A.shape[0], A.shape[1]),
                 a_kappa=a_kappa,
                 a_effective_rank=a_effective_rank,
                 a_sigma_max=a_sigma_max,
-                b_shape=tuple(B.shape),
+                b_shape=(B.shape[0], B.shape[1]),
                 b_kappa=b_kappa,
                 b_effective_rank=b_effective_rank,
                 b_sigma_max=b_sigma_max,
@@ -568,7 +568,7 @@ class LoRAAnalyzer:
                 rank_utilization=rank_utilization,
             )
     
-    def analyze(self, alpha: float = None) -> LoRAModelMetrics:
+    def analyze(self, alpha: float | None = None) -> LoRAModelMetrics:
         """
         Analyze all LoRA adapters in the model.
         
@@ -727,8 +727,8 @@ class LoRAAnalyzer:
             self.analyze()
         
         metrics = self.history[-1]
-        by_type = {}
-        
+        by_type: Dict[str, List[float]] = {}
+
         for layer in metrics.layers.values():
             layer_type = layer.layer_type
             if layer_type not in by_type:
@@ -737,7 +737,7 @@ class LoRAAnalyzer:
         
         return {t: sum(v)/len(v) for t, v in by_type.items()}
     
-    def report(self, lora_alpha: float = None, lora_rank: int = None) -> str:
+    def report(self, lora_alpha: float | None = None, lora_rank: int | None = None) -> str:
         """
         Generate human-readable report.
         

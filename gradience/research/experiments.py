@@ -394,8 +394,8 @@ def run_grokking_experiment(
     train_dataset = ModularArithmeticDataset(p=p, operation=operation, split="train")
     test_dataset = ModularArithmeticDataset(p=p, operation=operation, split="test")
     
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+    train_loader: DataLoader[Any] = DataLoader(train_dataset, batch_size=64, shuffle=True)  # type: ignore[arg-type]
+    test_loader: DataLoader[Any] = DataLoader(test_dataset, batch_size=256, shuffle=False)  # type: ignore[arg-type]
     
     # Simple MLP for this task
     model = nn.Sequential(

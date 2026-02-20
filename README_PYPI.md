@@ -9,6 +9,8 @@ for validating spectral hypotheses.
 
 ## Quick Start
 
+**Requires Python 3.10+**
+
 ```bash
 pip install gradience
 
@@ -19,7 +21,7 @@ gradience audit --peft-dir ./your-adapter --suggest-ranks
 gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b
 
 # Run a full compression validation benchmark
-gradience bench --config bench_config.yaml
+gradience-bench --config bench_config.yaml
 ```
 
 ## What You Get

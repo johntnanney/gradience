@@ -152,6 +152,7 @@ class HeartbeatLogger:
     
     def _heartbeat_loop(self) -> None:
         """Main heartbeat loop running in background thread."""
+        assert self._stop_event is not None
         try:
             while not self._stop_event.wait(timeout=self._interval):
                 elapsed = int(time.time() - self._start_time)

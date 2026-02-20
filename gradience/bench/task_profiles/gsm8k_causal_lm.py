@@ -4,7 +4,7 @@ GSM8K causal language modeling task profile.
 
 from __future__ import annotations
 import re
-from typing import Dict, Any, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Tuple, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from datasets import Dataset
@@ -23,25 +23,25 @@ class GSM8KCausalLMProfile:
     primary_metric = "exact_match"
     primary_metric_key = "eval_exact_match"
     
-    def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
+    def load(self, cfg: Dict[str, Any]) -> Any:
         """Load GSM8K dataset."""
-        from datasets import Dataset, load_dataset
-        
+        from datasets import load_dataset
+
         # GSM8K has train/test splits, we'll use test as validation
         dataset = load_dataset("gsm8k", "main")
-        
+
         # Apply sample limits if specified
         task_config = cfg.get("task", {})
         eval_max_samples = task_config.get("eval_max_samples", 500)
-        
+
         if "train" in cfg:
             train_config = cfg["train"]
             if "train_samples" in train_config:
                 dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_config["train_samples"])))
-        
+
         # Use test set as validation and apply eval limits
         dataset["validation"] = dataset["test"].select(range(min(len(dataset["test"]), eval_max_samples)))
-        
+
         return dataset
     
     def tokenize(self, raw_ds: Dict[str, Dataset], tokenizer: PreTrainedTokenizerBase, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
@@ -145,14 +145,14 @@ class GSM8KCausalLMProfile:
             remove_unused_columns=False,  # Prevent column removal issues
         )
         
-        return Trainer(
+        return cast("Trainer", Trainer(
             model=model,
             args=training_args,
             train_dataset=tokenized_ds["train"],
             eval_dataset=None,  # Disable eval dataset to prevent crashes
             data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
             callbacks=callbacks or [],
-        )
+        ))
     
     def evaluate(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                 tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -188,7 +188,7 @@ class GSM8KCausalLMProfile:
             
             # Generate response
             with torch.no_grad():
-                outputs = model.generate(
+                outputs = model.generate(  # type: ignore[operator]
                     **inputs,
                     max_new_tokens=max_new_tokens,
                     do_sample=do_sample,
@@ -248,7 +248,7 @@ class GSM8KCausalLMProfile:
             return match.group(1).replace(',', '')
         
         # Fallback: find last number in text
-        numbers = re.findall(r'[0-9,]+(?:\.[0-9]+)?', text)
+        numbers: list[str] = re.findall(r'[0-9,]+(?:\.[0-9]+)?', text)
         if numbers:
             return numbers[-1].replace(',', '')
         

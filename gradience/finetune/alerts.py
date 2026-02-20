@@ -85,8 +85,8 @@ class Alert:
     message: str
     details: dict
     recommendation: str
-    timestamp: float = None
-    
+    timestamp: float | None = None
+
     def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = time.time()
@@ -137,26 +137,26 @@ class FineTuneState:
     num_train_examples: Optional[int] = None
     
     # History
-    val_loss_history: List[float] = None
-    train_loss_history: List[float] = None
-    
+    val_loss_history: List[float] | None = None
+    train_loss_history: List[float] | None = None
+
     # === NEW: For pathology detection ===
-    
+
     # Model rank history (not delta rank - the actual model's rank)
     # Used for Lobotomy detection
-    model_rank_history: List[float] = None
-    
+    model_rank_history: List[float] | None = None
+
     # Spectral norm history (σ_max)
     # Used for Brain Damage detection
-    sigma_max_history: List[float] = None
-    
+    sigma_max_history: List[float] | None = None
+
     # Delta magnitude history (||W - W_0||)
     # Used for Drift detection
-    delta_magnitude_history: List[float] = None
-    
+    delta_magnitude_history: List[float] | None = None
+
     # LoRA metrics (if using LoRA)
     # Dict of adapter_name -> {nominal_rank, effective_rank, kappa_A, kappa_B}
-    lora_metrics: Dict[str, Dict] = None
+    lora_metrics: Dict[str, Dict] | None = None
     
 
 # ============================================================
@@ -733,7 +733,7 @@ class FineTuneAlertManager:
                 print(alert)
     """
     
-    def __init__(self, conditions: List[AlertCondition] = None):
+    def __init__(self, conditions: List[AlertCondition] | None = None):
         if conditions is None:
             conditions = self._default_conditions()
         
@@ -805,8 +805,8 @@ class FineTuneAlertManager:
     def summary(self) -> dict:
         """Get summary of alerts."""
         by_severity = {s: 0 for s in AlertSeverity}
-        by_type = {}
-        
+        by_type: Dict[AlertType, int] = {}
+
         for alert in self.alert_history:
             by_severity[alert.severity] += 1
             by_type[alert.type] = by_type.get(alert.type, 0) + 1

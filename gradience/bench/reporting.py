@@ -110,13 +110,13 @@ def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=N
     if task_profile and hasattr(task_profile, 'primary_metric_key'):
         primary_key = task_profile.primary_metric_key
         if primary_key in eval_results:
-            return eval_results[primary_key]
+            return float(eval_results[primary_key])
 
     # Fallback sequence
     fallback_keys = ["eval_accuracy", "eval_exact_match", "accuracy", "exact_match"]
     for key in fallback_keys:
         if key in eval_results:
-            return eval_results[key]
+            return float(eval_results[key])
 
     return 0.0
 
@@ -744,7 +744,7 @@ def create_multi_seed_aggregated_report(
     variants_data = {}
 
     # Get all variant names from all reports
-    all_variant_names = set()
+    all_variant_names: set[str] = set()
     for report in seed_reports:
         compressed_data = report.get("compressed", {}) or {}
         all_variant_names.update(compressed_data.keys())
@@ -845,9 +845,11 @@ def create_multi_seed_aggregated_report(
         variants_data[variant_name] = variant_data
 
     # Build detailed per-seed breakdown for self-contained reporting
-    detailed_results = {
-        "seeds": [],
-        "candidates": {},
+    detailed_seeds: list[Dict[str, Any]] = []
+    detailed_candidates: Dict[str, Any] = {}
+    detailed_results: Dict[str, Any] = {
+        "seeds": detailed_seeds,
+        "candidates": detailed_candidates,
         "summary_statistics": {}
     }
 
@@ -857,7 +859,7 @@ def create_multi_seed_aggregated_report(
         probe_data = report["probe"]
         compressed_data = report.get("compressed", {}) or {}
 
-        seed_detail = {
+        seed_detail: Dict[str, Any] = {
             "seed_id": seed_id,
             "probe": {
                 "accuracy": probe_data["accuracy"],
@@ -896,7 +898,7 @@ def create_multi_seed_aggregated_report(
                     "compression_method": "unknown"
                 }
 
-        detailed_results["seeds"].append(seed_detail)
+        detailed_seeds.append(seed_detail)
 
     # Build candidate-centric summary statistics
     for variant_name in all_variant_names:
@@ -905,7 +907,7 @@ def create_multi_seed_aggregated_report(
 
             # Extract per-seed results for this candidate
             candidate_seeds = []
-            for seed_detail in detailed_results["seeds"]:
+            for seed_detail in detailed_seeds:
                 if variant_name in seed_detail["candidates"]:
                     candidate_data = seed_detail["candidates"][variant_name]
                     if candidate_data["accuracy"] is not None:  # Only include successful runs
@@ -927,7 +929,7 @@ def create_multi_seed_aggregated_report(
                 deltas = [s["delta_accuracy"] for s in candidate_seeds if s["delta_accuracy"] is not None]
                 param_reductions = [s["param_reduction"] for s in candidate_seeds if s["param_reduction"] is not None]
 
-                detailed_results["candidates"][variant_name] = {
+                detailed_candidates[variant_name] = {
                     "policy_name": variant_name,
                     "chosen_rank": candidate_seeds[0].get("rank", "unknown") if candidate_seeds else "unknown",
                     "n_seeds_evaluated": len(candidate_seeds),
@@ -1150,7 +1152,7 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
 """
 
     # Group variants by rank for clearer reporting
-    rank_to_variants = {}
+    rank_to_variants: Dict[int, list[tuple[str, Dict[str, Any]]]] = {}
     for variant_name, data in compressed_data.items():
         # Extract rank from variant data or name
         rank = None

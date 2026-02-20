@@ -25,8 +25,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Union
 
+import logging
+
 import torch
 
+from gradience.exceptions import MergeError
 from gradience.vnext.merge.io import (
     AdapterInfo,
     extract_factors,
@@ -81,6 +84,8 @@ from gradience.vnext.merge.scale import symmetric_scale_metrics, symmetric_frobe
 from gradience.vnext.merge.evaluation import merge_prediction_evaluation
 from gradience.vnext.merge.null_controls import randomized_subspace_control, layer_shuffle_control
 from gradience.vnext.merge.norm_equalized import norm_equalized_merge
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     # Phase 1 — Audit orchestrator
@@ -193,7 +198,7 @@ def merge_audit(
 
     dtype = _DTYPE_MAP.get(compute_dtype)
     if dtype is None:
-        raise ValueError(
+        raise MergeError(
             f"Unsupported compute_dtype '{compute_dtype}'. "
             f"Choose from: {list(_DTYPE_MAP.keys())}"
         )
@@ -217,6 +222,8 @@ def merge_audit(
             f"{len(info_b.lora_pairs)} layers"
         )
 
+    logger.debug("Loaded adapters: A=%s (rank=%d, %d layers), B=%s (rank=%d, %d layers)", adapter_a_dir, info_a.rank, len(info_a.lora_pairs), adapter_b_dir, info_b.rank, len(info_b.lora_pairs))
+
     # --- Step 2: Match layers ---
     shared, only_a, only_b = match_layers(info_a, info_b)
 
@@ -226,8 +233,10 @@ def merge_audit(
             f"{len(only_a)} only-A, {len(only_b)} only-B"
         )
 
+    logger.debug("Layer matching: %d shared, %d only-A, %d only-B", len(shared), len(only_a), len(only_b))
+
     if not shared:
-        raise ValueError(
+        raise MergeError(
             f"No shared LoRA layers between adapters. "
             f"A has {len(info_a.lora_pairs)} layers, "
             f"B has {len(info_b.lora_pairs)} layers. "
@@ -280,6 +289,8 @@ def merge_audit(
             f"\nOverall verdict: {overall_verdict.value.upper()} "
             f"(score={score:.3f})"
         )
+
+    logger.debug("Merge audit verdict: %s (score=%.3f)", overall_verdict.value, score)
 
     # --- Step 5: Build report ---
     report = build_report(

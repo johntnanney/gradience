@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
+from gradience.exceptions import MergeError
 from gradience.vnext.merge.report import MergeAuditReport
 from gradience.vnext.merge.strategies import LayerMergeConfig
 
@@ -443,7 +444,7 @@ def plan_from_audit(
     """
     fn = PLAN_STRATEGIES.get(strategy_name)
     if fn is None:
-        raise ValueError(
+        raise MergeError(
             f"Unknown plan strategy '{strategy_name}'. "
             f"Available: {sorted(PLAN_STRATEGIES.keys())}"
         )

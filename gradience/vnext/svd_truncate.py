@@ -24,6 +24,8 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import torch
 import numpy as np
 
+from gradience.exceptions import AuditError, ConfigError
+
 from .audit.lora_audit import (
     find_peft_files,
     load_peft_adapter_config, 
@@ -66,7 +68,7 @@ def _corresponding_lora_B_key(lora_A_key: str, adapter_name: str = "default") ->
     elif lora_A_key.endswith(".lora_A.weight"):
         return lora_A_key.replace(".lora_A.weight", ".lora_B.weight")
     else:
-        raise ValueError(f"Unexpected LoRA A key pattern: {lora_A_key}")
+        raise AuditError(f"Unexpected LoRA A key pattern: {lora_A_key}")
 
 
 def _parse_and_pair_lora_matrices(
@@ -298,20 +300,20 @@ def svd_truncate_peft_dir(
     state_dict = load_adapter_state_dict(weights_path, map_location="cpu")
     
     if config.r is None:
-        raise ValueError("Original LoRA rank (r) not found in adapter config")
+        raise ConfigError("Original LoRA rank (r) not found in adapter config")
     
     if target_rank >= config.r:
-        raise ValueError(f"Target rank {target_rank} must be < original rank {config.r}")
+        raise ConfigError(f"Target rank {target_rank} must be < original rank {config.r}")
     
     # Parse and pair LoRA matrices robustly
     complete_pairs = _parse_and_pair_lora_matrices(state_dict, adapter_name)
     
     if not complete_pairs:
-        raise ValueError("No complete LoRA A/B pairs found in adapter weights")
+        raise AuditError("No complete LoRA A/B pairs found in adapter weights")
     
     # Process each pair
     new_state_dict = {}
-    per_module_energy = []
+    per_module_energy: List[Dict[str, Union[str, int, float]]] = []
     total_original_params = 0
     total_new_params = 0
     
@@ -493,7 +495,7 @@ model = PeftModel.from_pretrained(model, "path/to/this/adapter")
 Top 5 layers by energy retention:
 
 {chr(10).join(
-    f"- {module['module_name'].split('.')[-1]}: {module['energy_retained']:.1%}" 
+    f"- {str(module['module_name']).split('.')[-1]}: {module['energy_retained']:.1%}"
     for module in sorted(report.per_module_energy, key=lambda x: x['energy_retained'], reverse=True)[:5]
 )}
 

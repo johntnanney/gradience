@@ -74,7 +74,8 @@ class PolicyScoreboard:
         """Load existing scoreboard or create new one."""
         if self.scoreboard_path.exists():
             with open(self.scoreboard_path, 'r') as f:
-                return json.load(f)
+                result: Dict[str, Any] = json.load(f)
+                return result
         else:
             return {
                 "policy_scoreboard_version": "1.0",
@@ -322,9 +323,9 @@ class PolicyScoreboard:
         most_reliable = None
         best_overall = best_policies[0] if best_policies else None
         
-        max_bias = -999
-        min_bias = 999
-        max_reliability = 0
+        max_bias: float = -999.0
+        min_bias: float = 999.0
+        max_reliability: float = 0.0
         
         for policy_name in self.data["policies"]:
             metrics = self.get_policy_metrics(policy_name)
@@ -349,15 +350,17 @@ class PolicyScoreboard:
         
         if most_conservative and most_conservative != (best_overall[0] if best_overall else None):
             conservative_metrics = self.get_policy_metrics(most_conservative)
-            recommendations.append(
-                f"{most_conservative} is most conservative (+{conservative_metrics.conservatism_bias:.0%} bias) - good for safety-critical applications"
-            )
-        
+            if conservative_metrics is not None:
+                recommendations.append(
+                    f"{most_conservative} is most conservative (+{conservative_metrics.conservatism_bias:.0%} bias) - good for safety-critical applications"
+                )
+
         if most_aggressive and most_aggressive != (best_overall[0] if best_overall else None):
             aggressive_metrics = self.get_policy_metrics(most_aggressive)
-            recommendations.append(
-                f"{most_aggressive} is most aggressive ({aggressive_metrics.conservatism_bias:.0%} bias) - good for maximum compression"
-            )
+            if aggressive_metrics is not None:
+                recommendations.append(
+                    f"{most_aggressive} is most aggressive ({aggressive_metrics.conservatism_bias:.0%} bias) - good for maximum compression"
+                )
         
         return {
             "best_overall_policy": best_overall[0] if best_overall else None,

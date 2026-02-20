@@ -15,8 +15,8 @@ class InvariantChecker:
     
     def __init__(self, min_probe_accuracy: float = 0.75):
         self.min_probe_accuracy = min_probe_accuracy
-        self.invariants = {}
-        self.failures = []
+        self.invariants: Dict[str, Dict[str, Any]] = {}
+        self.failures: List[str] = []
         
     def check_probe_quality(self, probe_accuracy: float) -> Dict[str, Any]:
         """Check if probe passes quality gate."""
@@ -36,9 +36,10 @@ class InvariantChecker:
         self.invariants["probe_quality"] = result
         return result
     
-    def check_rank_heterogeneity(self, rank_pattern: Dict[str, int], 
+    def check_rank_heterogeneity(self, rank_pattern: Dict[str, int],
                                  variant_name: str = "per_layer") -> Dict[str, Any]:
         """Check if per_layer has sufficient rank heterogeneity."""
+        result: Dict[str, Any]
         if not rank_pattern:
             result = {
                 "name": "rank_heterogeneity",
@@ -74,9 +75,10 @@ class InvariantChecker:
         self.invariants["rank_heterogeneity"] = result
         return result
     
-    def check_layer_consistency(self, rank_pattern: Dict[str, int], 
+    def check_layer_consistency(self, rank_pattern: Dict[str, int],
                                 alpha_pattern: Dict[str, int]) -> Dict[str, Any]:
         """Check if rank and alpha patterns have matching layer keys."""
+        result: Dict[str, Any]
         if not rank_pattern or not alpha_pattern:
             result = {
                 "name": "layer_consistency",
@@ -85,24 +87,24 @@ class InvariantChecker:
             }
             self.invariants["layer_consistency"] = result
             return result
-        
+
         rank_layers = set(rank_pattern.keys())
         alpha_layers = set(alpha_pattern.keys())
-        
+
         passed = rank_layers == alpha_layers
-        
+
         missing_in_alpha = rank_layers - alpha_layers
         missing_in_rank = alpha_layers - rank_layers
-        
+
         result = {
             "name": "layer_consistency",
             "status": "PASSED" if passed else "FAILED",
             "rank_layers_count": len(rank_layers),
             "alpha_layers_count": len(alpha_layers),
             "layers_match": passed,
-            "message": "Layer keys match" if passed else "Layer key mismatch detected"
+            "message": "Layer keys match" if passed else "Layer key mismatch detected",
         }
-        
+
         if not passed:
             result["missing_in_alpha"] = list(missing_in_alpha)
             result["missing_in_rank"] = list(missing_in_rank)
@@ -138,10 +140,11 @@ class InvariantChecker:
     
     def check_compression_validity(self, verdicts: Dict[str, Any]) -> Dict[str, Any]:
         """Check if compression results are internally consistent."""
-        result = {
+        issues: List[str] = []
+        result: Dict[str, Any] = {
             "name": "compression_validity",
             "status": "PASSED",
-            "issues": [],
+            "issues": issues,
             "message": "Compression results validation"
         }
         
@@ -154,7 +157,7 @@ class InvariantChecker:
                     
                     if abs(expected_delta - reported_delta) > 0.001:  # Tolerance for float precision
                         issue = f"{variant}: Delta mismatch (expected={expected_delta:.4f}, reported={reported_delta:.4f})"
-                        result["issues"].append(issue)
+                        issues.append(issue)
                         result["status"] = "FAILED"
                 
                 # Check param reduction calculation
@@ -164,12 +167,12 @@ class InvariantChecker:
                     
                     if abs(expected_reduction - reported_reduction) > 0.001:
                         issue = f"{variant}: Param reduction mismatch"
-                        result["issues"].append(issue)
+                        issues.append(issue)
                         result["status"] = "FAILED"
         
-        if result["issues"]:
-            result["message"] = f"Found {len(result['issues'])} consistency issues"
-            self.failures.extend(result["issues"])
+        if issues:
+            result["message"] = f"Found {len(issues)} consistency issues"
+            self.failures.extend(issues)
         else:
             result["message"] = "All compression results internally consistent"
             

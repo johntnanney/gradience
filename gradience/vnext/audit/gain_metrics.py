@@ -26,6 +26,8 @@ import torch
 import math
 import re
 
+from gradience.exceptions import AuditError
+
 
 def sqrt_psd(M: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
     """Compute matrix square root of positive semi-definite matrix via eigendecomposition.
@@ -45,8 +47,8 @@ def sqrt_psd(M: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
     
     # sqrt_M = U @ diag(sqrt(λ)) @ U^T
     sqrt_eigenvals = torch.sqrt(eigenvals)
-    sqrt_M = eigenvecs @ torch.diag(sqrt_eigenvals) @ eigenvecs.T
-    
+    sqrt_M: torch.Tensor = eigenvecs @ torch.diag(sqrt_eigenvals) @ eigenvecs.T
+
     return sqrt_M
 
 
@@ -80,13 +82,13 @@ def compute_lora_norms(
         ValueError: If A, B shapes are incompatible or not 2D
     """
     if A.ndim != 2 or B.ndim != 2:
-        raise ValueError(f"A and B must be 2D tensors. Got A.shape={A.shape}, B.shape={B.shape}")
+        raise AuditError(f"A and B must be 2D tensors. Got A.shape={A.shape}, B.shape={B.shape}")
     
     r_A, d_in = A.shape
     d_out, r_B = B.shape
     
     if r_A != r_B:
-        raise ValueError(f"Incompatible LoRA factors: A.shape[0]={r_A} != B.shape[1]={r_B}")
+        raise AuditError(f"Incompatible LoRA factors: A.shape[0]={r_A} != B.shape[1]={r_B}")
     
     r = r_A
     
@@ -233,7 +235,7 @@ def compute_layer_energy_concentration(
         }
     
     # Group modules by layer
-    layer_energies = {}
+    layer_energies: Dict[int, float] = {}
     unknown_energy = 0.0
     
     for module_name, energy in module_energies.items():
@@ -366,7 +368,7 @@ def verify_lora_factors_orientation(A: torch.Tensor, B: torch.Tensor) -> Tuple[t
         ValueError: If factors cannot be oriented consistently
     """
     if A.ndim != 2 or B.ndim != 2:
-        raise ValueError(f"LoRA factors must be 2D. Got A.shape={A.shape}, B.shape={B.shape}")
+        raise AuditError(f"LoRA factors must be 2D. Got A.shape={A.shape}, B.shape={B.shape}")
     
     # Standard orientation: A (r × d_in), B (d_out × r) where A.shape[0] == B.shape[1] 
     if A.shape[0] == B.shape[1]:
@@ -378,7 +380,7 @@ def verify_lora_factors_orientation(A: torch.Tensor, B: torch.Tensor) -> Tuple[t
         B_oriented = B.T.contiguous()  # (r × d_out) -> (d_out × r)
         return A_oriented, B_oriented, int(A.shape[1])
     
-    raise ValueError(
+    raise AuditError(
         f"Cannot orient LoRA factors consistently. "
         f"A.shape={A.shape}, B.shape={B.shape}. "
         f"Expected either A.shape[0]==B.shape[1] or A.shape[1]==B.shape[0]"

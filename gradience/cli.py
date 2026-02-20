@@ -290,11 +290,11 @@ def _normalize_to_vnext_dict(raw: Dict[str, Any]) -> Dict[str, Any]:
 
     # If it already looks like canonical vNext, just ensure nested dicts exist.
     if any(k in raw for k in ("optimizer", "lora", "training", "task_profile")):
-        d = dict(raw)
-        d["optimizer"] = dict(d.get("optimizer") or {})
-        d["lora"] = dict(d.get("lora") or {})
-        d["training"] = dict(d.get("training") or {})
-        return d
+        out = dict(raw)
+        out["optimizer"] = dict(out.get("optimizer") or {})
+        out["lora"] = dict(out.get("lora") or {})
+        out["training"] = dict(out.get("training") or {})
+        return out
 
     # Otherwise treat as "flat" or PEFT-like.
     d: Dict[str, Any] = {
@@ -734,7 +734,7 @@ def _extract_guard_activity(reader: Any) -> Dict[str, Any]:
                     guard_info["memory_mb"] = metrics["memory_mb"]
         
         # If we found any rollback count > 0, mark rollback as occurred
-        if guard_info["rollback_count"] > 0:
+        if guard_info["rollback_count"] is not None and guard_info["rollback_count"] > 0:
             guard_info["rollback_occurred"] = True
     
     except Exception:  # Intentionally broad: guard info is best-effort diagnostic
@@ -860,10 +860,10 @@ def _print_monitor_result(
 
             # Suggested rank printout (global)
             try:
-                s_med = summary.get("suggested_r_global_median")
-                s_p90 = summary.get("suggested_r_global_90")
-                p50 = summary.get("energy_rank_90_p50")
-                p90 = summary.get("energy_rank_90_p90")
+                s_med = audit.get("suggested_r_global_median")
+                s_p90 = audit.get("suggested_r_global_90")
+                p50 = audit.get("energy_rank_90_p50")
+                p90 = audit.get("energy_rank_90_p90")
             except (AttributeError, KeyError, TypeError):
                 s_med = s_p90 = p50 = p90 = None
 
@@ -1766,8 +1766,8 @@ def cmd_truncate(args: argparse.Namespace) -> None:
             print(f"Mean retained energy: {report.energy_retained:.1%}")
             
             # Calculate total LoRA parameter reduction
-            total_original_lora_params = sum(m["original_params"] for m in report.per_module_energy)
-            total_new_lora_params = sum(m["new_params"] for m in report.per_module_energy)
+            total_original_lora_params = sum(int(m["original_params"]) for m in report.per_module_energy)
+            total_new_lora_params = sum(int(m["new_params"]) for m in report.per_module_energy)
             lora_reduction_ratio = total_original_lora_params / total_new_lora_params if total_new_lora_params > 0 else 1.0
             
             print(f"LoRA parameter reduction: {total_original_lora_params:,} → {total_new_lora_params:,} ({lora_reduction_ratio:.1f}x)")
@@ -1798,7 +1798,7 @@ def cmd_truncate(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-def _parse_rank_policies(policies_arg: str) -> List[str]:
+def _parse_rank_policies(policies_arg: Optional[str]) -> Optional[List[str]]:
     """Parse user-friendly rank policy names to internal policy names."""
     if not policies_arg:
         return None
@@ -1855,37 +1855,17 @@ def cmd_audit(args: argparse.Namespace) -> None:
             'metric': getattr(args, "importance_metric", "energy_share"),
         }
         
-        # For backward compatibility, handle importance_config if it was passed
-        # (even though the function doesn't use it directly anymore)
-        try:
-            result = audit_lora_peft_dir(
-                peft_dir,
-                adapter_config_path=getattr(args, "adapter_config", None),
-                adapter_weights_path=getattr(args, "weights", None),
-                map_location="cpu",
-                include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
-                base_model_id=getattr(args, "base_model", None),
-                base_norms_cache=getattr(args, "base_norms_cache", None),
-                compute_udr=not getattr(args, "no_udr", False),
-                rank_policies=rank_policies,
-                importance_config=importance_config,  # Try with the parameter first
-            )
-        except TypeError as e:
-            if "unexpected keyword argument 'importance_config'" in str(e):
-                # Function doesn't accept importance_config anymore, call without it
-                result = audit_lora_peft_dir(
-                    peft_dir,
-                    adapter_config_path=getattr(args, "adapter_config", None),
-                    adapter_weights_path=getattr(args, "weights", None),
-                    map_location="cpu",
-                    include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
-                    base_model_id=getattr(args, "base_model", None),
-                    base_norms_cache=getattr(args, "base_norms_cache", None),
-                    compute_udr=not getattr(args, "no_udr", False),
-                    rank_policies=rank_policies,
-                )
-            else:
-                raise
+        result = audit_lora_peft_dir(
+            peft_dir,
+            adapter_config_path=getattr(args, "adapter_config", None),
+            adapter_weights_path=getattr(args, "weights", None),
+            map_location="cpu",
+            include_top_singular_values=int(getattr(args, "top_singular_values", 0) or 0),
+            base_model_id=getattr(args, "base_model", None),
+            base_norms_cache=getattr(args, "base_norms_cache", None),
+            compute_udr=not getattr(args, "no_udr", False),
+            rank_policies=rank_policies,
+        )
         # --- audit --append support ---
         if getattr(args, "append", None):
             import json, time
@@ -1901,14 +1881,14 @@ def cmd_audit(args: argparse.Namespace) -> None:
                             if not line:
                                 continue
                             try:
-                                e = jsonlib.loads(line)
+                                entry = jsonlib.loads(line)
                             except json.JSONDecodeError:
                                 continue
-                            if isinstance(e, dict):
-                                if run_id is None and isinstance(e.get("run_id"), str):
-                                    run_id = e.get("run_id")
-                                if isinstance(e.get("step"), int):
-                                    last_step = e.get("step")
+                            if isinstance(entry, dict):
+                                if run_id is None and isinstance(entry.get("run_id"), str):
+                                    run_id = entry.get("run_id")
+                                if isinstance(entry.get("step"), int):
+                                    last_step = entry.get("step")
                 except (OSError, UnicodeDecodeError):
                     pass
             if run_id is None:

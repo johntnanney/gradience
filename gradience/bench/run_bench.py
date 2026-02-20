@@ -27,7 +27,7 @@ import sys
 import os
 import json
 import tempfile
-import yaml  # type: ignore[import-untyped]
+import yaml
 from pathlib import Path
 from typing import Optional
 
@@ -191,15 +191,6 @@ def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False)
     
     attempted_strategies = [v for v in verdicts.values() if v.get("status") == "evaluated"]
     passed_strategies = [v for v in attempted_strategies if v.get("verdict") == "PASS"]
-    
-    # Debug info
-    if not attempted_strategies:
-        print(f"  Debug: Found verdict keys: {list(verdicts.keys())}")
-        if verdicts:
-            sample_verdict = list(verdicts.values())[0]
-            print(f"  Debug: Sample verdict structure: {sample_verdict}")
-        else:
-            print(f"  Debug: Report keys: {list(report.keys())}")
     
     total_attempted = len(attempted_strategies)
     total_passed = len(passed_strategies)

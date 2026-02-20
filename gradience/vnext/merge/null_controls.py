@@ -29,7 +29,7 @@ def _principal_angle_cosines(
     Cosines clamped to [0, 1], shape (min(k_a, k_b),).
     """
     cross = U_A.T @ U_B
-    cosines = torch.linalg.svdvals(cross)
+    cosines: torch.Tensor = torch.linalg.svdvals(cross)
     return cosines.clamp(0.0, 1.0)
 
 
@@ -41,6 +41,7 @@ def _random_orthonormal(
     All computation in float64 for stability.
     """
     M = torch.randn(d, k, dtype=torch.float64, generator=generator)
+    Q: torch.Tensor
     Q, _ = torch.linalg.qr(M)
     return Q
 

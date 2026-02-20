@@ -15,6 +15,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from gradience.exceptions import MergeError
+
 # Use sklearn when available for classification metrics, but fall back
 # to pure-numpy implementations so the module works without it.
 
@@ -59,7 +61,7 @@ def _auc_roc_numpy(
     fpr = np.concatenate([[0.0], fpr])
 
     # Trapezoidal integration (np.trapezoid in numpy >=2, np.trapz before)
-    _trapz = getattr(np, "trapezoid", None) or np.trapz
+    _trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz")
     return float(_trapz(tpr, fpr))
 
 
@@ -160,10 +162,10 @@ def _compute_calibration(
     pred = np.array(predicted_risk, dtype=float)
     actual = np.array(actual_bad_merge, dtype=float)
 
-    bin_edges = []
-    mean_predicted = []
-    mean_observed = []
-    bin_counts = []
+    bin_edges: List[tuple[float, float]] = []
+    mean_predicted: List[Optional[float]] = []
+    mean_observed: List[Optional[float]] = []
+    bin_counts: List[int] = []
 
     lo = 0.0
     step = 1.0 / n_bins
@@ -253,7 +255,7 @@ def merge_prediction_evaluation(
         }
 
     if len(actual_bad_merge) != n_samples or len(actual_Q_min) != n_samples:
-        raise ValueError(
+        raise MergeError(
             f"Length mismatch: predicted_risk has {n_samples} elements, "
             f"actual_bad_merge has {len(actual_bad_merge)}, "
             f"actual_Q_min has {len(actual_Q_min)}"

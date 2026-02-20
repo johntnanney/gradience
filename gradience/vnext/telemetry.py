@@ -73,6 +73,8 @@ from .types import (
 # accidentally pull in heavier summarization logic.
 from .telemetry_reader import TelemetryReader
 
+from gradience.exceptions import ConfigError, TelemetryError
+
 
 Jsonable = Union[None, bool, int, float, str, Dict[str, Any], List[Any]]
 
@@ -89,8 +91,9 @@ def _to_jsonable(obj: Any) -> Jsonable:
         return [_to_jsonable(v) for v in obj]
     # Enums: use `.value` if present
     if hasattr(obj, "value") and isinstance(getattr(obj, "value"), (str, int, float)):
-        return getattr(obj, "value")
-    if is_dataclass(obj):
+        val: Jsonable = getattr(obj, "value")
+        return val
+    if is_dataclass(obj) and not isinstance(obj, type):
         # Prefer explicit to_dict() if available to keep schema stable.
         to_dict = getattr(obj, "to_dict", None)
         if callable(to_dict):
@@ -121,7 +124,7 @@ class TelemetryWriter:
         self.allow_text = bool(allow_text)
         self.on_text_violation = str(on_text_violation)
         if self.on_text_violation not in ("redact", "raise"):
-            raise ValueError("on_text_violation must be 'redact' or 'raise'")
+            raise ConfigError("on_text_violation must be 'redact' or 'raise'")
         self._closed = False
 
     def close(self) -> None:
@@ -152,7 +155,7 @@ class TelemetryWriter:
             if self.max_str_len is not None and len(obj) > self.max_str_len:
                 if self.on_text_violation == "raise":
                     where = _path or "<root>"
-                    raise ValueError(f"Telemetry text too long ({len(obj)} chars) at {where}.")
+                    raise TelemetryError(f"Telemetry text too long ({len(obj)} chars) at {where}.")
                 return f"[REDACTED len={len(obj)}]"
             return obj
         if isinstance(obj, dict):

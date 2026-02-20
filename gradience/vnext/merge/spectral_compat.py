@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import torch
 
+from gradience.exceptions import MergeError
 from gradience.vnext.merge.scale import symmetric_frobenius_metrics, symmetric_scale_metrics
 
 
@@ -180,9 +181,9 @@ def compute_subspace_metrics(
     5. Magnitude balance via singular value ratios
     """
     if r_a <= 0:
-        raise ValueError(f"rank_a must be positive, got {r_a}")
+        raise MergeError(f"rank_a must be positive, got {r_a}")
     if r_b <= 0:
-        raise ValueError(f"rank_b must be positive, got {r_b}")
+        raise MergeError(f"rank_b must be positive, got {r_b}")
 
     scaling_a = (alpha_a / r_a) if alpha_a is not None else 1.0
     scaling_b = (alpha_b / r_b) if alpha_b is not None else 1.0

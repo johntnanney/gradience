@@ -20,11 +20,11 @@ def get_module_version(module_name: str) -> str:
     try:
         module = __import__(module_name)
         if hasattr(module, '__version__'):
-            return module.__version__
+            return str(module.__version__)
         elif hasattr(module, 'version'):
-            return module.version
+            return str(module.version)
         elif hasattr(module, 'VERSION'):
-            return module.VERSION
+            return str(module.VERSION)
         else:
             return "installed"
     except (ImportError, AttributeError):
@@ -61,7 +61,7 @@ def check_dependencies() -> Dict[str, Dict[str, Any]]:
         }
     }
     
-    results = {}
+    results: Dict[str, Dict[str, Any]] = {}
     for category, modules in deps.items():
         results[category] = {}
         for module, (display_name, is_required) in modules.items():

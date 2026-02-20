@@ -52,15 +52,18 @@ try:
     from importlib.metadata import version, PackageNotFoundError
 except ImportError:
     # Should not happen on Python 3.10+, but be safe
-    from importlib_metadata import version, PackageNotFoundError
+    from importlib_metadata import version, PackageNotFoundError  # type: ignore[no-redef]
 
 try:
     __version__ = version("gradience")
 except PackageNotFoundError:
-    __version__ = "0.10.0"
+    __version__ = "0.11.0"
 
 # Current API: vNext components re-exported for convenience
 from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
+
+# Exception hierarchy
+from gradience.exceptions import GradienceError
 
 # Stable public API (thin wrappers around CLI/module entrypoints)
 from gradience import api
@@ -90,6 +93,9 @@ def create_guard(*args, **kwargs):
 __all__ = [
     # Stable public API
     "api",
+
+    # Exception hierarchy
+    "GradienceError",
 
     # vNext telemetry (canonical)
     "TelemetryWriter",

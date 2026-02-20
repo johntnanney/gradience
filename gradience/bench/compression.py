@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 
 from gradience.peft_utils import normalize_rank_pattern, normalize_alpha_pattern
 from gradience.bench._util import round_to_allowed_ranks
-from gradience.bench.decision_trace import create_decision_trace, maybe_add_second_rung_candidates
+from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
 from gradience.bench.constants import (
     CONSERVATISM_SCORES, DEFAULT_MAX_CANDIDATES, DEFAULT_SEED,
     SHUFFLE_SEED_OFFSET, DEFAULT_POST_TUNE_STEPS, DEFAULT_POST_TUNE_LR_SCALE,
@@ -236,7 +236,7 @@ def generate_compression_configs(
     config: Dict[str, Any],
     fast_mode: bool = True,
     max_candidates: int = DEFAULT_MAX_CANDIDATES
-) -> Dict[str, Dict[str, Any]]:
+) -> Tuple[Dict[str, Dict[str, Any]], DecisionTrace]:
     """
     Step 3.4: Generate compression configs from probe audit with candidate control.
 
@@ -425,7 +425,7 @@ def generate_compression_configs(
 
     # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
     print(f"\U0001f504 Processing {len(candidates)} initial candidates...")
-    rank_to_candidates = {}
+    rank_to_candidates: Dict[int, list[Dict[str, Any]]] = {}
     for candidate in candidates:
         rank = candidate["actual_r"]
         if rank not in rank_to_candidates:
@@ -746,7 +746,7 @@ def generate_compression_configs(
         else:
             print(f"   Mode: FULL (capped at {max_candidates})")
 
-        rank_summary = {}
+        rank_summary: Dict[Optional[int], list[str]] = {}
         for name, config in final_configs.items():
             r = config["actual_r"]
             if r not in rank_summary:

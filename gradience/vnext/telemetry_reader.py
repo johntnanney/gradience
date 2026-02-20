@@ -35,13 +35,8 @@ from .types import (
 
 JsonDict = Dict[str, Any]
 
-
-class TelemetrySchemaError(ValueError):
-    """Raised when telemetry schema version does not match expectations."""
-
-
-class TelemetryFormatError(ValueError):
-    """Raised when a telemetry record is missing required envelope fields."""
+# Re-export from canonical location for backward compatibility
+from gradience.exceptions import TelemetrySchemaError, TelemetryFormatError  # noqa: E402
 
 
 @dataclass

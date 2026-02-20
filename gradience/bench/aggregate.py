@@ -24,7 +24,8 @@ from gradience.bench.stats_utils import (
 
 def _read_json(path: Path) -> Optional[Dict[str, Any]]:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        data: Optional[Dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))
+        return data
     except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return None
 
@@ -130,7 +131,7 @@ def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float
     if isinstance(j, dict):
         # New machine-readable format
         if "probe_quality_gate" in j:
-            return j["probe_quality_gate"].get("min_value", 0.1)
+            return float(j["probe_quality_gate"].get("min_value", 0.1))
         
         # Legacy format
         thr = (j.get("probe") or {}).get("quality_threshold")
@@ -224,7 +225,7 @@ def load_bench_results(run_dirs: List[Path], skip_smoke: bool = True) -> List[Di
 
 def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
     """Aggregate invariant checks across seed runs."""
-    invariant_data = {}
+    invariant_data: Dict[str, List[Dict[str, Any]]] = {}
     
     # Collect all invariant data from seeds
     for result in results:
@@ -772,7 +773,7 @@ def _get_invariant_status(invariants: dict, inv_name: str) -> dict:
 def _get_invariant_message(invariants: dict, inv_name: str) -> str:
     """Helper to extract invariant message."""
     if inv_name in invariants:
-        return invariants[inv_name].get("message", "")
+        return str(invariants[inv_name].get("message", ""))
     return ""
 
 

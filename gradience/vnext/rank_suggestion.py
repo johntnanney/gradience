@@ -30,6 +30,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+from gradience.exceptions import AuditError
+
 
 # Keep this small and PEFT-ish. You can extend later (128, 256) if you want.
 DEFAULT_ALLOWED_RANKS: Tuple[int, ...] = (1, 2, 4, 8, 16, 32, 64)
@@ -337,7 +339,7 @@ def suggest_per_layer_ranks(
             rows = layer_data.get("layer_rows", None)
     
     if not isinstance(rows, list):
-        raise ValueError("audit must include layer data in `layers` or `layer_data.layer_rows` (run audit with --layers).")
+        raise AuditError("audit must include layer data in `layers` or `layer_data.layer_rows` (run audit with --layers).")
 
     suggestions: List[PerLayerRankSuggestion] = []
     skipped = 0

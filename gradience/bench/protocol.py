@@ -21,7 +21,12 @@ import yaml
 import datetime
 import subprocess
 from pathlib import Path
-from typing import Dict, Any
+from typing import TYPE_CHECKING, Dict, Any
+
+if TYPE_CHECKING:
+    import torch
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    from peft import LoraConfig, get_peft_model, TaskType
 
 # ---------------------------------------------------------------------------
 # Re-exports for backward compatibility
@@ -87,11 +92,14 @@ from gradience.bench.model_setup import (  # noqa: F401
 
 from gradience.bench.task_profiles import get_task_profile_from_config  # noqa: F401
 from gradience.vnext.audit.lora_audit import audit_lora_peft_dir  # noqa: F401
+from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
 
 # Imports used by run_bench_protocol itself
 from gradience.bench.heartbeat import heartbeat_stage
 from gradience.bench.monitored_stage import (
-    monitor_generation, setup_global_monitoring
+    monitor_generation, setup_global_monitoring,
+    monitor_training, monitor_file_operations,
+    monitor_evaluation, monitor_audit,
 )
 from gradience.bench.stage_state import create_stage_manager
 from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
@@ -227,8 +235,8 @@ def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
         target_modules=lora_config["target_modules"],
     )
     
-    model = get_peft_model(model, peft_config)
-    
+    model = get_peft_model(model, peft_config)  # type: ignore[assignment]
+
     return tokenizer, model
 
 
@@ -364,8 +372,8 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
             target_modules=variant_config["target_modules"],
         )
     
-    model = get_peft_model(model, peft_config)
-    
+    model = get_peft_model(model, peft_config)  # type: ignore[assignment]
+
     return tokenizer, model
 
 
@@ -373,7 +381,7 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
 # This function is kept for backward compatibility but deprecated
 
 
-def write_probe_eval_json(
+def write_probe_eval_json(  # type: ignore[no-redef]
     probe_dir: Path,
     eval_results: Dict[str, Any],
     eval_dataset_size: int,
@@ -423,7 +431,7 @@ def write_probe_eval_json(
     return eval_path
 
 
-def run_probe_audit(
+def run_probe_audit(  # type: ignore[no-redef]
     probe_dir: Path,
     config: Dict[str, Any]
 ) -> Path:
@@ -487,10 +495,7 @@ def run_probe_audit(
     # Add the probe rank to the audit summary for rank suggestion
     probe_rank = config["lora"]["probe_r"]
     audit_summary["current_r"] = probe_rank
-    
-    # Debug: Check if summary has required fields
-    print(f"Debug: audit_summary has stable_rank_mean={audit_summary.get('stable_rank_mean')}, utilization_mean={audit_summary.get('utilization_mean')}, current_r={audit_summary.get('current_r')}")
-    
+
     # Validate LoRA attachment - prevent wasted GPU cycles
     stable_rank_mean = audit_summary.get('stable_rank_mean', 0.0)
     utilization_mean = audit_summary.get('utilization_mean', 0.0)
@@ -630,9 +635,9 @@ def run_probe_audit(
     return audit_path
 
 
-def run_probe_training(
+def run_probe_training(  # type: ignore[no-redef]
     config_path: str | Path,
-    output_dir: str | Path, 
+    output_dir: str | Path,
     smoke: bool = False,
     stage_manager = None,
     resume: bool = False
@@ -843,7 +848,7 @@ def run_probe_training(
 
 
 
-def run_post_tuning(
+def run_post_tuning(  # type: ignore[no-redef]
     model,
     tokenizer,
     dataset: Dict[str, Any],
@@ -939,7 +944,7 @@ def run_post_tuning(
 
 
 
-def run_svd_truncation_variant(
+def run_svd_truncation_variant(  # type: ignore[no-redef]
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
@@ -1101,7 +1106,7 @@ def run_svd_truncation_variant(
         }
 
 
-def run_compressed_variant_training(
+def run_compressed_variant_training(  # type: ignore[no-redef]
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
@@ -1355,7 +1360,7 @@ def run_compressed_variant_training(
     return result
 
 
-def run_all_compressed_variants(
+def run_all_compressed_variants(  # type: ignore[no-redef]
     config_path: str | Path,
     output_dir: str | Path,
     compression_configs: Dict[str, Dict[str, Any]],
@@ -1398,7 +1403,7 @@ def run_all_compressed_variants(
     return results
 
 
-def classify_validation_level(config: Dict[str, Any]) -> Dict[str, str]:
+def classify_validation_level(config: Dict[str, Any]) -> Dict[str, str]:  # type: ignore[no-redef]
     """
     Classify validation level based on configuration.
     
@@ -1440,7 +1445,7 @@ def classify_validation_level(config: Dict[str, Any]) -> Dict[str, str]:
     }
 
 
-def compute_verdicts(
+def compute_verdicts(  # type: ignore[no-redef]
     probe_results: Dict[str, Any],
     variant_results: Dict[str, Dict[str, Any]],
     config: Dict[str, Any],
@@ -1623,11 +1628,11 @@ def compute_verdicts(
 
 
 
-def run_multi_seed_bench_protocol(
+def run_multi_seed_bench_protocol(  # type: ignore[no-redef]
     config_path: str | Path,
     output_dir: str | Path,
     seeds: list[int],
-    variants_to_test: list[str] = None,
+    variants_to_test: list[str] | None = None,
     smoke: bool = False,
     ci: bool = False
 ) -> Dict[str, Any]:
@@ -1643,7 +1648,7 @@ def run_multi_seed_bench_protocol(
     output_path.mkdir(parents=True, exist_ok=True)
     
     # HYGIENE: Start heartbeat for multi-seed coordination (prevent SSH timeouts)
-    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed="coordinator")
+    heartbeat_stage("multi_seed_coordination", output_dir=output_path, seed=None)
     
     print(f"Gradience Multi-Seed Bench Protocol v0.1")
     print("=" * 50)
@@ -1782,7 +1787,7 @@ def run_multi_seed_bench_protocol(
     return aggregated_report
 
 
-def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> None:
+def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> None:  # type: ignore[no-redef]
     """
     Clean up heavy adapter weights and checkpoints while preserving scientific artifacts.
     
@@ -1884,7 +1889,7 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> No
                 print(f"   - {len(checkpoint_dirs)} checkpoint directories")
 
 
-def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
+def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:  # type: ignore[no-redef]
     """
     Preflight checks to catch common failure modes before expensive training.
     
@@ -2424,6 +2429,8 @@ def run_bench_protocol(
         seed = config.get("train", {}).get("seed", DEFAULT_SEED)
         with monitor_generation("generate_configs", output_dir=output_path, seed=seed) as stage:
             stage.progress("Analyzing probe audit results")
+            compression_configs: dict[str, dict[str, Any]]
+            decision_trace: DecisionTrace
             compression_configs, decision_trace = generate_compression_configs(probe_dir, config, fast_mode=fast_mode, max_candidates=max_candidates)
             stage.progress("Compression configurations generated")
             stage.add_artifact("compression_configs.json")

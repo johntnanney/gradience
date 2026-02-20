@@ -139,8 +139,8 @@ def power_iteration_hessian(
     """
     import torch
     
-    eigenvalues = []
-    eigenvectors = []  # For deflation
+    eigenvalues: list[float] = []
+    eigenvectors: list[list[torch.Tensor]] = []  # For deflation
     
     for k in range(n_eigenvalues):
         # Initialize random vector

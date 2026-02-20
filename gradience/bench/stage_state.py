@@ -101,11 +101,11 @@ class StageStateManager:
     
     def is_stage_completed(self, stage_name: str) -> bool:
         """Check if a stage has been completed."""
-        return self._state["stages"].get(stage_name, {}).get("completed", False)
-    
+        return bool(self._state["stages"].get(stage_name, {}).get("completed", False))
+
     def is_variant_completed(self, variant_name: str) -> bool:
         """Check if a variant has been completed."""
-        return self._state["variants"].get(variant_name, {}).get("completed", False)
+        return bool(self._state["variants"].get(variant_name, {}).get("completed", False))
     
     def get_completed_stages(self) -> Set[str]:
         """Get set of all completed stage names."""

@@ -3,7 +3,7 @@ GLUE sequence classification task profile.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Tuple, TYPE_CHECKING, cast
 from pathlib import Path
 
 if TYPE_CHECKING:
@@ -21,13 +21,13 @@ class GLUESequenceClassificationProfile:
     primary_metric = "accuracy"
     primary_metric_key = "eval_accuracy"
     
-    def load(self, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
+    def load(self, cfg: Dict[str, Any]) -> Any:
         """Load GLUE dataset from config."""
-        from datasets import Dataset, load_dataset
-        
+        from datasets import load_dataset
+
         task_config = cfg["task"]
         dataset = load_dataset(task_config["dataset"], task_config["subset"])
-        
+
         # Apply sample limits if specified
         if "train" in cfg:
             train_config = cfg["train"]
@@ -35,7 +35,7 @@ class GLUESequenceClassificationProfile:
                 dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_config["train_samples"])))
             if "eval_samples" in train_config:
                 dataset["validation"] = dataset["validation"].select(range(min(len(dataset["validation"]), train_config["eval_samples"])))
-        
+
         return dataset
     
     def tokenize(self, raw_ds: Dict[str, Dataset], tokenizer: PreTrainedTokenizerBase, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
@@ -121,14 +121,14 @@ class GLUESequenceClassificationProfile:
             bf16=True if cfg.get("model", {}).get("torch_dtype") == "bf16" else False,
         )
         
-        return Trainer(
+        return cast("Trainer", Trainer(
             model=model,
             args=training_args,
             train_dataset=tokenized_ds["train"],
             eval_dataset=tokenized_ds["validation"],
             data_collator=DataCollatorWithPadding(tokenizer),
             callbacks=callbacks or [],
-        )
+        ))
     
     def evaluate(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
                 tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:

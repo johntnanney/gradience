@@ -7,7 +7,6 @@ probe (high rank) -> audit -> compress -> retrain -> eval -> report
 This package is intentionally minimal in v0.1 (one model, one task).
 """
 
-import os
 from pathlib import Path
 
 __all__ = [

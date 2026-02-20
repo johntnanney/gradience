@@ -32,12 +32,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import logging
+
 import torch
 
+from gradience.exceptions import MergeError
 from gradience.vnext.merge.io import AdapterInfo, extract_factors, load_adapter
 from gradience.vnext.merge.plan import MergePlan
 from gradience.vnext.merge.refactor import refactor_to_lora
 from gradience.vnext.merge.strategies import get_strategy
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -164,8 +169,10 @@ def execute_merge(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    logger.debug("Starting merge: strategy=%s, %d layers, output=%s", plan.strategy_name, len(plan.layer_configs), output_dir)
+
     if not plan.layer_configs:
-        raise ValueError("MergePlan has no layer_configs — nothing to merge.")
+        raise MergeError("MergePlan has no layer_configs — nothing to merge.")
 
     start_time = time.monotonic()
 
@@ -272,6 +279,8 @@ def execute_merge(
         total_time_seconds=total_time,
     )
     result.to_json(output_dir / "merge_result.json")
+
+    logger.debug("Merge completed in %.1fs: mean_recon=%.4f, max_recon=%.4f", total_time, result.mean_reconstruction_error, result.max_reconstruction_error)
 
     if verbose:
         print(

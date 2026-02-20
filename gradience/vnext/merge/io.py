@@ -12,8 +12,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+import logging
+
 import torch
 
+from gradience.exceptions import MergeError
 from gradience.vnext.audit import (
     LoRAAdapterConfig,
     find_peft_files,
@@ -23,6 +26,8 @@ from gradience.vnext.audit import (
     orient_lora_factors,
     infer_module_type,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -37,7 +42,7 @@ class AdapterInfo:
     @property
     def rank(self) -> int:
         if self.config.r is None:
-            raise ValueError(
+            raise MergeError(
                 f"Adapter at {self.path} has no 'r' (rank) in config. "
                 f"Cannot compute merge audit without a known rank."
             )
@@ -46,7 +51,7 @@ class AdapterInfo:
     @property
     def alpha(self) -> float:
         if self.config.lora_alpha is None:
-            raise ValueError(
+            raise MergeError(
                 f"Adapter at {self.path} has no 'lora_alpha' in config. "
                 f"Cannot compute merge audit without a known alpha."
             )
@@ -82,6 +87,7 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
     ValueError
         If no LoRA pairs are found in the weights.
     """
+    logger.debug("Loading adapter from %s", adapter_dir)
     adapter_dir = Path(adapter_dir)
     if not adapter_dir.is_dir():
         raise FileNotFoundError(f"Adapter directory not found: {adapter_dir}")
@@ -100,12 +106,12 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
     config = load_peft_adapter_config(config_path)
 
     if config.r is None:
-        raise ValueError(
+        raise MergeError(
             f"Adapter config at {config_path} is missing 'r' (rank). "
             f"Merge audit requires a known rank."
         )
     if config.lora_alpha is None:
-        raise ValueError(
+        raise MergeError(
             f"Adapter config at {config_path} is missing 'lora_alpha'. "
             f"Merge audit requires a known alpha."
         )
@@ -113,8 +119,9 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
     state_dict = load_adapter_state_dict(weights_path, map_location="cpu")
 
     pairs = tuple(iter_lora_pairs(state_dict))
+    logger.debug("Loaded %d LoRA pairs from %s", len(pairs), adapter_dir)
     if not pairs:
-        raise ValueError(
+        raise MergeError(
             f"No LoRA A/B pairs found in weights at {weights_path}. "
             f"Keys: {list(state_dict.keys())[:5]}..."
         )

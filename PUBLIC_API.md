@@ -8,9 +8,17 @@ This document defines the **public API surface** that Gradience commits to stabi
 
 ### CLI Commands
 ```bash
+gradience audit        # Spectral audit of a LoRA adapter
+gradience merge-audit  # Merge compatibility analysis between two adapters
+gradience truncate     # SVD-based rank reduction of a LoRA adapter
 gradience check        # Config validation and recommendations
-gradience monitor      # Live run monitoring and alerts  
-gradience audit        # Post-hoc LoRA adapter analysis
+gradience monitor      # Live training telemetry monitoring
+gradience verify       # Verify installation and environment
+gradience report       # Generate reports from bench artifacts
+gradience explain      # Explain audit results in plain language
+gradience merge-plan   # Generate a merge execution plan from audit
+gradience merge        # Execute a merge plan
+gradience-bench        # Run compression validation benchmark (separate entry point)
 ```
 
 ### Telemetry Schema
@@ -89,6 +97,60 @@ agg = aggregate_bench_runs(
 )
 summary = load_bench_aggregate(agg.output_dir)
 ```
+
+### Merge Audit (gradience.vnext.merge)
+
+Spectral compatibility analysis between two LoRA adapters.
+
+```python
+from gradience.vnext.merge import merge_audit, VerdictThresholds
+
+report = merge_audit(
+    adapter_a_dir="./adapter_a",
+    adapter_b_dir="./adapter_b",
+    output_dir="./audit_output",       # optional: write JSON + Markdown reports
+    energy_threshold=0.90,             # energy fraction for effective rank
+    compute_dtype="float64",           # SVD precision
+    verbose=True,                      # print progress
+)
+
+print(report.aggregate["overall_verdict"])   # "safe", "redundant", "conflicting"
+print(report.aggregate["compatibility_score"])
+```
+
+### SVD Truncation (gradience.vnext.svd_truncate)
+
+Rank reduction via SVD for LoRA adapters.
+
+```python
+from gradience.vnext.svd_truncate import svd_truncate_peft_dir
+
+report = svd_truncate_peft_dir(
+    peft_dir="./adapter",
+    output_dir="./truncated",
+    target_rank=4,
+)
+print(f"Reduced rank {report.original_rank} -> {report.target_rank}")
+```
+
+### Exception Hierarchy
+```python
+from gradience.exceptions import (
+    GradienceError,          # Base — catch all Gradience errors
+    ConfigError,             # Invalid configuration (YAML, missing fields, constraints)
+    AuditError,              # Spectral audit failures (bad shapes, missing weights)
+    MergeError,              # Merge audit failures (incompatible adapters)
+    TelemetryError,          # Telemetry read/write errors
+    TelemetrySchemaError,    # Schema version mismatch (subclass of TelemetryError)
+    TelemetryFormatError,    # Malformed telemetry records (subclass of TelemetryError)
+    DependencyError,         # Missing optional dependency
+)
+
+# Also available at top level:
+from gradience import GradienceError
+```
+
+Each exception subclasses both `GradienceError` and the corresponding stdlib exception (`ValueError` or `RuntimeError`), so existing `except ValueError` handlers continue to work.
 
 ## Internal Implementation (May Change)
 

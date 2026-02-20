@@ -10,7 +10,7 @@
 >   author = {Nanney, John T.},
 >   year = {2026},
 >   url = {https://github.com/johntnanney/gradience},
->   note = {Version 0.10.0}
+>   note = {Version 0.11.0}
 > }
 > ```
 
@@ -66,7 +66,7 @@ pip install gradience
 
 **Common issue**: If you see `ModuleNotFoundError: No module named 'datasets'` or `'transformers'`, you need the bench extras. **Fix**: `pip install "gradience[bench]"`
 
-**[Complete Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** -- GPU setup, RunPod, troubleshooting, cache configuration
+**[Complete Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** -- GPU setup, RunPod, troubleshooting, cache configuration
 
 ## Verify installation (10 seconds)
 
@@ -205,7 +205,7 @@ measurements to downstream performance.
 - **Validation protocol** -- Multi-seed comparison against probe baseline with tolerance thresholds and effect sizes
 - **Merge audit** -- Geometric compatibility analysis between adapter pairs via principal angles, directional agreement, and magnitude balance -- characterizes each layer as aligned, redundant, conflicting, or imbalanced
 
-**[Complete documentation](https://github.com/gradience-ai/gradience/tree/main/docs/)** | **[API reference](https://github.com/gradience-ai/gradience/blob/main/PUBLIC_API.md)** | **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)**
+**[Complete documentation](https://github.com/johntnanney/gradience/tree/main/docs/)** | **[API reference](https://github.com/johntnanney/gradience/blob/main/PUBLIC_API.md)** | **[Artifacts & Evidence](https://github.com/johntnanney/gradience/blob/main/docs/artifacts.md)**
 
 ## Integration with HuggingFace Transformers
 
@@ -301,8 +301,8 @@ Every release is validated with comprehensive CI gates:
 - **Performance guarantees**: CLI help commands complete within documented timing requirements
 - **PyPI readiness**: Wheel contents, config accessibility via importlib.resources, and quickstart functionality
 
-**[Complete CI test matrix](https://github.com/gradience-ai/gradience/blob/main/.github/workflows/pip-install-ready.yml)** -- See exactly what we validate before each release
-**[CI Gates documentation](https://github.com/gradience-ai/gradience/blob/main/CI_GATES.md)** -- Detailed testing requirements and performance targets
+**[Complete CI test matrix](https://github.com/johntnanney/gradience/blob/main/.github/workflows/pip-install-ready.yml)** -- See exactly what we validate before each release
+**[CI Gates documentation](https://github.com/johntnanney/gradience/blob/main/CI_GATES.md)** -- Detailed testing requirements and performance targets
 
 ## What Gradience is
 
@@ -324,39 +324,39 @@ Gradience is a **research instrument**, not a product. Specifically:
 
 ## Examples
 
-- **[Minimal integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
-- **[HF Trainer integration](https://github.com/gradience-ai/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
-- **[Experiment configs](https://github.com/gradience-ai/gradience/tree/main/examples/configs/)** -- Define experimental protocols
+- **[Minimal integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
+- **[HF Trainer integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
+- **[Experiment configs](https://github.com/johntnanney/gradience/tree/main/examples/configs/)** -- Define experimental protocols
 
 ## Documentation
 
 Complete documentation available on GitHub:
 
-- **[Theoretical Foundations](https://github.com/gradience-ai/gradience/blob/main/docs/THEORY.md)** -- Mathematical framework and open questions
-- **[Empirical Findings](https://github.com/gradience-ai/gradience/blob/main/docs/FINDINGS.md)** -- Results obtained with Gradience
-- **[Research Roadmap](https://github.com/gradience-ai/gradience/blob/main/docs/ROADMAP.md)** -- Open questions and planned investigations
-- **[Experiment Guide](https://github.com/gradience-ai/gradience/blob/main/docs/USER_MANUAL.md)** -- Designing and running spectral studies
-- **[Statistical Methodology](https://github.com/gradience-ai/gradience/blob/main/docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
-- **[Spectral Analysis Policies](https://github.com/gradience-ai/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
-- **[Installation Guide](https://github.com/gradience-ai/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
-- **[CLI Reference](https://github.com/gradience-ai/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
-- **[Configuration Reference](https://github.com/gradience-ai/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
-- **[Artifacts & Evidence](https://github.com/gradience-ai/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs
-- **[Troubleshooting](https://github.com/gradience-ai/gradience/blob/main/docs/troubleshooting.md)** -- Common issues and solutions
+- **[Theoretical Foundations](https://github.com/johntnanney/gradience/blob/main/docs/THEORY.md)** -- Mathematical framework and open questions
+- **[Empirical Findings](https://github.com/johntnanney/gradience/blob/main/docs/FINDINGS.md)** -- Results obtained with Gradience
+- **[Research Roadmap](https://github.com/johntnanney/gradience/blob/main/docs/ROADMAP.md)** -- Open questions and planned investigations
+- **[Experiment Guide](https://github.com/johntnanney/gradience/blob/main/docs/USER_MANUAL.md)** -- Designing and running spectral studies
+- **[Statistical Methodology](https://github.com/johntnanney/gradience/blob/main/docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
+- **[Spectral Analysis Policies](https://github.com/johntnanney/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
+- **[Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
+- **[CLI Reference](https://github.com/johntnanney/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
+- **[Configuration Reference](https://github.com/johntnanney/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
+- **[Artifacts & Evidence](https://github.com/johntnanney/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs
+- **[Troubleshooting](https://github.com/johntnanney/gradience/blob/main/docs/troubleshooting.md)** -- Common issues and solutions
 
 ## License
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com/gradience-ai/gradience/blob/main/LICENSE) for details.
+Licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com/johntnanney/gradience/blob/main/LICENSE) for details.
 
 ## Citation
 
-**APA Style:** Nanney, J. T. (2026). *Gradience: Spectral analysis of low-rank adaptation dynamics* (Version 0.9.10) [Computer software]. https://github.com/gradience-ai/gradience
+**APA Style:** Nanney, J. T. (2026). *Gradience: Spectral analysis of low-rank adaptation dynamics* (Version 0.11.0) [Computer software]. https://github.com/johntnanney/gradience
 
 **Note for maintainers:** Update version numbers in citation when releasing new versions. Current version should match `pyproject.toml`.
 
 ## Changelog
 
-See [CHANGELOG.md](https://github.com/gradience-ai/gradience/blob/main/CHANGELOG.md) for version history and [GitHub Releases](https://github.com/gradience-ai/gradience/releases) for detailed release notes.
+See [CHANGELOG.md](https://github.com/johntnanney/gradience/blob/main/CHANGELOG.md) for version history and [GitHub Releases](https://github.com/johntnanney/gradience/releases) for detailed release notes.
 
 ## Security & Responsible Use
 
@@ -367,4 +367,4 @@ Gradience is designed for research into the spectral structure of fine-tuned lan
 - **Data privacy**: Ensure compliance with data handling requirements for your datasets
 - **Model licensing**: Respect licensing terms of base models and datasets used
 
-For security issues, please see our [security policy](https://github.com/gradience-ai/gradience/blob/main/SECURITY.md).
+For security issues, please see our [security policy](https://github.com/johntnanney/gradience/blob/main/SECURITY.md).

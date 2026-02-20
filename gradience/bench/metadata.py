@@ -18,7 +18,7 @@ def gather_environment_info() -> Dict[str, Any]:
     import platform
     import os
 
-    env_info = {
+    env_info: Dict[str, Any] = {
         "python_version": sys.version.split()[0],
         "python_implementation": platform.python_implementation(),
         "platform": platform.platform(),
@@ -115,42 +115,42 @@ def get_git_tag() -> Optional[str]:
     """Get the current git tag or 'dirty' if there are uncommitted changes."""
     try:
         # Check if working directory is dirty
-        result = subprocess.run(
+        diff_result = subprocess.run(
             ["git", "diff", "--quiet"],
             capture_output=True,
             timeout=GIT_SUBPROCESS_TIMEOUT
         )
-        if result.returncode != 0:
+        if diff_result.returncode != 0:
             return "dirty"
 
         # Check if there are staged changes
-        result = subprocess.run(
+        cached_result = subprocess.run(
             ["git", "diff", "--cached", "--quiet"],
             capture_output=True,
             timeout=GIT_SUBPROCESS_TIMEOUT
         )
-        if result.returncode != 0:
+        if cached_result.returncode != 0:
             return "dirty"
 
         # Get the exact tag for current commit
-        result = subprocess.run(
+        tag_result = subprocess.run(
             ["git", "describe", "--exact-match", "--tags"],
             capture_output=True,
             text=True,
             timeout=GIT_SUBPROCESS_TIMEOUT
         )
-        if result.returncode == 0:
-            return result.stdout.strip()
+        if tag_result.returncode == 0:
+            return tag_result.stdout.strip()
 
         # If no exact tag, get the most recent tag with distance
-        result = subprocess.run(
+        describe_result = subprocess.run(
             ["git", "describe", "--tags", "--abbrev=7"],
             capture_output=True,
             text=True,
             timeout=GIT_SUBPROCESS_TIMEOUT
         )
-        if result.returncode == 0:
-            return result.stdout.strip()
+        if describe_result.returncode == 0:
+            return describe_result.stdout.strip()
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
         pass

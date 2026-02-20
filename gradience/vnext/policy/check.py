@@ -776,7 +776,7 @@ def check_run(
     if isinstance(lora_audit, dict) and current_r is not None:
         s_med = lora_audit.get('suggested_r_global_median')
         s_p90 = lora_audit.get('suggested_r_global_90')
-        util = lora_audit.get('utilization_mean')
+        audit_util_raw = lora_audit.get('utilization_mean')
         try:
             s_med = int(s_med) if s_med is not None else None
         except (ValueError, TypeError):
@@ -785,13 +785,14 @@ def check_run(
             s_p90 = int(s_p90) if s_p90 is not None else None
         except (ValueError, TypeError):
             s_p90 = None
+        lora_audit_util: float | None = None
         try:
-            util = float(util) if util is not None else None
+            lora_audit_util = float(audit_util_raw) if audit_util_raw is not None else None
         except (ValueError, TypeError):
-            util = None
+            lora_audit_util = None
 
         # Conservative trigger
-        if util is not None and util < 0.25 and current_r >= 8 and s_med is not None and s_med < current_r:
+        if lora_audit_util is not None and lora_audit_util < 0.25 and current_r >= 8 and s_med is not None and s_med < current_r:
             msg = (
                 f"Audit suggests r={s_med} for most layers (median); "
                 f"r={s_p90} covers worst-case layers at 90% energy. "

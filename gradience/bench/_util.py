@@ -20,7 +20,7 @@ def round_to_allowed_ranks(suggested_r: int | float, allowed_ranks: list[int]) -
         return max(1, round(suggested_r))
 
     if suggested_r in allowed_ranks:
-        return suggested_r
+        return int(suggested_r)
 
     # Find closest allowed rank
     return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
