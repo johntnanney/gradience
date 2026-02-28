@@ -153,46 +153,51 @@ def _compute_structural_metrics(model) -> Dict[str, float]:
     }
 
 
-class StructuralMetricsCallback:
-    """HF TrainerCallback that periodically computes LoRA structural metrics.
+def _make_structural_callback(gradience_callback, structural_every_n: int = 50):
+    """Factory that creates a StructuralMetricsCallback inheriting from TrainerCallback.
 
-    Writes a 'metrics' event (kind='structural') to the GradienceCallback's
-    TelemetryWriter every `structural_every_n` training steps.
-
-    Note: inherits from transformers.TrainerCallback at runtime via
-    __init_subclass__ trick — we import TrainerCallback lazily since
-    transformers may not be installed at module-load time. HF Trainer
-    also accepts plain objects with on_log/on_train_begin methods.
+    We defer the import so the module can be loaded without transformers installed.
     """
+    from transformers import TrainerCallback
 
-    def __init__(self, gradience_callback, structural_every_n: int = 50):
-        self.gradience_callback = gradience_callback
-        self.structural_every_n = structural_every_n
+    class StructuralMetricsCallback(TrainerCallback):
+        """HF TrainerCallback that periodically computes LoRA structural metrics.
 
-    def on_log(self, args, state, control, logs=None, **kwargs):
-        """Piggyback on HF's on_log hook (fires every logging_steps)."""
-        step = int(getattr(state, "global_step", 0))
-        if step == 0 or step % self.structural_every_n != 0:
-            return
+        Writes a 'metrics' event (kind='structural') to the GradienceCallback's
+        TelemetryWriter every `structural_every_n` training steps.
+        """
 
-        model = kwargs.get("model", None)
-        if model is None:
-            return
+        def __init__(self):
+            super().__init__()
+            self.gradience_callback = gradience_callback
+            self.structural_every_n = structural_every_n
 
-        writer = getattr(self.gradience_callback, "writer", None)
-        if writer is None:
-            return
+        def on_log(self, args, state, control, logs=None, **kwargs):
+            """Piggyback on HF's on_log hook (fires every logging_steps)."""
+            step = int(getattr(state, "global_step", 0))
+            if step == 0 or step % self.structural_every_n != 0:
+                return
 
-        t0 = time.monotonic()
-        metrics = _compute_structural_metrics(model)
-        elapsed_ms = (time.monotonic() - t0) * 1000
-        metrics["compute_time_ms"] = round(elapsed_ms, 1)
+            model = kwargs.get("model", None)
+            if model is None:
+                return
 
-        writer.metrics(step, kind="structural", metrics=metrics)
-        print(f"    [structural@{step}] stable_rank={metrics['stable_rank_mean']:.2f} "
-              f"eff_rank={metrics['effective_rank_mean']:.2f} "
-              f"r90={metrics['energy_rank_90_median']} "
-              f"({elapsed_ms:.0f}ms)")
+            writer = getattr(self.gradience_callback, "writer", None)
+            if writer is None:
+                return
+
+            t0 = time.monotonic()
+            metrics = _compute_structural_metrics(model)
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            metrics["compute_time_ms"] = round(elapsed_ms, 1)
+
+            writer.metrics(step, kind="structural", metrics=metrics)
+            print(f"    [structural@{step}] stable_rank={metrics['stable_rank_mean']:.2f} "
+                  f"eff_rank={metrics['effective_rank_mean']:.2f} "
+                  f"r90={metrics['energy_rank_90_median']} "
+                  f"({elapsed_ms:.0f}ms)")
+
+    return StructuralMetricsCallback()
 
 
 def load_config(config_path: str, smoke: bool = False) -> dict:
@@ -342,7 +347,7 @@ def train_single_adapter(
     gradience_callback = GradienceCallback(config=gradience_config)
 
     # Structural metrics callback (SVD on LoRA pairs every N steps)
-    structural_callback = StructuralMetricsCallback(
+    structural_callback = _make_structural_callback(
         gradience_callback=gradience_callback,
         structural_every_n=structural_every_n,
     )
