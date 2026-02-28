@@ -145,8 +145,9 @@ def train_single_adapter(
 
     def tokenize_fn(example):
         text = formatter(example)
+        # Don't set labels here — DataCollatorForLanguageModeling(mlm=False)
+        # copies input_ids to labels and pads with -100 automatically.
         enc = tokenizer(text, truncation=True, max_length=512, padding=False)
-        enc["labels"] = enc["input_ids"].copy()
         return enc
 
     tokenized = ds.map(tokenize_fn, remove_columns=ds.column_names)
