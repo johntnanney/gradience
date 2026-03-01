@@ -659,11 +659,13 @@ def run_lead_lag_analysis(
     Returns a dict with ccf, granger, and forecast results.
     """
     if geometric_features is None:
-        # Auto-detect: columns that start with grad_norm or train_loss
+        # Auto-detect: grad_norm aggregates + structural metrics (base columns, not deltas)
+        _prefixes = ("grad_norm_", "stable_rank_", "effective_rank_", "energy_rank_90_", "adapter_frob_norm_", "sigma_max_")
         geometric_features = [
             c
             for c in aligned_df.columns
-            if c.startswith("grad_norm_") and not c.endswith("_delta") and not c.endswith("_accel")
+            if any(c.startswith(p) for p in _prefixes)
+            and not c.endswith("_delta") and not c.endswith("_accel")
             and "_lag" not in c
         ]
 

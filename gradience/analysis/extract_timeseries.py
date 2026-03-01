@@ -27,8 +27,10 @@ class RunMeta:
     lora_alpha: float = 0.0
     total_train_steps: int = 0
     total_eval_events: int = 0
+    total_structural_events: int = 0
     eval_interval: int = 0  # inferred from eval step spacing
     train_log_interval: int = 0  # inferred from train step spacing
+    structural_interval: int = 0  # inferred from structural step spacing
     source_path: str = ""
 
 
@@ -39,6 +41,7 @@ class ExtractedRun:
     meta: RunMeta
     train: pd.DataFrame  # columns: step, loss, lr, grad_norm, epoch
     eval: pd.DataFrame  # columns: step, eval_loss, eval_accuracy, ...
+    structural: pd.DataFrame  # columns: step, stable_rank_mean, effective_rank_mean, ...
     aligned: pd.DataFrame  # eval-step indexed, with aggregated geometric features
 
 
@@ -72,9 +75,15 @@ def _extract_meta(events: list[dict], path: Path) -> RunMeta:
     # Count events
     train_steps = [e["step"] for e in events if e.get("event") == "train_step"]
     eval_steps = [e["step"] for e in events if e.get("event") == "eval"]
+    # Structural events may fire twice per step (known bug); deduplicate
+    structural_steps = sorted(set(
+        e["step"] for e in events
+        if e.get("event") == "metrics" and e.get("kind") == "structural"
+    ))
 
     meta.total_train_steps = len(train_steps)
     meta.total_eval_events = len(eval_steps)
+    meta.total_structural_events = len(structural_steps)
 
     # Infer intervals
     if len(train_steps) >= 2:
@@ -83,6 +92,9 @@ def _extract_meta(events: list[dict], path: Path) -> RunMeta:
     if len(eval_steps) >= 2:
         diffs = np.diff(sorted(eval_steps))
         meta.eval_interval = int(np.median(diffs))
+    if len(structural_steps) >= 2:
+        diffs = np.diff(structural_steps)
+        meta.structural_interval = int(np.median(diffs))
 
     return meta
 
@@ -132,16 +144,57 @@ def _build_eval_df(events: list[dict]) -> pd.DataFrame:
     return df
 
 
+# Structural metric columns to extract (mean/median aggregates from StructuralMetricsCallback)
+STRUCTURAL_COLUMNS = [
+    "stable_rank_mean",
+    "stable_rank_median",
+    "effective_rank_mean",
+    "effective_rank_median",
+    "energy_rank_90_mean",
+    "energy_rank_90_median",
+    "adapter_frob_norm_mean",
+    "adapter_frob_norm_total",
+    "sigma_max_mean",
+    "sigma_max_max",
+]
+
+
+def _build_structural_df(events: list[dict]) -> pd.DataFrame:
+    """Build DataFrame from structural metrics events, deduplicating by step."""
+    rows: dict[int, dict] = {}  # keyed by step to deduplicate
+    for evt in events:
+        if evt.get("event") != "metrics" or evt.get("kind") != "structural":
+            continue
+        step = evt["step"]
+        if step in rows:
+            continue  # keep first occurrence, skip duplicates
+        metrics = evt.get("metrics", {})
+        row = {"step": step}
+        for col in STRUCTURAL_COLUMNS:
+            row[col] = metrics.get(col)
+        rows[step] = row
+
+    if not rows:
+        return pd.DataFrame(columns=["step"] + STRUCTURAL_COLUMNS)
+
+    df = pd.DataFrame(list(rows.values())).sort_values("step").reset_index(drop=True)
+    return df
+
+
 def _align_to_eval_grid(
     train_df: pd.DataFrame,
     eval_df: pd.DataFrame,
     eval_interval: int,
+    structural_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """
     Align geometric features to the eval-step grid.
 
     For each eval step t, aggregate geometric features from the preceding
     interval (t - eval_interval, t].
+
+    Structural metrics (logged at a coarser interval) are merged via
+    forward-fill: each eval step gets the most recent structural snapshot.
 
     Returns one row per eval step with both geometric aggregates and eval metrics.
     """
@@ -194,6 +247,25 @@ def _align_to_eval_grid(
 
     aligned = pd.DataFrame(rows)
 
+    # --- Merge structural metrics via forward-fill ---
+    if structural_df is not None and not structural_df.empty:
+        # Use merge_asof: for each eval step, take the most recent structural snapshot
+        struct_sorted = structural_df.sort_values("step")
+        aligned_sorted = aligned.sort_values("step")
+
+        merged = pd.merge_asof(
+            aligned_sorted,
+            struct_sorted,
+            on="step",
+            direction="backward",  # most recent structural snapshot <= eval step
+        )
+        aligned = merged
+
+        # Add delta features for structural metrics
+        for col in STRUCTURAL_COLUMNS:
+            if col in aligned.columns:
+                aligned[f"{col}_delta"] = aligned[col].diff()
+
     # Compute delta features (change from previous eval interval)
     for col in ["grad_norm_mean", "grad_norm_max", "grad_norm_last", "train_loss_mean"]:
         if col in aligned.columns:
@@ -224,13 +296,17 @@ def extract_timeseries(jsonl_path: str | Path) -> ExtractedRun:
     meta = _extract_meta(events, path)
     train_df = _build_train_df(events)
     eval_df = _build_eval_df(events)
+    structural_df = _build_structural_df(events)
 
-    aligned = _align_to_eval_grid(train_df, eval_df, meta.eval_interval)
+    aligned = _align_to_eval_grid(
+        train_df, eval_df, meta.eval_interval, structural_df
+    )
 
     return ExtractedRun(
         meta=meta,
         train=train_df,
         eval=eval_df,
+        structural=structural_df,
         aligned=aligned,
     )
 

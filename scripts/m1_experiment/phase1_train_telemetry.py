@@ -181,12 +181,20 @@ def _make_structural_callback(gradience_callback, structural_every_n: int = 50):
             super().__init__()
             self.gradience_callback = gradience_callback
             self.structural_every_n = structural_every_n
+            self._last_computed_step = -1  # guard against double-firing
 
         def on_log(self, args, state, control, logs=None, **kwargs):
-            """Piggyback on HF's on_log hook (fires every logging_steps)."""
+            """Piggyback on HF's on_log hook (fires every logging_steps).
+
+            Note: on_log fires twice at eval steps (once for training metrics,
+            once for eval metrics). The _last_computed_step guard prevents
+            computing SVD twice for the same step.
+            """
             step = int(getattr(state, "global_step", 0))
             if step == 0 or step % self.structural_every_n != 0:
                 return
+            if step == self._last_computed_step:
+                return  # already computed at this step (double-fire guard)
 
             model = kwargs.get("model", None)
             if model is None:
@@ -195,6 +203,8 @@ def _make_structural_callback(gradience_callback, structural_every_n: int = 50):
             writer = getattr(self.gradience_callback, "writer", None)
             if writer is None:
                 return
+
+            self._last_computed_step = step
 
             t0 = time.monotonic()
             metrics = _compute_structural_metrics(model)
@@ -237,6 +247,8 @@ def train_single_adapter(
     logging_steps: int = 10,
     eval_fraction: float = 0.10,
     structural_every_n: int = 50,
+    lora_rank: int | None = None,
+    lora_alpha: int | None = None,
 ) -> Path:
     """Train one LoRA adapter with GradienceCallback + eval + structural metrics."""
     import torch
@@ -260,7 +272,17 @@ def train_single_adapter(
     sys.path.insert(0, str(Path(__file__).parent))
     from task_configs import get_formatter
 
-    adapter_dir = output_dir / task_name / f"seed_{seed}"
+    # Resolve effective rank/alpha (CLI override > config)
+    effective_rank = lora_rank if lora_rank is not None else training_config["rank"]
+    effective_alpha = lora_alpha if lora_alpha is not None else training_config["alpha"]
+
+    # Include rank in output dir when non-default (so runs don't collide)
+    config_rank = training_config["rank"]
+    if effective_rank != config_rank:
+        task_dir_name = f"{task_name}_r{effective_rank}"
+    else:
+        task_dir_name = task_name
+    adapter_dir = output_dir / task_dir_name / f"seed_{seed}"
 
     # Skip if already trained
     if (adapter_dir / "adapter_config.json").exists():
@@ -289,15 +311,16 @@ def train_single_adapter(
     )
     model.gradient_checkpointing_enable()
 
-    # LoRA config
+    # LoRA config (use effective rank/alpha which may be CLI-overridden)
     lora_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
-        r=training_config["rank"],
-        lora_alpha=training_config["alpha"],
+        r=effective_rank,
+        lora_alpha=effective_alpha,
         lora_dropout=0.0,
         target_modules=training_config["target_modules"],
         bias="none",
     )
+    print(f"    LoRA: r={effective_rank}, alpha={effective_alpha}")
     model = get_peft_model(model, lora_config)
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
@@ -426,7 +449,15 @@ def main():
                         help="Fraction of data to hold out for eval (default: 0.10)")
     parser.add_argument("--structural-every-n", type=int, default=50,
                         help="Compute structural SVD metrics every N steps (default: 50)")
+    parser.add_argument("--lora-rank", type=int, default=None,
+                        help="Override LoRA rank from config (e.g. 8 for constrained runs)")
+    parser.add_argument("--lora-alpha", type=int, default=None,
+                        help="Override LoRA alpha from config (default: same as rank)")
     args = parser.parse_args()
+
+    # If rank overridden but alpha not, default alpha = rank (standard LoRA scaling)
+    if args.lora_rank is not None and args.lora_alpha is None:
+        args.lora_alpha = args.lora_rank
 
     config = load_config(args.config, smoke=args.smoke)
     workspace = Path(config["runtime"]["workspace"])
@@ -452,10 +483,15 @@ def main():
     max_steps = training_config["max_steps"]
     expected_evals = max_steps // args.eval_steps
 
+    effective_rank = args.lora_rank if args.lora_rank is not None else training_config["rank"]
+    effective_alpha = args.lora_alpha if args.lora_alpha is not None else training_config["alpha"]
+
     print(f"Phase 1 (Telemetry-Enhanced): Training {n_total} adapters")
     print(f"  Base model: {base_model}")
     print(f"  Seeds: {seeds}")
     print(f"  Tasks: {list(adapter_configs.keys())}")
+    print(f"  LoRA: r={effective_rank}, alpha={effective_alpha}"
+          f"{' (OVERRIDE)' if args.lora_rank is not None else ''}")
     print(f"  Max steps: {max_steps}")
     print(f"  Eval every: {args.eval_steps} steps (~{expected_evals} eval events)")
     print(f"  Log every: {args.logging_steps} steps")
@@ -478,14 +514,18 @@ def main():
                 logging_steps=args.logging_steps,
                 eval_fraction=args.eval_fraction,
                 structural_every_n=args.structural_every_n,
+                lora_rank=args.lora_rank,
+                lora_alpha=args.lora_alpha,
             )
 
     elapsed = time.monotonic() - total_start
     print(f"\nPhase 1 complete: {n_total} adapters in {elapsed / 3600:.1f} hours")
     print(f"\nTelemetry files:")
+    config_rank = training_config["rank"]
     for task_name in adapter_configs:
+        task_dir_name = f"{task_name}_r{effective_rank}" if effective_rank != config_rank else task_name
         for seed in seeds:
-            tpath = adapters_dir / task_name / f"seed_{seed}" / "telemetry" / "run.jsonl"
+            tpath = adapters_dir / task_dir_name / f"seed_{seed}" / "telemetry" / "run.jsonl"
             print(f"  {tpath}")
 
 

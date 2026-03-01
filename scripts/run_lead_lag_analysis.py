@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Run the complete lead-lag reanalysis on all available bench_runs telemetry.
+Run the complete lead-lag reanalysis on M1 experiment telemetry.
+
+Targets the telemetry-enhanced training runs (chat task, 3 seeds)
+with both grad_norm and structural features (stable_rank, effective_rank,
+energy_rank_90, adapter_frob_norm, sigma_max).
 
 Outputs results to results/lead_lag/ as JSON + summary markdown.
 """
@@ -34,38 +38,38 @@ from gradience.analysis.early_stopping import (
     simulate_early_stopping,
 )
 
-BENCH_RUNS = PROJECT_ROOT / "bench_runs"
+# M1 telemetry data (chat task, 3 seeds with eval every 25 steps + structural every 50 steps)
+M1_ADAPTERS_DIR = PROJECT_ROOT / "results" / "lead_lag" / "workspace" / "m1" / "adapters"
 RESULTS_DIR = PROJECT_ROOT / "results" / "lead_lag"
 
-# Tier runs by quality
-TIER1_PREFIXES = ["safety_uniform_r16_extended"]  # 10 evals, 111 steps
-TIER2_PREFIXES = ["cert_v0.1_seed"]  # 5 evals, 56 steps, 3 seeds
-TIER3_PREFIXES = ["multiseed_seed", "uniform_r16_seed", "uniform_r8_seed"]  # 4 evals, 3 seeds
+# Full feature set: grad_norm aggregates + structural metrics
+GEOMETRIC_FEATURES = [
+    # grad_norm aggregates (from train_step events, aggregated per eval interval)
+    "grad_norm_mean",
+    "grad_norm_max",
+    "grad_norm_std",
+    "grad_norm_last",
+    # structural metrics (from StructuralMetricsCallback, forward-filled to eval grid)
+    "stable_rank_mean",
+    "effective_rank_mean",
+    "energy_rank_90_mean",
+    "adapter_frob_norm_mean",
+    "sigma_max_mean",
+]
 
 
 def _run_label(run) -> str:
     """Create a short label from the source path."""
     p = Path(run.meta.source_path)
     parts = p.parts
-    # Get the last 3 meaningful parts
-    bench_idx = next((i for i, x in enumerate(parts) if x == "bench_runs"), -1)
-    if bench_idx >= 0:
-        relevant = parts[bench_idx + 1 :]
-        return "/".join(relevant).replace("/run.jsonl", "")
-    return p.stem
-
-
-def _tier(label: str) -> int:
-    for prefix in TIER1_PREFIXES:
-        if label.startswith(prefix):
-            return 1
-    for prefix in TIER2_PREFIXES:
-        if label.startswith(prefix):
-            return 2
-    for prefix in TIER3_PREFIXES:
-        if label.startswith(prefix):
-            return 3
-    return 4
+    # Extract task/seed from path like .../adapters/chat/seed_42/telemetry/run.jsonl
+    try:
+        adapters_idx = next(i for i, x in enumerate(parts) if x == "adapters")
+        task = parts[adapters_idx + 1]
+        seed_dir = parts[adapters_idx + 2]
+        return f"{task}/{seed_dir}"
+    except (StopIteration, IndexError):
+        return p.stem
 
 
 def _serializable(obj):
@@ -92,53 +96,55 @@ def _serializable(obj):
 
 def main():
     print("=" * 70)
-    print("LEAD-LAG REANALYSIS PIPELINE")
+    print("LEAD-LAG REANALYSIS PIPELINE (M1 Experiment)")
     print("=" * 70)
 
     # --- Phase 0: Extract and align ---
-    print("\n[Phase 0] Extracting time series from bench_runs...")
-    runs = extract_all_runs(BENCH_RUNS, min_eval_events=4, min_train_steps=10)
+    print(f"\n[Phase 0] Extracting time series from {M1_ADAPTERS_DIR}...")
+    runs = extract_all_runs(M1_ADAPTERS_DIR, min_eval_events=4, min_train_steps=10)
     print(f"  Found {len(runs)} runs meeting minimum requirements")
 
-    # Tag with labels and tiers
-    run_info = []
     for run in runs:
         label = _run_label(run)
-        tier = _tier(label)
-        run_info.append((run, label, tier))
-
-    # Summary by tier
-    for t in [1, 2, 3, 4]:
-        tier_runs = [(r, l) for r, l, ti in run_info if ti == t]
-        if tier_runs:
-            print(f"  Tier {t}: {len(tier_runs)} runs")
-            for r, l in tier_runs[:5]:
-                print(f"    {l}: {r.meta.total_eval_events} evals, {r.meta.total_train_steps} train steps, seed={r.meta.seed}, r={r.meta.lora_r}")
-            if len(tier_runs) > 5:
-                print(f"    ... and {len(tier_runs) - 5} more")
+        print(
+            f"  {label}: {run.meta.total_eval_events} evals, "
+            f"{run.meta.total_train_steps} train steps, "
+            f"{run.meta.total_structural_events} structural snapshots, "
+            f"eval_interval={run.meta.eval_interval}, "
+            f"structural_interval={run.meta.structural_interval}"
+        )
+        # Show available columns
+        struct_cols = [c for c in run.aligned.columns if c.startswith("stable_rank") or c.startswith("effective_rank")]
+        if struct_cols:
+            print(f"    Structural columns present: {struct_cols[:5]}...")
 
     # Save aligned parquets
     aligned_dir = RESULTS_DIR / "aligned"
     save_aligned(runs, aligned_dir)
     print(f"  Saved aligned DataFrames to {aligned_dir}")
 
-    # --- Phase 1 & 2 & 3: Lead-lag analysis per run ---
+    # --- Phase 1-3: Lead-lag analysis per run ---
     print("\n[Phase 1-3] Running lead-lag analysis per run...")
+    print(f"  Features: {GEOMETRIC_FEATURES}")
 
-    geometric_features = ["grad_norm_mean", "grad_norm_max", "grad_norm_std", "grad_norm_last"]
     all_results = {}
     all_ccfs_by_feature: dict[str, list] = {}
 
-    for run, label, tier in run_info:
+    for run in runs:
+        label = _run_label(run)
         if run.aligned.empty or len(run.aligned) < 4:
             print(f"  SKIP {label}: too few aligned points ({len(run.aligned)})")
             continue
 
+        # Filter features to those actually present
+        available_features = [f for f in GEOMETRIC_FEATURES if f in run.aligned.columns]
+        print(f"\n  [{label}] ({len(run.aligned)} eval pts, {len(available_features)} features)")
+
         results = run_lead_lag_analysis(
             run.aligned,
-            geometric_features=geometric_features,
+            geometric_features=available_features,
             target="eval_loss",
-            max_ccf_lag=min(4, len(run.aligned) // 2 - 1),
+            max_ccf_lag=min(10, len(run.aligned) // 2 - 1),
             run_label=label,
         )
 
@@ -152,49 +158,48 @@ def main():
             all_ccfs_by_feature[key].append(ccf_r)
 
         # Print per-run summary
-        ccf_summary = ""
+        print("    CCF (peak_lag, peak_corr):")
         for ccf_r in results["ccf"]:
             if not np.isnan(ccf_r.peak_corr):
-                ccf_summary += f"  {ccf_r.feature_name}: peak_lag={ccf_r.peak_lag}, r={ccf_r.peak_corr:.3f}"
+                sig = "*" if ccf_r.significant_lags else ""
+                direction = "LEADS" if ccf_r.peak_lag < 0 else ("LAGS" if ccf_r.peak_lag > 0 else "SYNC")
+                print(f"      {ccf_r.feature_name:<30s} lag={ccf_r.peak_lag:+d} r={ccf_r.peak_corr:+.3f} {direction}{sig}")
 
-        granger_summary = ""
+        print("    Granger (p-value):")
         for gr in results["granger"]:
             if not np.isnan(gr.p_value):
-                granger_summary += f"  {gr.feature_name}: p={gr.p_value:.3f}{'*' if gr.reject_null else ''}"
+                sig = "***" if gr.p_value < 0.01 else ("**" if gr.p_value < 0.05 else ("*" if gr.p_value < 0.10 else ""))
+                print(f"      {gr.feature_name:<30s} p={gr.p_value:.4f} F={gr.f_statistic:.2f} dR2={gr.delta_r_squared:.4f} {sig}")
 
-        forecast_summary = ""
+        print("    Forecast (RMSE reduction vs persistence):")
         for flabel, fr in results["forecast"].items():
             if not np.isnan(fr.rmse_reduction_pct):
-                forecast_summary += f"  {flabel}: RMSE_red={fr.rmse_reduction_pct:.1f}%"
-
-        print(f"\n  [{label}] (tier {tier}, {len(run.aligned)} eval pts)")
-        if ccf_summary:
-            print(f"    CCF:{ccf_summary}")
-        if granger_summary:
-            print(f"    Granger:{granger_summary}")
-        if forecast_summary:
-            print(f"    Forecast:{forecast_summary}")
+                print(f"      {flabel:<20s} RMSE_red={fr.rmse_reduction_pct:+.1f}% R2_oos={fr.r_squared_oos:.3f} (n={fr.n_predictions})")
 
     # --- Aggregate CCFs ---
-    print("\n[Phase 1 Aggregate] CCF aggregation across runs...")
+    print("\n" + "=" * 70)
+    print("[Aggregate] CCF aggregation across runs...")
     agg_ccfs = {}
-    for feat_name, ccf_list in all_ccfs_by_feature.items():
+    for feat_name, ccf_list in sorted(all_ccfs_by_feature.items()):
         agg = aggregate_ccfs(ccf_list)
         agg_ccfs[feat_name] = agg
         if agg:
+            direction = "LEADS" if agg["peak_lag_mean"] < 0 else "LAGS"
             print(
-                f"  {feat_name}: peak_lag={agg['peak_lag_mean']:.1f}±{agg['peak_lag_std']:.1f}, "
-                f"leads={agg['leads_count']}/{agg['total_runs']}, "
-                f"mean_peak_corr={agg['peak_corr_mean']:.3f}"
+                f"  {feat_name:<35s} peak_lag={agg['peak_lag_mean']:+.1f} +/- {agg['peak_lag_std']:.1f}  "
+                f"leads={agg['leads_count']}/{agg['total_runs']}  "
+                f"mean_r={agg['peak_corr_mean']:+.3f}  {direction}"
             )
 
-    # --- Phase 3.5: Surrogate tests on best runs ---
-    print("\n[Phase 3.5] Surrogate null tests on tier-1 runs...")
+    # --- Surrogate null tests (on all runs since we only have 3) ---
+    print("\n[Phase 3.5] Surrogate null tests...")
     surrogate_results = {}
-    tier1_runs = [(r, l) for r, l, t in run_info if t == 1 and l in all_results]
 
-    for run, label in tier1_runs:
-        base_features = [f for f in geometric_features if f in run.aligned.columns]
+    for run in runs:
+        label = _run_label(run)
+        if label not in all_results:
+            continue
+        base_features = [f for f in GEOMETRIC_FEATURES if f in run.aligned.columns]
         if not base_features or len(run.aligned) < 5:
             continue
 
@@ -207,32 +212,11 @@ def main():
             method="circular_rotation",
         )
         surrogate_results[label] = surr
+        sig = "***" if surr.p_value < 0.01 else ("**" if surr.p_value < 0.05 else ("*" if surr.p_value < 0.10 else ""))
         print(
-            f"  {label}: actual_red={surr.actual_rmse_reduction:.1f}%, "
-            f"p={surr.p_value:.3f}, z={surr.z_score:.2f}"
+            f"  {label}: actual_red={surr.actual_rmse_reduction:+.1f}%, "
+            f"p={surr.p_value:.3f}, z={surr.z_score:+.2f} {sig}"
         )
-
-    # If no tier-1, try tier-2
-    if not surrogate_results:
-        print("  No tier-1 runs, running surrogates on tier-2...")
-        tier2_runs = [(r, l) for r, l, t in run_info if t == 2 and l in all_results]
-        for run, label in tier2_runs[:3]:  # limit to 3
-            base_features = [f for f in geometric_features if f in run.aligned.columns]
-            if not base_features or len(run.aligned) < 4:
-                continue
-            surr = surrogate_null_test(
-                run.aligned,
-                geometric_features=base_features,
-                target="eval_loss",
-                horizon=1,
-                n_surrogates=100,
-                method="circular_rotation",
-            )
-            surrogate_results[label] = surr
-            print(
-                f"  {label}: actual_red={surr.actual_rmse_reduction:.1f}%, "
-                f"p={surr.p_value:.3f}, z={surr.z_score:.2f}"
-            )
 
     # --- Phase 4: Early-stopping simulation ---
     print("\n[Phase 4] Retrospective early-stopping simulation...")
@@ -242,26 +226,28 @@ def main():
     )
 
     all_stopping = {}
-    for run, label, tier in run_info:
+    for run in runs:
+        label = _run_label(run)
         if run.aligned.empty or len(run.aligned) < 4:
             continue
         stopping = simulate_early_stopping(
             run.aligned,
             rules=rules,
-            final_eval_metric="eval_accuracy",
+            final_eval_metric="eval_loss",  # M1 only has eval_loss (no eval_accuracy for LM)
             fallback_metric="eval_loss",
         )
         if stopping:
             all_stopping[label] = stopping
 
+    stopping_summary = None
     if all_stopping:
         stopping_summary = aggregate_stopping_results(all_stopping)
         print("\n  Early-Stopping Summary (sorted by mean % saved):")
         sorted_df = stopping_summary.sort_values("mean_pct_saved", ascending=False)
         for _, row in sorted_df.head(15).iterrows():
             print(
-                f"    {row['rule']:<50s} saved={row['mean_pct_saved']:5.1f}% ± {row['std_pct_saved']:4.1f}%  "
-                f"Δmetric={row['mean_metric_delta']:+.4f}  triggered={row['triggered']}"
+                f"    {row['rule']:<50s} saved={row['mean_pct_saved']:5.1f}% +/- {row['std_pct_saved']:4.1f}%  "
+                f"delta_metric={row['mean_metric_delta']:+.4f}  triggered={row['triggered']}"
             )
 
     # --- Save all results ---
@@ -339,14 +325,13 @@ def main():
     # Early stopping summary
     es_dir = RESULTS_DIR / "early_stopping"
     es_dir.mkdir(parents=True, exist_ok=True)
-    if all_stopping:
+    if stopping_summary is not None:
         stopping_summary.to_json(es_dir / "summary.json", orient="records", indent=2)
 
     # --- Generate report ---
-    print("\n[Phase 5] Generating report...")
+    print("\n[Phase 6] Generating report...")
     report = _generate_report(
-        runs, run_info, all_results, agg_ccfs, surrogate_results, all_stopping,
-        stopping_summary if all_stopping else None
+        runs, all_results, agg_ccfs, surrogate_results, all_stopping, stopping_summary
     )
     report_path = RESULTS_DIR / "LEAD_LAG_REPORT.md"
     with open(report_path, "w") as f:
@@ -358,44 +343,53 @@ def main():
     print("=" * 70)
 
 
-def _generate_report(runs, run_info, all_results, agg_ccfs, surrogate_results, all_stopping, stopping_summary):
+def _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stopping, stopping_summary):
     """Generate the markdown summary report."""
-    lines = ["# Lead-Lag Reanalysis Report", ""]
+    lines = ["# Lead-Lag Reanalysis Report (M1 Experiment)", ""]
     lines.append("## 1. Data Inventory")
     lines.append("")
     lines.append(f"**Total runs analyzed:** {len(all_results)}")
-    lines.append(f"**Total runs extracted:** {len(runs)}")
+    lines.append(f"**Task:** chat (Alpaca instruction-following)")
+    lines.append(f"**Model:** Mistral-7B + LoRA r=32")
+    lines.append(f"**Training:** 1200 steps, eval every 25 steps, structural SVD every 50 steps")
     lines.append("")
-    lines.append("| Tier | Runs | Eval Events | Train Steps | Description |")
-    lines.append("|------|------|-------------|-------------|-------------|")
-    for t in [1, 2, 3, 4]:
-        tier_runs = [(r, l) for r, l, ti in run_info if ti == t]
-        if tier_runs:
-            evals = [r.meta.total_eval_events for r, l in tier_runs]
-            steps = [r.meta.total_train_steps for r, l in tier_runs]
-            desc = {1: "Extended runs (best)", 2: "Cert runs (3 seeds)", 3: "Multi-seed/uniform", 4: "Other"}[t]
-            lines.append(f"| {t} | {len(tier_runs)} | {min(evals)}-{max(evals)} | {min(steps)}-{max(steps)} | {desc} |")
+    lines.append("| Run | Eval Events | Train Steps | Structural Snapshots | Seed |")
+    lines.append("|-----|-------------|-------------|---------------------|------|")
+    for run in runs:
+        label = _run_label(run)
+        lines.append(
+            f"| {label} | {run.meta.total_eval_events} | {run.meta.total_train_steps} | "
+            f"{run.meta.total_structural_events} | {run.meta.seed} |"
+        )
+    lines.append("")
 
+    # Features
+    lines.append("### Features Used")
     lines.append("")
-    lines.append("**Geometric features available:** grad_norm (aggregated as mean, max, min, std, last, delta, acceleration)")
+    lines.append("**Gradient features** (aggregated per eval interval from train_step events):")
+    lines.append("- `grad_norm_mean`, `grad_norm_max`, `grad_norm_std`, `grad_norm_last` + deltas + acceleration")
     lines.append("")
-    lines.append("**NOT available in telemetry:** adapter_norm, stable_rank, energy_rank_90 (logged only in post-hoc audits, not during training)")
-    lines.append("")
-    lines.append("**Validation metrics:** eval_loss, eval_accuracy")
+    lines.append("**Structural features** (from periodic SVD on LoRA A/B pairs, forward-filled to eval grid):")
+    lines.append("- `stable_rank_mean`: ratio of squared Frobenius to squared spectral norm")
+    lines.append("- `effective_rank_mean`: Shannon entropy of normalized singular values")
+    lines.append("- `energy_rank_90_mean`: number of singular values capturing 90% energy")
+    lines.append("- `adapter_frob_norm_mean`: Frobenius norm of adapter weight (BA product)")
+    lines.append("- `sigma_max_mean`: largest singular value across layers")
     lines.append("")
 
     # CCF summary
     lines.append("## 2. Cross-Correlation Analysis (CCF)")
     lines.append("")
-    lines.append("Convention: negative lag = geometric feature LEADS validation metric (the hypothesis)")
+    lines.append("Convention: negative lag = geometric feature LEADS eval_loss (the hypothesis)")
     lines.append("")
-    lines.append("| Feature | Peak Lag (mean +/- std) | Peak Corr (mean) | Leads (n/total) |")
-    lines.append("|---------|------------------------|------------------|-----------------|")
+    lines.append("| Feature | Peak Lag (mean +/- std) | Peak Corr (mean) | Leads (n/total) | Direction |")
+    lines.append("|---------|------------------------|------------------|-----------------|-----------|")
     for feat, agg in sorted(agg_ccfs.items()):
         if agg:
+            direction = "LEADS" if agg["peak_lag_mean"] < -0.5 else ("LAGS" if agg["peak_lag_mean"] > 0.5 else "SYNC")
             lines.append(
-                f"| {feat} | {agg['peak_lag_mean']:.1f} +/- {agg['peak_lag_std']:.1f} | "
-                f"{agg['peak_corr_mean']:.3f} | {agg['leads_count']}/{agg['total_runs']} |"
+                f"| {feat} | {agg['peak_lag_mean']:+.1f} +/- {agg['peak_lag_std']:.1f} | "
+                f"{agg['peak_corr_mean']:+.3f} | {agg['leads_count']}/{agg['total_runs']} | {direction} |"
             )
     lines.append("")
 
@@ -409,15 +403,16 @@ def _generate_report(runs, run_info, all_results, agg_ccfs, surrogate_results, a
                 granger_features[gr.feature_name] = []
             granger_features[gr.feature_name].append(gr)
 
-    lines.append("| Feature | Runs p < 0.05 | Mean F-stat | Mean delta-R2 |")
-    lines.append("|---------|---------------|-------------|---------------|")
+    lines.append("| Feature | Runs p < 0.05 | Mean F-stat | Mean p-value | Mean delta-R2 |")
+    lines.append("|---------|---------------|-------------|--------------|---------------|")
     for feat, grs in sorted(granger_features.items()):
         valid = [g for g in grs if not np.isnan(g.p_value)]
         if valid:
             reject_count = sum(1 for g in valid if g.reject_null)
             mean_f = np.mean([g.f_statistic for g in valid if not np.isnan(g.f_statistic)])
+            mean_p = np.mean([g.p_value for g in valid])
             mean_dr2 = np.mean([g.delta_r_squared for g in valid if not np.isnan(g.delta_r_squared)])
-            lines.append(f"| {feat} | {reject_count}/{len(valid)} | {mean_f:.2f} | {mean_dr2:.4f} |")
+            lines.append(f"| {feat} | {reject_count}/{len(valid)} | {mean_f:.2f} | {mean_p:.4f} | {mean_dr2:+.4f} |")
     lines.append("")
 
     # Forecast summary
@@ -439,7 +434,7 @@ def _generate_report(runs, run_info, all_results, agg_ccfs, surrogate_results, a
             positive = sum(1 for r in reds if r > 0)
             r2s = [f.r_squared_oos for _, f in valid if not np.isnan(f.r_squared_oos)]
             lines.append(
-                f"| {variant} | {np.mean(reds):.1f}% +/- {np.std(reds):.1f}% | "
+                f"| {variant} | {np.mean(reds):+.1f}% +/- {np.std(reds):.1f}% | "
                 f"{positive}/{len(valid)} | {np.mean(r2s):.3f} |"
             )
     lines.append("")
@@ -448,10 +443,13 @@ def _generate_report(runs, run_info, all_results, agg_ccfs, surrogate_results, a
     if surrogate_results:
         lines.append("## 5. Surrogate Null Tests")
         lines.append("")
-        lines.append("| Run | Actual RMSE Red | p-value | z-score |")
-        lines.append("|-----|-----------------|---------|---------|")
+        lines.append("Method: circular rotation, 200 surrogates. Tests whether ridge forecast improvement is significant.")
+        lines.append("")
+        lines.append("| Run | Actual RMSE Red | p-value | z-score | Significant? |")
+        lines.append("|-----|-----------------|---------|---------|-------------|")
         for label, surr in surrogate_results.items():
-            lines.append(f"| {label} | {surr.actual_rmse_reduction:.1f}% | {surr.p_value:.3f} | {surr.z_score:.2f} |")
+            sig = "Yes" if surr.p_value < 0.05 else "No"
+            lines.append(f"| {label} | {surr.actual_rmse_reduction:+.1f}% | {surr.p_value:.3f} | {surr.z_score:+.2f} | {sig} |")
         lines.append("")
 
     # Early stopping
@@ -467,29 +465,13 @@ def _generate_report(runs, run_info, all_results, agg_ccfs, surrogate_results, a
             )
         lines.append("")
 
-    # Limitations
-    lines.append("## 7. Known Limitations")
+    # Interpretation
+    lines.append("## 7. Interpretation Notes")
     lines.append("")
-    lines.append("1. **Single geometric feature**: Only `grad_norm` is logged during training. adapter_norm, stable_rank, energy_rank_90 are not available in telemetry (computed only in post-hoc audits).")
-    lines.append("2. **Short series**: Most runs have 4-10 eval events, limiting statistical power for CCF and Granger tests.")
-    lines.append("3. **Single task**: All runs are SST-2 on DistilBERT. No cross-task replication.")
-    lines.append("4. **Train-step granularity**: grad_norm is logged every 10 steps; eval every 100 steps. The 10:1 ratio limits lead-lag resolution.")
-    lines.append("")
-
-    # Recommendations
-    lines.append("## 8. Recommendations for Enhanced Telemetry")
-    lines.append("")
-    lines.append("To enable a full lead-lag study, the GradienceCallback should log these additional fields at each train_step:")
-    lines.append("")
-    lines.append("```python")
-    lines.append("# In GradienceCallback.on_log():")
-    lines.append("adapter_norm = compute_adapter_frobenius_norm(model)")
-    lines.append("stable_rank = compute_stable_rank(adapter_BA)")
-    lines.append("writer.train_step(step, loss=loss, grad_norm=grad_norm,")
-    lines.append("                  adapter_norm=adapter_norm, stable_rank=stable_rank)")
-    lines.append("```")
-    lines.append("")
-    lines.append("Additionally, eval frequency should be increased (every 25-50 steps instead of 100) for runs intended for lead-lag analysis.")
+    lines.append("- **3 seeds** provides limited statistical power for cross-run aggregation; treat as directional evidence.")
+    lines.append("- **48 eval events** per run (every 25 steps over 1200 total) gives much better CCF/Granger resolution than the pilot study (4-10 events).")
+    lines.append("- **Structural metrics** are forward-filled from 50-step snapshots to 25-step eval grid, so they change every other eval step.")
+    lines.append("- **First-differencing** is applied for detrending; monotonic structural features (stable_rank, effective_rank) may lose signal if the trend is the signal.")
     lines.append("")
 
     return "\n".join(lines)
