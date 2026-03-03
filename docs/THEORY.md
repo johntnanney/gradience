@@ -216,6 +216,12 @@ the Hessian spectrum (restricted to the adapter subspace) and the adapter's
 singular value spectrum? This would provide a principled justification for
 spectral-based compression beyond the empirical observation that it works.
 
+**Partial answer (March 2026 reanalysis).** Canonical correlation analysis
+between Hessian-space metrics (lambda1, trace_H, gHg) and representation-space
+metrics (participation ratio, anisotropy, CKA) yields CC1 = 0.661, indicating
+a moderate shared signal. The two measurement systems are coupled but not
+redundant. See Findings §7 and `Gradience II/reanalysis/module_e_results.json`.
+
 
 ## 6. Subspace Alignment and Merge Analysis
 
@@ -287,3 +293,21 @@ the merge unless coefficients are adjusted.
    reliable order parameters for detecting training phase transitions
    (grokking, mode collapse, catastrophic forgetting) before they
    manifest in the loss curve?
+
+   **Partial answer (March 2026 reanalysis).** Hessian trace detects
+   changepoints ~300 steps before loss in a single-run telemetry stream.
+   One candidate phase transition near step 58,450 was identified via
+   susceptibility clustering and trajectory tortuosity. However, critical
+   slowing down in loss *precedes* that of geometric metrics in the same
+   data, complicating the picture. Replication across runs is needed.
+   See Findings §7.
+
+   **Update (Study 12, March 2026).** DFA exponents of spectral
+   complexity differ significantly across five hyperparameter regimes
+   (F = 116.86, p ≈ 10⁻²³; n=49 runs, 10 seeds per regime). High
+   learning rate produces α ≈ 1.57 while other regimes cluster at
+   α ≈ 1.90--2.07. This confirms that long-range temporal correlations
+   in spectral observables are regime-dependent, not a generic SGD
+   property. Whether DFA exponents can serve as real-time anomaly
+   detectors (flagging deviation from expected regime dynamics) remains
+   an open engineering question. See Findings §8.
