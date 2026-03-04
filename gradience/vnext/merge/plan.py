@@ -197,63 +197,31 @@ def plan_audit_aware(
     output_rank: int = 8,
     output_alpha: float = 16.0,
 ) -> MergePlan:
-    """Uses per-layer verdicts to choose strategy and coefficients.
+    """Uses per-layer verdicts to choose strategy and parameters.
 
-    Decision mapping:
+    Delegates parameter computation to the recommendation engine, which
+    derives trim fractions, DARE drop rates, and rebalancing coefficients
+    from spectral metrics rather than using hardcoded defaults.
+
+    Decision mapping (from recommend module):
     - SAFE → linear (0.5, 0.5)
-    - REDUNDANT → ties (0.5, 0.5) to deduplicate
-    - CONFLICTING → ties (0.5, 0.5) with 0.2 trim to dampen conflicts
-    - IMBALANCED → linear with suggested rebalanced coefficients
+    - REDUNDANT → ties with overlap-proportional trim (0.1–0.5)
+    - CONFLICTING → dare_ties with conflict-proportional drop (0.15–0.5)
+    - IMBALANCED → linear with magnitude-derived rebalancing coefficients
     """
+    from gradience.vnext.merge.recommend import recommend_merge
+
+    rec = recommend_merge(report)
     layer_configs = []
 
-    for lv_dict in report.layer_verdicts:
-        verdict = lv_dict["verdict"]
-        name = lv_dict["layer_name"]
-        suggested_coeffs = lv_dict.get("suggested_coefficients")
-
-        if verdict == "safe":
-            layer_configs.append(LayerMergeConfig(
-                module_prefix=name,
-                strategy="linear",
-                coefficients=(0.5, 0.5),
-                target_rank=output_rank,
-                trim_fraction=0.0,
-            ))
-        elif verdict == "redundant":
-            layer_configs.append(LayerMergeConfig(
-                module_prefix=name,
-                strategy="ties",
-                coefficients=(0.5, 0.5),
-                target_rank=output_rank,
-                trim_fraction=0.0,
-            ))
-        elif verdict == "conflicting":
-            layer_configs.append(LayerMergeConfig(
-                module_prefix=name,
-                strategy="ties",
-                coefficients=(0.5, 0.5),
-                target_rank=output_rank,
-                trim_fraction=0.2,
-            ))
-        elif verdict == "imbalanced":
-            coeffs = tuple(suggested_coeffs) if suggested_coeffs else (0.5, 0.5)
-            layer_configs.append(LayerMergeConfig(
-                module_prefix=name,
-                strategy="linear",
-                coefficients=coeffs,
-                target_rank=output_rank,
-                trim_fraction=0.0,
-            ))
-        else:
-            # Fallback: treat as safe
-            layer_configs.append(LayerMergeConfig(
-                module_prefix=name,
-                strategy="linear",
-                coefficients=(0.5, 0.5),
-                target_rank=output_rank,
-                trim_fraction=0.0,
-            ))
+    for lr in rec.layer_recommendations:
+        layer_configs.append(LayerMergeConfig(
+            module_prefix=lr.layer_name,
+            strategy=lr.strategy,
+            coefficients=lr.coefficients,
+            target_rank=output_rank,
+            trim_fraction=lr.trim_fraction,
+        ))
 
     return MergePlan(
         plan_id=str(uuid.uuid4()),

@@ -168,15 +168,15 @@ class TestPlanAuditAware:
         assert plan.layer_configs[0].strategy == "ties"
         assert plan.layer_configs[0].trim_fraction == 0.0
 
-    def test_conflicting_layers_get_ties_with_trim(self):
-        """CONFLICTING verdict → ties with trim_fraction=0.2."""
+    def test_conflicting_layers_get_dare_ties(self):
+        """CONFLICTING verdict → dare_ties with computed drop rate."""
         report = _make_report([
             _make_layer_verdict("layer.0.q_proj", "conflicting"),
         ])
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
-        assert plan.layer_configs[0].strategy == "ties"
-        assert plan.layer_configs[0].trim_fraction == 0.2
+        assert plan.layer_configs[0].strategy == "dare_ties"
+        assert plan.layer_configs[0].trim_fraction >= 0.15  # minimum DARE drop rate
 
     def test_imbalanced_layers_get_linear_rebalanced(self):
         """IMBALANCED verdict → linear with rebalanced coefficients."""
@@ -201,11 +201,11 @@ class TestPlanAuditAware:
         ])
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
-        assert plan.layer_configs[0].strategy == "linear"   # safe
-        assert plan.layer_configs[1].strategy == "ties"      # redundant
-        assert plan.layer_configs[2].strategy == "ties"      # conflicting
-        assert plan.layer_configs[2].trim_fraction == 0.2    # conflicting gets trim
-        assert plan.layer_configs[3].strategy == "linear"    # imbalanced
+        assert plan.layer_configs[0].strategy == "linear"      # safe
+        assert plan.layer_configs[1].strategy == "ties"         # redundant
+        assert plan.layer_configs[2].strategy == "dare_ties"    # conflicting → dare_ties
+        assert plan.layer_configs[2].trim_fraction >= 0.15      # DARE drop rate
+        assert plan.layer_configs[3].strategy == "linear"       # imbalanced
         assert plan.layer_configs[3].coefficients == (0.3, 0.7)
 
 

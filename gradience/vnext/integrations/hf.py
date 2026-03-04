@@ -84,6 +84,11 @@ class GradienceCallbackConfig:
     guard_steps_back: int = 1  # which snapshot to restore: most recent by default
     guard_prune_newer_on_rollback: bool = True
 
+    # Training monitor settings (ON by default)
+    # Lightweight heuristic rules for plateau/saturation detection
+    enable_monitor: bool = True
+    monitor_config: Optional[Any] = None  # MonitorConfig instance or None for defaults
+
 
 def _coerce_task_profile(tp: Optional[Union[str, TaskFamily]]) -> TaskFamily:
     if tp is None:
@@ -277,11 +282,14 @@ class GradienceCallback(TrainerCallback):
         self.config = config or GradienceCallbackConfig()
         self.writer: Optional[TelemetryWriter] = None
         self._run_id: Optional[str] = None
-        
+
         # Guard state - only initialize if Guard will be enabled
         self.guard = None  # type: Optional[LoRAGuard]
         # Only track loss/grad_norm if Guard is enabled (lazy init later)
         # This ensures zero overhead when Guard is disabled
+
+        # Training monitor - initialized in on_train_begin
+        self._monitor = None  # type: Optional[Any]  # TrainingMonitor
 
     def on_train_begin(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs.get("model", None)
@@ -310,7 +318,18 @@ class GradienceCallback(TrainerCallback):
         )
 
         self._run_id = self.writer.run_start(snap, meta={"framework": "huggingface"})
-        
+
+        # Initialize training monitor if enabled
+        if self.config.enable_monitor:
+            try:
+                from ..monitor import TrainingMonitor, MonitorConfig
+                monitor_cfg = self.config.monitor_config
+                if monitor_cfg is None:
+                    monitor_cfg = MonitorConfig()
+                self._monitor = TrainingMonitor(monitor_cfg)
+            except ImportError:
+                self._monitor = None
+
         # Initialize experimental guard if enabled
         if self.config.enable_guard and model is not None:
             try:
@@ -403,7 +422,23 @@ class GradienceCallback(TrainerCallback):
 
         if payload:
             self.writer.train_step(step, **payload)
-        
+
+        # Training monitor: check heuristic rules
+        if self._monitor is not None and payload:
+            monitor_alerts = self._monitor.update(step, payload)
+            if self.writer:
+                from ..types import Severity
+                for ma in monitor_alerts:
+                    sev = {"info": Severity.INFO, "warning": Severity.WARNING, "critical": Severity.ERROR}.get(
+                        ma.severity, Severity.INFO
+                    )
+                    self.writer.alert(
+                        severity=sev,
+                        code=f"MONITOR_{ma.code}",
+                        message=ma.message,
+                        metadata=ma.details,
+                    )
+
         # Trigger detection using existing signals
         if self.guard and model is not None:
             trigger = self.guard.check_triggers(loss=self._last_loss, grad_norm=self._last_grad_norm)
@@ -653,6 +688,22 @@ class GradienceCallback(TrainerCallback):
             clean[kk] = v
 
         self.writer.eval(step, split="eval", metrics=clean)
+
+        # Training monitor: check eval rules
+        if self._monitor is not None:
+            monitor_alerts = self._monitor.update_eval(step, clean)
+            if self.writer:
+                from ..types import Severity
+                for ma in monitor_alerts:
+                    sev = {"info": Severity.INFO, "warning": Severity.WARNING, "critical": Severity.ERROR}.get(
+                        ma.severity, Severity.INFO
+                    )
+                    self.writer.alert(
+                        severity=sev,
+                        code=f"MONITOR_{ma.code}",
+                        message=ma.message,
+                        metadata=ma.details,
+                    )
 
     def on_train_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         if self.writer is None:
