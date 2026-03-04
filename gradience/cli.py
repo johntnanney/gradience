@@ -2071,32 +2071,27 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         f"{agg['n_imbalanced']} imbalanced"
     )
 
-    if report.recommendations:
-        print("\nRecommendations:")
-        for rec in report.recommendations:
-            print(f"  \u2022 {rec}")
+    # --- Strategy Recommendations ---
+    try:
+        from gradience.vnext.merge.recommend import recommend_merge, format_recommendation
+        merge_rec = recommend_merge(report)
+        rec_output = format_recommendation(
+            merge_rec,
+            adapter_a_path=adapter_a,
+            adapter_b_path=adapter_b,
+        )
+        print(rec_output)
+    except Exception:
+        # Fall back to old-style recommendations if recommend module fails
+        if report.recommendations:
+            print("\nRecommendations:")
+            for rec in report.recommendations:
+                print(f"  \u2022 {rec}")
 
     if report.warnings:
         print("\nWarnings:")
         for warn in report.warnings:
             print(f"  \u26a0 {warn}")
-
-    # Per-layer table (compact)
-    if report.layer_verdicts and getattr(args, "verbose", False):
-        print("\nPer-layer:")
-        print(f"  {'Layer':<30s} {'Overlap':>8s} {'Agree':>8s} {'Verdict':<12s} {'Strategy':<8s}")
-        print(f"  {'─' * 30} {'─' * 8} {'─' * 8} {'─' * 12} {'─' * 8}")
-        for lv in report.layer_verdicts:
-            from gradience.vnext.merge.report import _shorten_layer_name
-            short = _shorten_layer_name(lv["layer_name"])
-            m = lv["metrics"]
-            print(
-                f"  {short:<30s} "
-                f"{m['mean_overlap']:8.3f} "
-                f"{m['directional_agreement']:8.3f} "
-                f"{lv['verdict']:<12s} "
-                f"{lv['suggested_strategy']:<8s}"
-            )
 
     out_dir = getattr(args, "output_dir", None)
     if out_dir:

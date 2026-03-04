@@ -55,6 +55,7 @@ bench = [
   "protobuf>=3.20.0",
   "scikit-learn>=1.3.0",     # For metrics
   "pandas>=2.0.0",           # For data analysis
+  "huggingface_hub>=0.20.0", # For adapter discovery and downloading
 ]
 
 # Hugging Face integration only (lighter than full bench)
