@@ -206,6 +206,137 @@ class TestAssessLayer:
 
 
 # ---------------------------------------------------------------------------
+# Frobenius imbalance (Branch 0)
+# ---------------------------------------------------------------------------
+
+
+class TestFrobeniusImbalance:
+    """Tests for Frobenius-based imbalance detection (Branch 0)."""
+
+    def test_orthogonal_and_imbalanced(self):
+        """Low overlap + high Frobenius ratio -> IMBALANCED (was SAFE before fix)."""
+        metrics = _make_metrics(
+            mean_overlap=0.05,
+            max_overlap=0.1,
+            frobenius_ratio=10.0,
+            frobenius_norm_a=100.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.IMBALANCED
+        assert lv.suggested_strategy == "linear"
+        assert lv.suggested_coefficients is not None
+        assert sum(lv.suggested_coefficients) == pytest.approx(1.0, abs=0.01)
+        coeff_a, coeff_b = lv.suggested_coefficients
+        assert coeff_b > coeff_a
+
+    def test_high_overlap_aligned_imbalanced_gets_redundant(self):
+        """High overlap + aligned + Frobenius imbalanced -> REDUNDANT (overlap wins)."""
+        metrics = _make_metrics(
+            mean_overlap=0.8,
+            max_overlap=0.9,
+            directional_agreement=0.8,
+            principal_angle_cosines=(0.9, 0.8, 0.7),
+            frobenius_ratio=10.0,
+            frobenius_norm_a=100.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.REDUNDANT
+
+    def test_high_overlap_opposing_imbalanced_gets_conflicting(self):
+        """High overlap + opposing + Frobenius imbalanced -> CONFLICTING (overlap wins)."""
+        metrics = _make_metrics(
+            mean_overlap=0.8,
+            max_overlap=0.9,
+            directional_agreement=-0.7,
+            principal_angle_cosines=(0.9, 0.8, 0.7),
+            frobenius_ratio=10.0,
+            frobenius_norm_a=100.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.CONFLICTING
+
+    def test_below_frob_threshold_stays_safe(self):
+        """Low overlap + below Frobenius threshold -> SAFE (not imbalanced)."""
+        metrics = _make_metrics(
+            mean_overlap=0.05,
+            max_overlap=0.1,
+            frobenius_ratio=3.0,
+            frobenius_norm_a=15.0,
+            frobenius_norm_b=5.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.SAFE
+
+    def test_moderate_overlap_imbalanced(self):
+        """Moderate overlap (between low and high) + Frobenius imbalanced -> IMBALANCED."""
+        metrics = _make_metrics(
+            mean_overlap=0.3,
+            max_overlap=0.4,
+            directional_agreement=0.2,
+            frobenius_ratio=8.0,
+            frobenius_norm_a=80.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.IMBALANCED
+
+    def test_coefficients_use_frobenius_ratio(self):
+        """Rebalanced coefficients are derived from frobenius_ratio."""
+        metrics = _make_metrics(
+            mean_overlap=0.05,
+            frobenius_ratio=20.0,
+            frobenius_norm_a=200.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.IMBALANCED
+        coeff_a, coeff_b = lv.suggested_coefficients
+        assert coeff_a == pytest.approx(1.0 / 21.0, abs=0.01)
+        assert coeff_b == pytest.approx(20.0 / 21.0, abs=0.01)
+
+    def test_conservative_catches_more_imbalance(self):
+        """Conservative profile (imbalanced_frob=3.0) catches smaller ratios."""
+        metrics = _make_metrics(
+            mean_overlap=0.05,
+            frobenius_ratio=4.0,
+            frobenius_norm_a=40.0,
+            frobenius_norm_b=10.0,
+        )
+        lv_default = assess_layer("test.q_proj", "attn", metrics)
+        assert lv_default.verdict == CompatibilityVerdict.SAFE
+
+        lv_conservative = assess_layer(
+            "test.q_proj", "attn", metrics,
+            thresholds=VerdictThresholds.conservative(),
+        )
+        assert lv_conservative.verdict == CompatibilityVerdict.IMBALANCED
+
+    def test_high_overlap_remainder_imbalanced(self):
+        """High overlap + not aligned/opposing + Frobenius imbalanced -> IMBALANCED (Branch 4)."""
+        metrics = _make_metrics(
+            mean_overlap=0.6,
+            max_overlap=0.7,
+            directional_agreement=0.2,
+            principal_angle_cosines=(0.7, 0.6, 0.5),
+            frobenius_ratio=10.0,
+            frobenius_norm_a=100.0,
+            frobenius_norm_b=10.0,
+        )
+        lv = assess_layer("test.q_proj", "attn", metrics)
+
+        assert lv.verdict == CompatibilityVerdict.IMBALANCED
+
+
+# ---------------------------------------------------------------------------
 # assess_overall
 # ---------------------------------------------------------------------------
 
