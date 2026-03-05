@@ -2,13 +2,14 @@
 Decision logic for merge compatibility.
 
 Translates raw SubspaceMetrics into actionable per-layer assessments and
-an aggregate compatibility verdict.  The decision tree follows the spec's
-five-branch structure:
+an aggregate compatibility verdict.  The decision tree follows a six-branch
+structure with Frobenius imbalance checked first:
 
+    0. Frobenius imbalance + low/moderate overlap -> IMBALANCED (rebalanced)
     1. Low overlap  -> SAFE (orthogonal subspaces)
     2. High overlap + aligned  -> REDUNDANT (de-dup needed)
     3. High overlap + opposing -> CONFLICTING (danger zone)
-    4. Extreme magnitude ratio -> IMBALANCED (coefficient tuning)
+    4. Frobenius imbalance + high overlap (remainder) -> IMBALANCED
     5. Everything else         -> SAFE with moderate confidence
 
 Thresholds ship as defaults but can be overridden via CLI flags or a
@@ -143,12 +144,53 @@ def assess_layer(
     metrics: SubspaceMetrics,
     thresholds: Optional[VerdictThresholds] = None,
 ) -> LayerVerdict:
-    """Five-branch decision tree for layer-level verdict.
+    """Six-branch decision tree for layer-level verdict.
 
-    Handles the clearest cases first, falls through to ambiguous last.
+    Branch ordering prioritises magnitude imbalance (Frobenius-based) before
+    orthogonal-safe, so that adapters with large energy mismatches get
+    rebalanced coefficients even when their subspaces are nearly orthogonal.
+
+    When overlap is high, the overlap-based branches (REDUNDANT, CONFLICTING)
+    take priority because subspace interaction is the dominant concern.
     """
     if thresholds is None:
         thresholds = VerdictThresholds()
+
+    # --- Branch 0 (NEW): Frobenius imbalanced + low-to-moderate overlap ---
+    if (
+        metrics.frobenius_ratio > thresholds.imbalanced_frob
+        and metrics.mean_overlap < thresholds.high_overlap
+    ):
+        ratio = metrics.frobenius_ratio
+        coeff_strong = 1.0 / (1.0 + ratio)
+        coeff_weak = ratio / (1.0 + ratio)
+
+        if metrics.frobenius_norm_a >= metrics.frobenius_norm_b:
+            coefficients = (coeff_strong, coeff_weak)
+        else:
+            coefficients = (coeff_weak, coeff_strong)
+
+        return LayerVerdict(
+            layer_name=layer_name,
+            module_type=module_type,
+            metrics=metrics,
+            verdict=CompatibilityVerdict.IMBALANCED,
+            confidence=_overlap_confidence(
+                metrics.frobenius_ratio, thresholds.imbalanced_frob
+            ),
+            recommendation=(
+                f"Frobenius imbalance ({ratio:.1f}x, "
+                f"norms: {metrics.frobenius_norm_a:.1f} vs "
+                f"{metrics.frobenius_norm_b:.1f}). "
+                f"The weaker adapter's contribution will be drowned out "
+                f"with equal coefficients. Suggested rebalancing: "
+                f"A={coefficients[0]:.3f}, B={coefficients[1]:.3f}."
+            ),
+            conflict_dimensions=0,
+            safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
+            suggested_strategy="linear",
+            suggested_coefficients=coefficients,
+        )
 
     # --- Branch 1: Orthogonal subspaces ---
     if metrics.mean_overlap < thresholds.low_overlap:
@@ -233,11 +275,16 @@ def assess_layer(
             suggested_coefficients=None,
         )
 
-    # --- Branch 4: Magnitude imbalanced ---
-    if metrics.magnitude_ratio > thresholds.imbalanced:
-        ratio = metrics.magnitude_ratio
+    # --- Branch 4: Frobenius imbalanced (high-overlap remainder) ---
+    if metrics.frobenius_ratio > thresholds.imbalanced_frob:
+        ratio = metrics.frobenius_ratio
         coeff_strong = 1.0 / (1.0 + ratio)
         coeff_weak = ratio / (1.0 + ratio)
+
+        if metrics.frobenius_norm_a >= metrics.frobenius_norm_b:
+            coefficients = (coeff_strong, coeff_weak)
+        else:
+            coefficients = (coeff_weak, coeff_strong)
 
         return LayerVerdict(
             layer_name=layer_name,
@@ -245,18 +292,20 @@ def assess_layer(
             metrics=metrics,
             verdict=CompatibilityVerdict.IMBALANCED,
             confidence=_overlap_confidence(
-                metrics.magnitude_ratio, thresholds.imbalanced
+                metrics.frobenius_ratio, thresholds.imbalanced_frob
             ),
             recommendation=(
-                f"Magnitude imbalance ({metrics.magnitude_ratio:.1f}x). "
+                f"Frobenius imbalance ({ratio:.1f}x, "
+                f"norms: {metrics.frobenius_norm_a:.1f} vs "
+                f"{metrics.frobenius_norm_b:.1f}). "
                 f"The weaker adapter's contribution will be drowned out "
                 f"with equal coefficients. Suggested rebalancing: "
-                f"stronger={coeff_strong:.2f}, weaker={coeff_weak:.2f}."
+                f"A={coefficients[0]:.3f}, B={coefficients[1]:.3f}."
             ),
             conflict_dimensions=0,
             safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
             suggested_strategy="linear",
-            suggested_coefficients=(coeff_strong, coeff_weak),
+            suggested_coefficients=coefficients,
         )
 
     # --- Branch 5: Moderate / ambiguous -> default SAFE ---
