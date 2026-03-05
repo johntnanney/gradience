@@ -77,6 +77,24 @@ class TestVerdictThresholds:
         assert t.high_overlap > defaults.high_overlap
         assert t.imbalanced > defaults.imbalanced
 
+    def test_imbalanced_frob_default(self):
+        """New Frobenius imbalance threshold exists with sensible default."""
+        t = VerdictThresholds()
+        assert t.imbalanced_frob == 5.0
+
+    def test_imbalanced_frob_in_profiles(self):
+        """Conservative/permissive profiles set imbalanced_frob."""
+        c = VerdictThresholds.conservative()
+        p = VerdictThresholds.permissive()
+        assert c.imbalanced_frob < p.imbalanced_frob
+        assert c.imbalanced_frob == 3.0
+        assert p.imbalanced_frob == 10.0
+
+    def test_imbalanced_frob_in_to_dict(self):
+        """imbalanced_frob appears in serialized dict."""
+        d = VerdictThresholds().to_dict()
+        assert d["imbalanced_frob"] == 5.0
+
     def test_to_dict(self):
         t = VerdictThresholds()
         d = t.to_dict()

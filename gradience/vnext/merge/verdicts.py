@@ -47,6 +47,7 @@ class VerdictThresholds:
     aligned : agreement above this -> same direction (redundant)
     conflicting : agreement below this -> opposing (conflicting)
     imbalanced : magnitude ratio above this -> imbalanced
+    imbalanced_frob : Frobenius norm ratio above this -> imbalanced
     """
 
     low_overlap: float = 0.2
@@ -54,6 +55,7 @@ class VerdictThresholds:
     aligned: float = 0.5
     conflicting: float = -0.3
     imbalanced: float = 5.0
+    imbalanced_frob: float = 5.0
 
     @classmethod
     def conservative(cls) -> VerdictThresholds:
@@ -64,6 +66,7 @@ class VerdictThresholds:
             aligned=0.6,
             conflicting=-0.2,
             imbalanced=3.0,
+            imbalanced_frob=3.0,
         )
 
     @classmethod
@@ -75,6 +78,7 @@ class VerdictThresholds:
             aligned=0.4,
             conflicting=-0.5,
             imbalanced=10.0,
+            imbalanced_frob=10.0,
         )
 
     def to_dict(self) -> Dict[str, float]:
