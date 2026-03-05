@@ -148,12 +148,14 @@ class TestAssessLayer:
         assert lv.conflict_dimensions > 0
 
     def test_imbalanced(self):
-        """Extreme magnitude ratio -> IMBALANCED."""
+        """Extreme Frobenius ratio -> IMBALANCED."""
         metrics = _make_metrics(
             mean_overlap=0.3,  # moderate overlap (between low and high)
             max_overlap=0.4,
             directional_agreement=0.2,
-            magnitude_ratio=8.0,
+            frobenius_ratio=8.0,
+            frobenius_norm_a=80.0,
+            frobenius_norm_b=10.0,
         )
         lv = assess_layer("test.q_proj", "attn", metrics)
 
@@ -386,7 +388,8 @@ class TestAssessOverall:
             principal_angle_cosines=(0.9, 0.8, 0.7),
         )
         imbalanced_metrics = _make_metrics(
-            mean_overlap=0.3, directional_agreement=0.2, magnitude_ratio=8.0,
+            mean_overlap=0.3, directional_agreement=0.2,
+            frobenius_ratio=8.0, frobenius_norm_a=80.0, frobenius_norm_b=10.0,
         )
 
         lvs = [
