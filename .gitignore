@@ -173,3 +173,4 @@ PYPI_README_IMPROVEMENTS.md
 !examples/**/*.yaml
 !examples/**/*.md
 .worktrees/
+.claude/
