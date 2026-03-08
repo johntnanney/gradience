@@ -1,0 +1,43 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "unknown-adapter",
+    "path": "./adapters/unknown-adapter",
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "rank_nominal": 16,
+    "n_layers": 32
+  },
+  "structural_summary": {
+    "utilization_mean": 0.12,
+    "utilization_median": 0.09,
+    "stable_rank_mean": 1.5,
+    "energy_rank_90_p50": 1.8,
+    "rank_waste_ratio": 0.88,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "concentrated_spectrum",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": false,
+    "eval_dataset": null,
+    "metric_name": "",
+    "adapter_score": null,
+    "base_score": null,
+    "lower_is_better": true,
+    "beats_base": null
+  },
+  "eligibility": {
+    "status": "unknown",
+    "confidence": "low",
+    "reasons": [
+      "no behavioral evaluation available",
+      "low utilization across layers",
+      "high rank waste",
+      "spectrum concentrated in very few singular values",
+      "stable rank far below nominal rank"
+    ]
+  }
+}

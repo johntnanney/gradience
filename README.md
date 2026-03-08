@@ -256,6 +256,28 @@ cat experiment_results/bench_aggregate.json
 gradience merge-audit --adapter-a adapter_code/ --adapter-b adapter_chat/ --output-dir merge_analysis/
 ```
 
+## Source QA workflow
+
+Before merging adapters, assess each adapter's standalone quality:
+
+```bash
+# Audit each adapter with behavioral context
+gradience audit-adapter --peft-dir ./adapter_a \
+    --eval-dataset oasst2 --metric-name perplexity \
+    --adapter-score 3.21 --base-score 4.66 \
+    --lower-is-better --out adapter_a_qa.json
+
+# Feed QA artifacts into merge audit
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
+    --source-a-qa adapter_a_qa.json --source-b-qa adapter_b_qa.json
+
+# Use --strict-qa to gate on source quality
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
+    --source-a-qa adapter_a_qa.json --source-b-qa adapter_b_qa.json --strict-qa
+```
+
+See **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** for the full workflow guide, interpretation examples, and strict QA gating.
+
 ## Configuration
 
 Experiment configs specify model, task, derivation policies, and validation criteria:
@@ -339,6 +361,7 @@ Complete documentation available on GitHub:
 - **[Statistical Methodology](https://github.com/johntnanney/gradience/blob/main/docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
 - **[Spectral Analysis Policies](https://github.com/johntnanney/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
 - **[Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
+- **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** -- Assess adapter quality before merging
 - **[CLI Reference](https://github.com/johntnanney/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
 - **[Configuration Reference](https://github.com/johntnanney/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
 - **[Artifacts & Evidence](https://github.com/johntnanney/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs
