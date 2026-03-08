@@ -376,14 +376,48 @@ class DARETIESMerge(MergeStrategy):
 
 
 # ---------------------------------------------------------------------------
+# Norm-equalized merge
+# ---------------------------------------------------------------------------
+
+
+class NormEqualizedMerge(MergeStrategy):
+    """Scale both adapters to equal Frobenius norm before linear averaging.
+
+    Removes scale imbalance as a confounding factor: both ΔW matrices are
+    rescaled to their geometric-mean Frobenius norm, then combined with
+    the configured coefficients.
+
+    This is one of the strongest validated single interventions for merge
+    quality.  It is simpler than the full audit-aware tree and often
+    competitive, making it a valuable baseline.
+
+    ``coefficients`` control the weighted average *after* norm equalization.
+    ``trim_fraction`` is unused (ignored).
+    """
+
+    def merge(
+        self,
+        dW_a: Tensor,
+        dW_b: Tensor,
+        config: LayerMergeConfig,
+    ) -> Tensor:
+        from gradience.vnext.merge.norm_equalized import norm_equalized_merge
+
+        coeff_a, _ = config.coefficients
+        result = norm_equalized_merge(dW_a, dW_b, weight_A=coeff_a)
+        return result["merged"]
+
+
+# ---------------------------------------------------------------------------
 # Factory
 # ---------------------------------------------------------------------------
 
-_STRATEGIES: dict[str, type[LinearMerge] | type[TIESMerge] | type[DARELinearMerge] | type[DARETIESMerge]] = {
+_STRATEGIES: dict[str, type[MergeStrategy]] = {
     "linear": LinearMerge,
     "ties": TIESMerge,
     "dare_linear": DARELinearMerge,
     "dare_ties": DARETIESMerge,
+    "norm_equalized": NormEqualizedMerge,
 }
 
 
@@ -392,7 +426,8 @@ def get_strategy(name: str) -> MergeStrategy:
 
     Parameters
     ----------
-    name : ``"linear"``, ``"ties"``, ``"dare_linear"``, or ``"dare_ties"``
+    name : ``"linear"``, ``"ties"``, ``"dare_linear"``, ``"dare_ties"``,
+        or ``"norm_equalized"``
 
     Returns
     -------

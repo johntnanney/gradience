@@ -13,6 +13,8 @@ from gradience.vnext.merge.recommend import (
     _recommend_layer,
     _should_compress,
     format_recommendation,
+    norm_equalized_coefficients,
+    rebalance_coefficients,
     recommend_merge,
 )
 
@@ -500,3 +502,89 @@ class TestEligibilityHardWarnings:
 
         assert "Warnings:" in output
         assert "Structural rebalance may preserve a behaviorally weak adapter" in output
+
+
+# ---------------------------------------------------------------------------
+# Coefficient utility tests
+# ---------------------------------------------------------------------------
+
+
+class TestRebalanceCoefficients:
+    """Tests for the rebalance_coefficients utility."""
+
+    def test_ratio_1_gives_equal(self):
+        """No imbalance → equal coefficients."""
+        a, b = rebalance_coefficients(1.0)
+        assert a == b == 0.5
+
+    def test_ratio_10(self):
+        """10x imbalance → strong adapter gets ~0.09, weak gets ~0.91."""
+        a, b = rebalance_coefficients(10.0)
+        assert a < 0.15
+        assert b > 0.85
+        assert abs(a + b - 1.0) < 1e-3
+
+    def test_sum_to_one(self):
+        """Coefficients always sum to ~1.0."""
+        for ratio in [1.0, 2.0, 5.0, 10.0, 100.0]:
+            a, b = rebalance_coefficients(ratio)
+            assert abs(a + b - 1.0) < 1e-3
+
+    def test_monotonic(self):
+        """As ratio increases, coeff_strong decreases."""
+        prev_a = 1.0
+        for ratio in [1.0, 2.0, 5.0, 10.0]:
+            a, _ = rebalance_coefficients(ratio)
+            assert a <= prev_a
+            prev_a = a
+
+
+class TestNormEqualizedCoefficients:
+    """Tests for the norm_equalized_coefficients utility."""
+
+    def test_equal_norms_gives_half(self):
+        """Equal Frobenius norms → (0.5, 0.5) with default weight."""
+        a, b = norm_equalized_coefficients(5.0, 5.0)
+        assert a == pytest.approx(0.5, abs=1e-3)
+        assert b == pytest.approx(0.5, abs=1e-3)
+
+    def test_imbalanced_norms(self):
+        """10x imbalance → A scaled up, B scaled down."""
+        a, b = norm_equalized_coefficients(1.0, 10.0)
+        # A has smaller norm, so its effective coefficient should be > 0.5
+        # B has larger norm, so its effective coefficient should be < 0.5
+        assert a > 0.5
+        assert b < 0.5
+
+    def test_custom_weight(self):
+        """Custom weight_a is respected."""
+        a1, b1 = norm_equalized_coefficients(5.0, 5.0, weight_a=0.7)
+        assert a1 == pytest.approx(0.7, abs=1e-3)
+        assert b1 == pytest.approx(0.3, abs=1e-3)
+
+
+# ---------------------------------------------------------------------------
+# Norm-equalized baseline in recommendations
+# ---------------------------------------------------------------------------
+
+
+class TestNormEqualizedBaseline:
+    """Tests that norm_equalized appears as a recommended baseline."""
+
+    def test_norm_equalized_in_fallbacks(self):
+        """norm_equalized appears in fallback strategies."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers)
+        rec = recommend_merge(report)
+
+        assert "norm_equalized" in rec.fallback_strategies
+
+    def test_norm_equalized_baseline_in_format(self):
+        """CLI output includes norm-equalized baseline command."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers)
+        rec = recommend_merge(report)
+        output = format_recommendation(rec)
+
+        assert "Norm-equalized baseline" in output
+        assert "--strategy norm_equalized" in output

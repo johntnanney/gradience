@@ -64,6 +64,7 @@ from gradience.vnext.merge.strategies import (
     TIESMerge,
     DARELinearMerge,
     DARETIESMerge,
+    NormEqualizedMerge,
     get_strategy,
 )
 from gradience.vnext.merge.refactor import refactor_to_lora
@@ -84,6 +85,8 @@ from gradience.vnext.merge.recommend import (
     LayerRecommendation,
     recommend_merge,
     format_recommendation,
+    rebalance_coefficients,
+    norm_equalized_coefficients,
 )
 
 # Source eligibility screening
@@ -131,6 +134,7 @@ __all__ = [
     "TIESMerge",
     "DARELinearMerge",
     "DARETIESMerge",
+    "NormEqualizedMerge",
     "get_strategy",
     # Phase 2 — SVD refactoring
     "refactor_to_lora",
@@ -147,6 +151,8 @@ __all__ = [
     "LayerRecommendation",
     "recommend_merge",
     "format_recommendation",
+    "rebalance_coefficients",
+    "norm_equalized_coefficients",
     # M1 protocol — Outcome metrics
     "compute_merge_outcomes",
     "is_bad_merge",

@@ -99,6 +99,63 @@ class MergeRecommendation:
 # ---------------------------------------------------------------------------
 
 
+def rebalance_coefficients(magnitude_ratio: float) -> Tuple[float, float]:
+    """Compute merge coefficients that compensate for magnitude imbalance.
+
+    Given the ratio ``max(σ₁_a, σ₁_b) / min(σ₁_a, σ₁_b)``, returns
+    ``(coeff_strong, coeff_weak)`` such that the weaker adapter is up-weighted
+    proportionally to the imbalance.
+
+    This is the per-layer rebalancing used by the ``imbalanced`` verdict path
+    and is also available for manual coefficient tuning.
+
+    Parameters
+    ----------
+    magnitude_ratio : ratio ≥ 1.0 of the larger to smaller leading singular value
+
+    Returns
+    -------
+    (coeff_strong, coeff_weak) — sum to 1.0
+    """
+    ratio = max(magnitude_ratio, 1.0)
+    coeff_strong = round(1.0 / (1.0 + ratio), 4)
+    coeff_weak = round(ratio / (1.0 + ratio), 4)
+    return (coeff_strong, coeff_weak)
+
+
+def norm_equalized_coefficients(
+    frobenius_norm_a: float,
+    frobenius_norm_b: float,
+    weight_a: float = 0.5,
+    eps: float = 1e-12,
+) -> Tuple[float, float]:
+    """Compute effective per-adapter scale factors for norm-equalized merging.
+
+    Both adapters are rescaled to their geometric-mean Frobenius norm.
+    The returned coefficients incorporate both the norm-equalization scaling
+    and the user-specified weight, so a simple ``coeff_a * dW_a + coeff_b * dW_b``
+    reproduces the norm-equalized merge.
+
+    Parameters
+    ----------
+    frobenius_norm_a : ‖ΔW_a‖_F
+    frobenius_norm_b : ‖ΔW_b‖_F
+    weight_a : mixing weight for adapter A (weight_b = 1 - weight_a)
+    eps : numerical stability
+
+    Returns
+    -------
+    (effective_coeff_a, effective_coeff_b)
+    """
+    na = max(frobenius_norm_a, eps)
+    nb = max(frobenius_norm_b, eps)
+    target = (na * nb) ** 0.5
+    scale_a = target / na
+    scale_b = target / nb
+    weight_b = 1.0 - weight_a
+    return (round(weight_a * scale_a, 4), round(weight_b * scale_b, 4))
+
+
 def _compute_trim_fraction(mean_overlap: float, high_overlap_threshold: float = 0.5) -> float:
     """Compute TIES trim fraction from overlap.
 
@@ -257,7 +314,7 @@ def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
         )
 
     if verdict == "imbalanced":
-        coeffs = tuple(suggested_coeffs) if suggested_coeffs else (0.5, 0.5)
+        coeffs = tuple(suggested_coeffs) if suggested_coeffs else rebalance_coefficients(magnitude_ratio)
         return LayerRecommendation(
             layer_name=layer_name,
             verdict=verdict,
@@ -387,6 +444,8 @@ def recommend_merge(
 
     # --- Fallback strategies ---
     fallbacks = []
+    # norm_equalized is always a strong baseline worth considering
+    fallbacks.append("norm_equalized")
     if overall_strategy != "linear":
         fallbacks.append("uniform_linear")
     if overall_strategy != "dare_ties":
@@ -434,7 +493,7 @@ def _shorten_layer_name(name: str) -> str:
 
 def _format_params(lr: LayerRecommendation) -> str:
     """Format strategy parameters for display."""
-    if lr.strategy == "linear":
+    if lr.strategy in ("linear", "norm_equalized"):
         return f"a={lr.coefficients[0]:.2f}, b={lr.coefficients[1]:.2f}"
     if lr.strategy == "ties":
         return f"trim={lr.trim_fraction:.2f}"
@@ -517,7 +576,20 @@ def format_recommendation(
         f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\"
     )
     lines.append(
-        f"        --output merge_plan.json"
+        "        --output merge_plan.json"
+    )
+    lines.append("")
+
+    # Norm-equalized baseline
+    lines.append("  Norm-equalized baseline (often competitive, simpler):")
+    lines.append(
+        f"    $ gradience merge-plan --strategy norm_equalized \\"
+    )
+    lines.append(
+        f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\"
+    )
+    lines.append(
+        "        --output merge_plan_norm_eq.json"
     )
     lines.append("")
 

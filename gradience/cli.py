@@ -2772,7 +2772,7 @@ def _setup_merge_plan_command(subparsers):
         "--strategy",
         type=str,
         default="uniform_linear",
-        choices=["uniform_linear", "audit_aware", "overlap_ties"],
+        choices=["uniform_linear", "audit_aware", "norm_equalized", "overlap_ties"],
         help="Merge planning strategy (default: uniform_linear)",
     )
     merge_plan_parser.add_argument(

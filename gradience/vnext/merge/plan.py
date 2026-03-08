@@ -6,10 +6,11 @@ use per layer, what coefficients, target rank, and trim fractions.  Plans
 are generated from a MergeAuditReport and can be serialized to/from JSON
 for inspection, modification, and reproducible execution.
 
-Five planning strategies are provided:
+Six planning strategies are provided:
 
 - **uniform_linear**: Equal-weight linear merge on all shared layers.
 - **audit_aware**: Uses per-layer verdicts to choose strategy and coefficients.
+- **norm_equalized**: Scales both adapters to equal Frobenius norm before merging.
 - **overlap_ties**: TIES on all layers with overlap-proportional trim density.
 - **dare_linear**: DARE random dropout before weighted linear combination.
 - **dare_ties**: DARE random dropout before the TIES pipeline.
@@ -285,6 +286,51 @@ def plan_overlap_ties(
     )
 
 
+def plan_norm_equalized(
+    report: MergeAuditReport,
+    adapter_a_dir: str,
+    adapter_b_dir: str,
+    coefficients: Tuple[float, float] = (0.5, 0.5),
+    output_rank: int = 8,
+    output_alpha: float = 16.0,
+) -> MergePlan:
+    """Norm-equalized linear merge on all shared layers.
+
+    Scales both adapters to their geometric-mean Frobenius norm before
+    combining.  This removes scale imbalance as a confounding factor and
+    is one of the strongest validated single interventions for merge quality.
+
+    The ``norm_equalized`` strategy in the merge engine handles the per-layer
+    rescaling automatically based on the actual ΔW norms at execution time.
+    """
+    layer_names = _shared_layer_names(report)
+
+    layer_configs = tuple(
+        LayerMergeConfig(
+            module_prefix=name,
+            strategy="norm_equalized",
+            coefficients=coefficients,
+            target_rank=output_rank,
+            trim_fraction=0.0,
+        )
+        for name in layer_names
+    )
+
+    return MergePlan(
+        plan_id=str(uuid.uuid4()),
+        strategy_name="norm_equalized",
+        adapter_a_dir=adapter_a_dir,
+        adapter_b_dir=adapter_b_dir,
+        output_rank=output_rank,
+        output_alpha=output_alpha,
+        layer_configs=layer_configs,
+        metadata=_make_metadata(
+            report, "norm_equalized",
+            {"coefficients": list(coefficients)},
+        ),
+    )
+
+
 def plan_dare_linear(
     report: MergeAuditReport,
     adapter_a_dir: str,
@@ -377,6 +423,7 @@ def plan_dare_ties(
 PLAN_STRATEGIES: Dict[str, Callable[..., MergePlan]] = {
     "uniform_linear": plan_uniform_linear,
     "audit_aware": plan_audit_aware,
+    "norm_equalized": plan_norm_equalized,
     "overlap_ties": plan_overlap_ties,
     "dare_linear": plan_dare_linear,
     "dare_ties": plan_dare_ties,
@@ -394,8 +441,8 @@ def plan_from_audit(
 
     Parameters
     ----------
-    strategy_name : one of ``"uniform_linear"``, ``"audit_aware"``, ``"overlap_ties"``,
-        ``"dare_linear"``, ``"dare_ties"``
+    strategy_name : one of ``"uniform_linear"``, ``"audit_aware"``, ``"norm_equalized"``,
+        ``"overlap_ties"``, ``"dare_linear"``, ``"dare_ties"``
     report : MergeAuditReport from a prior merge_audit() call
     adapter_a_dir : path to adapter A
     adapter_b_dir : path to adapter B

@@ -17,6 +17,7 @@ from gradience.vnext.merge.plan import (
     plan_from_audit,
     plan_uniform_linear,
     plan_audit_aware,
+    plan_norm_equalized,
     plan_overlap_ties,
     PLAN_STRATEGIES,
 )
@@ -303,10 +304,47 @@ class TestPlanFromAudit:
         assert plan.output_alpha == 64.0
 
 
+class TestPlanNormEqualized:
+    def test_all_layers_get_norm_equalized(self):
+        """norm_equalized assigns 'norm_equalized' strategy to every layer."""
+        report = _make_report([
+            _make_layer_verdict("layer.0.q_proj", "safe"),
+            _make_layer_verdict("layer.0.v_proj", "imbalanced"),
+        ])
+        plan = plan_norm_equalized(report, "/tmp/a", "/tmp/b")
+
+        assert plan.strategy_name == "norm_equalized"
+        assert len(plan.layer_configs) == 2
+        for lc in plan.layer_configs:
+            assert lc.strategy == "norm_equalized"
+            assert lc.coefficients == (0.5, 0.5)
+            assert lc.trim_fraction == 0.0
+
+    def test_custom_coefficients(self):
+        """Custom coefficients are applied to all layers."""
+        report = _make_report([
+            _make_layer_verdict("layer.0.q_proj", "safe"),
+        ])
+        plan = plan_norm_equalized(
+            report, "/tmp/a", "/tmp/b",
+            coefficients=(0.7, 0.3),
+        )
+
+        for lc in plan.layer_configs:
+            assert lc.coefficients == (0.7, 0.3)
+
+    def test_via_plan_from_audit(self):
+        """plan_from_audit dispatches to norm_equalized correctly."""
+        report = _make_report([_make_layer_verdict("layer.0.q_proj", "safe")])
+        plan = plan_from_audit("norm_equalized", report, "/tmp/a", "/tmp/b")
+        assert plan.strategy_name == "norm_equalized"
+        assert plan.layer_configs[0].strategy == "norm_equalized"
+
+
 class TestPlanStrategiesRegistry:
     def test_all_strategies_registered(self):
         """All expected strategies are in the PLAN_STRATEGIES registry."""
         assert set(PLAN_STRATEGIES.keys()) == {
-            "uniform_linear", "audit_aware", "overlap_ties",
+            "uniform_linear", "audit_aware", "norm_equalized", "overlap_ties",
             "dare_linear", "dare_ties",
         }
