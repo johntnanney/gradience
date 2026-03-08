@@ -15,15 +15,18 @@ import statistics
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any
 
+from gradience.vnext.merge.containers import (
+    AdapterMetadata,
+    AggregateResult,
+    MatchingSummary,
+)
 from gradience.vnext.merge.verdicts import (
     CompatibilityVerdict,
     LayerVerdict,
     VerdictThresholds,
 )
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from gradience.vnext.merge.io import AdapterInfo
@@ -36,20 +39,26 @@ if TYPE_CHECKING:
 
 @dataclass
 class MergeAuditReport:
-    """Top-level merge audit report.  Mutable during construction."""
+    """Top-level merge audit report.  Mutable during construction.
 
-    adapter_a: Dict[str, Any]       # path, rank, alpha, base_model, n_layers
-    adapter_b: Dict[str, Any]
-    matching: Dict[str, Any]        # shared, only_a, only_b counts + names
-    layer_verdicts: List[Dict[str, Any]]  # LayerVerdict.to_dict() for each layer
-    aggregate: Dict[str, Any]       # overall verdict, score, overlap stats
-    recommendations: List[str]
-    issues: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    thresholds: Dict[str, float] = field(default_factory=dict)
+    Fields use typed containers (``AdapterMetadata``, ``MatchingSummary``,
+    ``AggregateResult``) instead of raw dicts.  The containers support
+    both attribute access (``report.adapter_a.rank``) and dict-style
+    access (``report.adapter_a["rank"]``) for backward compatibility.
+    """
+
+    adapter_a: AdapterMetadata
+    adapter_b: AdapterMetadata
+    matching: MatchingSummary
+    layer_verdicts: list[dict[str, Any]]  # LayerVerdict.to_dict() for each layer
+    aggregate: AggregateResult
+    recommendations: list[str]
+    issues: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    thresholds: dict[str, float] = field(default_factory=dict)
     timestamp: str = ""
     gradience_version: str = ""
-    source_qa: Optional[Dict[str, Any]] = None  # eligibility screening results
+    source_qa: dict[str, Any] | None = None  # eligibility screening results
 
 
 # ---------------------------------------------------------------------------
@@ -58,22 +67,22 @@ class MergeAuditReport:
 
 
 def build_report(
-    adapter_a_info: "AdapterInfo",
-    adapter_b_info: "AdapterInfo",
-    shared: List[str],
-    only_a: List[str],
-    only_b: List[str],
-    layer_verdicts: List[LayerVerdict],
+    adapter_a_info: AdapterInfo,
+    adapter_b_info: AdapterInfo,
+    shared: list[str],
+    only_a: list[str],
+    only_b: list[str],
+    layer_verdicts: list[LayerVerdict],
     overall_verdict: CompatibilityVerdict,
     score: float,
-    recommendations: List[str],
+    recommendations: list[str],
     thresholds: VerdictThresholds,
-    source_qa_a: Optional[Any] = None,
-    source_qa_b: Optional[Any] = None,
+    source_qa_a: Any | None = None,
+    source_qa_b: Any | None = None,
 ) -> MergeAuditReport:
     """Assemble full report from analysis results."""
 
-    def safe_mean(xs: List[float]) -> float:
+    def safe_mean(xs: list[float]) -> float:
         return sum(xs) / len(xs) if xs else 0.0
 
     try:
@@ -94,7 +103,7 @@ def build_report(
     mag_ratios = [getattr(lv.metrics, 'magnitude_ratio', 0.0) for lv in layer_verdicts]
 
     # Build source QA section if provided
-    source_qa: Optional[Dict[str, Any]] = None
+    source_qa: dict[str, Any] | None = None
     if source_qa_a is not None or source_qa_b is not None:
         source_qa = {}
         if source_qa_a is not None:
@@ -107,7 +116,7 @@ def build_report(
 
     eligibility_warnings = screen_adapters(source_qa_a, source_qa_b)
 
-    warnings: List[str] = []
+    warnings: list[str] = []
     warnings.extend(eligibility_warnings)
     if only_a:
         warnings.append(
@@ -122,60 +131,58 @@ def build_report(
     base_b = getattr(adapter_b_info.config, "raw", {}).get("base_model_name_or_path", "unknown")
 
     return MergeAuditReport(
-        adapter_a={
-            "path": str(adapter_a_info.path),
-            "rank": adapter_a_info.rank,
-            "alpha": adapter_a_info.alpha,
-            "base_model": base_a,
-            "n_layers": len(adapter_a_info.lora_pairs),
-        },
-        adapter_b={
-            "path": str(adapter_b_info.path),
-            "rank": adapter_b_info.rank,
-            "alpha": adapter_b_info.alpha,
-            "base_model": base_b,
-            "n_layers": len(adapter_b_info.lora_pairs),
-        },
-        matching={
-            "n_shared": len(shared),
-            "n_only_a": len(only_a),
-            "n_only_b": len(only_b),
-            "shared_layers": shared,
-            "only_a_layers": only_a,
-            "only_b_layers": only_b,
-        },
+        adapter_a=AdapterMetadata(
+            path=str(adapter_a_info.path),
+            rank=adapter_a_info.rank,
+            alpha=adapter_a_info.alpha,
+            base_model=base_a,
+            n_layers=len(adapter_a_info.lora_pairs),
+        ),
+        adapter_b=AdapterMetadata(
+            path=str(adapter_b_info.path),
+            rank=adapter_b_info.rank,
+            alpha=adapter_b_info.alpha,
+            base_model=base_b,
+            n_layers=len(adapter_b_info.lora_pairs),
+        ),
+        matching=MatchingSummary(
+            n_shared=len(shared),
+            n_only_a=len(only_a),
+            n_only_b=len(only_b),
+            shared_layers=tuple(shared),
+            only_a_layers=tuple(only_a),
+            only_b_layers=tuple(only_b),
+        ),
         layer_verdicts=[lv.to_dict() for lv in layer_verdicts],
-        aggregate={
-            "overall_verdict": overall_verdict.value,
-            "compatibility_score": round(score, 4),
-            "mean_overlap": round(sum(overlaps) / len(overlaps), 4) if overlaps else 0.0,
-            "median_overlap": round(
+        aggregate=AggregateResult(
+            overall_verdict=overall_verdict.value,
+            compatibility_score=round(score, 4),
+            mean_overlap=round(sum(overlaps) / len(overlaps), 4) if overlaps else 0.0,
+            median_overlap=round(
                 statistics.median(overlaps), 4
             ) if overlaps else 0.0,
-            "max_overlap": round(max(overlaps), 4) if overlaps else 0.0,
-            "mean_agreement": round(
+            max_overlap=round(max(overlaps), 4) if overlaps else 0.0,
+            mean_agreement=round(
                 sum(agreements) / len(agreements), 4
             ) if agreements else 0.0,
-            "n_safe": sum(
+            n_safe=sum(
                 1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.SAFE
             ),
-            "n_redundant": sum(
+            n_redundant=sum(
                 1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT
             ),
-            "n_conflicting": sum(
+            n_conflicting=sum(
                 1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING
             ),
-            "n_imbalanced": sum(
+            n_imbalanced=sum(
                 1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED
             ),
-            # Symmetric scale metrics (averaged across layers)
-            "mean_scale_bounded_ratio": round(safe_mean(scale_bounded_ratios), 4),
-            "mean_scale_log_ratio": round(safe_mean(scale_log_ratios), 4),
-            "mean_frob_bounded_ratio": round(safe_mean(frob_bounded_ratios), 4),
-            "mean_frob_log_ratio": round(safe_mean(frob_log_ratios), 4),
-            # Legacy magnitude metrics (kept for backward compat)
-            "mean_magnitude_ratio": round(safe_mean(mag_ratios), 4),
-        },
+            mean_scale_bounded_ratio=round(safe_mean(scale_bounded_ratios), 4),
+            mean_scale_log_ratio=round(safe_mean(scale_log_ratios), 4),
+            mean_frob_bounded_ratio=round(safe_mean(frob_bounded_ratios), 4),
+            mean_frob_log_ratio=round(safe_mean(frob_log_ratios), 4),
+            mean_magnitude_ratio=round(safe_mean(mag_ratios), 4),
+        ),
         recommendations=recommendations,
         issues=[],
         warnings=warnings,
@@ -191,16 +198,22 @@ def build_report(
 # ---------------------------------------------------------------------------
 
 
-def to_json(report: MergeAuditReport) -> Dict[str, Any]:
+def to_json(report: MergeAuditReport) -> dict[str, Any]:
     """Convert report to JSON-serializable dict."""
-    d: Dict[str, Any] = {
+    # Use .to_dict() on typed containers; fall back to raw value for dicts
+    def _serialize(val: Any) -> Any:
+        if hasattr(val, 'to_dict'):
+            return val.to_dict()
+        return val
+
+    d: dict[str, Any] = {
         "schema_version": "gradience.merge_audit/v2",
         "timestamp": report.timestamp,
         "gradience_version": report.gradience_version,
-        "adapter_a": report.adapter_a,
-        "adapter_b": report.adapter_b,
-        "matching": report.matching,
-        "aggregate": report.aggregate,
+        "adapter_a": _serialize(report.adapter_a),
+        "adapter_b": _serialize(report.adapter_b),
+        "matching": _serialize(report.matching),
+        "aggregate": _serialize(report.aggregate),
         "per_layer": report.layer_verdicts,
         "recommendations": report.recommendations,
         "issues": report.issues,
@@ -260,7 +273,7 @@ _VERDICT_EMOJI = {
 
 def to_markdown(report: MergeAuditReport) -> str:
     """Render human-readable markdown report."""
-    lines: List[str] = []
+    lines: list[str] = []
     agg = report.aggregate
 
     # --- Title ---
@@ -271,41 +284,41 @@ def to_markdown(report: MergeAuditReport) -> str:
     lines.append("| | Adapter A | Adapter B |")
     lines.append("|---|---|---|")
     lines.append(
-        f"| **Path** | `{report.adapter_a['path']}` | `{report.adapter_b['path']}` |"
+        f"| **Path** | `{report.adapter_a.path}` | `{report.adapter_b.path}` |"
     )
     lines.append(
-        f"| **Rank** | {report.adapter_a['rank']} | {report.adapter_b['rank']} |"
+        f"| **Rank** | {report.adapter_a.rank} | {report.adapter_b.rank} |"
     )
     lines.append(
-        f"| **Alpha** | {report.adapter_a['alpha']} | {report.adapter_b['alpha']} |"
+        f"| **Alpha** | {report.adapter_a.alpha} | {report.adapter_b.alpha} |"
     )
     lines.append(
-        f"| **Base model** | {report.adapter_a['base_model']} | {report.adapter_b['base_model']} |"
+        f"| **Base model** | {report.adapter_a.base_model} | {report.adapter_b.base_model} |"
     )
     lines.append(
-        f"| **Layers** | {report.adapter_a['n_layers']} | {report.adapter_b['n_layers']} |"
+        f"| **Layers** | {report.adapter_a.n_layers} | {report.adapter_b.n_layers} |"
     )
     lines.append("")
 
     # --- Compatibility summary ---
-    verdict_str = agg["overall_verdict"]
+    verdict_str = agg.overall_verdict
     emoji = _VERDICT_EMOJI.get(verdict_str, "")
     lines.append("## Compatibility Summary\n")
     lines.append(f"**Overall verdict:** {emoji} **{verdict_str.upper()}**\n")
-    lines.append(f"- Compatibility score: {agg['compatibility_score']:.3f}")
-    lines.append(f"- Mean overlap: {agg['mean_overlap']:.3f}")
-    lines.append(f"- Max overlap: {agg['max_overlap']:.3f}")
-    lines.append(f"- Mean agreement: {agg['mean_agreement']:.3f}")
+    lines.append(f"- Compatibility score: {agg.compatibility_score:.3f}")
+    lines.append(f"- Mean overlap: {agg.mean_overlap:.3f}")
+    lines.append(f"- Max overlap: {agg.max_overlap:.3f}")
+    lines.append(f"- Mean agreement: {agg.mean_agreement:.3f}")
     lines.append(
-        f"- Shared layers: {report.matching['n_shared']} | "
-        f"Only A: {report.matching['n_only_a']} | "
-        f"Only B: {report.matching['n_only_b']}"
+        f"- Shared layers: {report.matching.n_shared} | "
+        f"Only A: {report.matching.n_only_a} | "
+        f"Only B: {report.matching.n_only_b}"
     )
     lines.append(
-        f"- Verdicts: {agg['n_safe']} safe, "
-        f"{agg['n_redundant']} redundant, "
-        f"{agg['n_conflicting']} conflicting, "
-        f"{agg['n_imbalanced']} imbalanced"
+        f"- Verdicts: {agg.n_safe} safe, "
+        f"{agg.n_redundant} redundant, "
+        f"{agg.n_conflicting} conflicting, "
+        f"{agg.n_imbalanced} imbalanced"
     )
     lines.append("")
 
@@ -401,7 +414,7 @@ def write_markdown_report(report: MergeAuditReport, output_path: Path) -> None:
         f.write(md)
 
 
-def write_reports(report: MergeAuditReport, output_dir: Union[str, Path]) -> None:
+def write_reports(report: MergeAuditReport, output_dir: str | Path) -> None:
     """Write both merge_audit.json and merge_audit.md."""
     output_dir = Path(output_dir)
     write_json_report(report, output_dir / "merge_audit.json")

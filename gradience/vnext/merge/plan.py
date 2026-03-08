@@ -130,9 +130,9 @@ def _make_metadata(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "strategy": strategy_name,
         "source_audit": {
-            "overall_verdict": report.aggregate.get("overall_verdict", "unknown"),
-            "compatibility_score": report.aggregate.get("compatibility_score", 0.0),
-            "n_shared_layers": report.matching.get("n_shared", 0),
+            "overall_verdict": getattr(report.aggregate, "overall_verdict", "unknown"),
+            "compatibility_score": getattr(report.aggregate, "compatibility_score", 0.0),
+            "n_shared_layers": getattr(report.matching, "n_shared", 0),
         },
     }
     if extra:

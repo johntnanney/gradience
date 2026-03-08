@@ -96,6 +96,17 @@ from gradience.vnext.merge.recommend import (
     norm_equalized_coefficients,
 )
 
+# Typed containers
+from gradience.vnext.merge.containers import (
+    AdapterMetadata,
+    AggregateResult,
+    MatchingSummary,
+    MergeWarning,
+    PairAuditResult,
+    RecommendationResult,
+    WarningCode,
+)
+
 # Source eligibility screening
 from gradience.vnext.merge.eligibility import (
     EligibilityStatus,
@@ -186,6 +197,14 @@ __all__ = [
     "layer_shuffle_control",
     # M1 protocol — Norm-equalized merge (M2 stub)
     "norm_equalized_merge",
+    # Typed containers
+    "AdapterMetadata",
+    "AggregateResult",
+    "MatchingSummary",
+    "WarningCode",
+    "MergeWarning",
+    "PairAuditResult",
+    "RecommendationResult",
     # Source eligibility screening
     "EligibilityStatus",
     "AdapterQAResult",

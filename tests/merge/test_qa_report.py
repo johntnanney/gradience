@@ -6,6 +6,7 @@ import json
 
 import pytest
 
+from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult
 from gradience.vnext.merge.qa_report import (
     AdapterSummary,
     MergeQAReport,
@@ -73,33 +74,38 @@ class _FakeReport:
         n_imbalanced = sum(1 for lv in layer_verdicts if lv["verdict"] == "imbalanced")
         overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts]
         mag_ratios = [lv["metrics"]["magnitude_ratio"] for lv in layer_verdicts]
-        self.aggregate = aggregate or {
-            "overall_verdict": "safe",
-            "compatibility_score": 0.75,
-            "mean_overlap": sum(overlaps) / len(overlaps) if overlaps else 0.0,
-            "median_overlap": sorted(overlaps)[len(overlaps) // 2] if overlaps else 0.0,
-            "max_overlap": max(overlaps) if overlaps else 0.0,
-            "mean_agreement": 0.5,
-            "n_safe": n_safe,
-            "n_redundant": n_redundant,
-            "n_conflicting": n_conflicting,
-            "n_imbalanced": n_imbalanced,
-            "mean_magnitude_ratio": sum(mag_ratios) / len(mag_ratios) if mag_ratios else 1.0,
-        }
-        self.adapter_a = {
-            "path": "/tmp/adapter_a",
-            "rank": 8,
-            "alpha": 16.0,
-            "base_model": "meta-llama/Llama-2-7b",
-            "n_layers": len(layer_verdicts),
-        }
-        self.adapter_b = {
-            "path": "/tmp/adapter_b",
-            "rank": 8,
-            "alpha": 16.0,
-            "base_model": "meta-llama/Llama-2-7b",
-            "n_layers": len(layer_verdicts),
-        }
+        if aggregate is not None and isinstance(aggregate, dict):
+            self.aggregate = AggregateResult.from_dict(aggregate)
+        elif aggregate is not None:
+            self.aggregate = aggregate
+        else:
+            self.aggregate = AggregateResult(
+                overall_verdict="safe",
+                compatibility_score=0.75,
+                mean_overlap=sum(overlaps) / len(overlaps) if overlaps else 0.0,
+                median_overlap=sorted(overlaps)[len(overlaps) // 2] if overlaps else 0.0,
+                max_overlap=max(overlaps) if overlaps else 0.0,
+                mean_agreement=0.5,
+                n_safe=n_safe,
+                n_redundant=n_redundant,
+                n_conflicting=n_conflicting,
+                n_imbalanced=n_imbalanced,
+                mean_magnitude_ratio=sum(mag_ratios) / len(mag_ratios) if mag_ratios else 1.0,
+            )
+        self.adapter_a = AdapterMetadata(
+            path="/tmp/adapter_a",
+            rank=8,
+            alpha=16.0,
+            base_model="meta-llama/Llama-2-7b",
+            n_layers=len(layer_verdicts),
+        )
+        self.adapter_b = AdapterMetadata(
+            path="/tmp/adapter_b",
+            rank=8,
+            alpha=16.0,
+            base_model="meta-llama/Llama-2-7b",
+            n_layers=len(layer_verdicts),
+        )
 
 
 # ---------------------------------------------------------------------------

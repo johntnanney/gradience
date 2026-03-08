@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 
 import pytest
 
+from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult, MatchingSummary
 from gradience.vnext.merge.plan import (
     MergePlan,
     plan_from_audit,
@@ -74,29 +75,29 @@ def _make_report(
 ) -> MergeAuditReport:
     """Build a minimal MergeAuditReport for testing."""
     return MergeAuditReport(
-        adapter_a={"path": "/tmp/adapter_a", "rank": 8, "alpha": 16.0, "base_model": "test", "n_layers": 2},
-        adapter_b={"path": "/tmp/adapter_b", "rank": 8, "alpha": 16.0, "base_model": "test", "n_layers": 2},
-        matching={
-            "n_shared": len(layer_verdicts),
-            "n_only_a": 0,
-            "n_only_b": 0,
-            "shared_layers": [lv["layer_name"] for lv in layer_verdicts],
-            "only_a_layers": [],
-            "only_b_layers": [],
-        },
+        adapter_a=AdapterMetadata(path="/tmp/adapter_a", rank=8, alpha=16.0, base_model="test", n_layers=2),
+        adapter_b=AdapterMetadata(path="/tmp/adapter_b", rank=8, alpha=16.0, base_model="test", n_layers=2),
+        matching=MatchingSummary(
+            n_shared=len(layer_verdicts),
+            n_only_a=0,
+            n_only_b=0,
+            shared_layers=tuple(lv["layer_name"] for lv in layer_verdicts),
+            only_a_layers=(),
+            only_b_layers=(),
+        ),
         layer_verdicts=layer_verdicts,
-        aggregate={
-            "overall_verdict": overall_verdict,
-            "compatibility_score": 0.5,
-            "mean_overlap": 0.3,
-            "median_overlap": 0.3,
-            "max_overlap": 0.5,
-            "mean_agreement": 0.5,
-            "n_safe": sum(1 for lv in layer_verdicts if lv["verdict"] == "safe"),
-            "n_redundant": sum(1 for lv in layer_verdicts if lv["verdict"] == "redundant"),
-            "n_conflicting": sum(1 for lv in layer_verdicts if lv["verdict"] == "conflicting"),
-            "n_imbalanced": sum(1 for lv in layer_verdicts if lv["verdict"] == "imbalanced"),
-        },
+        aggregate=AggregateResult(
+            overall_verdict=overall_verdict,
+            compatibility_score=0.5,
+            mean_overlap=0.3,
+            median_overlap=0.3,
+            max_overlap=0.5,
+            mean_agreement=0.5,
+            n_safe=sum(1 for lv in layer_verdicts if lv["verdict"] == "safe"),
+            n_redundant=sum(1 for lv in layer_verdicts if lv["verdict"] == "redundant"),
+            n_conflicting=sum(1 for lv in layer_verdicts if lv["verdict"] == "conflicting"),
+            n_imbalanced=sum(1 for lv in layer_verdicts if lv["verdict"] == "imbalanced"),
+        ),
         recommendations=["Test recommendation"],
     )
 

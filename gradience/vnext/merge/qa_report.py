@@ -135,20 +135,20 @@ def _eligibility_label(diag: PairDiagnosis, which: str) -> str:
 
 def _dominant_issue(
     diag: PairDiagnosis,
-    agg: dict[str, Any],
+    agg: Any,
 ) -> str:
     """Identify the single biggest concern for this pair."""
-    n_imbalanced = agg.get("n_imbalanced", 0)
-    n_conflicting = agg.get("n_conflicting", 0)
-    n_redundant = agg.get("n_redundant", 0)
-    n_safe = agg.get("n_safe", 0)
+    n_imbalanced = getattr(agg, "n_imbalanced", 0)
+    n_conflicting = getattr(agg, "n_conflicting", 0)
+    n_redundant = getattr(agg, "n_redundant", 0)
+    n_safe = getattr(agg, "n_safe", 0)
     total = n_safe + n_redundant + n_conflicting + n_imbalanced
 
     if total == 0:
         return "unknown (no layer data)"
 
     # Check magnitude imbalance first — it's the most actionable
-    mean_mag = agg.get("mean_magnitude_ratio", 1.0)
+    mean_mag = getattr(agg, "mean_magnitude_ratio", 1.0)
     if n_imbalanced > 0 and mean_mag > 3.0:
         return f"norm imbalance ({mean_mag:.1f}x mean magnitude ratio across {n_imbalanced} layer(s))"
 
@@ -170,7 +170,7 @@ def _dominant_issue(
 def _recommended_action(
     diag: PairDiagnosis,
     rec: MergeRecommendation,
-    agg: dict[str, Any],
+    agg: Any,
 ) -> str:
     """One-sentence recommended action."""
     if diag.eligibility.both_weak:
@@ -180,7 +180,7 @@ def _recommended_action(
         )
 
     if diag.overall_risk == "high":
-        n_conf = agg.get("n_conflicting", 0)
+        n_conf = getattr(agg, "n_conflicting", 0)
         if n_conf > 0:
             return (
                 f"Merge with caution using audit-aware strategy (DARE-TIES on "
@@ -300,30 +300,30 @@ def build_qa_report(report: Any) -> MergeQAReport:
     adapter_b_info = report.adapter_b
 
     adapter_a = AdapterSummary(
-        path=adapter_a_info.get("path", "unknown"),
-        rank=adapter_a_info.get("rank", 0),
-        alpha=adapter_a_info.get("alpha", 0.0),
-        n_layers=adapter_a_info.get("n_layers", 0),
-        base_model=adapter_a_info.get("base_model", "unknown"),
+        path=getattr(adapter_a_info, "path", "unknown"),
+        rank=getattr(adapter_a_info, "rank", 0),
+        alpha=getattr(adapter_a_info, "alpha", 0.0),
+        n_layers=getattr(adapter_a_info, "n_layers", 0),
+        base_model=getattr(adapter_a_info, "base_model", "unknown"),
         eligibility=_eligibility_label(diag, "a"),
     )
 
     adapter_b = AdapterSummary(
-        path=adapter_b_info.get("path", "unknown"),
-        rank=adapter_b_info.get("rank", 0),
-        alpha=adapter_b_info.get("alpha", 0.0),
-        n_layers=adapter_b_info.get("n_layers", 0),
-        base_model=adapter_b_info.get("base_model", "unknown"),
+        path=getattr(adapter_b_info, "path", "unknown"),
+        rank=getattr(adapter_b_info, "rank", 0),
+        alpha=getattr(adapter_b_info, "alpha", 0.0),
+        n_layers=getattr(adapter_b_info, "n_layers", 0),
+        base_model=getattr(adapter_b_info, "base_model", "unknown"),
         eligibility=_eligibility_label(diag, "b"),
     )
 
-    score = agg.get("compatibility_score", 0.0)
+    score = getattr(agg, "compatibility_score", agg.get("compatibility_score", 0.0) if hasattr(agg, "get") else 0.0)
 
     verdict_dist = {
-        "safe": agg.get("n_safe", 0),
-        "redundant": agg.get("n_redundant", 0),
-        "conflicting": agg.get("n_conflicting", 0),
-        "imbalanced": agg.get("n_imbalanced", 0),
+        "safe": getattr(agg, "n_safe", 0),
+        "redundant": getattr(agg, "n_redundant", 0),
+        "conflicting": getattr(agg, "n_conflicting", 0),
+        "imbalanced": getattr(agg, "n_imbalanced", 0),
     }
 
     return MergeQAReport(
