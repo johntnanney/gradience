@@ -42,7 +42,7 @@ def refactor_to_lora(
     dW: Tensor,
     target_rank: int,
     alpha: float,
-    compute_dtype: str = "float64",
+    compute_dtype: str = "float32",
 ) -> Tuple[Tensor, Tensor, float]:
     """Decompose a dense ΔW into LoRA factors (B, A) via truncated SVD.
 

@@ -455,6 +455,21 @@ def run_merges(
 
         pair_paths: Dict[str, Path] = {}
 
+        # Pre-load adapters once for all merge conditions in this pair
+        # (avoids 2-3 redundant load_adapter calls per condition)
+        from gradience.vnext.merge.io import load_adapter as _load_adapter
+        needs_merge = any(
+            not merged_adapter_has_weights(merge_dir / pair.pair_id / c[0])
+            for c in conditions
+        )
+        if needs_merge:
+            if verbose:
+                print("  Pre-loading adapters for merge...")
+            _info_a = _load_adapter(dir_a)
+            _info_b = _load_adapter(dir_b)
+        else:
+            _info_a = _info_b = None
+
         for cond_name, strategy_name, extra_kwargs in conditions:
             cond_dir = merge_dir / pair.pair_id / cond_name
             cond_dir.mkdir(parents=True, exist_ok=True)
@@ -489,7 +504,10 @@ def run_merges(
                     **plan_kwargs,
                 )
 
-                merge_result = execute_merge(plan, str(cond_dir), verbose=verbose)
+                merge_result = execute_merge(
+                    plan, str(cond_dir), verbose=verbose,
+                    preloaded_a=_info_a, preloaded_b=_info_b,
+                )
                 dt = time.time() - t0
 
                 if verbose:
@@ -501,6 +519,9 @@ def run_merges(
 
             except Exception as e:
                 logger.error("Merge %s/%s failed: %s", pair.pair_id, cond_name, e)
+
+        # Free pre-loaded adapters
+        del _info_a, _info_b
 
         # Require at least naive + recommended
         if "naive" in pair_paths and "recommended" in pair_paths:

@@ -179,7 +179,7 @@ def merge_audit(
     output_dir: Optional[Union[str, Path]] = None,
     energy_threshold: float = 0.90,
     thresholds: Optional[VerdictThresholds] = None,
-    compute_dtype: str = "float64",
+    compute_dtype: str = "float32",
     verbose: bool = False,
 ) -> MergeAuditReport:
     """Run a merge compatibility audit on two PEFT LoRA adapters.
@@ -192,7 +192,7 @@ def merge_audit(
     energy_threshold : fraction of squared-singular-value energy defining
         effective rank (default 0.90)
     thresholds : verdict decision thresholds; ``None`` uses defaults
-    compute_dtype : ``"float64"`` (default) or ``"float32"`` for SVD
+    compute_dtype : ``"float32"`` (default) or ``"float64"`` for SVD
     verbose : if True, print progress to stdout
 
     Returns

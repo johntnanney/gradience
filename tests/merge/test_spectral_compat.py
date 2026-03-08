@@ -40,7 +40,7 @@ class TestComputeLayerSVD:
         A = torch.randn(8, 48)
         B = torch.randn(64, 8)
 
-        U, S, Vt = compute_layer_svd(A, B)
+        U, S, Vt = compute_layer_svd(A, B, compute_dtype=torch.float64)
         reconstructed = U @ torch.diag(S) @ Vt
         expected = B.double() @ A.double()
 
@@ -53,7 +53,7 @@ class TestComputeLayerSVD:
         B = torch.randn(16, 4)
         scaling = 2.5
 
-        U, S, Vt = compute_layer_svd(A, B, scaling=scaling)
+        U, S, Vt = compute_layer_svd(A, B, scaling=scaling, compute_dtype=torch.float64)
         reconstructed = U @ torch.diag(S) @ Vt
         expected = scaling * B.double() @ A.double()
 
@@ -76,7 +76,7 @@ class TestComputeLayerSVD:
         A = torch.randn(8, 48)
         B = torch.randn(64, 8)
 
-        U, _, _ = compute_layer_svd(A, B)
+        U, _, _ = compute_layer_svd(A, B, compute_dtype=torch.float64)
         gram = U.T @ U
 
         assert torch.allclose(gram, torch.eye(8, dtype=torch.float64), atol=1e-10)
@@ -87,7 +87,7 @@ class TestComputeLayerSVD:
         A = torch.randn(8, 48)
         B = torch.randn(64, 8)
 
-        _, _, Vt = compute_layer_svd(A, B)
+        _, _, Vt = compute_layer_svd(A, B, compute_dtype=torch.float64)
         gram = Vt @ Vt.T
 
         assert torch.allclose(gram, torch.eye(8, dtype=torch.float64), atol=1e-10)

@@ -143,8 +143,10 @@ def execute_merge(
     plan: MergePlan,
     output_dir: Union[str, Path],
     *,
-    compute_dtype: str = "float64",
+    compute_dtype: str = "float32",
     verbose: bool = False,
+    preloaded_a: Optional[AdapterInfo] = None,
+    preloaded_b: Optional[AdapterInfo] = None,
 ) -> MergeResult:
     """Execute a merge plan and write a PEFT-compatible adapter.
 
@@ -152,6 +154,8 @@ def execute_merge(
     ----------
     plan : MergePlan specifying per-layer strategies, coefficients, and ranks
     output_dir : directory to write the merged adapter
+    preloaded_a : optional pre-loaded AdapterInfo for adapter A (avoids reload)
+    preloaded_b : optional pre-loaded AdapterInfo for adapter B (avoids reload)
     compute_dtype : ``"float64"`` (default) or ``"float32"`` for SVD precision
     verbose : if True, print progress to stdout
 
@@ -176,14 +180,24 @@ def execute_merge(
 
     start_time = time.monotonic()
 
-    # --- Load both adapters ---
-    if verbose:
-        print(f"Loading adapter A: {plan.adapter_a_dir}")
-    info_a = load_adapter(plan.adapter_a_dir)
+    # --- Load both adapters (skip if pre-loaded) ---
+    if preloaded_a is not None:
+        info_a = preloaded_a
+        if verbose:
+            print(f"Using pre-loaded adapter A: {plan.adapter_a_dir}")
+    else:
+        if verbose:
+            print(f"Loading adapter A: {plan.adapter_a_dir}")
+        info_a = load_adapter(plan.adapter_a_dir)
 
-    if verbose:
-        print(f"Loading adapter B: {plan.adapter_b_dir}")
-    info_b = load_adapter(plan.adapter_b_dir)
+    if preloaded_b is not None:
+        info_b = preloaded_b
+        if verbose:
+            print(f"Using pre-loaded adapter B: {plan.adapter_b_dir}")
+    else:
+        if verbose:
+            print(f"Loading adapter B: {plan.adapter_b_dir}")
+        info_b = load_adapter(plan.adapter_b_dir)
 
     if verbose:
         print(

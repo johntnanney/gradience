@@ -80,7 +80,7 @@ def compute_layer_svd(
     B: torch.Tensor,
     scaling: float = 1.0,
     *,
-    compute_dtype: torch.dtype = torch.float64,
+    compute_dtype: torch.dtype = torch.float32,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """QR-based full SVD of scaled ΔW = scaling * B @ A.
 
@@ -169,7 +169,7 @@ def compute_subspace_metrics(
     r_b: int,
     *,
     energy_threshold: float = 0.90,
-    compute_dtype: torch.dtype = torch.float64,
+    compute_dtype: torch.dtype = torch.float32,
     eps: float = 1e-12,
 ) -> SubspaceMetrics:
     """Full per-layer spectral comparison.
