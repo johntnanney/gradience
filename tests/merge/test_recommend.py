@@ -74,8 +74,9 @@ def _make_lv_dict(
 class _FakeReport:
     """Minimal stand-in for MergeAuditReport."""
 
-    def __init__(self, layer_verdicts: list[dict]):
+    def __init__(self, layer_verdicts: list[dict], source_qa: dict | None = None):
         self.layer_verdicts = layer_verdicts
+        self.source_qa = source_qa
 
 
 # ---------------------------------------------------------------------------
@@ -412,3 +413,90 @@ class TestFormatRecommendation:
 
         assert "./my-chat-adapter" in output
         assert "./my-code-adapter" in output
+
+
+# ---------------------------------------------------------------------------
+# Eligibility hard-warning tests
+# ---------------------------------------------------------------------------
+
+
+class TestEligibilityHardWarnings:
+    """Tests for hard warnings surfaced from source adapter eligibility."""
+
+    def test_no_source_qa_warns_structural_only(self):
+        """When no source_qa is provided, warn that recommendation is structural only."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa=None)
+        rec = recommend_merge(report)
+
+        assert len(rec.warnings) == 1
+        assert "No source-eligibility data provided" in rec.warnings[0]
+        assert "structural balance only" in rec.warnings[0]
+
+    def test_empty_source_qa_warns_structural_only(self):
+        """Empty source_qa dict is treated the same as None."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={})
+        rec = recommend_merge(report)
+
+        assert len(rec.warnings) == 1
+        assert "No source-eligibility data provided" in rec.warnings[0]
+
+    def test_one_adapter_flagged_weak(self):
+        """When one adapter is flagged weak, warn about preserving weak adapter."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+        })
+        rec = recommend_merge(report)
+
+        assert len(rec.warnings) == 1
+        assert "Structural rebalance may preserve a behaviorally weak adapter" in rec.warnings[0]
+
+    def test_both_adapters_flagged_weak(self):
+        """When both adapters are flagged weak, warn about uncertain deployment value."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+            "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
+        })
+        rec = recommend_merge(report)
+
+        assert len(rec.warnings) == 1
+        assert "Both source adapters underperform base" in rec.warnings[0]
+        assert "deployment value is uncertain" in rec.warnings[0]
+
+    def test_both_eligible_no_warnings(self):
+        """When both adapters are eligible, no hard warnings are emitted."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+        })
+        rec = recommend_merge(report)
+
+        assert len(rec.warnings) == 0
+
+    def test_warnings_in_to_dict(self):
+        """Warnings are serialized in to_dict()."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa=None)
+        rec = recommend_merge(report)
+        d = rec.to_dict()
+
+        assert "warnings" in d
+        assert len(d["warnings"]) == 1
+
+    def test_warnings_in_format_output(self):
+        """Warnings appear in CLI-formatted output."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+        })
+        rec = recommend_merge(report)
+        output = format_recommendation(rec)
+
+        assert "Warnings:" in output
+        assert "Structural rebalance may preserve a behaviorally weak adapter" in output

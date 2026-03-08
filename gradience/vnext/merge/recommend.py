@@ -24,6 +24,8 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
+from gradience.vnext.merge.eligibility import EligibilityStatus
+
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -70,6 +72,7 @@ class MergeRecommendation:
     compression_needed: bool
     n_layers_needing_compression: int
     fallback_strategies: Tuple[str, ...]    # alternative approaches
+    warnings: Tuple[str, ...] = ()          # hard warnings from eligibility screening
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -79,6 +82,7 @@ class MergeRecommendation:
             "compression_needed": self.compression_needed,
             "n_layers_needing_compression": self.n_layers_needing_compression,
             "fallback_strategies": list(self.fallback_strategies),
+            "warnings": list(self.warnings),
         }
 
     def format_cli(
@@ -290,6 +294,61 @@ def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
     )
 
 
+def _eligibility_warnings(report: Any) -> list[str]:
+    """Generate hard warnings based on source adapter eligibility data.
+
+    Inspects ``report.source_qa`` (dict with optional ``adapter_a`` /
+    ``adapter_b`` keys, each containing an ``AdapterQAResult.to_dict()``).
+    Returns concise, non-cheerful warnings so the recommendation is honest
+    about deployment risk.
+    """
+    source_qa = getattr(report, "source_qa", None)
+
+    # Case 1: no source QA provided at all
+    if source_qa is None:
+        return [
+            "No source-eligibility data provided; recommendation optimizes structural balance only.",
+        ]
+
+    def _status(key: str) -> EligibilityStatus | None:
+        entry = source_qa.get(key)
+        if entry is None:
+            return None
+        raw = entry.get("status", EligibilityStatus.UNKNOWN.value)
+        try:
+            return EligibilityStatus(raw)
+        except ValueError:
+            return EligibilityStatus.UNKNOWN
+
+    status_a = _status("adapter_a")
+    status_b = _status("adapter_b")
+
+    # If both entries are missing despite source_qa being non-None (empty dict),
+    # treat as no data provided.
+    if status_a is None and status_b is None:
+        return [
+            "No source-eligibility data provided; recommendation optimizes structural balance only.",
+        ]
+
+    warnings: list[str] = []
+
+    # Both flagged weak — most severe
+    if status_a == EligibilityStatus.FLAGGED_WEAK and status_b == EligibilityStatus.FLAGGED_WEAK:
+        warnings.append(
+            "Both source adapters underperform base or lack eligibility evidence; "
+            "merge recommendation is structurally valid but deployment value is uncertain."
+        )
+        return warnings
+
+    # Exactly one flagged weak
+    if status_a == EligibilityStatus.FLAGGED_WEAK or status_b == EligibilityStatus.FLAGGED_WEAK:
+        warnings.append(
+            "Structural rebalance may preserve a behaviorally weak adapter."
+        )
+
+    return warnings
+
+
 def recommend_merge(
     report: Any,  # MergeAuditReport — Any to avoid circular import
 ) -> MergeRecommendation:
@@ -335,6 +394,9 @@ def recommend_merge(
     if overall_strategy != "ties":
         fallbacks.append("overlap_ties")
 
+    # --- Hard warnings from eligibility screening ---
+    hard_warnings = _eligibility_warnings(report)
+
     return MergeRecommendation(
         overall_strategy="audit_aware",  # always audit_aware since it's per-layer
         overall_risk=overall_risk,
@@ -342,6 +404,7 @@ def recommend_merge(
         compression_needed=n_compress > 0,
         n_layers_needing_compression=n_compress,
         fallback_strategies=tuple(fallbacks[:2]),
+        warnings=tuple(hard_warnings),
     )
 
 
@@ -457,6 +520,13 @@ def format_recommendation(
         f"        --output merge_plan.json"
     )
     lines.append("")
+
+    # Hard warnings from eligibility screening
+    if rec.warnings:
+        lines.append("  Warnings:")
+        for warn in rec.warnings:
+            lines.append(f"    * {warn}")
+        lines.append("")
 
     # Fallback strategies
     if rec.fallback_strategies:
