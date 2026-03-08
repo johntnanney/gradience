@@ -1,0 +1,34 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "good-adapter-a",
+    "path": "./adapters/good-adapter-a",
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "rank_nominal": 16,
+    "n_layers": 32
+  },
+  "structural_summary": {
+    "utilization_mean": 0.52,
+    "utilization_median": 0.49,
+    "stable_rank_mean": 8.3,
+    "energy_rank_90_p50": 7.0,
+    "rank_waste_ratio": 0.48,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "hellaswag",
+    "metric_name": "accuracy",
+    "adapter_score": 0.78,
+    "base_score": 0.72,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (hellaswag)"
+    ]
+  }
+}

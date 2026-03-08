@@ -13,7 +13,7 @@ Gradience provides two main CLI tools:
 
 ### Usage
 ```bash
-gradience [-h] {verify,report,check,audit,merge-audit,explain,truncate,monitor} ...
+gradience [-h] {verify,report,check,audit,audit-adapter,merge-audit,explain,truncate,monitor} ...
 ```
 
 **Description**: Spectral telemetry and restraint-first diagnostics for neural network training
@@ -26,6 +26,7 @@ gradience [-h] {verify,report,check,audit,merge-audit,explain,truncate,monitor} 
 | `report` | Generate report from telemetry |
 | `check` | Validate config and emit restraint-first recommendations |
 | `audit` | Audit PEFT LoRA adapter for rank/utilization waste |
+| `audit-adapter` | Audit a single adapter and produce a QA eligibility artifact |
 | `merge-audit` | Audit spectral compatibility between two PEFT LoRA adapters |
 | `explain` | Explain disagreement analysis for specific layer from audit JSON |
 | `truncate` | SVD truncate PEFT LoRA adapter to smaller rank |
@@ -91,6 +92,80 @@ gradience audit --peft-dir ./my_adapter --top-wasteful 5
 gradience audit --peft-dir ./my_adapter --append ./training_run.jsonl
 ```
 
+### gradience audit-adapter
+
+**Audit a single adapter and produce a QA eligibility artifact.**
+
+Runs the same structural audit as `gradience audit`, then combines structural metrics with optional behavioral evaluation data to produce an eligibility judgment. The output is a `gradience.adapter_qa/v1` JSON artifact that can be fed into `merge-audit` via `--source-a-qa` / `--source-b-qa`.
+
+```bash
+gradience audit-adapter --peft-dir PEFT_DIR [OPTIONS]
+```
+
+#### Required Arguments
+- `--peft-dir PEFT_DIR` - Path to PEFT output directory
+
+#### Optional Arguments
+
+**Adapter Configuration:**
+- `--adapter-config PATH` - Explicit path to adapter_config.json/yaml
+- `--weights PATH` - Explicit path to adapter weights file
+- `--base-model MODEL` - Base model ID or path (for metadata and optional UDR)
+- `--base-norms-cache PATH` - Save/load base model norms cache
+- `--no-udr` - Skip UDR computation
+
+**Behavioral Evaluation (all optional):**
+- `--eval-dataset NAME` - Dataset used for evaluation (e.g. `oasst2`)
+- `--metric-name NAME` - Metric name (e.g. `perplexity`, `accuracy`)
+- `--adapter-score FLOAT` - Adapter's score on the metric
+- `--base-score FLOAT` - Base model's score on the metric
+- `--lower-is-better` - Lower values are better (default)
+- `--higher-is-better` - Higher values are better
+- `--margin FLOAT` - Tolerance margin for eligibility (default: 0.0)
+
+**Output:**
+- `--out PATH` - Write QA artifact JSON to this path
+- `--json` - Print QA artifact JSON to stdout instead of terminal summary
+
+#### Eligibility Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `eligible` | Adapter beats base model on behavioral eval |
+| `uncertain` | Performance within margin of base |
+| `flagged_weak` | Adapter worse than base model |
+| `unknown` | No behavioral evaluation provided |
+
+#### Examples
+
+```bash
+# Full audit with behavioral data
+gradience audit-adapter \
+    --peft-dir ./my_adapter \
+    --base-model meta-llama/Llama-2-7b-hf \
+    --eval-dataset oasst2 \
+    --metric-name perplexity \
+    --adapter-score 3.21 \
+    --base-score 4.66 \
+    --lower-is-better \
+    --out my_adapter_qa.json
+
+# Structural-only audit (no behavioral data)
+gradience audit-adapter --peft-dir ./my_adapter --out my_adapter_qa.json
+
+# JSON to stdout for piping
+gradience audit-adapter --peft-dir ./my_adapter --json 2>/dev/null | jq '.eligibility'
+
+# Feed into merge-audit
+gradience merge-audit \
+    --adapter-a ./adapter_a \
+    --adapter-b ./adapter_b \
+    --source-a-qa adapter_a_qa.json \
+    --source-b-qa adapter_b_qa.json
+```
+
+See **[Source QA Workflow](source_qa_workflow.md)** for the complete workflow guide.
+
 ### gradience merge-audit
 
 **Spectral compatibility analysis between two PEFT LoRA adapters before merging.**
@@ -116,6 +191,12 @@ gradience merge-audit --adapter-a ADAPTER_A --adapter-b ADAPTER_B [OPTIONS]
 - `--energy-threshold FLOAT` - Energy threshold for effective rank computation (default: 0.90)
 - `--thresholds {default,conservative,permissive}` - Verdict threshold preset (default: default)
 - `--compute-dtype {float64,float32,fp64,fp32}` - Precision for SVD computation (default: float64)
+
+**Source QA (optional):**
+- `--source-a-qa PATH` - QA artifact JSON for adapter A (from `audit-adapter`)
+- `--source-b-qa PATH` - QA artifact JSON for adapter B (from `audit-adapter`)
+- `--strict-qa` - Gate: refuse recommendations if source QA data is missing or weak
+- `--emit-report` / `--qa-report` - Write merge QA report
 
 #### Threshold Presets
 

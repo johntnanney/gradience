@@ -64,6 +64,7 @@ from gradience.vnext.merge.strategies import (
     TIESMerge,
     DARELinearMerge,
     DARETIESMerge,
+    NormEqualizedMerge,
     get_strategy,
 )
 from gradience.vnext.merge.refactor import refactor_to_lora
@@ -78,12 +79,48 @@ from gradience.vnext.merge.executor import (
     execute_merge,
 )
 
-# Phase 2 — Recommendations
+# Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
 from gradience.vnext.merge.recommend import (
+    # Stage A — Diagnosis
+    LayerDiagnosis,
+    EligibilityContext,
+    PairDiagnosis,
+    diagnose_layer,
+    diagnose_pair,
+    # Stage B — Policy
     MergeRecommendation,
     LayerRecommendation,
     recommend_merge,
     format_recommendation,
+    rebalance_coefficients,
+    norm_equalized_coefficients,
+)
+
+# Typed containers
+from gradience.vnext.merge.containers import (
+    AdapterMetadata,
+    AggregateResult,
+    MatchingSummary,
+    MergeWarning,
+    PairAuditResult,
+    RecommendationResult,
+    WarningCode,
+)
+
+# Source eligibility screening
+from gradience.vnext.merge.eligibility import (
+    EligibilityStatus,
+    AdapterQAResult,
+    classify_eligibility,
+    screen_adapters,
+)
+
+# QA Report
+from gradience.vnext.merge.qa_report import (
+    AdapterSummary,
+    MergeQAReport,
+    build_qa_report,
+    format_qa_report,
 )
 
 # Phase 2 — M1 protocol modules
@@ -123,6 +160,7 @@ __all__ = [
     "TIESMerge",
     "DARELinearMerge",
     "DARETIESMerge",
+    "NormEqualizedMerge",
     "get_strategy",
     # Phase 2 — SVD refactoring
     "refactor_to_lora",
@@ -134,11 +172,18 @@ __all__ = [
     "MergeResult",
     "LayerMergeResult",
     "execute_merge",
-    # Phase 2 — Recommendations
+    # Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
+    "LayerDiagnosis",
+    "EligibilityContext",
+    "PairDiagnosis",
+    "diagnose_layer",
+    "diagnose_pair",
     "MergeRecommendation",
     "LayerRecommendation",
     "recommend_merge",
     "format_recommendation",
+    "rebalance_coefficients",
+    "norm_equalized_coefficients",
     # M1 protocol — Outcome metrics
     "compute_merge_outcomes",
     "is_bad_merge",
@@ -152,6 +197,24 @@ __all__ = [
     "layer_shuffle_control",
     # M1 protocol — Norm-equalized merge (M2 stub)
     "norm_equalized_merge",
+    # Typed containers
+    "AdapterMetadata",
+    "AggregateResult",
+    "MatchingSummary",
+    "WarningCode",
+    "MergeWarning",
+    "PairAuditResult",
+    "RecommendationResult",
+    # Source eligibility screening
+    "EligibilityStatus",
+    "AdapterQAResult",
+    "classify_eligibility",
+    "screen_adapters",
+    # QA Report
+    "AdapterSummary",
+    "MergeQAReport",
+    "build_qa_report",
+    "format_qa_report",
 ]
 
 
@@ -181,6 +244,8 @@ def merge_audit(
     thresholds: Optional[VerdictThresholds] = None,
     compute_dtype: str = "float32",
     verbose: bool = False,
+    source_qa_a: Optional[AdapterQAResult] = None,
+    source_qa_b: Optional[AdapterQAResult] = None,
 ) -> MergeAuditReport:
     """Run a merge compatibility audit on two PEFT LoRA adapters.
 
@@ -194,6 +259,8 @@ def merge_audit(
     thresholds : verdict decision thresholds; ``None`` uses defaults
     compute_dtype : ``"float32"`` (default) or ``"float64"`` for SVD
     verbose : if True, print progress to stdout
+    source_qa_a : optional AdapterQAResult for adapter A (eligibility screening)
+    source_qa_b : optional AdapterQAResult for adapter B (eligibility screening)
 
     Returns
     -------
@@ -305,6 +372,13 @@ def merge_audit(
 
     logger.debug("Merge audit verdict: %s (score=%.3f)", overall_verdict.value, score)
 
+    # --- Step 4b: Source eligibility screening ---
+    eligibility_warnings = screen_adapters(source_qa_a, source_qa_b)
+    if eligibility_warnings and verbose:
+        print("\nSource eligibility warnings:")
+        for w in eligibility_warnings:
+            print(f"  - {w}")
+
     # --- Step 5: Build report ---
     report = build_report(
         adapter_a_info=info_a,
@@ -317,6 +391,8 @@ def merge_audit(
         score=score,
         recommendations=recommendations,
         thresholds=thresholds,
+        source_qa_a=source_qa_a,
+        source_qa_b=source_qa_b,
     )
 
     # --- Step 6: Write output files ---

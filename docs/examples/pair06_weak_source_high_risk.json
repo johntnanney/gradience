@@ -1,0 +1,109 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "description": "Study 16, Pair 06 archetype: one weak adapter + structural conflict. High risk. Merge is technically possible but behaviorally questionable.",
+
+  "adapter_a": {
+    "path": "adapters/llama2-7b-code-assist-r8",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility": "eligible"
+  },
+  "adapter_b": {
+    "path": "adapters/llama2-7b-chat-style-r8",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility": "flagged_weak"
+  },
+
+  "pair_risk": "high",
+  "dominant_issue": "subspace conflict (5 conflicting layer(s))",
+  "recommended_action": "Merge with caution using audit-aware strategy (DARE-TIES on 5 conflicting layer(s)). Validate merged adapter on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence_note": "Moderate spectral compatibility (score=0.531) — at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter B underperforms the base model. Rebalancing may preserve a weak signal.",
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 21,
+    "redundant": 3,
+    "conflicting": 5,
+    "imbalanced": 3
+  },
+  "compatibility_score": 0.5312,
+
+  "source_qa": {
+    "adapter_a": {
+      "adapter_path": "adapters/llama2-7b-code-assist-r8",
+      "status": "eligible",
+      "adapter_metric": 4.82,
+      "base_metric": 5.89,
+      "metric_name": "perplexity",
+      "lower_is_better": true,
+      "eval_dataset": "wikitext-2",
+      "notes": "Adapter beats base by 1.07 (perplexity, lower is better).",
+      "evidence": {}
+    },
+    "adapter_b": {
+      "adapter_path": "adapters/llama2-7b-chat-style-r8",
+      "status": "flagged_weak",
+      "adapter_metric": 6.31,
+      "base_metric": 5.89,
+      "metric_name": "perplexity",
+      "lower_is_better": true,
+      "eval_dataset": "wikitext-2",
+      "notes": "Adapter is worse than base by 0.42 (perplexity, lower is better). Flagged as weak.",
+      "evidence": {}
+    }
+  },
+
+  "recommendation": {
+    "overall_strategy": "audit_aware",
+    "overall_risk": "high",
+    "compression_needed": false,
+    "n_layers_needing_compression": 0,
+    "fallback_strategies": ["norm_equalized", "uniform_linear"],
+    "warnings": [
+      "Source adapter B is flagged as weaker than the base model on perplexity. Rebalancing coefficients may preserve a signal that is not worth preserving.",
+      "5 layer(s) show subspace conflict. DARE-TIES recommended to resolve opposing directions."
+    ],
+    "layer_recommendations_sample": [
+      {
+        "layer_name": "base_model.model.layers.4.self_attn.q_proj",
+        "verdict": "conflicting",
+        "strategy": "dare_ties",
+        "coefficients": [0.65, 0.35],
+        "trim_fraction": 0.2,
+        "risk_level": "high",
+        "compress_first": false,
+        "reasoning": "High overlap (0.61) with negative agreement (-0.42). Adapters modify the same subspace in opposing directions. DARE-TIES with asymmetric coefficients favoring the stronger adapter."
+      },
+      {
+        "layer_name": "base_model.model.layers.12.self_attn.v_proj",
+        "verdict": "safe",
+        "strategy": "linear",
+        "coefficients": [0.5, 0.5],
+        "trim_fraction": 0.0,
+        "risk_level": "low",
+        "compress_first": false,
+        "reasoning": "Low overlap (0.08). Orthogonal subspaces — safe to merge with equal coefficients."
+      },
+      {
+        "layer_name": "base_model.model.layers.24.mlp.down_proj",
+        "verdict": "imbalanced",
+        "strategy": "linear",
+        "coefficients": [0.35, 0.65],
+        "trim_fraction": 0.0,
+        "risk_level": "medium",
+        "compress_first": false,
+        "reasoning": "Magnitude ratio 6.2x. Rebalanced coefficients to compensate for norm imbalance."
+      }
+    ]
+  },
+
+  "formatted_report": "  MERGE QA REPORT\n  ============================================================\n\n  1. STRUCTURAL RESULT\n  ----------------------------------------\n  Pair risk:       HIGH\n  Compat. score:   0.531\n  Dominant issue:  subspace conflict (5 conflicting layer(s))\n  Layer verdicts:  21 safe, 3 redundant, 5 conflicting, 3 imbalanced (32 total)\n\n  Adapter A:  rank=8, alpha=16.0, 32 layers (meta-llama/Llama-2-7b-hf)\n              adapters/llama2-7b-code-assist-r8\n  Adapter B:  rank=8, alpha=16.0, 32 layers (meta-llama/Llama-2-7b-hf)\n              adapters/llama2-7b-chat-style-r8\n\n  2. BEHAVIORAL STATUS\n  ----------------------------------------\n  Adapter A eligibility: eligible\n  Adapter B eligibility: flagged_weak\n\n  Confidence: Moderate spectral compatibility (score=0.531) — at least one adapter lacks behavioral evidence of quality\n\n  3. ELIGIBILITY WARNING\n  ----------------------------------------\n  1. Adapter B underperforms the base model. Rebalancing may preserve a weak signal.\n  2. High structural risk. Always validate the merged adapter on your target task before deployment.\n\n  4. RECOMMENDED ACTION\n  ----------------------------------------\n  Merge with caution using audit-aware strategy (DARE-TIES on 5 conflicting layer(s)). Validate merged adapter on downstream task.\n  Strategy: audit_aware\n"
+}
