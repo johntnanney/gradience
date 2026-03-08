@@ -2093,9 +2093,29 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         for warn in report.warnings:
             print(f"  \u26a0 {warn}")
 
+    # --- QA Report ---
+    if getattr(args, "qa_report", False):
+        try:
+            from gradience.vnext.merge.qa_report import build_qa_report, format_qa_report
+            qa = build_qa_report(report)
+            print(format_qa_report(qa))
+            out_dir_qa = getattr(args, "output_dir", None)
+            if out_dir_qa:
+                qa_path = Path(out_dir_qa) / "merge_qa_report.json"
+                qa.to_json(qa_path)
+        except Exception as exc:
+            if getattr(args, "verbose", False):
+                import traceback
+                traceback.print_exc()
+            else:
+                print(f"\n  (QA report generation failed: {exc})")
+
     out_dir = getattr(args, "output_dir", None)
     if out_dir:
-        print(f"\nReports written to: {out_dir}/merge_audit.{{json,md}}")
+        report_files = "merge_audit.{json,md}"
+        if getattr(args, "qa_report", False):
+            report_files = "merge_audit.{json,md}, merge_qa_report.json"
+        print(f"\nReports written to: {out_dir}/{report_files}")
 
     print()
 
@@ -2747,6 +2767,11 @@ def _setup_merge_audit_command(subparsers):
         "--verbose",
         action="store_true",
         help="Show per-layer analysis table and progress",
+    )
+    merge_audit_parser.add_argument(
+        "--qa-report",
+        action="store_true",
+        help="Print a concise QA report summarizing risk, dominant issue, and recommended action",
     )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 

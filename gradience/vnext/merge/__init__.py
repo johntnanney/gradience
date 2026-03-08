@@ -104,6 +104,14 @@ from gradience.vnext.merge.eligibility import (
     screen_adapters,
 )
 
+# QA Report
+from gradience.vnext.merge.qa_report import (
+    AdapterSummary,
+    MergeQAReport,
+    build_qa_report,
+    format_qa_report,
+)
+
 # Phase 2 — M1 protocol modules
 from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
 from gradience.vnext.merge.scale import symmetric_scale_metrics, symmetric_frobenius_metrics
@@ -183,6 +191,11 @@ __all__ = [
     "AdapterQAResult",
     "classify_eligibility",
     "screen_adapters",
+    # QA Report
+    "AdapterSummary",
+    "MergeQAReport",
+    "build_qa_report",
+    "format_qa_report",
 ]
 
 
