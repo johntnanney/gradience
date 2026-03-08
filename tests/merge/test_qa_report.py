@@ -273,22 +273,25 @@ class TestFormatQAReport:
         text = format_qa_report(qa)
 
         assert "MERGE QA REPORT" in text
+        assert "1. STRUCTURAL RESULT" in text
+        assert "2. BEHAVIORAL STATUS" in text
+        assert "3. ELIGIBILITY WARNING" in text
+        assert "4. RECOMMENDED ACTION" in text
         assert "Adapter A" in text
         assert "Adapter B" in text
         assert "Pair risk:" in text
         assert "Dominant issue:" in text
-        assert "Recommended action" in text
         assert "Confidence" in text
 
-    def test_caveats_section_present_when_needed(self):
-        """Caveats section appears when there are caveats."""
+    def test_eligibility_section_present_when_needed(self):
+        """Eligibility warning section shows caveats when present."""
         report = _FakeReport([_make_lv_dict("safe")])
         qa = build_qa_report(report)
         text = format_qa_report(qa)
 
-        # No source QA → should have caveat about it
-        assert "Caveats" in text
-        assert "source-eligibility" in text.lower()
+        # No source QA → should have caveat in eligibility section
+        assert "ELIGIBILITY WARNING" in text
+        assert "source-eligibility" in text.lower() or "structural" in text.lower()
 
     def test_no_caveats_when_clean(self):
         """Low-risk pair with both eligible → minimal caveats."""

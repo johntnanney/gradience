@@ -1989,6 +1989,25 @@ def cmd_audit(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _load_source_qa(path_str: str | None) -> Any:
+    """Load an AdapterQAResult from a JSON file path, or return None."""
+    if path_str is None:
+        return None
+    import json as jsonlib
+    p = Path(path_str)
+    if not p.is_file():
+        print(f"Error: --source-*-qa path does not exist: {p}")
+        sys.exit(1)
+    try:
+        from gradience.vnext.merge.eligibility import AdapterQAResult
+        with open(p) as f:
+            data = jsonlib.load(f)
+        return AdapterQAResult.from_dict(data)
+    except Exception as e:
+        print(f"Error: Failed to load QA file {p}: {e}")
+        sys.exit(1)
+
+
 def cmd_merge_audit(args: argparse.Namespace) -> None:
     """Run merge compatibility audit on two PEFT LoRA adapters."""
     import json as jsonlib
@@ -2022,6 +2041,10 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     else:
         thresholds = VerdictThresholds()
 
+    # Load source QA files if provided
+    source_qa_a = _load_source_qa(getattr(args, "source_a_qa", None))
+    source_qa_b = _load_source_qa(getattr(args, "source_b_qa", None))
+
     try:
         report = merge_audit(
             adapter_a_dir=adapter_a,
@@ -2031,6 +2054,8 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             thresholds=thresholds,
             compute_dtype=getattr(args, "compute_dtype", "float64"),
             verbose=getattr(args, "verbose", False),
+            source_qa_a=source_qa_a,
+            source_qa_b=source_qa_b,
         )
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}")
@@ -2041,6 +2066,26 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             import traceback
             traceback.print_exc()
         sys.exit(1)
+
+    # --- Strict QA gate ---
+    strict_qa = getattr(args, "strict_qa", False)
+    if strict_qa:
+        from gradience.vnext.merge.recommend import diagnose_pair
+        diag = diagnose_pair(report)
+        if not diag.eligibility.has_data:
+            print("\nError: --strict-qa requires source QA data for both adapters.")
+            print("  Provide --source-a-qa and --source-b-qa, or remove --strict-qa.")
+            sys.exit(1)
+        if diag.eligibility.any_weak:
+            weak_labels = []
+            if diag.eligibility.status_a and diag.eligibility.status_a.value == "flagged_weak":
+                weak_labels.append("A")
+            if diag.eligibility.status_b and diag.eligibility.status_b.value == "flagged_weak":
+                weak_labels.append("B")
+            print(f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(weak_labels)} "
+                  f"flagged as weak.")
+            print("  Recommendations withheld. Review source adapter quality before merging.")
+            sys.exit(1)
 
     # --- Output ---
     if getattr(args, "json", False):
@@ -2072,6 +2117,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     )
 
     # --- Strategy Recommendations ---
+    user_strategy = getattr(args, "strategy", None)
     try:
         from gradience.vnext.merge.recommend import recommend_merge, format_recommendation
         merge_rec = recommend_merge(report)
@@ -2081,6 +2127,14 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             adapter_b_path=adapter_b,
         )
         print(rec_output)
+
+        # Highlight user-specified strategy if different from recommendation
+        if user_strategy and user_strategy != merge_rec.overall_strategy:
+            print(f"\n  User-specified strategy: {user_strategy}")
+            print(f"    $ gradience merge-plan --strategy {user_strategy} \\")
+            print(f"        --adapter-a {adapter_a} --adapter-b {adapter_b} \\")
+            print("        --output merge_plan.json")
+            print()
     except Exception:
         # Fall back to old-style recommendations if recommend module fails
         if report.recommendations:
@@ -2109,6 +2163,16 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
                 traceback.print_exc()
             else:
                 print(f"\n  (QA report generation failed: {exc})")
+
+    # --- Emit structured report ---
+    emit_path = getattr(args, "emit_report", None)
+    if emit_path:
+        from gradience.vnext.merge import to_json
+        emit_p = Path(emit_path)
+        emit_p.parent.mkdir(parents=True, exist_ok=True)
+        with open(emit_p, "w") as f:
+            jsonlib.dump(to_json(report), f, indent=2)
+        print(f"\nStructured report written to: {emit_p}")
 
     out_dir = getattr(args, "output_dir", None)
     if out_dir:
@@ -2772,6 +2836,35 @@ def _setup_merge_audit_command(subparsers):
         "--qa-report",
         action="store_true",
         help="Print a concise QA report summarizing risk, dominant issue, and recommended action",
+    )
+    merge_audit_parser.add_argument(
+        "--source-a-qa",
+        type=str,
+        default=None,
+        help="Path to a JSON file with prior QA results for adapter A (AdapterQAResult format)",
+    )
+    merge_audit_parser.add_argument(
+        "--source-b-qa",
+        type=str,
+        default=None,
+        help="Path to a JSON file with prior QA results for adapter B (AdapterQAResult format)",
+    )
+    merge_audit_parser.add_argument(
+        "--strategy",
+        type=str,
+        default=None,
+        help="Recommended merge strategy to highlight (e.g. norm_equalized, audit_aware)",
+    )
+    merge_audit_parser.add_argument(
+        "--emit-report",
+        type=str,
+        default=None,
+        help="Write structured JSON report to this path (e.g. report.json)",
+    )
+    merge_audit_parser.add_argument(
+        "--strict-qa",
+        action="store_true",
+        help="Refuse to produce recommendations when source QA data is missing or shows weak adapters",
     )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 

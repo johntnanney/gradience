@@ -346,36 +346,35 @@ def build_qa_report(report: Any) -> MergeQAReport:
 
 
 def format_qa_report(qa: MergeQAReport) -> str:
-    """Format a MergeQAReport as clean, human-readable text."""
+    """Format a MergeQAReport as clean, human-readable text.
+
+    Output is organized into four explicit sections:
+
+    1. **Structural Result** — spectral compatibility verdict, score,
+       layer distribution, dominant structural issue.
+    2. **Behavioral Status** — source adapter eligibility from QA data,
+       confidence note based on available evidence.
+    3. **Eligibility Warning** — warnings and caveats about data gaps
+       or weak adapters that affect recommendation reliability.
+    4. **Recommended Action** — concrete action and strategy, informed
+       by both structural and behavioral analysis.
+    """
     lines: list[str] = []
 
     lines.append("")
     lines.append("  MERGE QA REPORT")
     lines.append("  " + "=" * 60)
 
-    # Adapter summaries
+    # ---------------------------------------------------------------
+    # Section 1: Structural Result
+    # ---------------------------------------------------------------
     lines.append("")
-    lines.append("  Adapter A")
-    lines.append(f"    Path:        {qa.adapter_a.path}")
-    lines.append(f"    Rank:        {qa.adapter_a.rank}")
-    lines.append(f"    Alpha:       {qa.adapter_a.alpha}")
-    lines.append(f"    Layers:      {qa.adapter_a.n_layers}")
-    lines.append(f"    Base model:  {qa.adapter_a.base_model}")
-    lines.append(f"    Eligibility: {qa.adapter_a.eligibility}")
+    lines.append("  1. STRUCTURAL RESULT")
+    lines.append("  " + "-" * 40)
 
-    lines.append("")
-    lines.append("  Adapter B")
-    lines.append(f"    Path:        {qa.adapter_b.path}")
-    lines.append(f"    Rank:        {qa.adapter_b.rank}")
-    lines.append(f"    Alpha:       {qa.adapter_b.alpha}")
-    lines.append(f"    Layers:      {qa.adapter_b.n_layers}")
-    lines.append(f"    Base model:  {qa.adapter_b.base_model}")
-    lines.append(f"    Eligibility: {qa.adapter_b.eligibility}")
-
-    # Risk and issue
-    lines.append("")
     risk_indicator = {"low": "LOW", "medium": "MEDIUM", "high": "HIGH"}
     lines.append(f"  Pair risk:       {risk_indicator.get(qa.pair_risk, qa.pair_risk.upper())}")
+    lines.append(f"  Compat. score:   {qa.compatibility_score:.3f}")
     lines.append(f"  Dominant issue:  {qa.dominant_issue}")
 
     # Verdict distribution
@@ -389,24 +388,49 @@ def format_qa_report(qa: MergeQAReport) -> str:
                 dist_parts.append(f"{n} {k}")
         lines.append(f"  Layer verdicts:  {', '.join(dist_parts)} ({total} total)")
 
-    lines.append(f"  Compat. score:   {qa.compatibility_score:.3f}")
-
-    # Recommended action
+    # Adapter structural summaries
     lines.append("")
-    lines.append("  Recommended action")
-    lines.append(f"    {qa.recommended_action}")
+    lines.append(f"  Adapter A:  rank={qa.adapter_a.rank}, alpha={qa.adapter_a.alpha}, "
+                 f"{qa.adapter_a.n_layers} layers ({qa.adapter_a.base_model})")
+    lines.append(f"              {qa.adapter_a.path}")
+    lines.append(f"  Adapter B:  rank={qa.adapter_b.rank}, alpha={qa.adapter_b.alpha}, "
+                 f"{qa.adapter_b.n_layers} layers ({qa.adapter_b.base_model})")
+    lines.append(f"              {qa.adapter_b.path}")
 
-    # Confidence
+    # ---------------------------------------------------------------
+    # Section 2: Behavioral Status
+    # ---------------------------------------------------------------
     lines.append("")
-    lines.append("  Confidence")
-    lines.append(f"    {qa.confidence_note}")
+    lines.append("  2. BEHAVIORAL STATUS")
+    lines.append("  " + "-" * 40)
 
-    # Caveats
+    lines.append(f"  Adapter A eligibility: {qa.adapter_a.eligibility}")
+    lines.append(f"  Adapter B eligibility: {qa.adapter_b.eligibility}")
+
+    lines.append("")
+    lines.append(f"  Confidence: {qa.confidence_note}")
+
+    # ---------------------------------------------------------------
+    # Section 3: Eligibility Warning
+    # ---------------------------------------------------------------
+    lines.append("")
+    lines.append("  3. ELIGIBILITY WARNING")
+    lines.append("  " + "-" * 40)
+
     if qa.caveats:
-        lines.append("")
-        lines.append("  Caveats")
         for i, caveat in enumerate(qa.caveats, 1):
-            lines.append(f"    {i}. {caveat}")
+            lines.append(f"  {i}. {caveat}")
+    else:
+        lines.append("  No eligibility concerns detected.")
+
+    # ---------------------------------------------------------------
+    # Section 4: Recommended Action
+    # ---------------------------------------------------------------
+    lines.append("")
+    lines.append("  4. RECOMMENDED ACTION")
+    lines.append("  " + "-" * 40)
+    lines.append(f"  {qa.recommended_action}")
+    lines.append(f"  Strategy: {qa.recommended_strategy}")
 
     lines.append("")
 
