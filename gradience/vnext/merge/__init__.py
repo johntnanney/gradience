@@ -79,8 +79,15 @@ from gradience.vnext.merge.executor import (
     execute_merge,
 )
 
-# Phase 2 — Recommendations
+# Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
 from gradience.vnext.merge.recommend import (
+    # Stage A — Diagnosis
+    LayerDiagnosis,
+    EligibilityContext,
+    PairDiagnosis,
+    diagnose_layer,
+    diagnose_pair,
+    # Stage B — Policy
     MergeRecommendation,
     LayerRecommendation,
     recommend_merge,
@@ -146,7 +153,12 @@ __all__ = [
     "MergeResult",
     "LayerMergeResult",
     "execute_merge",
-    # Phase 2 — Recommendations
+    # Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
+    "LayerDiagnosis",
+    "EligibilityContext",
+    "PairDiagnosis",
+    "diagnose_layer",
+    "diagnose_pair",
     "MergeRecommendation",
     "LayerRecommendation",
     "recommend_merge",

@@ -4,14 +4,22 @@ from __future__ import annotations
 
 import pytest
 
+from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.merge.recommend import (
+    EligibilityContext,
+    LayerDiagnosis,
     LayerRecommendation,
     MergeRecommendation,
+    PairDiagnosis,
+    _apply_layer_policy,
+    _apply_policy,
     _compute_dare_drop_rate,
     _compute_trim_fraction,
     _compression_target,
     _recommend_layer,
     _should_compress,
+    diagnose_layer,
+    diagnose_pair,
     format_recommendation,
     norm_equalized_coefficients,
     rebalance_coefficients,
@@ -588,3 +596,288 @@ class TestNormEqualizedBaseline:
 
         assert "Norm-equalized baseline" in output
         assert "--strategy norm_equalized" in output
+
+
+# ---------------------------------------------------------------------------
+# Stage A — Diagnosis tests
+# ---------------------------------------------------------------------------
+
+
+class TestDiagnoseLayer:
+    """Tests for diagnose_layer (Stage A)."""
+
+    def test_returns_layer_diagnosis(self):
+        """diagnose_layer produces a LayerDiagnosis, not a recommendation."""
+        lv = _make_lv_dict(verdict="safe", mean_overlap=0.05)
+        diag = diagnose_layer(lv)
+
+        assert isinstance(diag, LayerDiagnosis)
+        assert diag.verdict == "safe"
+        assert diag.risk_level == "low"
+        assert diag.mean_overlap == pytest.approx(0.05)
+
+    def test_extracts_all_metrics(self):
+        """All key spectral metrics are extracted."""
+        lv = _make_lv_dict(
+            verdict="conflicting",
+            mean_overlap=0.8,
+            directional_agreement=-0.7,
+            magnitude_ratio=3.0,
+            conflict_dimensions=2,
+        )
+        diag = diagnose_layer(lv)
+
+        assert diag.mean_overlap == pytest.approx(0.8)
+        assert diag.directional_agreement == pytest.approx(-0.7)
+        assert diag.magnitude_ratio == pytest.approx(3.0)
+        assert diag.n_conflict == 2
+        assert diag.risk_level == "high"
+
+    def test_compression_diagnosed(self):
+        """Compression need is diagnosed without choosing a strategy."""
+        lv = _make_lv_dict(
+            verdict="redundant",
+            mean_overlap=0.8,
+            effective_rank_a=5,
+            nominal_rank_a=64,
+        )
+        diag = diagnose_layer(lv)
+
+        assert diag.compress_first is True
+        assert diag.compress_target_rank_a is not None
+        assert diag.compress_target_rank_a >= 5
+
+    def test_suggested_coefficients_preserved(self):
+        """Upstream suggested_coefficients are passed through."""
+        lv = _make_lv_dict(
+            verdict="imbalanced",
+            suggested_coefficients=[0.2, 0.8],
+        )
+        diag = diagnose_layer(lv)
+
+        assert diag.suggested_coefficients == (0.2, 0.8)
+
+    def test_no_suggested_coefficients(self):
+        """None when no upstream coefficients."""
+        lv = _make_lv_dict(verdict="safe")
+        diag = diagnose_layer(lv)
+
+        assert diag.suggested_coefficients is None
+
+    def test_to_dict_serializable(self):
+        """LayerDiagnosis serializes to JSON-compatible dict."""
+        import json
+
+        lv = _make_lv_dict(verdict="safe")
+        diag = diagnose_layer(lv)
+        d = diag.to_dict()
+        json_str = json.dumps(d)
+        assert "verdict" in json_str
+        assert "risk_level" in json_str
+        assert "mean_overlap" in json_str
+
+
+class TestEligibilityContext:
+    """Tests for EligibilityContext."""
+
+    def test_no_data(self):
+        ctx = EligibilityContext(status_a=None, status_b=None)
+        assert not ctx.has_data
+        assert not ctx.any_weak
+        assert not ctx.both_weak
+        assert not ctx.both_eligible
+
+    def test_both_eligible(self):
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.ELIGIBLE,
+            status_b=EligibilityStatus.ELIGIBLE,
+        )
+        assert ctx.has_data
+        assert ctx.both_eligible
+        assert not ctx.any_weak
+
+    def test_one_weak(self):
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.FLAGGED_WEAK,
+            status_b=EligibilityStatus.ELIGIBLE,
+        )
+        assert ctx.any_weak
+        assert not ctx.both_weak
+
+    def test_both_weak(self):
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.FLAGGED_WEAK,
+            status_b=EligibilityStatus.FLAGGED_WEAK,
+        )
+        assert ctx.both_weak
+        assert ctx.any_weak
+
+
+class TestDiagnosePair:
+    """Tests for diagnose_pair (full Stage A)."""
+
+    def test_returns_pair_diagnosis(self):
+        """diagnose_pair produces a PairDiagnosis."""
+        layers = [
+            _make_lv_dict(verdict="safe", layer_name="layer.0", mean_overlap=0.05),
+            _make_lv_dict(verdict="conflicting", layer_name="layer.1", mean_overlap=0.8),
+        ]
+        report = _FakeReport(layers)
+        diag = diagnose_pair(report)
+
+        assert isinstance(diag, PairDiagnosis)
+        assert len(diag.layer_diagnoses) == 2
+        assert diag.layer_diagnoses[0].verdict == "safe"
+        assert diag.layer_diagnoses[1].verdict == "conflicting"
+
+    def test_overall_risk_worst_case(self):
+        """Overall risk is the worst across layers."""
+        layers = [
+            _make_lv_dict(verdict="safe", layer_name="layer.0"),
+            _make_lv_dict(verdict="conflicting", layer_name="layer.1", mean_overlap=0.8),
+        ]
+        report = _FakeReport(layers)
+        diag = diagnose_pair(report)
+
+        assert diag.overall_risk == "high"
+
+    def test_compression_aggregated(self):
+        """Compression needs are aggregated."""
+        layers = [
+            _make_lv_dict(
+                verdict="redundant", layer_name="layer.0",
+                mean_overlap=0.8, effective_rank_a=5, nominal_rank_a=64,
+            ),
+            _make_lv_dict(verdict="safe", layer_name="layer.1"),
+        ]
+        report = _FakeReport(layers)
+        diag = diagnose_pair(report)
+
+        assert diag.compression_needed is True
+        assert diag.n_layers_needing_compression == 1
+
+    def test_eligibility_parsed(self):
+        """Source QA is parsed into EligibilityContext."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+            "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
+        })
+        diag = diagnose_pair(report)
+
+        assert diag.eligibility.has_data
+        assert diag.eligibility.status_a == EligibilityStatus.ELIGIBLE
+        assert diag.eligibility.status_b == EligibilityStatus.FLAGGED_WEAK
+        assert diag.eligibility.any_weak
+
+    def test_no_source_qa_produces_empty_context(self):
+        """Missing source_qa produces a no-data EligibilityContext."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa=None)
+        diag = diagnose_pair(report)
+
+        assert not diag.eligibility.has_data
+
+    def test_to_dict_serializable(self):
+        """PairDiagnosis serializes to JSON."""
+        import json
+
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+        })
+        diag = diagnose_pair(report)
+        d = diag.to_dict()
+        json_str = json.dumps(d)
+        assert "layer_diagnoses" in json_str
+        assert "eligibility" in json_str
+
+
+# ---------------------------------------------------------------------------
+# Stage B — Policy tests
+# ---------------------------------------------------------------------------
+
+
+class TestApplyLayerPolicy:
+    """Tests for _apply_layer_policy (Stage B per-layer)."""
+
+    def test_safe_gets_linear(self):
+        """SAFE diagnosis → linear strategy."""
+        diag = diagnose_layer(_make_lv_dict(verdict="safe", mean_overlap=0.05))
+        ctx = EligibilityContext(status_a=None, status_b=None)
+        rec = _apply_layer_policy(diag, ctx)
+
+        assert isinstance(rec, LayerRecommendation)
+        assert rec.strategy == "linear"
+        assert rec.coefficients == (0.5, 0.5)
+
+    def test_conflicting_gets_dare_ties(self):
+        """CONFLICTING diagnosis → dare_ties strategy."""
+        diag = diagnose_layer(_make_lv_dict(
+            verdict="conflicting", mean_overlap=0.8,
+            conflict_dimensions=3,
+        ))
+        ctx = EligibilityContext(status_a=None, status_b=None)
+        rec = _apply_layer_policy(diag, ctx)
+
+        assert rec.strategy == "dare_ties"
+        assert rec.trim_fraction >= 0.15
+
+    def test_policy_receives_eligibility(self):
+        """Policy function receives eligibility context (hook for future use)."""
+        diag = diagnose_layer(_make_lv_dict(verdict="safe"))
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.FLAGGED_WEAK,
+            status_b=EligibilityStatus.ELIGIBLE,
+        )
+        rec = _apply_layer_policy(diag, ctx)
+
+        # Currently policy doesn't change per-layer strategy based on
+        # eligibility, but the hook is there.  Just verify it runs.
+        assert isinstance(rec, LayerRecommendation)
+
+
+class TestApplyPolicy:
+    """Tests for _apply_policy (Stage B aggregate)."""
+
+    def test_composes_diagnosis_to_recommendation(self):
+        """_apply_policy converts PairDiagnosis → MergeRecommendation."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers)
+        diag = diagnose_pair(report)
+        rec = _apply_policy(diag)
+
+        assert isinstance(rec, MergeRecommendation)
+        assert len(rec.layer_recommendations) == 1
+        assert rec.overall_risk == "low"
+
+    def test_eligibility_warnings_propagated(self):
+        """Warnings from eligibility context flow through to recommendation."""
+        layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
+        report = _FakeReport(layers, source_qa={
+            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+        })
+        diag = diagnose_pair(report)
+        rec = _apply_policy(diag)
+
+        assert len(rec.warnings) == 1
+        assert "weak adapter" in rec.warnings[0]
+
+    def test_equivalent_to_recommend_merge(self):
+        """diagnose_pair + _apply_policy == recommend_merge."""
+        layers = [
+            _make_lv_dict(verdict="safe", layer_name="layer.0"),
+            _make_lv_dict(verdict="redundant", layer_name="layer.1", mean_overlap=0.7),
+        ]
+        report = _FakeReport(layers)
+
+        # Two-stage path
+        diag = diagnose_pair(report)
+        rec_staged = _apply_policy(diag)
+
+        # One-shot path
+        rec_direct = recommend_merge(report)
+
+        # Should produce identical recommendations
+        assert rec_staged.to_dict() == rec_direct.to_dict()

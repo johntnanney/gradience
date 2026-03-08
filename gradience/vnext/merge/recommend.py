@@ -1,19 +1,34 @@
 """
 Merge strategy recommendation engine.
 
-Translates a MergeAuditReport into specific, actionable recommendations:
-concrete strategy choices with tuned parameters per layer, compression
-suggestions when adapters are over-provisioned, and ready-to-paste CLI
-commands.
+Two-stage architecture:
 
-The recommendation logic is deterministic: all parameters are computed
-from spectral metrics, no GPU or task data required.
+**Stage A — Diagnosis** (pure spectral analysis, no policy decisions):
+  ``diagnose_layer`` and ``diagnose_pair`` extract structured facts from
+  a MergeAuditReport: magnitude imbalance, overlap/conflict/redundancy
+  classification, compression needs, and structural risk summary.
+
+**Stage B — Policy** (decision logic, uses diagnosis + eligibility context):
+  ``_apply_layer_policy`` and ``_apply_policy`` translate a diagnosis into
+  concrete strategy choices with tuned parameters.  Eligibility context
+  modulates the policy: weak sources get conservative treatment, strong
+  sources get full rebalancing, unknown sources get warnings.
+
+The public API (``recommend_merge``, ``_recommend_layer``) composes both
+stages.  The separation pays off immediately: diagnosis is reusable and
+testable independently of policy, and policy is the clear hook for
+future eligibility-aware refinements.
 
 Usage::
 
-    from gradience.vnext.merge.recommend import recommend_merge
+    from gradience.vnext.merge.recommend import recommend_merge, diagnose_pair
 
     report = merge_audit("./adapter_a", "./adapter_b")
+
+    # Stage A only — useful for inspection / custom policy
+    diagnosis = diagnose_pair(report)
+
+    # Both stages — full recommendation
     rec = recommend_merge(report)
     print(rec.format_cli())
 """
@@ -27,8 +42,133 @@ from typing import Any, Dict, List, Optional, Tuple
 from gradience.vnext.merge.eligibility import EligibilityStatus
 
 
-# ---------------------------------------------------------------------------
+# ===================================================================
 # Data structures
+# ===================================================================
+
+
+# ---------------------------------------------------------------------------
+# Stage A outputs — diagnosis (pure facts, no policy decisions)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LayerDiagnosis:
+    """Spectral diagnosis for one layer pair.
+
+    Contains only facts derived from spectral metrics — no strategy
+    choices or coefficient decisions.  Produced by ``diagnose_layer``.
+    """
+
+    layer_name: str
+    verdict: str                            # "safe" | "redundant" | "conflicting" | "imbalanced"
+    confidence: float
+    risk_level: str                         # "low" | "medium" | "high"
+
+    # Key spectral metrics (extracted for convenience)
+    mean_overlap: float
+    directional_agreement: float
+    magnitude_ratio: float
+    n_conflict: int
+    n_principal: int
+
+    # Compression diagnosis
+    compress_first: bool
+    compress_target_rank_a: int | None
+    compress_target_rank_b: int | None
+
+    # Upstream suggestion from the verdict engine (may be None)
+    suggested_coefficients: tuple[float, float] | None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "layer_name": self.layer_name,
+            "verdict": self.verdict,
+            "confidence": round(self.confidence, 4),
+            "risk_level": self.risk_level,
+            "mean_overlap": round(self.mean_overlap, 4),
+            "directional_agreement": round(self.directional_agreement, 4),
+            "magnitude_ratio": round(self.magnitude_ratio, 4),
+            "n_conflict": self.n_conflict,
+            "n_principal": self.n_principal,
+            "compress_first": self.compress_first,
+            "compress_target_rank_a": self.compress_target_rank_a,
+            "compress_target_rank_b": self.compress_target_rank_b,
+            "suggested_coefficients": list(self.suggested_coefficients) if self.suggested_coefficients else None,
+        }
+
+
+@dataclass(frozen=True)
+class EligibilityContext:
+    """Parsed eligibility state for the adapter pair.
+
+    Produced by ``_parse_eligibility`` from the report's ``source_qa``.
+    """
+
+    status_a: EligibilityStatus | None
+    status_b: EligibilityStatus | None
+
+    @property
+    def has_data(self) -> bool:
+        """True if any source QA data was provided."""
+        return self.status_a is not None or self.status_b is not None
+
+    @property
+    def any_weak(self) -> bool:
+        return (
+            self.status_a == EligibilityStatus.FLAGGED_WEAK
+            or self.status_b == EligibilityStatus.FLAGGED_WEAK
+        )
+
+    @property
+    def both_weak(self) -> bool:
+        return (
+            self.status_a == EligibilityStatus.FLAGGED_WEAK
+            and self.status_b == EligibilityStatus.FLAGGED_WEAK
+        )
+
+    @property
+    def both_eligible(self) -> bool:
+        return (
+            self.status_a == EligibilityStatus.ELIGIBLE
+            and self.status_b == EligibilityStatus.ELIGIBLE
+        )
+
+
+@dataclass(frozen=True)
+class PairDiagnosis:
+    """Aggregate diagnosis for an adapter pair.
+
+    Combines per-layer diagnoses with eligibility context.  Produced
+    by ``diagnose_pair``.  This is a complete Stage A output — everything
+    downstream policy needs to make decisions.
+    """
+
+    layer_diagnoses: tuple[LayerDiagnosis, ...]
+    overall_risk: str                       # "low" | "medium" | "high"
+    compression_needed: bool
+    n_layers_needing_compression: int
+    eligibility: EligibilityContext
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "layer_diagnoses": [ld.to_dict() for ld in self.layer_diagnoses],
+            "overall_risk": self.overall_risk,
+            "compression_needed": self.compression_needed,
+            "n_layers_needing_compression": self.n_layers_needing_compression,
+            "eligibility": {
+                "status_a": self.eligibility.status_a.value if self.eligibility.status_a else None,
+                "status_b": self.eligibility.status_b.value if self.eligibility.status_b else None,
+                "has_data": self.eligibility.has_data,
+                "any_weak": self.eligibility.any_weak,
+                "both_weak": self.eligibility.both_weak,
+                "both_eligible": self.eligibility.both_eligible,
+            },
+        }
+
+
+# ---------------------------------------------------------------------------
+# Stage B outputs — recommendations (policy decisions)
 # ---------------------------------------------------------------------------
 
 
@@ -94,9 +234,9 @@ class MergeRecommendation:
         return format_recommendation(self, adapter_a_path, adapter_b_path)
 
 
-# ---------------------------------------------------------------------------
+# ===================================================================
 # Parameter computation — deterministic functions of spectral metrics
-# ---------------------------------------------------------------------------
+# ===================================================================
 
 
 def rebalance_coefficients(magnitude_ratio: float) -> Tuple[float, float]:
@@ -221,13 +361,26 @@ def _risk_level(verdict: str, confidence: float) -> str:
     return "low"
 
 
-# ---------------------------------------------------------------------------
-# Core recommendation logic
-# ---------------------------------------------------------------------------
+# ===================================================================
+# Stage A — Diagnosis (pure spectral analysis, no policy decisions)
+# ===================================================================
 
 
-def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
-    """Generate recommendation for a single layer from its verdict dict."""
+def diagnose_layer(lv_dict: dict[str, Any]) -> LayerDiagnosis:
+    """Diagnose one layer pair from its verdict dict.
+
+    Extracts and computes structural facts: risk level, compression
+    needs, conflict counts.  Does NOT choose a merge strategy — that
+    is Stage B (policy).
+
+    Parameters
+    ----------
+    lv_dict : per-layer verdict dict from MergeAuditReport.layer_verdicts
+
+    Returns
+    -------
+    LayerDiagnosis with all facts needed by the policy stage.
+    """
     verdict = lv_dict["verdict"]
     metrics = lv_dict.get("metrics", {})
     layer_name = lv_dict["layer_name"]
@@ -247,125 +400,46 @@ def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
     pac = metrics.get("principal_angle_cosines", ())
     n_principal = len(pac) if pac else max(effective_rank_a, effective_rank_b, 1)
 
-    # Compression check (for both adapters independently)
+    # Compression diagnosis
     compress_a = _should_compress(mean_overlap, effective_rank_a, nominal_rank_a)
     compress_b = _should_compress(mean_overlap, effective_rank_b, nominal_rank_b)
-    compress_first = compress_a or compress_b
     target_a = _compression_target(effective_rank_a) if compress_a else None
     target_b = _compression_target(effective_rank_b) if compress_b else None
 
     risk = _risk_level(verdict, confidence)
 
-    # --- Strategy and parameter selection per verdict ---
-
-    if verdict == "safe":
-        return LayerRecommendation(
-            layer_name=layer_name,
-            verdict=verdict,
-            strategy="linear",
-            coefficients=(0.5, 0.5),
-            trim_fraction=0.0,
-            risk_level=risk,
-            compress_first=compress_first,
-            compress_target_rank_a=target_a,
-            compress_target_rank_b=target_b,
-            reasoning=(
-                f"Orthogonal subspaces (overlap={mean_overlap:.3f}). "
-                f"Linear merge preserves both signals."
-            ),
-        )
-
-    if verdict == "redundant":
-        trim = _compute_trim_fraction(mean_overlap)
-        return LayerRecommendation(
-            layer_name=layer_name,
-            verdict=verdict,
-            strategy="ties",
-            coefficients=(0.5, 0.5),
-            trim_fraction=trim,
-            risk_level=risk,
-            compress_first=compress_first,
-            compress_target_rank_a=target_a,
-            compress_target_rank_b=target_b,
-            reasoning=(
-                f"Redundant subspaces (overlap={mean_overlap:.3f}, "
-                f"agreement={directional_agreement:.3f}). "
-                f"TIES with trim={trim:.2f} deduplicates shared directions."
-            ),
-        )
-
-    if verdict == "conflicting":
-        drop_rate = _compute_dare_drop_rate(n_conflict, n_principal)
-        return LayerRecommendation(
-            layer_name=layer_name,
-            verdict=verdict,
-            strategy="dare_ties",
-            coefficients=(0.5, 0.5),
-            trim_fraction=drop_rate,
-            risk_level=risk,
-            compress_first=compress_first,
-            compress_target_rank_a=target_a,
-            compress_target_rank_b=target_b,
-            reasoning=(
-                f"{n_conflict} conflicting dimension(s) "
-                f"(overlap={mean_overlap:.3f}, agreement={directional_agreement:.3f}). "
-                f"DARE-TIES with drop={drop_rate:.2f} breaks interference."
-            ),
-        )
-
-    if verdict == "imbalanced":
-        coeffs = tuple(suggested_coeffs) if suggested_coeffs else rebalance_coefficients(magnitude_ratio)
-        return LayerRecommendation(
-            layer_name=layer_name,
-            verdict=verdict,
-            strategy="linear",
-            coefficients=coeffs,
-            trim_fraction=0.0,
-            risk_level=risk,
-            compress_first=compress_first,
-            compress_target_rank_a=target_a,
-            compress_target_rank_b=target_b,
-            reasoning=(
-                f"Magnitude imbalance ({magnitude_ratio:.1f}x). "
-                f"Rebalanced coefficients: A={coeffs[0]:.2f}, B={coeffs[1]:.2f}."
-            ),
-        )
-
-    # Fallback: moderate/ambiguous → TIES with light trim
-    trim = _compute_trim_fraction(mean_overlap) if mean_overlap > 0.3 else 0.0
-    strategy = "ties" if trim > 0 else "linear"
-    return LayerRecommendation(
+    return LayerDiagnosis(
         layer_name=layer_name,
         verdict=verdict,
-        strategy=strategy,
-        coefficients=(0.5, 0.5),
-        trim_fraction=trim,
-        risk_level="low",
-        compress_first=compress_first,
+        confidence=confidence,
+        risk_level=risk,
+        mean_overlap=mean_overlap,
+        directional_agreement=directional_agreement,
+        magnitude_ratio=magnitude_ratio,
+        n_conflict=n_conflict,
+        n_principal=n_principal,
+        compress_first=compress_a or compress_b,
         compress_target_rank_a=target_a,
         compress_target_rank_b=target_b,
-        reasoning=(
-            f"Moderate interaction (overlap={mean_overlap:.3f}). "
-            f"{'TIES' if strategy == 'ties' else 'Linear'} merge should work."
-        ),
+        suggested_coefficients=tuple(suggested_coeffs) if suggested_coeffs else None,
     )
 
 
-def _eligibility_warnings(report: Any) -> list[str]:
-    """Generate hard warnings based on source adapter eligibility data.
+def _parse_eligibility(report: Any) -> EligibilityContext:
+    """Parse eligibility status from a report's source_qa field.
 
-    Inspects ``report.source_qa`` (dict with optional ``adapter_a`` /
-    ``adapter_b`` keys, each containing an ``AdapterQAResult.to_dict()``).
-    Returns concise, non-cheerful warnings so the recommendation is honest
-    about deployment risk.
+    Parameters
+    ----------
+    report : MergeAuditReport (or any object with an optional ``source_qa`` attr)
+
+    Returns
+    -------
+    EligibilityContext with parsed status for both adapters.
     """
     source_qa = getattr(report, "source_qa", None)
 
-    # Case 1: no source QA provided at all
-    if source_qa is None:
-        return [
-            "No source-eligibility data provided; recommendation optimizes structural balance only.",
-        ]
+    if source_qa is None or not source_qa:
+        return EligibilityContext(status_a=None, status_b=None)
 
     def _status(key: str) -> EligibilityStatus | None:
         entry = source_qa.get(key)
@@ -377,12 +451,179 @@ def _eligibility_warnings(report: Any) -> list[str]:
         except ValueError:
             return EligibilityStatus.UNKNOWN
 
-    status_a = _status("adapter_a")
-    status_b = _status("adapter_b")
+    return EligibilityContext(
+        status_a=_status("adapter_a"),
+        status_b=_status("adapter_b"),
+    )
 
-    # If both entries are missing despite source_qa being non-None (empty dict),
-    # treat as no data provided.
-    if status_a is None and status_b is None:
+
+def diagnose_pair(report: Any) -> PairDiagnosis:
+    """Run Stage A diagnosis on an audit report.
+
+    Produces a ``PairDiagnosis`` containing per-layer diagnoses,
+    aggregate risk, compression summary, and eligibility context.
+    No strategy or coefficient decisions are made here.
+
+    Parameters
+    ----------
+    report : MergeAuditReport
+        Output from ``merge_audit()``.
+
+    Returns
+    -------
+    PairDiagnosis — complete Stage A output.
+    """
+    layer_diags = tuple(diagnose_layer(lv) for lv in report.layer_verdicts)
+
+    # Aggregate risk: worst case across layers
+    risk_order = {"low": 0, "medium": 1, "high": 2}
+    overall_risk = max(
+        (ld.risk_level for ld in layer_diags),
+        key=lambda r: risk_order.get(r, 0),
+        default="low",
+    )
+
+    n_compress = sum(1 for ld in layer_diags if ld.compress_first)
+
+    eligibility = _parse_eligibility(report)
+
+    return PairDiagnosis(
+        layer_diagnoses=layer_diags,
+        overall_risk=overall_risk,
+        compression_needed=n_compress > 0,
+        n_layers_needing_compression=n_compress,
+        eligibility=eligibility,
+    )
+
+
+# ===================================================================
+# Stage B — Policy (decision logic, uses diagnosis + eligibility)
+# ===================================================================
+
+
+def _apply_layer_policy(
+    diag: LayerDiagnosis,
+    eligibility: EligibilityContext,
+) -> LayerRecommendation:
+    """Apply recommendation policy to a single layer diagnosis.
+
+    Maps a ``LayerDiagnosis`` to a concrete ``LayerRecommendation``
+    (strategy, coefficients, trim fraction) based on the verdict and
+    eligibility context.
+
+    Parameters
+    ----------
+    diag : LayerDiagnosis from Stage A
+    eligibility : EligibilityContext for the adapter pair
+
+    Returns
+    -------
+    LayerRecommendation with strategy and parameter choices.
+    """
+    verdict = diag.verdict
+
+    # --- Strategy and parameter selection per verdict ---
+
+    if verdict == "safe":
+        return LayerRecommendation(
+            layer_name=diag.layer_name,
+            verdict=verdict,
+            strategy="linear",
+            coefficients=(0.5, 0.5),
+            trim_fraction=0.0,
+            risk_level=diag.risk_level,
+            compress_first=diag.compress_first,
+            compress_target_rank_a=diag.compress_target_rank_a,
+            compress_target_rank_b=diag.compress_target_rank_b,
+            reasoning=(
+                f"Orthogonal subspaces (overlap={diag.mean_overlap:.3f}). "
+                f"Linear merge preserves both signals."
+            ),
+        )
+
+    if verdict == "redundant":
+        trim = _compute_trim_fraction(diag.mean_overlap)
+        return LayerRecommendation(
+            layer_name=diag.layer_name,
+            verdict=verdict,
+            strategy="ties",
+            coefficients=(0.5, 0.5),
+            trim_fraction=trim,
+            risk_level=diag.risk_level,
+            compress_first=diag.compress_first,
+            compress_target_rank_a=diag.compress_target_rank_a,
+            compress_target_rank_b=diag.compress_target_rank_b,
+            reasoning=(
+                f"Redundant subspaces (overlap={diag.mean_overlap:.3f}, "
+                f"agreement={diag.directional_agreement:.3f}). "
+                f"TIES with trim={trim:.2f} deduplicates shared directions."
+            ),
+        )
+
+    if verdict == "conflicting":
+        drop_rate = _compute_dare_drop_rate(diag.n_conflict, diag.n_principal)
+        return LayerRecommendation(
+            layer_name=diag.layer_name,
+            verdict=verdict,
+            strategy="dare_ties",
+            coefficients=(0.5, 0.5),
+            trim_fraction=drop_rate,
+            risk_level=diag.risk_level,
+            compress_first=diag.compress_first,
+            compress_target_rank_a=diag.compress_target_rank_a,
+            compress_target_rank_b=diag.compress_target_rank_b,
+            reasoning=(
+                f"{diag.n_conflict} conflicting dimension(s) "
+                f"(overlap={diag.mean_overlap:.3f}, agreement={diag.directional_agreement:.3f}). "
+                f"DARE-TIES with drop={drop_rate:.2f} breaks interference."
+            ),
+        )
+
+    if verdict == "imbalanced":
+        coeffs = diag.suggested_coefficients or rebalance_coefficients(diag.magnitude_ratio)
+        return LayerRecommendation(
+            layer_name=diag.layer_name,
+            verdict=verdict,
+            strategy="linear",
+            coefficients=coeffs,
+            trim_fraction=0.0,
+            risk_level=diag.risk_level,
+            compress_first=diag.compress_first,
+            compress_target_rank_a=diag.compress_target_rank_a,
+            compress_target_rank_b=diag.compress_target_rank_b,
+            reasoning=(
+                f"Magnitude imbalance ({diag.magnitude_ratio:.1f}x). "
+                f"Rebalanced coefficients: A={coeffs[0]:.2f}, B={coeffs[1]:.2f}."
+            ),
+        )
+
+    # Fallback: moderate/ambiguous → TIES with light trim
+    trim = _compute_trim_fraction(diag.mean_overlap) if diag.mean_overlap > 0.3 else 0.0
+    strategy = "ties" if trim > 0 else "linear"
+    return LayerRecommendation(
+        layer_name=diag.layer_name,
+        verdict=verdict,
+        strategy=strategy,
+        coefficients=(0.5, 0.5),
+        trim_fraction=trim,
+        risk_level="low",
+        compress_first=diag.compress_first,
+        compress_target_rank_a=diag.compress_target_rank_a,
+        compress_target_rank_b=diag.compress_target_rank_b,
+        reasoning=(
+            f"Moderate interaction (overlap={diag.mean_overlap:.3f}). "
+            f"{'TIES' if strategy == 'ties' else 'Linear'} merge should work."
+        ),
+    )
+
+
+def _eligibility_warnings(eligibility: EligibilityContext) -> list[str]:
+    """Generate hard warnings from eligibility context.
+
+    Returns concise, non-cheerful warnings so the recommendation is honest
+    about deployment risk.
+    """
+    if not eligibility.has_data:
         return [
             "No source-eligibility data provided; recommendation optimizes structural balance only.",
         ]
@@ -390,7 +631,7 @@ def _eligibility_warnings(report: Any) -> list[str]:
     warnings: list[str] = []
 
     # Both flagged weak — most severe
-    if status_a == EligibilityStatus.FLAGGED_WEAK and status_b == EligibilityStatus.FLAGGED_WEAK:
+    if eligibility.both_weak:
         warnings.append(
             "Both source adapters underperform base or lack eligibility evidence; "
             "merge recommendation is structurally valid but deployment value is uncertain."
@@ -398,7 +639,7 @@ def _eligibility_warnings(report: Any) -> list[str]:
         return warnings
 
     # Exactly one flagged weak
-    if status_a == EligibilityStatus.FLAGGED_WEAK or status_b == EligibilityStatus.FLAGGED_WEAK:
+    if eligibility.any_weak:
         warnings.append(
             "Structural rebalance may preserve a behaviorally weak adapter."
         )
@@ -406,10 +647,77 @@ def _eligibility_warnings(report: Any) -> list[str]:
     return warnings
 
 
+def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
+    """Apply recommendation policy to a pair diagnosis.
+
+    Takes the complete Stage A output and produces a ``MergeRecommendation``
+    with per-layer strategies, fallbacks, and eligibility warnings.
+
+    Parameters
+    ----------
+    pair_diag : PairDiagnosis from ``diagnose_pair``
+
+    Returns
+    -------
+    MergeRecommendation — complete Stage B output.
+    """
+    layer_recs = tuple(
+        _apply_layer_policy(ld, pair_diag.eligibility)
+        for ld in pair_diag.layer_diagnoses
+    )
+
+    # Overall strategy: majority vote across layers
+    strategy_counts: dict[str, int] = {}
+    for lr in layer_recs:
+        strategy_counts[lr.strategy] = strategy_counts.get(lr.strategy, 0) + 1
+    overall_strategy = max(strategy_counts, key=strategy_counts.get) if strategy_counts else "linear"
+
+    # Fallback strategies
+    fallbacks: list[str] = []
+    # norm_equalized is always a strong baseline worth considering
+    fallbacks.append("norm_equalized")
+    if overall_strategy != "linear":
+        fallbacks.append("uniform_linear")
+    if overall_strategy != "dare_ties":
+        fallbacks.append("dare_ties")
+    if overall_strategy != "ties":
+        fallbacks.append("overlap_ties")
+
+    # Hard warnings from eligibility screening
+    hard_warnings = _eligibility_warnings(pair_diag.eligibility)
+
+    return MergeRecommendation(
+        overall_strategy="audit_aware",
+        overall_risk=pair_diag.overall_risk,
+        layer_recommendations=layer_recs,
+        compression_needed=pair_diag.compression_needed,
+        n_layers_needing_compression=pair_diag.n_layers_needing_compression,
+        fallback_strategies=tuple(fallbacks[:2]),
+        warnings=tuple(hard_warnings),
+    )
+
+
+# ===================================================================
+# Public API — composes Stage A + Stage B
+# ===================================================================
+
+
+def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
+    """Generate recommendation for a single layer from its verdict dict.
+
+    Convenience function that composes ``diagnose_layer`` (Stage A) with
+    ``_apply_layer_policy`` (Stage B) using a no-data eligibility context.
+    """
+    diag = diagnose_layer(lv_dict)
+    return _apply_layer_policy(diag, EligibilityContext(status_a=None, status_b=None))
+
+
 def recommend_merge(
     report: Any,  # MergeAuditReport — Any to avoid circular import
 ) -> MergeRecommendation:
     """Generate complete merge recommendation from an audit report.
+
+    Composes Stage A (``diagnose_pair``) with Stage B (``_apply_policy``).
 
     Parameters
     ----------
@@ -421,50 +729,8 @@ def recommend_merge(
     MergeRecommendation with per-layer strategies, parameters, and
     compression guidance.
     """
-    layer_recs = []
-    for lv_dict in report.layer_verdicts:
-        layer_recs.append(_recommend_layer(lv_dict))
-
-    # --- Overall strategy: majority vote across layers ---
-    strategy_counts: Dict[str, int] = {}
-    for lr in layer_recs:
-        strategy_counts[lr.strategy] = strategy_counts.get(lr.strategy, 0) + 1
-    overall_strategy = max(strategy_counts, key=strategy_counts.get) if strategy_counts else "linear"
-
-    # --- Overall risk: worst case ---
-    risk_order = {"low": 0, "medium": 1, "high": 2}
-    overall_risk = max(
-        (lr.risk_level for lr in layer_recs),
-        key=lambda r: risk_order.get(r, 0),
-        default="low",
-    )
-
-    # --- Compression ---
-    n_compress = sum(1 for lr in layer_recs if lr.compress_first)
-
-    # --- Fallback strategies ---
-    fallbacks = []
-    # norm_equalized is always a strong baseline worth considering
-    fallbacks.append("norm_equalized")
-    if overall_strategy != "linear":
-        fallbacks.append("uniform_linear")
-    if overall_strategy != "dare_ties":
-        fallbacks.append("dare_ties")
-    if overall_strategy != "ties":
-        fallbacks.append("overlap_ties")
-
-    # --- Hard warnings from eligibility screening ---
-    hard_warnings = _eligibility_warnings(report)
-
-    return MergeRecommendation(
-        overall_strategy="audit_aware",  # always audit_aware since it's per-layer
-        overall_risk=overall_risk,
-        layer_recommendations=tuple(layer_recs),
-        compression_needed=n_compress > 0,
-        n_layers_needing_compression=n_compress,
-        fallback_strategies=tuple(fallbacks[:2]),
-        warnings=tuple(hard_warnings),
-    )
+    pair_diag = diagnose_pair(report)
+    return _apply_policy(pair_diag)
 
 
 # ---------------------------------------------------------------------------
