@@ -49,6 +49,7 @@ class MergeAuditReport:
     thresholds: Dict[str, float] = field(default_factory=dict)
     timestamp: str = ""
     gradience_version: str = ""
+    source_qa: Optional[Dict[str, Any]] = None  # eligibility screening results
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +68,8 @@ def build_report(
     score: float,
     recommendations: List[str],
     thresholds: VerdictThresholds,
+    source_qa_a: Optional[Any] = None,
+    source_qa_b: Optional[Any] = None,
 ) -> MergeAuditReport:
     """Assemble full report from analysis results."""
 
@@ -90,7 +93,22 @@ def build_report(
     frob_log_ratios = [getattr(lv.metrics, 'frob_log_ratio', 0.0) for lv in layer_verdicts]
     mag_ratios = [getattr(lv.metrics, 'magnitude_ratio', 0.0) for lv in layer_verdicts]
 
+    # Build source QA section if provided
+    source_qa: Optional[Dict[str, Any]] = None
+    if source_qa_a is not None or source_qa_b is not None:
+        source_qa = {}
+        if source_qa_a is not None:
+            source_qa["adapter_a"] = source_qa_a.to_dict()
+        if source_qa_b is not None:
+            source_qa["adapter_b"] = source_qa_b.to_dict()
+
+    # Eligibility warnings
+    from gradience.vnext.merge.eligibility import screen_adapters
+
+    eligibility_warnings = screen_adapters(source_qa_a, source_qa_b)
+
     warnings: List[str] = []
+    warnings.extend(eligibility_warnings)
     if only_a:
         warnings.append(
             f"{len(only_a)} layer(s) only in adapter A: {', '.join(only_a[:5])}"
@@ -164,6 +182,7 @@ def build_report(
         thresholds=thresholds.to_dict(),
         timestamp=datetime.now(timezone.utc).isoformat(),
         gradience_version=grad_version,
+        source_qa=source_qa,
     )
 
 
@@ -174,7 +193,7 @@ def build_report(
 
 def to_json(report: MergeAuditReport) -> Dict[str, Any]:
     """Convert report to JSON-serializable dict."""
-    return {
+    d: Dict[str, Any] = {
         "schema_version": "gradience.merge_audit/v2",
         "timestamp": report.timestamp,
         "gradience_version": report.gradience_version,
@@ -188,6 +207,9 @@ def to_json(report: MergeAuditReport) -> Dict[str, Any]:
         "warnings": report.warnings,
         "thresholds": report.thresholds,
     }
+    if report.source_qa is not None:
+        d["source_qa"] = report.source_qa
+    return d
 
 
 def write_json_report(report: MergeAuditReport, output_path: Path) -> None:
@@ -321,6 +343,35 @@ def to_markdown(report: MergeAuditReport) -> str:
             lines.append(f"- {lv['recommendation']}")
             lines.append(f"- Conflicting dimensions: {lv['conflict_dimensions']}")
             lines.append("")
+
+    # --- Source eligibility ---
+    if report.source_qa:
+        lines.append("## Source Adapter Eligibility\n")
+        lines.append(
+            "> **Note:** Merge recommendations are structural. "
+            "Source eligibility screening checks whether each adapter "
+            "is worth preserving based on behavioral evaluation.\n"
+        )
+        for label, key in [("Adapter A", "adapter_a"), ("Adapter B", "adapter_b")]:
+            qa = report.source_qa.get(key)
+            if qa:
+                status = qa.get("status", "unknown").upper()
+                status_indicator = {
+                    "ELIGIBLE": "PASS",
+                    "UNCERTAIN": "UNCERTAIN",
+                    "FLAGGED_WEAK": "WEAK",
+                    "UNKNOWN": "NO DATA",
+                }.get(status, status)
+                lines.append(f"- **{label}:** {status_indicator}")
+                if qa.get("notes"):
+                    lines.append(f"  - {qa['notes']}")
+                if qa.get("adapter_metric") is not None and qa.get("base_metric") is not None:
+                    lines.append(
+                        f"  - {qa.get('metric_name', 'metric')}: "
+                        f"adapter={qa['adapter_metric']:.4f}, "
+                        f"base={qa['base_metric']:.4f}"
+                    )
+        lines.append("")
 
     # --- Recommendations ---
     if report.recommendations:
