@@ -1,0 +1,103 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "description": "Study 16, Pair 02 archetype: both adapters eligible, all layers safe, low risk. The happy-path no-op case where linear merge with equal coefficients is the right answer.",
+
+  "adapter_a": {
+    "path": "adapters/llama2-7b-summarize-r8",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility": "eligible"
+  },
+  "adapter_b": {
+    "path": "adapters/llama2-7b-translate-r8",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility": "eligible"
+  },
+
+  "pair_risk": "low",
+  "dominant_issue": "none — adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "audit_aware",
+  "confidence_note": "High spectral compatibility (score=0.892) — both adapters have verified behavioral quality",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 32,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.8921,
+
+  "source_qa": {
+    "adapter_a": {
+      "adapter_path": "adapters/llama2-7b-summarize-r8",
+      "status": "eligible",
+      "adapter_metric": 4.51,
+      "base_metric": 5.89,
+      "metric_name": "perplexity",
+      "lower_is_better": true,
+      "eval_dataset": "wikitext-2",
+      "notes": "Adapter beats base by 1.38 (perplexity, lower is better).",
+      "evidence": {}
+    },
+    "adapter_b": {
+      "adapter_path": "adapters/llama2-7b-translate-r8",
+      "status": "eligible",
+      "adapter_metric": 5.12,
+      "base_metric": 5.89,
+      "metric_name": "perplexity",
+      "lower_is_better": true,
+      "eval_dataset": "wikitext-2",
+      "notes": "Adapter beats base by 0.77 (perplexity, lower is better).",
+      "evidence": {}
+    }
+  },
+
+  "recommendation": {
+    "overall_strategy": "audit_aware",
+    "overall_risk": "low",
+    "compression_needed": false,
+    "n_layers_needing_compression": 0,
+    "fallback_strategies": ["norm_equalized", "uniform_linear"],
+    "warnings": [],
+    "layer_recommendations_sample": [
+      {
+        "layer_name": "base_model.model.layers.0.self_attn.q_proj",
+        "verdict": "safe",
+        "strategy": "linear",
+        "coefficients": [0.5, 0.5],
+        "trim_fraction": 0.0,
+        "risk_level": "low",
+        "compress_first": false,
+        "reasoning": "Low overlap (0.04). Orthogonal subspaces — safe to merge with equal coefficients."
+      },
+      {
+        "layer_name": "base_model.model.layers.15.self_attn.v_proj",
+        "verdict": "safe",
+        "strategy": "linear",
+        "coefficients": [0.5, 0.5],
+        "trim_fraction": 0.0,
+        "risk_level": "low",
+        "compress_first": false,
+        "reasoning": "Low overlap (0.07). Orthogonal subspaces — safe to merge with equal coefficients."
+      },
+      {
+        "layer_name": "base_model.model.layers.31.mlp.down_proj",
+        "verdict": "safe",
+        "strategy": "linear",
+        "coefficients": [0.5, 0.5],
+        "trim_fraction": 0.0,
+        "risk_level": "low",
+        "compress_first": false,
+        "reasoning": "Low overlap (0.09). Orthogonal subspaces — safe to merge with equal coefficients."
+      }
+    ]
+  },
+
+  "formatted_report": "  MERGE QA REPORT\n  ============================================================\n\n  1. STRUCTURAL RESULT\n  ----------------------------------------\n  Pair risk:       LOW\n  Compat. score:   0.892\n  Dominant issue:  none — adapters are spectrally compatible\n  Layer verdicts:  32 safe (32 total)\n\n  Adapter A:  rank=8, alpha=16.0, 32 layers (meta-llama/Llama-2-7b-hf)\n              adapters/llama2-7b-summarize-r8\n  Adapter B:  rank=8, alpha=16.0, 32 layers (meta-llama/Llama-2-7b-hf)\n              adapters/llama2-7b-translate-r8\n\n  2. BEHAVIORAL STATUS\n  ----------------------------------------\n  Adapter A eligibility: eligible\n  Adapter B eligibility: eligible\n\n  Confidence: High spectral compatibility (score=0.892) — both adapters have verified behavioral quality\n\n  3. ELIGIBILITY WARNING\n  ----------------------------------------\n  No eligibility concerns detected.\n\n  4. RECOMMENDED ACTION\n  ----------------------------------------\n  Merge is safe. Use audit-aware strategy or norm-equalized baseline.\n  Strategy: audit_aware\n"
+}

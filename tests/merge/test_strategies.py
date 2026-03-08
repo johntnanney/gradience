@@ -14,6 +14,7 @@ from gradience.vnext.merge.strategies import (
     TIESMerge,
     DARELinearMerge,
     DARETIESMerge,
+    NormEqualizedMerge,
     get_strategy,
 )
 
@@ -340,3 +341,67 @@ class TestGetStrategyExtended:
     def test_dare_ties(self):
         s = get_strategy("dare_ties")
         assert isinstance(s, DARETIESMerge)
+
+    def test_norm_equalized(self):
+        s = get_strategy("norm_equalized")
+        assert isinstance(s, NormEqualizedMerge)
+
+
+# ---------------------------------------------------------------------------
+# NormEqualizedMerge
+# ---------------------------------------------------------------------------
+
+
+class TestNormEqualizedMerge:
+    def test_output_shape_preserved(self, simple_dW_pair, make_config):
+        """Output has the same shape as inputs."""
+        dW_a, dW_b = simple_dW_pair
+        config = make_config(strategy="norm_equalized")
+        strategy = get_strategy("norm_equalized")
+        result = strategy.merge(dW_a, dW_b, config)
+        assert result.shape == dW_a.shape
+
+    def test_equal_norm_matches_linear(self, make_config):
+        """When both inputs have equal norms, result equals linear merge."""
+        torch.manual_seed(0)
+        dW_a = torch.randn(8, 6)
+        # Make dW_b the same norm as dW_a
+        dW_b = torch.randn(8, 6)
+        dW_b = dW_b * (torch.linalg.norm(dW_a, "fro") / torch.linalg.norm(dW_b, "fro"))
+
+        config = make_config(strategy="norm_equalized")
+        strategy = get_strategy("norm_equalized")
+        result = strategy.merge(dW_a, dW_b, config)
+
+        expected = 0.5 * dW_a + 0.5 * dW_b
+        torch.testing.assert_close(result, expected, atol=1e-5, rtol=1e-5)
+
+    def test_imbalanced_inputs_equalized(self, make_config):
+        """When one adapter is 10x the norm, the strategy equalizes before merging."""
+        torch.manual_seed(1)
+        dW_a = torch.randn(8, 6)
+        dW_b = torch.randn(8, 6) * 10.0
+
+        config = make_config(strategy="norm_equalized")
+        strategy = get_strategy("norm_equalized")
+        result = strategy.merge(dW_a, dW_b, config)
+
+        # Result should differ from naive linear merge
+        naive = 0.5 * dW_a + 0.5 * dW_b
+        assert not torch.allclose(result, naive, atol=1e-2)
+
+    def test_coefficients_respected(self, make_config):
+        """Custom coefficients are passed through to the merge."""
+        torch.manual_seed(2)
+        dW_a = torch.randn(8, 6)
+        dW_b = torch.zeros(8, 6)  # zero B so result depends only on coefficient * scaled A
+
+        config_half = make_config(strategy="norm_equalized", coefficients=(0.5, 0.5))
+        config_full = make_config(strategy="norm_equalized", coefficients=(1.0, 0.0))
+
+        strategy = get_strategy("norm_equalized")
+        r_half = strategy.merge(dW_a, dW_b, config_half)
+        r_full = strategy.merge(dW_a, dW_b, config_full)
+
+        # weight_A=1.0 gives double the A contribution vs weight_A=0.5
+        torch.testing.assert_close(r_full, 2.0 * r_half, atol=1e-5, rtol=1e-5)

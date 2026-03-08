@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult, MatchingSummary
 from gradience.vnext.merge.plan import (
     PLAN_STRATEGIES,
     plan_from_audit,
@@ -15,23 +16,23 @@ from gradience.vnext.merge.report import MergeAuditReport
 def mock_report():
     """Minimal MergeAuditReport for plan generation tests."""
     return MergeAuditReport(
-        adapter_a={
-            "path": "/tmp/adapter_a",
-            "rank": 32,
-            "alpha": 32.0,
-            "n_layers": 2,
-        },
-        adapter_b={
-            "path": "/tmp/adapter_b",
-            "rank": 32,
-            "alpha": 32.0,
-            "n_layers": 2,
-        },
-        matching={
-            "n_shared": 2,
-            "n_only_a": 0,
-            "n_only_b": 0,
-        },
+        adapter_a=AdapterMetadata(
+            path="/tmp/adapter_a",
+            rank=32,
+            alpha=32.0,
+            n_layers=2,
+        ),
+        adapter_b=AdapterMetadata(
+            path="/tmp/adapter_b",
+            rank=32,
+            alpha=32.0,
+            n_layers=2,
+        ),
+        matching=MatchingSummary(
+            n_shared=2,
+            n_only_a=0,
+            n_only_b=0,
+        ),
         layer_verdicts=[
             {
                 "layer_name": "model.layers.0.self_attn.q_proj",
@@ -46,10 +47,10 @@ def mock_report():
                 "suggested_coefficients": None,
             },
         ],
-        aggregate={
-            "overall_verdict": "safe",
-            "compatibility_score": 0.65,
-        },
+        aggregate=AggregateResult(
+            overall_verdict="safe",
+            compatibility_score=0.65,
+        ),
         recommendations=[],
     )
 

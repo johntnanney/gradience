@@ -12,11 +12,13 @@ from typing import Any, Dict, List
 
 import pytest
 
+from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult, MatchingSummary
 from gradience.vnext.merge.plan import (
     MergePlan,
     plan_from_audit,
     plan_uniform_linear,
     plan_audit_aware,
+    plan_norm_equalized,
     plan_overlap_ties,
     PLAN_STRATEGIES,
 )
@@ -73,29 +75,29 @@ def _make_report(
 ) -> MergeAuditReport:
     """Build a minimal MergeAuditReport for testing."""
     return MergeAuditReport(
-        adapter_a={"path": "/tmp/adapter_a", "rank": 8, "alpha": 16.0, "base_model": "test", "n_layers": 2},
-        adapter_b={"path": "/tmp/adapter_b", "rank": 8, "alpha": 16.0, "base_model": "test", "n_layers": 2},
-        matching={
-            "n_shared": len(layer_verdicts),
-            "n_only_a": 0,
-            "n_only_b": 0,
-            "shared_layers": [lv["layer_name"] for lv in layer_verdicts],
-            "only_a_layers": [],
-            "only_b_layers": [],
-        },
+        adapter_a=AdapterMetadata(path="/tmp/adapter_a", rank=8, alpha=16.0, base_model="test", n_layers=2),
+        adapter_b=AdapterMetadata(path="/tmp/adapter_b", rank=8, alpha=16.0, base_model="test", n_layers=2),
+        matching=MatchingSummary(
+            n_shared=len(layer_verdicts),
+            n_only_a=0,
+            n_only_b=0,
+            shared_layers=tuple(lv["layer_name"] for lv in layer_verdicts),
+            only_a_layers=(),
+            only_b_layers=(),
+        ),
         layer_verdicts=layer_verdicts,
-        aggregate={
-            "overall_verdict": overall_verdict,
-            "compatibility_score": 0.5,
-            "mean_overlap": 0.3,
-            "median_overlap": 0.3,
-            "max_overlap": 0.5,
-            "mean_agreement": 0.5,
-            "n_safe": sum(1 for lv in layer_verdicts if lv["verdict"] == "safe"),
-            "n_redundant": sum(1 for lv in layer_verdicts if lv["verdict"] == "redundant"),
-            "n_conflicting": sum(1 for lv in layer_verdicts if lv["verdict"] == "conflicting"),
-            "n_imbalanced": sum(1 for lv in layer_verdicts if lv["verdict"] == "imbalanced"),
-        },
+        aggregate=AggregateResult(
+            overall_verdict=overall_verdict,
+            compatibility_score=0.5,
+            mean_overlap=0.3,
+            median_overlap=0.3,
+            max_overlap=0.5,
+            mean_agreement=0.5,
+            n_safe=sum(1 for lv in layer_verdicts if lv["verdict"] == "safe"),
+            n_redundant=sum(1 for lv in layer_verdicts if lv["verdict"] == "redundant"),
+            n_conflicting=sum(1 for lv in layer_verdicts if lv["verdict"] == "conflicting"),
+            n_imbalanced=sum(1 for lv in layer_verdicts if lv["verdict"] == "imbalanced"),
+        ),
         recommendations=["Test recommendation"],
     )
 
@@ -303,10 +305,47 @@ class TestPlanFromAudit:
         assert plan.output_alpha == 64.0
 
 
+class TestPlanNormEqualized:
+    def test_all_layers_get_norm_equalized(self):
+        """norm_equalized assigns 'norm_equalized' strategy to every layer."""
+        report = _make_report([
+            _make_layer_verdict("layer.0.q_proj", "safe"),
+            _make_layer_verdict("layer.0.v_proj", "imbalanced"),
+        ])
+        plan = plan_norm_equalized(report, "/tmp/a", "/tmp/b")
+
+        assert plan.strategy_name == "norm_equalized"
+        assert len(plan.layer_configs) == 2
+        for lc in plan.layer_configs:
+            assert lc.strategy == "norm_equalized"
+            assert lc.coefficients == (0.5, 0.5)
+            assert lc.trim_fraction == 0.0
+
+    def test_custom_coefficients(self):
+        """Custom coefficients are applied to all layers."""
+        report = _make_report([
+            _make_layer_verdict("layer.0.q_proj", "safe"),
+        ])
+        plan = plan_norm_equalized(
+            report, "/tmp/a", "/tmp/b",
+            coefficients=(0.7, 0.3),
+        )
+
+        for lc in plan.layer_configs:
+            assert lc.coefficients == (0.7, 0.3)
+
+    def test_via_plan_from_audit(self):
+        """plan_from_audit dispatches to norm_equalized correctly."""
+        report = _make_report([_make_layer_verdict("layer.0.q_proj", "safe")])
+        plan = plan_from_audit("norm_equalized", report, "/tmp/a", "/tmp/b")
+        assert plan.strategy_name == "norm_equalized"
+        assert plan.layer_configs[0].strategy == "norm_equalized"
+
+
 class TestPlanStrategiesRegistry:
     def test_all_strategies_registered(self):
         """All expected strategies are in the PLAN_STRATEGIES registry."""
         assert set(PLAN_STRATEGIES.keys()) == {
-            "uniform_linear", "audit_aware", "overlap_ties",
+            "uniform_linear", "audit_aware", "norm_equalized", "overlap_ties",
             "dare_linear", "dare_ties",
         }

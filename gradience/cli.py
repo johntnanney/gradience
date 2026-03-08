@@ -19,6 +19,9 @@ Usage:
     # Audit a PEFT LoRA adapter directory for rank/utilization waste:
     gradience audit --peft-dir ./peft_out [--top-wasteful 10] [--json]
 
+    # Produce a single-adapter QA eligibility artifact:
+    gradience audit-adapter --peft-dir ./peft_out --eval-dataset oasst2 --adapter-score 6.81 --base-score 4.66 --out qa.json
+
     # Audit merge compatibility between two PEFT LoRA adapters:
     gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b [--output-dir ./out]
 
@@ -1985,8 +1988,164 @@ def cmd_audit(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# audit-adapter  (single-adapter QA artifact production)
+# ---------------------------------------------------------------------------
+
+
+def _print_qa_summary(artifact: Any) -> None:
+    """Pretty-print a compact QA summary to the terminal."""
+    sep = "\u2500" * 50
+
+    # --- Adapter ---
+    print("ADAPTER QA SUMMARY")
+    print(sep)
+    print(f"  Adapter:       {artifact.adapter_name}")
+    print(f"  Path:          {artifact.adapter_path}")
+    if artifact.base_model:
+        print(f"  Base model:    {artifact.base_model}")
+    print(f"  Rank:          {artifact.rank_nominal}")
+    print(f"  Layers:        {artifact.n_layers}")
+
+    # --- Structural ---
+    print(f"\nSTRUCTURAL SUMMARY")
+    print(sep)
+    print(f"  Utilization (mean):    {artifact.utilization_mean:.3f}")
+    print(f"  Utilization (median):  {artifact.utilization_median:.3f}")
+    print(f"  Stable rank (mean):    {artifact.stable_rank_mean:.3f}")
+    if artifact.energy_rank_90_p50 is not None:
+        print(f"  Energy rank 90 p50:    {artifact.energy_rank_90_p50:.1f}")
+    print(f"  Rank waste ratio:      {artifact.rank_waste_ratio:.3f}")
+    if artifact.structural_flags:
+        print(f"  Flags:                 {', '.join(artifact.structural_flags)}")
+    else:
+        print(f"  Flags:                 (none)")
+
+    # --- Behavioral ---
+    print(f"\nBEHAVIORAL SUMMARY")
+    print(sep)
+    if not artifact.eval_available:
+        print(f"  Eval available: no")
+        print(f"  Eligibility determined from structural evidence only")
+    else:
+        if artifact.eval_dataset:
+            print(f"  Eval dataset:  {artifact.eval_dataset}")
+        direction = "lower is better" if artifact.lower_is_better else "higher is better"
+        if artifact.metric_name:
+            print(f"  Metric:        {artifact.metric_name} ({direction})")
+        print(f"  Adapter score: {artifact.adapter_score}")
+        print(f"  Base score:    {artifact.base_score}")
+        print(f"  Beats base:    {'yes' if artifact.beats_base else 'no'}")
+
+    # --- Eligibility ---
+    print(f"\nELIGIBILITY")
+    print(sep)
+    print(f"  Status:      {artifact.status.value.upper()}")
+    print(f"  Confidence:  {artifact.confidence}")
+    if artifact.reasons:
+        print(f"  Reasons:")
+        for reason in artifact.reasons:
+            print(f"    - {reason}")
+
+
+def cmd_audit_adapter(args: argparse.Namespace) -> None:
+    """Audit a single adapter and produce a QA artifact."""
+    import json as jsonlib
+
+    peft_dir = getattr(args, "peft_dir", None)
+    if not peft_dir:
+        print("Error: --peft-dir is required")
+        sys.exit(1)
+
+    try:
+        from gradience.vnext.audit import audit_lora_peft_dir
+        from gradience.vnext.audit.qa_artifact import build_qa_artifact
+    except ImportError as e:
+        print(f"Error: Failed to import audit module: {e}")
+        sys.exit(1)
+
+    # Run structural audit
+    try:
+        result = audit_lora_peft_dir(
+            peft_dir,
+            adapter_config_path=getattr(args, "adapter_config", None),
+            adapter_weights_path=getattr(args, "weights", None),
+            map_location="cpu",
+            base_model_id=getattr(args, "base_model", None),
+            base_norms_cache=getattr(args, "base_norms_cache", None),
+            compute_udr=not getattr(args, "no_udr", False),
+        )
+    except Exception as e:
+        print(f"Error: Audit failed: {e}")
+        sys.exit(1)
+
+    # Parse behavioral args
+    adapter_score = getattr(args, "adapter_score", None)
+    base_score = getattr(args, "base_score", None)
+
+    # Build QA artifact
+    artifact = build_qa_artifact(
+        result,
+        adapter_path=peft_dir,
+        base_model=getattr(args, "base_model", None) or "",
+        adapter_score=adapter_score,
+        base_score=base_score,
+        metric_name=getattr(args, "metric_name", None) or "",
+        lower_is_better=getattr(args, "lower_is_better", True),
+        eval_dataset=getattr(args, "eval_dataset", None),
+        margin=float(getattr(args, "margin", 0.0) or 0.0),
+    )
+
+    # Output
+    if getattr(args, "json", False):
+        print(jsonlib.dumps(artifact.to_dict(), indent=2))
+        return
+
+    _print_qa_summary(artifact)
+
+    out_path = getattr(args, "out", None)
+    if out_path:
+        p = Path(out_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            jsonlib.dump(artifact.to_dict(), f, indent=2)
+            f.write("\n")
+        print(f"\nOUTPUT")
+        print("\u2500" * 50)
+        print(f"  Wrote QA artifact to: {p}")
+
+
+# ---------------------------------------------------------------------------
 # merge-audit
 # ---------------------------------------------------------------------------
+
+
+def _load_source_qa(path_str: str | None) -> Any:
+    """Load an AdapterQAResult from a JSON file path, or return None.
+
+    Supports both legacy flat AdapterQAResult dicts and the new
+    ``gradience.adapter_qa/v1`` artifact format (auto-detected via
+    the ``schema`` field).
+    """
+    if path_str is None:
+        return None
+    import json as jsonlib
+    p = Path(path_str)
+    if not p.is_file():
+        print(f"Error: --source-*-qa path does not exist: {p}")
+        sys.exit(1)
+    try:
+        with open(p) as f:
+            data = jsonlib.load(f)
+        # Auto-detect v1 artifact format
+        if isinstance(data, dict) and data.get("schema", "").startswith("gradience.adapter_qa/"):
+            from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+            return AdapterQAArtifact.from_dict(data).to_qa_result()
+        # Legacy flat format
+        from gradience.vnext.merge.eligibility import AdapterQAResult
+        return AdapterQAResult.from_dict(data)
+    except Exception as e:
+        print(f"Error: Failed to load QA file {p}: {e}")
+        sys.exit(1)
 
 
 def cmd_merge_audit(args: argparse.Namespace) -> None:
@@ -2022,6 +2181,10 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     else:
         thresholds = VerdictThresholds()
 
+    # Load source QA files if provided
+    source_qa_a = _load_source_qa(getattr(args, "source_a_qa", None))
+    source_qa_b = _load_source_qa(getattr(args, "source_b_qa", None))
+
     try:
         report = merge_audit(
             adapter_a_dir=adapter_a,
@@ -2031,6 +2194,8 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             thresholds=thresholds,
             compute_dtype=getattr(args, "compute_dtype", "float64"),
             verbose=getattr(args, "verbose", False),
+            source_qa_a=source_qa_a,
+            source_qa_b=source_qa_b,
         )
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}")
@@ -2041,6 +2206,26 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             import traceback
             traceback.print_exc()
         sys.exit(1)
+
+    # --- Strict QA gate ---
+    strict_qa = getattr(args, "strict_qa", False)
+    if strict_qa:
+        from gradience.vnext.merge.recommend import diagnose_pair
+        diag = diagnose_pair(report)
+        if not diag.eligibility.has_data:
+            print("\nError: --strict-qa requires source QA data for both adapters.")
+            print("  Provide --source-a-qa and --source-b-qa, or remove --strict-qa.")
+            sys.exit(1)
+        if diag.eligibility.any_weak:
+            weak_labels = []
+            if diag.eligibility.status_a and diag.eligibility.status_a.value == "flagged_weak":
+                weak_labels.append("A")
+            if diag.eligibility.status_b and diag.eligibility.status_b.value == "flagged_weak":
+                weak_labels.append("B")
+            print(f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(weak_labels)} "
+                  f"flagged as weak.")
+            print("  Recommendations withheld. Review source adapter quality before merging.")
+            sys.exit(1)
 
     # --- Output ---
     if getattr(args, "json", False):
@@ -2072,6 +2257,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     )
 
     # --- Strategy Recommendations ---
+    user_strategy = getattr(args, "strategy", None)
     try:
         from gradience.vnext.merge.recommend import recommend_merge, format_recommendation
         merge_rec = recommend_merge(report)
@@ -2081,6 +2267,14 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             adapter_b_path=adapter_b,
         )
         print(rec_output)
+
+        # Highlight user-specified strategy if different from recommendation
+        if user_strategy and user_strategy != merge_rec.overall_strategy:
+            print(f"\n  User-specified strategy: {user_strategy}")
+            print(f"    $ gradience merge-plan --strategy {user_strategy} \\")
+            print(f"        --adapter-a {adapter_a} --adapter-b {adapter_b} \\")
+            print("        --output merge_plan.json")
+            print()
     except Exception:
         # Fall back to old-style recommendations if recommend module fails
         if report.recommendations:
@@ -2093,9 +2287,39 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         for warn in report.warnings:
             print(f"  \u26a0 {warn}")
 
+    # --- QA Report ---
+    if getattr(args, "qa_report", False):
+        try:
+            from gradience.vnext.merge.qa_report import build_qa_report, format_qa_report
+            qa = build_qa_report(report)
+            print(format_qa_report(qa))
+            out_dir_qa = getattr(args, "output_dir", None)
+            if out_dir_qa:
+                qa_path = Path(out_dir_qa) / "merge_qa_report.json"
+                qa.to_json(qa_path)
+        except Exception as exc:
+            if getattr(args, "verbose", False):
+                import traceback
+                traceback.print_exc()
+            else:
+                print(f"\n  (QA report generation failed: {exc})")
+
+    # --- Emit structured report ---
+    emit_path = getattr(args, "emit_report", None)
+    if emit_path:
+        from gradience.vnext.merge import to_json
+        emit_p = Path(emit_path)
+        emit_p.parent.mkdir(parents=True, exist_ok=True)
+        with open(emit_p, "w") as f:
+            jsonlib.dump(to_json(report), f, indent=2)
+        print(f"\nStructured report written to: {emit_p}")
+
     out_dir = getattr(args, "output_dir", None)
     if out_dir:
-        print(f"\nReports written to: {out_dir}/merge_audit.{{json,md}}")
+        report_files = "merge_audit.{json,md}"
+        if getattr(args, "qa_report", False):
+            report_files = "merge_audit.{json,md}, merge_qa_report.json"
+        print(f"\nReports written to: {out_dir}/{report_files}")
 
     print()
 
@@ -2697,6 +2921,109 @@ def _setup_audit_command(subparsers):
     audit_parser.set_defaults(func=cmd_audit)
 
 
+def _setup_audit_adapter_command(subparsers):
+    p = subparsers.add_parser(
+        "audit-adapter",
+        help="Audit a single adapter and produce a QA eligibility artifact",
+    )
+    p.add_argument(
+        "--peft-dir",
+        type=str,
+        required=True,
+        help="Path to a PEFT output directory (containing adapter_config.* and adapter weights)",
+    )
+    p.add_argument(
+        "--adapter-config",
+        type=str,
+        default=None,
+        help="Optional explicit path to adapter_config.json/yaml",
+    )
+    p.add_argument(
+        "--weights",
+        type=str,
+        default=None,
+        help="Optional explicit path to adapter_model.(safetensors|bin|pt)",
+    )
+    p.add_argument(
+        "--base-model",
+        type=str,
+        default=None,
+        help="Base model ID or path (for metadata and optional UDR)",
+    )
+    p.add_argument(
+        "--base-norms-cache",
+        type=str,
+        default=None,
+        help="Path to save/load base model norms cache",
+    )
+    p.add_argument(
+        "--no-udr",
+        action="store_true",
+        help="Skip UDR computation even if base model available",
+    )
+    # Behavioral evaluation args (all optional)
+    p.add_argument(
+        "--eval-dataset",
+        type=str,
+        default=None,
+        help="Dataset used for evaluation (e.g. 'oasst2')",
+    )
+    p.add_argument(
+        "--metric-name",
+        type=str,
+        default=None,
+        help="Evaluation metric name (e.g. 'perplexity', 'accuracy')",
+    )
+    p.add_argument(
+        "--adapter-score",
+        type=float,
+        default=None,
+        help="Adapter's score on the evaluation metric",
+    )
+    p.add_argument(
+        "--base-score",
+        type=float,
+        default=None,
+        help="Base model's score on the evaluation metric",
+    )
+    p.add_argument(
+        "--lower-is-better",
+        action="store_true",
+        default=True,
+        help="Metric direction: lower values are better (default: true)",
+    )
+    p.add_argument(
+        "--higher-is-better",
+        action="store_true",
+        default=False,
+        help="Metric direction: higher values are better",
+    )
+    p.add_argument(
+        "--margin",
+        type=float,
+        default=0.0,
+        help="Tolerance margin for eligibility classification (default: 0.0)",
+    )
+    # Output args
+    p.add_argument(
+        "--out",
+        type=str,
+        default=None,
+        help="Write QA artifact JSON to this path",
+    )
+    p.add_argument(
+        "--json",
+        action="store_true",
+        help="Print QA artifact JSON to stdout instead of terminal summary",
+    )
+    # Handle --higher-is-better overriding --lower-is-better
+    def _resolve_and_run(args):
+        if getattr(args, "higher_is_better", False):
+            args.lower_is_better = False
+        cmd_audit_adapter(args)
+    p.set_defaults(func=_resolve_and_run)
+
+
 def _setup_merge_audit_command(subparsers):
     merge_audit_parser = subparsers.add_parser(
         "merge-audit",
@@ -2748,6 +3075,40 @@ def _setup_merge_audit_command(subparsers):
         action="store_true",
         help="Show per-layer analysis table and progress",
     )
+    merge_audit_parser.add_argument(
+        "--qa-report",
+        action="store_true",
+        help="Print a concise QA report summarizing risk, dominant issue, and recommended action",
+    )
+    merge_audit_parser.add_argument(
+        "--source-a-qa",
+        type=str,
+        default=None,
+        help="Path to a JSON file with prior QA results for adapter A (AdapterQAResult format)",
+    )
+    merge_audit_parser.add_argument(
+        "--source-b-qa",
+        type=str,
+        default=None,
+        help="Path to a JSON file with prior QA results for adapter B (AdapterQAResult format)",
+    )
+    merge_audit_parser.add_argument(
+        "--strategy",
+        type=str,
+        default=None,
+        help="Recommended merge strategy to highlight (e.g. norm_equalized, audit_aware)",
+    )
+    merge_audit_parser.add_argument(
+        "--emit-report",
+        type=str,
+        default=None,
+        help="Write structured JSON report to this path (e.g. report.json)",
+    )
+    merge_audit_parser.add_argument(
+        "--strict-qa",
+        action="store_true",
+        help="Refuse to produce recommendations when source QA data is missing or shows weak adapters",
+    )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 
 
@@ -2772,7 +3133,7 @@ def _setup_merge_plan_command(subparsers):
         "--strategy",
         type=str,
         default="uniform_linear",
-        choices=["uniform_linear", "audit_aware", "overlap_ties"],
+        choices=["uniform_linear", "audit_aware", "norm_equalized", "overlap_ties"],
         help="Merge planning strategy (default: uniform_linear)",
     )
     merge_plan_parser.add_argument(
@@ -2948,6 +3309,7 @@ def main() -> None:
     _setup_report_command(subparsers)
     _setup_check_command(subparsers)
     _setup_audit_command(subparsers)
+    _setup_audit_adapter_command(subparsers)
     _setup_merge_audit_command(subparsers)
     _setup_merge_plan_command(subparsers)
     _setup_merge_command(subparsers)

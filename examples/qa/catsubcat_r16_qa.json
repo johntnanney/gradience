@@ -1,0 +1,39 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "catsubcat-r16",
+    "path": "./adapters/catsubcat-r16",
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "rank_nominal": 16,
+    "n_layers": 32
+  },
+  "structural_summary": {
+    "utilization_mean": 0.08,
+    "utilization_median": 0.05,
+    "stable_rank_mean": 1.9,
+    "energy_rank_90_p50": 2.3,
+    "rank_waste_ratio": 0.82,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "oasst2",
+    "metric_name": "perplexity",
+    "adapter_score": 6.81,
+    "base_score": 4.66,
+    "lower_is_better": true,
+    "beats_base": false
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "medium",
+    "reasons": [
+      "adapter underperforms base on perplexity (oasst2)",
+      "low utilization across layers",
+      "high rank waste"
+    ]
+  }
+}

@@ -22,3 +22,4 @@ from .lora_audit import (
     _orient_lora_factors as orient_lora_factors,
     infer_module_type,
 )
+from .qa_artifact import AdapterQAArtifact, build_qa_artifact

@@ -46,12 +46,14 @@ def load_audit_report(audit_dir: Path) -> MergeAuditReport:
     report_path = audit_dir / "merge_audit.json"
     with open(report_path) as f:
         data = json.load(f)
+    from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult, MatchingSummary
+
     return MergeAuditReport(
-        adapter_a=data["adapter_a"],
-        adapter_b=data["adapter_b"],
-        matching=data["matching"],
+        adapter_a=AdapterMetadata.from_dict(data["adapter_a"]),
+        adapter_b=AdapterMetadata.from_dict(data["adapter_b"]),
+        matching=MatchingSummary.from_dict(data["matching"]),
         layer_verdicts=data.get("per_layer", data.get("layer_verdicts", [])),
-        aggregate=data["aggregate"],
+        aggregate=AggregateResult.from_dict(data["aggregate"]),
         recommendations=data.get("recommendations", []),
         issues=data.get("issues", []),
         warnings=data.get("warnings", []),
