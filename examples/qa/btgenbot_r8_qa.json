@@ -1,0 +1,41 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "btgenbot-r8",
+    "path": "./adapters/btgenbot-r8",
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "rank_nominal": 8,
+    "n_layers": 32
+  },
+  "structural_summary": {
+    "utilization_mean": 0.18,
+    "utilization_median": 0.14,
+    "stable_rank_mean": 1.4,
+    "energy_rank_90_p50": 1.8,
+    "rank_waste_ratio": 0.82,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "concentrated_spectrum"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "oasst2",
+    "metric_name": "perplexity",
+    "adapter_score": 5.47,
+    "base_score": 4.66,
+    "lower_is_better": true,
+    "beats_base": false
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "medium",
+    "reasons": [
+      "adapter underperforms base on perplexity (oasst2)",
+      "low utilization across layers",
+      "high rank waste",
+      "spectrum concentrated in very few singular values"
+    ]
+  }
+}
