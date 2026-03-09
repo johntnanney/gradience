@@ -15,13 +15,12 @@ import torch
 
 from gradience.vnext.merge import merge_audit
 from gradience.vnext.merge.executor import (
-    MergeResult,
     LayerMergeResult,
+    MergeResult,
     execute_merge,
 )
 from gradience.vnext.merge.io import load_adapter
 from gradience.vnext.merge.plan import plan_from_audit
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -29,7 +28,7 @@ from gradience.vnext.merge.plan import plan_from_audit
 
 
 def _run_merge(
-    adapter_pair: Tuple[Path, Path],
+    adapter_pair: tuple[Path, Path],
     strategy_name: str,
     output_dir: Path,
     output_rank: int = 4,
@@ -38,8 +37,10 @@ def _run_merge(
     dir_a, dir_b = adapter_pair
     report = merge_audit(dir_a, dir_b)
     plan = plan_from_audit(
-        strategy_name, report,
-        str(dir_a), str(dir_b),
+        strategy_name,
+        report,
+        str(dir_a),
+        str(dir_b),
         output_rank=output_rank,
         output_alpha=8.0,
     )
@@ -58,10 +59,7 @@ class TestExecuteMerge:
         result = _run_merge(orthogonal_pair, "uniform_linear", output_dir)
 
         assert (output_dir / "adapter_config.json").exists()
-        assert (
-            (output_dir / "adapter_model.safetensors").exists()
-            or (output_dir / "adapter_model.bin").exists()
-        )
+        assert (output_dir / "adapter_model.safetensors").exists() or (output_dir / "adapter_model.bin").exists()
         assert (output_dir / "merge_plan.json").exists()
         assert (output_dir / "merge_result.json").exists()
 
@@ -124,7 +122,9 @@ class TestExecuteMerge:
         output_dir = tmp_path / "merged"
         target_rank = 4
         _run_merge(
-            orthogonal_pair, "uniform_linear", output_dir,
+            orthogonal_pair,
+            "uniform_linear",
+            output_dir,
             output_rank=target_rank,
         )
 

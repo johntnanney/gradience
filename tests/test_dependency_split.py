@@ -12,7 +12,6 @@ import sys
 
 import pytest
 
-
 BENCH_ONLY_MODULES = {"transformers", "peft", "datasets"}
 
 
@@ -49,36 +48,22 @@ class TestCoreDependencyBoundary:
     def test_import_gradience_no_bench_deps(self):
         """import gradience should NOT load transformers/peft/datasets."""
         loaded = _fresh_import_check("import gradience")
-        assert loaded == set(), (
-            f"'import gradience' pulled in bench-only deps: {loaded}"
-        )
+        assert loaded == set(), f"'import gradience' pulled in bench-only deps: {loaded}"
 
     def test_import_merge_audit_no_bench_deps(self):
         """merge-audit import chain should NOT load bench deps."""
-        loaded = _fresh_import_check(
-            "from gradience.vnext.merge import merge_audit"
-        )
-        assert loaded == set(), (
-            f"merge-audit import pulled in bench-only deps: {loaded}"
-        )
+        loaded = _fresh_import_check("from gradience.vnext.merge import merge_audit")
+        assert loaded == set(), f"merge-audit import pulled in bench-only deps: {loaded}"
 
     def test_import_lora_audit_no_bench_deps(self):
         """lora_audit import should NOT load bench deps."""
-        loaded = _fresh_import_check(
-            "from gradience.vnext.audit.lora_audit import LoRAAuditResult"
-        )
-        assert loaded == set(), (
-            f"lora_audit import pulled in bench-only deps: {loaded}"
-        )
+        loaded = _fresh_import_check("from gradience.vnext.audit.lora_audit import LoRAAuditResult")
+        assert loaded == set(), f"lora_audit import pulled in bench-only deps: {loaded}"
 
     def test_import_telemetry_no_bench_deps(self):
         """Telemetry import should NOT load bench deps."""
-        loaded = _fresh_import_check(
-            "from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader"
-        )
-        assert loaded == set(), (
-            f"telemetry import pulled in bench-only deps: {loaded}"
-        )
+        loaded = _fresh_import_check("from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader")
+        assert loaded == set(), f"telemetry import pulled in bench-only deps: {loaded}"
 
 
 class TestCoreDepsPresent:

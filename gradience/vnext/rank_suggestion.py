@@ -27,14 +27,14 @@ All other functions (prefixed with _) are internal and may change.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from gradience.exceptions import AuditError
 
-
 # Keep this small and PEFT-ish. You can extend later (128, 256) if you want.
-DEFAULT_ALLOWED_RANKS: Tuple[int, ...] = (1, 2, 4, 8, 16, 32, 64)
+DEFAULT_ALLOWED_RANKS: tuple[int, ...] = (1, 2, 4, 8, 16, 32, 64)
 
 
 def _round_up_to_allowed_rank(x: float, allowed: Sequence[int] = DEFAULT_ALLOWED_RANKS) -> int:
@@ -61,7 +61,7 @@ def _round_up_to_allowed_rank(x: float, allowed: Sequence[int] = DEFAULT_ALLOWED
     return int(allowed[-1])
 
 
-def _infer_current_r_from_means(stable_rank_mean: Any, utilization_mean: Any) -> Optional[int]:
+def _infer_current_r_from_means(stable_rank_mean: Any, utilization_mean: Any) -> int | None:
     """
     Infer current LoRA rank r using:
       utilization_mean ~= stable_rank_mean / r  => r ~= stable_rank_mean / utilization_mean
@@ -86,7 +86,7 @@ def _infer_current_r_from_means(stable_rank_mean: Any, utilization_mean: Any) ->
     return max(1, r_int)
 
 
-def _get_first_present(d: Dict[str, Any], keys: Iterable[str]) -> Any:
+def _get_first_present(d: dict[str, Any], keys: Iterable[str]) -> Any:
     for k in keys:
         if k in d:
             return d[k]
@@ -112,9 +112,9 @@ class GlobalRankSuggestion:
     reduction_ratio_p90: float
 
     # Evidence we used to make the suggestion (useful for monitor/verbose).
-    evidence: Dict[str, Any]
+    evidence: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "current_r": self.current_r,
             "suggested_r_median": self.suggested_r_median,
@@ -129,7 +129,7 @@ class GlobalRankSuggestion:
 
 
 def suggest_global_ranks_from_audit(
-    audit: Dict[str, Any],
+    audit: dict[str, Any],
     *,
     allowed_ranks: Sequence[int] = DEFAULT_ALLOWED_RANKS,
 ) -> GlobalRankSuggestion:
@@ -164,7 +164,7 @@ def suggest_global_ranks_from_audit(
 
     # ---- current_r (prefer explicit, else infer) ----
     current_r_raw = _get_first_present(audit, ("current_r", "r", "lora_r"))
-    current_r: Optional[int] = None
+    current_r: int | None = None
     if isinstance(current_r_raw, int) and current_r_raw > 0:
         current_r = current_r_raw
 
@@ -239,20 +239,20 @@ class PerLayerRankSuggestion:
     energy_rank_90: float
     suggested_r: int
     reduction_ratio: float
-    stable_rank: Optional[float] = None
-    utilization: Optional[float] = None
-    module_type: Optional[str] = None  # optional convenience
+    stable_rank: float | None = None
+    utilization: float | None = None
+    module_type: str | None = None  # optional convenience
 
 
 @dataclass(frozen=True)
 class PerLayerRankSuggestionReport:
-    layers: Tuple[PerLayerRankSuggestion, ...]
+    layers: tuple[PerLayerRankSuggestion, ...]
     default_r: int
-    rank_pattern: Dict[str, int]   # only entries where suggested != default_r
-    by_module_type_p90: Dict[str, int]
+    rank_pattern: dict[str, int]  # only entries where suggested != default_r
+    by_module_type_p90: dict[str, int]
     notes: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "default_r": self.default_r,
             "rank_pattern": dict(self.rank_pattern),
@@ -274,7 +274,7 @@ class PerLayerRankSuggestionReport:
         }
 
 
-def _get_layer_name(row: Dict[str, Any]) -> Optional[str]:
+def _get_layer_name(row: dict[str, Any]) -> str | None:
     for k in ("name", "module", "path", "layer", "layer_name"):
         v = row.get(k)
         if isinstance(v, str) and v:
@@ -282,7 +282,7 @@ def _get_layer_name(row: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def _get_float(row: Dict[str, Any], keys: Sequence[str]) -> Optional[float]:
+def _get_float(row: dict[str, Any], keys: Sequence[str]) -> float | None:
     for k in keys:
         v = row.get(k)
         if v is None:
@@ -294,7 +294,7 @@ def _get_float(row: Dict[str, Any], keys: Sequence[str]) -> Optional[float]:
     return None
 
 
-def _get_int(row: Dict[str, Any], keys: Sequence[str]) -> Optional[int]:
+def _get_int(row: dict[str, Any], keys: Sequence[str]) -> int | None:
     for k in keys:
         v = row.get(k)
         if v is None:
@@ -308,7 +308,7 @@ def _get_int(row: Dict[str, Any], keys: Sequence[str]) -> Optional[int]:
 
 
 def suggest_per_layer_ranks(
-    audit: Dict[str, Any],
+    audit: dict[str, Any],
     *,
     margin: float = 1.0,
     allowed_ranks: Sequence[int] = DEFAULT_ALLOWED_RANKS,
@@ -332,16 +332,18 @@ def suggest_per_layer_ranks(
         raise TypeError("audit must be a dict")
 
     # Support both old and new layer data structures
-    rows = audit.get("layers", None)
+    rows = audit.get("layers")
     if rows is None:
         layer_data = audit.get("layer_data", {})
         if isinstance(layer_data, dict):
             rows = layer_data.get("layer_rows", None)
-    
-    if not isinstance(rows, list):
-        raise AuditError("audit must include layer data in `layers` or `layer_data.layer_rows` (run audit with --layers).")
 
-    suggestions: List[PerLayerRankSuggestion] = []
+    if not isinstance(rows, list):
+        raise AuditError(
+            "audit must include layer data in `layers` or `layer_data.layer_rows` (run audit with --layers)."
+        )
+
+    suggestions: list[PerLayerRankSuggestion] = []
     skipped = 0
 
     for row in rows:
@@ -401,7 +403,7 @@ def suggest_per_layer_ranks(
         )
 
     # default_r = mode of suggested ranks (keeps rank_pattern small)
-    counts: Dict[int, int] = {}
+    counts: dict[int, int] = {}
     for s in suggestions:
         counts[s.suggested_r] = counts.get(s.suggested_r, 0) + 1
     default_r = max(counts.items(), key=lambda kv: kv[1])[0]
@@ -409,13 +411,13 @@ def suggest_per_layer_ranks(
     rank_pattern = {s.name: s.suggested_r for s in suggestions if s.suggested_r != default_r}
 
     # by_module_type_p90 (conservative)
-    by_type: Dict[str, List[int]] = {}
+    by_type: dict[str, list[int]] = {}
     for s in suggestions:
         if not s.module_type:
             continue
         by_type.setdefault(s.module_type, []).append(s.suggested_r)
 
-    by_module_type_p90: Dict[str, int] = {}
+    by_module_type_p90: dict[str, int] = {}
     for t, rs in by_type.items():
         rs_sorted = sorted(rs)
         idx = int(0.9 * (len(rs_sorted) - 1)) if len(rs_sorted) > 1 else 0
@@ -435,7 +437,7 @@ def suggest_per_layer_ranks(
 # Public API exports (stability guaranteed)
 __all__ = [
     "DEFAULT_ALLOWED_RANKS",
-    "GlobalRankSuggestion", 
+    "GlobalRankSuggestion",
     "PerLayerRankSuggestion",
     "PerLayerRankSuggestionReport",
     "suggest_global_ranks_from_audit",

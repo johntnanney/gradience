@@ -28,7 +28,6 @@ from torch import Tensor
 
 from gradience.exceptions import MergeError
 
-
 # dtype mapping (shared with merge/__init__.py)
 _DTYPE_MAP = {
     "float64": torch.float64,
@@ -43,7 +42,7 @@ def refactor_to_lora(
     target_rank: int,
     alpha: float,
     compute_dtype: str = "float32",
-) -> Tuple[Tensor, Tensor, float]:
+) -> tuple[Tensor, Tensor, float]:
     """Decompose a dense ΔW into LoRA factors (B, A) via truncated SVD.
 
     The decomposition satisfies: ``scaling * B @ A ≈ dW`` where
@@ -82,17 +81,11 @@ def refactor_to_lora(
     if target_rank < 1:
         raise MergeError(f"target_rank must be >= 1, got {target_rank}")
     if target_rank > max_rank:
-        raise MergeError(
-            f"target_rank ({target_rank}) exceeds max possible rank "
-            f"({max_rank}) for shape {dW.shape}"
-        )
+        raise MergeError(f"target_rank ({target_rank}) exceeds max possible rank ({max_rank}) for shape {dW.shape}")
 
     dtype = _DTYPE_MAP.get(compute_dtype)
     if dtype is None:
-        raise MergeError(
-            f"Unsupported compute_dtype '{compute_dtype}'. "
-            f"Choose from: {sorted(_DTYPE_MAP.keys())}"
-        )
+        raise MergeError(f"Unsupported compute_dtype '{compute_dtype}'. Choose from: {sorted(_DTYPE_MAP.keys())}")
 
     scaling = alpha / max(target_rank, 1)
 
@@ -125,8 +118,8 @@ def refactor_to_lora(
     # A = diag(sqrt(S_r / scaling)) @ Vt_r
     sqrt_S_scaled = torch.sqrt(S_r / scaling).unsqueeze(1)  # (target_rank, 1)
 
-    B = U_r * sqrt_S_scaled.T            # (d_out, target_rank)
-    A = sqrt_S_scaled * Vt_r             # (target_rank, d_in)
+    B = U_r * sqrt_S_scaled.T  # (d_out, target_rank)
+    A = sqrt_S_scaled * Vt_r  # (target_rank, d_in)
 
     # Compute reconstruction error
     dW_approx = scaling * B @ A

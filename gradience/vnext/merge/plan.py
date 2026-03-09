@@ -28,15 +28,15 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from gradience.exceptions import MergeError
 from gradience.vnext.merge.report import MergeAuditReport
 from gradience.vnext.merge.strategies import LayerMergeConfig
-
 
 # ---------------------------------------------------------------------------
 # MergePlan
@@ -68,10 +68,10 @@ class MergePlan:
     adapter_b_dir: str
     output_rank: int
     output_alpha: float
-    layer_configs: Tuple[LayerMergeConfig, ...]
-    metadata: Dict[str, Any]
+    layer_configs: tuple[LayerMergeConfig, ...]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to a JSON-compatible dict."""
         return {
             "schema_version": "gradience.merge_plan/v1",
@@ -86,7 +86,7 @@ class MergePlan:
         }
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> MergePlan:
+    def from_dict(cls, d: dict[str, Any]) -> MergePlan:
         """Deserialize from a dict."""
         return cls(
             plan_id=d["plan_id"],
@@ -95,9 +95,7 @@ class MergePlan:
             adapter_b_dir=d["adapter_b_dir"],
             output_rank=d["output_rank"],
             output_alpha=d["output_alpha"],
-            layer_configs=tuple(
-                LayerMergeConfig.from_dict(lc) for lc in d["layer_configs"]
-            ),
+            layer_configs=tuple(LayerMergeConfig.from_dict(lc) for lc in d["layer_configs"]),
             metadata=d.get("metadata", {}),
         )
 
@@ -123,10 +121,10 @@ class MergePlan:
 def _make_metadata(
     report: MergeAuditReport,
     strategy_name: str,
-    extra: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Build metadata dict from an audit report."""
-    meta: Dict[str, Any] = {
+    meta: dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "strategy": strategy_name,
         "source_audit": {
@@ -154,7 +152,7 @@ def plan_uniform_linear(
     report: MergeAuditReport,
     adapter_a_dir: str,
     adapter_b_dir: str,
-    coefficients: Tuple[float, float] = (0.5, 0.5),
+    coefficients: tuple[float, float] = (0.5, 0.5),
     output_rank: int = 8,
     output_alpha: float = 16.0,
 ) -> MergePlan:
@@ -185,7 +183,8 @@ def plan_uniform_linear(
         output_alpha=output_alpha,
         layer_configs=layer_configs,
         metadata=_make_metadata(
-            report, "uniform_linear",
+            report,
+            "uniform_linear",
             {"coefficients": list(coefficients)},
         ),
     )
@@ -216,13 +215,15 @@ def plan_audit_aware(
     layer_configs = []
 
     for lr in rec.layer_recommendations:
-        layer_configs.append(LayerMergeConfig(
-            module_prefix=lr.layer_name,
-            strategy=lr.strategy,
-            coefficients=lr.coefficients,
-            target_rank=output_rank,
-            trim_fraction=lr.trim_fraction,
-        ))
+        layer_configs.append(
+            LayerMergeConfig(
+                module_prefix=lr.layer_name,
+                strategy=lr.strategy,
+                coefficients=lr.coefficients,
+                target_rank=output_rank,
+                trim_fraction=lr.trim_fraction,
+            )
+        )
 
     return MergePlan(
         plan_id=str(uuid.uuid4()),
@@ -263,13 +264,15 @@ def plan_overlap_ties(
         # Scale trim by overlap: more overlap → more trimming
         effective_trim = trim_fraction * overlap
 
-        layer_configs.append(LayerMergeConfig(
-            module_prefix=name,
-            strategy="ties",
-            coefficients=(0.5, 0.5),
-            target_rank=output_rank,
-            trim_fraction=round(effective_trim, 4),
-        ))
+        layer_configs.append(
+            LayerMergeConfig(
+                module_prefix=name,
+                strategy="ties",
+                coefficients=(0.5, 0.5),
+                target_rank=output_rank,
+                trim_fraction=round(effective_trim, 4),
+            )
+        )
 
     return MergePlan(
         plan_id=str(uuid.uuid4()),
@@ -280,7 +283,8 @@ def plan_overlap_ties(
         output_alpha=output_alpha,
         layer_configs=tuple(layer_configs),
         metadata=_make_metadata(
-            report, "overlap_ties",
+            report,
+            "overlap_ties",
             {"base_trim_fraction": trim_fraction},
         ),
     )
@@ -290,7 +294,7 @@ def plan_norm_equalized(
     report: MergeAuditReport,
     adapter_a_dir: str,
     adapter_b_dir: str,
-    coefficients: Tuple[float, float] = (0.5, 0.5),
+    coefficients: tuple[float, float] = (0.5, 0.5),
     output_rank: int = 8,
     output_alpha: float = 16.0,
 ) -> MergePlan:
@@ -325,7 +329,8 @@ def plan_norm_equalized(
         output_alpha=output_alpha,
         layer_configs=layer_configs,
         metadata=_make_metadata(
-            report, "norm_equalized",
+            report,
+            "norm_equalized",
             {"coefficients": list(coefficients)},
         ),
     )
@@ -335,7 +340,7 @@ def plan_dare_linear(
     report: MergeAuditReport,
     adapter_a_dir: str,
     adapter_b_dir: str,
-    coefficients: Tuple[float, float] = (0.5, 0.5),
+    coefficients: tuple[float, float] = (0.5, 0.5),
     output_rank: int = 8,
     output_alpha: float = 16.0,
     dare_drop_fraction: float = 0.3,
@@ -368,7 +373,8 @@ def plan_dare_linear(
         output_alpha=output_alpha,
         layer_configs=layer_configs,
         metadata=_make_metadata(
-            report, "dare_linear",
+            report,
+            "dare_linear",
             {"coefficients": list(coefficients), "dare_drop_fraction": dare_drop_fraction},
         ),
     )
@@ -378,7 +384,7 @@ def plan_dare_ties(
     report: MergeAuditReport,
     adapter_a_dir: str,
     adapter_b_dir: str,
-    coefficients: Tuple[float, float] = (0.5, 0.5),
+    coefficients: tuple[float, float] = (0.5, 0.5),
     output_rank: int = 8,
     output_alpha: float = 16.0,
     dare_drop_fraction: float = 0.5,
@@ -410,7 +416,8 @@ def plan_dare_ties(
         output_alpha=output_alpha,
         layer_configs=layer_configs,
         metadata=_make_metadata(
-            report, "dare_ties",
+            report,
+            "dare_ties",
             {"coefficients": list(coefficients), "dare_drop_fraction": dare_drop_fraction},
         ),
     )
@@ -420,7 +427,7 @@ def plan_dare_ties(
 # Dispatch
 # ---------------------------------------------------------------------------
 
-PLAN_STRATEGIES: Dict[str, Callable[..., MergePlan]] = {
+PLAN_STRATEGIES: dict[str, Callable[..., MergePlan]] = {
     "uniform_linear": plan_uniform_linear,
     "audit_aware": plan_audit_aware,
     "norm_equalized": plan_norm_equalized,
@@ -459,8 +466,5 @@ def plan_from_audit(
     """
     fn = PLAN_STRATEGIES.get(strategy_name)
     if fn is None:
-        raise MergeError(
-            f"Unknown plan strategy '{strategy_name}'. "
-            f"Available: {sorted(PLAN_STRATEGIES.keys())}"
-        )
+        raise MergeError(f"Unknown plan strategy '{strategy_name}'. Available: {sorted(PLAN_STRATEGIES.keys())}")
     return fn(report, adapter_a_dir, adapter_b_dir, **kwargs)

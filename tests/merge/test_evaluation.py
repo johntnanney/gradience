@@ -6,7 +6,6 @@ import pytest
 
 from gradience.vnext.merge.evaluation import merge_prediction_evaluation
 
-
 # ---------------------------------------------------------------------------
 # Perfect predictions
 # ---------------------------------------------------------------------------
@@ -152,7 +151,10 @@ class TestCalibration:
         actual_Q = [0.95, 0.85, 0.75, 0.55, 0.35]
 
         result = merge_prediction_evaluation(
-            predicted_risk, actual_bad, actual_Q, n_calibration_bins=5,
+            predicted_risk,
+            actual_bad,
+            actual_Q,
+            n_calibration_bins=5,
         )
 
         cal = result["calibration"]
@@ -171,7 +173,10 @@ class TestCalibration:
         actual_Q = [0.95, 0.75, 0.35]
 
         result = merge_prediction_evaluation(
-            predicted_risk, actual_bad, actual_Q, n_calibration_bins=3,
+            predicted_risk,
+            actual_bad,
+            actual_Q,
+            n_calibration_bins=3,
         )
 
         cal = result["calibration"]
@@ -185,7 +190,10 @@ class TestCalibration:
         actual_Q = [0.95, 0.85, 0.75, 0.55, 0.35]
 
         result = merge_prediction_evaluation(
-            predicted_risk, actual_bad, actual_Q, n_calibration_bins=5,
+            predicted_risk,
+            actual_bad,
+            actual_Q,
+            n_calibration_bins=5,
         )
 
         cal = result["calibration"]
@@ -198,7 +206,10 @@ class TestCalibration:
         actual_Q = [0.9, 0.6]
 
         result = merge_prediction_evaluation(
-            predicted_risk, actual_bad, actual_Q, n_calibration_bins=10,
+            predicted_risk,
+            actual_bad,
+            actual_Q,
+            n_calibration_bins=10,
         )
 
         cal = result["calibration"]

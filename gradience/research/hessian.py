@@ -24,36 +24,38 @@ These are tractable even for large models.
 """
 
 from __future__ import annotations
+
 import math
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List, Tuple, Callable
 import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
 class HessianSnapshot:
     """Snapshot of Hessian spectral properties."""
-    
+
     step: int
     timestamp: float
-    
+
     # Top eigenvalues (from power iteration or Lanczos)
-    top_eigenvalues: List[float]
-    
+    top_eigenvalues: list[float]
+
     # Derived quantities
-    lambda_max: float             # Largest eigenvalue
-    lambda_min_approx: Optional[float]  # Smallest (if computed)
-    hessian_kappa: Optional[float]      # Condition number of Hessian
-    
+    lambda_max: float  # Largest eigenvalue
+    lambda_min_approx: float | None  # Smallest (if computed)
+    hessian_kappa: float | None  # Condition number of Hessian
+
     # Trace estimates
-    trace: Optional[float]        # tr(H) via Hutchinson
-    trace_variance: Optional[float]  # Variance of trace estimate
-    
+    trace: float | None  # tr(H) via Hutchinson
+    trace_variance: float | None  # Variance of trace estimate
+
     # Curvature statistics
-    mean_curvature: Optional[float]   # trace / n_params
-    spectral_norm: float          # ||H||_2 = |λ_max|
-    
-    def to_dict(self) -> Dict[str, Any]:
+    mean_curvature: float | None  # trace / n_params
+    spectral_norm: float  # ||H||_2 = |λ_max|
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "step": self.step,
             "timestamp": self.timestamp,
@@ -70,14 +72,14 @@ class HessianSnapshot:
 
 def hessian_vector_product(
     loss_fn: Callable,
-    params: List,
-    vector: List,
-) -> List:
+    params: list,
+    vector: list,
+) -> list:
     """
     Compute Hessian-vector product Hv using autodiff.
-    
+
     Uses the identity: Hv = ∂/∂θ (∇L · v)
-    
+
     Parameters
     ----------
     loss_fn : callable
@@ -86,39 +88,39 @@ def hessian_vector_product(
         Model parameters
     vector : list of Tensor
         Vector to multiply (same structure as params)
-    
+
     Returns
     -------
     Hv : list of Tensor
         Hessian-vector product (same structure as params)
     """
     import torch
-    
+
     # First: compute gradient
     loss = loss_fn()
     grads = torch.autograd.grad(loss, params, create_graph=True)
-    
+
     # Second: compute gradient of (grad · vector)
     grad_dot_v = sum((g * v).sum() for g, v in zip(grads, vector))
-    
+
     Hv = torch.autograd.grad(grad_dot_v, params)
-    
+
     return list(Hv)
 
 
 def power_iteration_hessian(
     loss_fn: Callable,
-    params: List,
+    params: list,
     n_iterations: int = 20,
     n_eigenvalues: int = 1,
     tolerance: float = 1e-5,
-) -> List[float]:
+) -> list[float]:
     """
     Estimate top eigenvalues of Hessian via power iteration.
-    
+
     For multiple eigenvalues, uses deflation (orthogonalize against
     previously found eigenvectors).
-    
+
     Parameters
     ----------
     loss_fn : callable
@@ -131,67 +133,67 @@ def power_iteration_hessian(
         Number of top eigenvalues to compute
     tolerance : float
         Convergence threshold
-    
+
     Returns
     -------
     eigenvalues : list of float
         Top eigenvalues in descending order
     """
     import torch
-    
+
     eigenvalues: list[float] = []
     eigenvectors: list[list[torch.Tensor]] = []  # For deflation
-    
+
     for k in range(n_eigenvalues):
         # Initialize random vector
         v = [torch.randn_like(p) for p in params]
         v = normalize_vector(v)
-        
+
         # Orthogonalize against previous eigenvectors
         for ev in eigenvectors:
             proj = sum((vi * evi).sum() for vi, evi in zip(v, ev))
             v = [vi - proj * evi for vi, evi in zip(v, ev)]
         v = normalize_vector(v)
-        
+
         # Power iteration
         prev_eigenvalue = None
         for i in range(n_iterations):
             # Hv
             Hv = hessian_vector_product(loss_fn, params, v)
-            
+
             # Orthogonalize against previous eigenvectors
             for ev in eigenvectors:
                 proj = sum((hvi * evi).sum() for hvi, evi in zip(Hv, ev))
                 Hv = [hvi - proj * evi for hvi, evi in zip(Hv, ev)]
-            
+
             # Rayleigh quotient: λ = v^T H v / v^T v = v^T H v (since ||v|| = 1)
             eigenvalue = sum((vi * hvi).sum() for vi, hvi in zip(v, Hv)).item()
-            
+
             # Normalize
             v = normalize_vector(Hv)
-            
+
             # Check convergence
             if prev_eigenvalue is not None:
                 if abs(eigenvalue - prev_eigenvalue) < tolerance:
                     break
             prev_eigenvalue = eigenvalue
-        
+
         eigenvalues.append(eigenvalue)
         eigenvectors.append(v)
-    
+
     return eigenvalues
 
 
 def hutchinson_trace(
     loss_fn: Callable,
-    params: List,
+    params: list,
     n_samples: int = 100,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Estimate trace of Hessian using Hutchinson's method.
-    
+
     Uses the identity: E[z^T H z] = tr(H) where z is Rademacher random.
-    
+
     Parameters
     ----------
     loss_fn : callable
@@ -200,7 +202,7 @@ def hutchinson_trace(
         Model parameters
     n_samples : int
         Number of random vectors for estimation
-    
+
     Returns
     -------
     trace : float
@@ -209,30 +211,30 @@ def hutchinson_trace(
         Variance of estimate
     """
     import torch
-    
+
     estimates = []
-    
+
     for _ in range(n_samples):
         # Rademacher random vector: ±1 with equal probability
         z = [torch.sign(torch.randn_like(p)) for p in params]
-        
+
         # Hz
         Hz = hessian_vector_product(loss_fn, params, z)
-        
+
         # z^T H z
         trace_est = sum((zi * Hzi).sum() for zi, Hzi in zip(z, Hz)).item()
         estimates.append(trace_est)
-    
+
     trace = sum(estimates) / len(estimates)
-    variance = sum((e - trace)**2 for e in estimates) / len(estimates)
-    
+    variance = sum((e - trace) ** 2 for e in estimates) / len(estimates)
+
     return trace, variance
 
 
-def normalize_vector(v: List) -> List:
+def normalize_vector(v: list) -> list:
     """Normalize a parameter-structured vector to unit norm."""
     import torch
-    
+
     norm = math.sqrt(sum((vi**2).sum().item() for vi in v))
     if norm < 1e-10:
         return v
@@ -249,7 +251,7 @@ def compute_hessian_snapshot(
 ) -> HessianSnapshot:
     """
     Compute Hessian spectral snapshot.
-    
+
     Parameters
     ----------
     model : torch.nn.Module
@@ -264,7 +266,7 @@ def compute_hessian_snapshot(
         Hutchinson samples for trace
     power_iterations : int
         Iterations for power method
-    
+
     Returns
     -------
     HessianSnapshot
@@ -272,28 +274,29 @@ def compute_hessian_snapshot(
     """
     params = [p for p in model.parameters() if p.requires_grad]
     n_params = sum(p.numel() for p in params)
-    
+
     # Top eigenvalues
     top_eigs = power_iteration_hessian(
-        loss_fn, params,
+        loss_fn,
+        params,
         n_iterations=power_iterations,
         n_eigenvalues=n_top_eigenvalues,
     )
-    
+
     lambda_max = top_eigs[0] if top_eigs else 0.0
-    
+
     # Trace
     trace, trace_var = hutchinson_trace(loss_fn, params, n_samples=n_trace_samples)
-    
+
     # Derived quantities
     mean_curvature = trace / n_params if n_params > 0 else 0.0
-    
+
     # We don't have λ_min easily, but we can estimate from trace
     # If spectrum were uniform: λ_min ≈ trace/n - (n-1) * spread
     # This is a rough heuristic
     lambda_min_approx = None
     hessian_kappa = None
-    
+
     return HessianSnapshot(
         step=step,
         timestamp=time.time(),
@@ -312,54 +315,55 @@ def compute_hessian_snapshot(
 class HessianTracker:
     """
     Track Hessian properties over training.
-    
+
     Maintains history for analyzing curvature dynamics
     and correlation with weight spectra.
     """
-    
-    _history: List[HessianSnapshot] = field(default_factory=list)
-    
+
+    _history: list[HessianSnapshot] = field(default_factory=list)
+
     def __post_init__(self):
         self._history = []
-    
+
     def add(self, snapshot: HessianSnapshot) -> None:
         """Record Hessian observation."""
         self._history.append(snapshot)
-    
-    def get_trajectory(self, field: str = "lambda_max") -> List[Tuple[int, float]]:
+
+    def get_trajectory(self, field: str = "lambda_max") -> list[tuple[int, float]]:
         """Get trajectory of a specific field."""
         return [(h.step, getattr(h, field)) for h in self._history]
-    
-    def compute_curvature_velocity(self, window: int = 20) -> Optional[float]:
+
+    def compute_curvature_velocity(self, window: int = 20) -> float | None:
         """Compute rate of change of max eigenvalue."""
         if len(self._history) < 3:
             return None
-        
+
         recent = self._history[-window:]
         steps = [h.step for h in recent]
         values = [h.lambda_max for h in recent]
-        
+
         n = len(steps)
         mean_s = sum(steps) / n
         mean_v = sum(values) / n
-        
+
         num = sum((s - mean_s) * (v - mean_v) for s, v in zip(steps, values))
-        den = sum((s - mean_s)**2 for s in steps)
-        
+        den = sum((s - mean_s) ** 2 for s in steps)
+
         if den < 1e-10:
             return 0.0
-        
+
         return num / den
 
 
 def create_loss_fn_for_batch(model, batch, loss_criterion):
     """
     Create a closure that computes loss for Hessian estimation.
-    
+
     Usage:
         loss_fn = create_loss_fn_for_batch(model, batch, nn.CrossEntropyLoss())
         snapshot = compute_hessian_snapshot(model, loss_fn, step=100)
     """
+
     def loss_fn():
         outputs = model(**batch) if isinstance(batch, dict) else model(batch)
         if hasattr(outputs, "loss"):
@@ -368,5 +372,5 @@ def create_loss_fn_for_batch(model, batch, loss_criterion):
             return loss_criterion(outputs.logits, batch["labels"])
         else:
             return loss_criterion(outputs, batch["labels"])
-    
+
     return loss_fn

@@ -3,68 +3,68 @@ Task profile registry for Bench.
 """
 
 from typing import Any, Dict, Type
+
 from .base import TaskProfile
 
-
 # Registry of available task profiles (lazy loaded)
-TASK_PROFILES: Dict[str, str] = {
+TASK_PROFILES: dict[str, str] = {
     "seqcls_glue": ".seqcls_glue:GLUESequenceClassificationProfile",
     "gsm8k_causal_lm": ".gsm8k_causal_lm:GSM8KCausalLMProfile",
 }
 
 
-def _load_profile_class(module_class_path: str) -> Type[TaskProfile]:
+def _load_profile_class(module_class_path: str) -> type[TaskProfile]:
     """Lazy load a profile class."""
     module_path, class_name = module_class_path.split(":")
     # Import relative to this package
     full_module = f"gradience.bench.task_profiles{module_path}"
     module = __import__(full_module, fromlist=[class_name])
-    cls: Type[TaskProfile] = getattr(module, class_name)
+    cls: type[TaskProfile] = getattr(module, class_name)
     return cls
 
 
 def get_task_profile(profile_name: str) -> TaskProfile:
     """
     Get task profile instance by name.
-    
+
     Args:
         profile_name: Name of the task profile (e.g., 'seqcls_glue', 'gsm8k_causal_lm')
-        
+
     Returns:
         Task profile instance
-        
+
     Raises:
         ValueError: If profile name is not registered
     """
     if profile_name not in TASK_PROFILES:
         available = list(TASK_PROFILES.keys())
         raise ValueError(f"Unknown task profile '{profile_name}'. Available profiles: {available}")
-    
+
     profile_class = _load_profile_class(TASK_PROFILES[profile_name])
     return profile_class()
 
 
-def get_task_profile_from_config(cfg: Dict[str, Any]) -> TaskProfile:
+def get_task_profile_from_config(cfg: dict[str, Any]) -> TaskProfile:
     """
     Get task profile from configuration.
-    
+
     Args:
         cfg: Bench configuration dictionary
-        
+
     Returns:
         Task profile instance
-        
+
     Raises:
         ValueError: If profile is not specified or not found
     """
     task_config = cfg.get("task", {})
     profile_name = task_config.get("profile")
-    
+
     if not profile_name:
         # Backward compatibility: infer from model type
         model_config = cfg.get("model", {})
         model_type = model_config.get("type", "seqcls")  # Default to sequence classification
-        
+
         if model_type == "causal_lm":
             # For now, assume causal_lm means GSM8K, but this could be extended
             dataset = task_config.get("dataset", "")
@@ -75,5 +75,5 @@ def get_task_profile_from_config(cfg: Dict[str, Any]) -> TaskProfile:
         else:
             # Default to GLUE-style sequence classification
             profile_name = "seqcls_glue"
-    
+
     return get_task_profile(profile_name)

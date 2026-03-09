@@ -18,12 +18,13 @@ from pathlib import Path
 import numpy as np
 from scipy import stats
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DFA Implementation (matching Study 12 / analyze_grokking_dfa.py)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def dfa(signal, min_scale=4, max_scale_frac=0.25, n_scales=20):
     """
@@ -40,9 +41,7 @@ def dfa(signal, min_scale=4, max_scale_frac=0.25, n_scales=20):
     if max_scale < min_scale + 2:
         return np.nan, np.nan, [], []
 
-    scales = np.unique(np.logspace(
-        np.log10(min_scale), np.log10(max_scale), num=n_scales
-    ).astype(int))
+    scales = np.unique(np.logspace(np.log10(min_scale), np.log10(max_scale), num=n_scales).astype(int))
     scales = scales[scales >= min_scale]
 
     fluctuations = []
@@ -56,21 +55,21 @@ def dfa(signal, min_scale=4, max_scale_frac=0.25, n_scales=20):
         rms_values = []
         # Forward segments
         for v in range(n_segments):
-            segment = y[v*s:(v+1)*s]
+            segment = y[v * s : (v + 1) * s]
             t = np.arange(s)
             coeffs = np.polyfit(t, segment, 1)
             trend = np.polyval(coeffs, t)
-            rms_values.append(np.sqrt(np.mean((segment - trend)**2)))
+            rms_values.append(np.sqrt(np.mean((segment - trend) ** 2)))
 
         # Backward segments
         for v in range(n_segments):
-            segment = y[N - (v+1)*s:N - v*s]
+            segment = y[N - (v + 1) * s : N - v * s]
             t = np.arange(s)
             coeffs = np.polyfit(t, segment, 1)
             trend = np.polyval(coeffs, t)
-            rms_values.append(np.sqrt(np.mean((segment - trend)**2)))
+            rms_values.append(np.sqrt(np.mean((segment - trend) ** 2)))
 
-        F_s = np.sqrt(np.mean(np.array(rms_values)**2))
+        F_s = np.sqrt(np.mean(np.array(rms_values) ** 2))
         if F_s > 0:
             fluctuations.append(F_s)
             valid_scales.append(s)
@@ -85,8 +84,8 @@ def dfa(signal, min_scale=4, max_scale_frac=0.25, n_scales=20):
     alpha = coeffs[0]
 
     predicted = np.polyval(coeffs, log_s)
-    ss_res = np.sum((log_F - predicted)**2)
-    ss_tot = np.sum((log_F - np.mean(log_F))**2)
+    ss_res = np.sum((log_F - predicted) ** 2)
+    ss_tot = np.sum((log_F - np.mean(log_F)) ** 2)
     r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0
 
     return alpha, r_squared, valid_scales, fluctuations
@@ -95,6 +94,7 @@ def dfa(signal, min_scale=4, max_scale_frac=0.25, n_scales=20):
 # ═══════════════════════════════════════════════════════════════════════════
 # Data Loading
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def load_seed_data(seed_dir):
     """Load telemetry and summary for one seed."""
@@ -128,6 +128,7 @@ def extract_hessian_records(records):
 # Grokking Detection
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def detect_grok_step(records, threshold=0.95):
     """Find first step where val_acc exceeds threshold."""
     for r in records:
@@ -144,8 +145,8 @@ CURVATURE_METRICS = ["lambda1", "trace_H", "gHg"]
 CONTROL_METRICS = ["weight_norm", "grad_norm"]
 ALL_METRICS = CURVATURE_METRICS + CONTROL_METRICS
 
-WINDOW_SIZE = 150    # points
-STRIDE = 30          # points
+WINDOW_SIZE = 150  # points
+STRIDE = 30  # points
 R2_THRESHOLD = 0.80
 PRE_POST_MARGIN = 100  # points (= 5000 steps at 50-step intervals)
 
@@ -158,17 +159,19 @@ def compute_windowed_dfa(signal, steps, window_size=WINDOW_SIZE, stride=STRIDE):
     """
     results = []
     for start in range(0, len(signal) - window_size + 1, stride):
-        window = signal[start:start + window_size]
+        window = signal[start : start + window_size]
         center_idx = start + window_size // 2
         center_step = steps[center_idx]
 
         alpha, r2, _, _ = dfa(window, min_scale=4, max_scale_frac=0.25)
-        results.append({
-            "center_step": int(center_step),
-            "center_idx": center_idx,
-            "alpha": float(alpha) if not np.isnan(alpha) else None,
-            "r_squared": float(r2) if not np.isnan(r2) else None,
-        })
+        results.append(
+            {
+                "center_step": int(center_step),
+                "center_idx": center_idx,
+                "alpha": float(alpha) if not np.isnan(alpha) else None,
+                "r_squared": float(r2) if not np.isnan(r2) else None,
+            }
+        )
 
     return results
 
@@ -219,6 +222,7 @@ def segment_windows(windowed_dfa, grok_step, steps, margin=PRE_POST_MARGIN):
 # Statistical Tests
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def paired_t_test(alpha_pre, alpha_post):
     """Paired t-test for DFA shift (one-sided: post > pre)."""
     deltas = np.array(alpha_post) - np.array(alpha_pre)
@@ -237,7 +241,7 @@ def paired_t_test(alpha_pre, alpha_post):
 
     # Also compute Wilcoxon (non-parametric backup)
     try:
-        wilcox_stat, wilcox_p_two = stats.wilcoxon(deltas, alternative='greater')
+        wilcox_stat, wilcox_p_two = stats.wilcoxon(deltas, alternative="greater")
     except ValueError:
         wilcox_stat, wilcox_p_two = np.nan, np.nan
 
@@ -290,26 +294,30 @@ def early_warning_test(seed_results, n_std=2):
             for w in all_windows:
                 if w["alpha"] > threshold and w["center_step"] < sr["grok_step"]:
                     lead = sr["grok_step"] - w["center_step"]
-                    lead_times.append({
-                        "seed": seed_id,
-                        "metric": metric,
-                        "lead_steps": int(lead),
-                        "detect_step": w["center_step"],
-                        "grok_step": sr["grok_step"],
-                    })
+                    lead_times.append(
+                        {
+                            "seed": seed_id,
+                            "metric": metric,
+                            "lead_steps": int(lead),
+                            "detect_step": w["center_step"],
+                            "grok_step": sr["grok_step"],
+                        }
+                    )
                     if lead >= 500:
                         successes += 1
                     detected = True
                     break
 
             if not detected:
-                lead_times.append({
-                    "seed": seed_id,
-                    "metric": metric,
-                    "lead_steps": 0,
-                    "detect_step": None,
-                    "grok_step": sr["grok_step"],
-                })
+                lead_times.append(
+                    {
+                        "seed": seed_id,
+                        "metric": metric,
+                        "lead_steps": 0,
+                        "detect_step": None,
+                        "grok_step": sr["grok_step"],
+                    }
+                )
 
     return {
         "lead_times": lead_times,
@@ -323,11 +331,13 @@ def early_warning_test(seed_results, n_std=2):
 # Main Analysis
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--results_root", type=str, default="results/study13")
-    parser.add_argument("--output_dir", type=str, default=None,
-                        help="Where to save analysis output (default: results_root)")
+    parser.add_argument(
+        "--output_dir", type=str, default=None, help="Where to save analysis output (default: results_root)"
+    )
     args = parser.parse_args()
 
     root = Path(args.results_root)
@@ -393,12 +403,9 @@ def main():
 
     # Print summary
     for metric in ALL_METRICS:
-        alphas = [global_dfa[s][metric]["alpha"]
-                  for s in global_dfa
-                  if global_dfa[s][metric]["alpha"] is not None]
+        alphas = [global_dfa[s][metric]["alpha"] for s in global_dfa if global_dfa[s][metric]["alpha"] is not None]
         if alphas:
-            print(f"  {metric:15s}: mean α = {np.mean(alphas):.3f} ± {np.std(alphas):.3f}  "
-                  f"(n={len(alphas)})")
+            print(f"  {metric:15s}: mean α = {np.mean(alphas):.3f} ± {np.std(alphas):.3f}  (n={len(alphas)})")
 
     # ── Windowed DFA ───────────────────────────────────────────────────
     print("\n" + "=" * 70)
@@ -440,10 +447,12 @@ def main():
             n_post = len(seg["post"])
             pre_alphas = [w["alpha"] for w in seg["pre"] if w["alpha"] is not None]
             post_alphas = [w["alpha"] for w in seg["post"] if w["alpha"] is not None]
-            pre_mean = np.mean(pre_alphas) if pre_alphas else float('nan')
-            post_mean = np.mean(post_alphas) if post_alphas else float('nan')
-            print(f"  {seed_id} {metric:10s}: pre α={pre_mean:.3f} ({n_pre}w) → "
-                  f"post α={post_mean:.3f} ({n_post}w)  {grok_str}")
+            pre_mean = np.mean(pre_alphas) if pre_alphas else float("nan")
+            post_mean = np.mean(post_alphas) if post_alphas else float("nan")
+            print(
+                f"  {seed_id} {metric:10s}: pre α={pre_mean:.3f} ({n_pre}w) → "
+                f"post α={post_mean:.3f} ({n_post}w)  {grok_str}"
+            )
 
     # ── Statistical Tests ──────────────────────────────────────────────
     print("\n" + "=" * 70)
@@ -474,17 +483,27 @@ def main():
             result = paired_t_test(alpha_pre_list, alpha_post_list)
             is_curvature = metric in CURVATURE_METRICS
             label = "CURVATURE" if is_curvature else "CONTROL"
-            sig = "***" if result["p_one_sided"] < 0.001 else \
-                  "**" if result["p_one_sided"] < 0.01 else \
-                  "*" if result["p_one_sided"] < 0.05 else "ns"
+            sig = (
+                "***"
+                if result["p_one_sided"] < 0.001
+                else "**"
+                if result["p_one_sided"] < 0.01
+                else "*"
+                if result["p_one_sided"] < 0.05
+                else "ns"
+            )
 
-            print(f"  {metric:15s} [{label}]: Δα = {result['mean_delta']:+.4f} ± "
-                  f"{result['std_delta']:.4f}, t({result['n']-1}) = {result['t']:.3f}, "
-                  f"p = {result['p_one_sided']:.4g} {sig}, d = {result['cohens_d']:.3f}")
+            print(
+                f"  {metric:15s} [{label}]: Δα = {result['mean_delta']:+.4f} ± "
+                f"{result['std_delta']:.4f}, t({result['n'] - 1}) = {result['t']:.3f}, "
+                f"p = {result['p_one_sided']:.4g} {sig}, d = {result['cohens_d']:.3f}"
+            )
 
             if result.get("shapiro_p") is not None and result["shapiro_p"] < 0.05:
-                print(f"  {'':15s}  ⚠ Non-normal (Shapiro p={result['shapiro_p']:.3f}), "
-                      f"Wilcoxon p={result.get('wilcoxon_p', 'N/A')}")
+                print(
+                    f"  {'':15s}  ⚠ Non-normal (Shapiro p={result['shapiro_p']:.3f}), "
+                    f"Wilcoxon p={result.get('wilcoxon_p', 'N/A')}"
+                )
 
             test_results[f"test1_{metric}"] = result
             test_results[f"test1_{metric}"]["alpha_pre"] = alpha_pre_list
@@ -504,20 +523,19 @@ def main():
             metric_deltas[metric] = post - pre
 
     for i, m1 in enumerate(CURVATURE_METRICS):
-        for m2 in CURVATURE_METRICS[i+1:]:
+        for m2 in CURVATURE_METRICS[i + 1 :]:
             if m1 in metric_deltas and m2 in metric_deltas:
                 rho, p = stats.spearmanr(metric_deltas[m1], metric_deltas[m2])
                 print(f"  {m1} vs {m2}: ρ = {rho:.3f}, p = {p:.4g}")
-                test_results[f"test3_{m1}_vs_{m2}"] = {
-                    "rho": float(rho), "p": float(p)
-                }
+                test_results[f"test3_{m1}_vs_{m2}"] = {"rho": float(rho), "p": float(p)}
 
     # Test 5: Early warning
     print("\nTest 5: Early-warning lead time")
     print("-" * 50)
     ew = early_warning_test(seed_results)
-    print(f"  Success rate (≥500 steps early): "
-          f"{ew['successes_500']}/{ew['total_tests']} = {ew['success_rate_500']:.1%}")
+    print(
+        f"  Success rate (≥500 steps early): {ew['successes_500']}/{ew['total_tests']} = {ew['success_rate_500']:.1%}"
+    )
     for lt in ew["lead_times"]:
         if lt["detect_step"] is not None:
             print(f"    {lt['seed']} {lt['metric']}: detected {lt['lead_steps']} steps early")
@@ -533,30 +551,34 @@ def main():
         "r2_threshold": R2_THRESHOLD,
         "pre_post_margin_pts": PRE_POST_MARGIN,
         "global_dfa": global_dfa,
-        "test_results": {k: {kk: vv for kk, vv in v.items()
-                             if not isinstance(vv, (list, np.ndarray))}
-                         if isinstance(v, dict) else v
-                         for k, v in test_results.items()},
+        "test_results": {
+            k: {kk: vv for kk, vv in v.items() if not isinstance(vv, (list, np.ndarray))} if isinstance(v, dict) else v
+            for k, v in test_results.items()
+        },
         "per_seed_summary": {
             seed_id: {
                 "grok_step": sr["grok_step"],
                 "n_hessian": sr["n_hessian"],
                 "pre_post_alphas": {
                     metric: {
-                        "pre_mean": float(np.mean([w["alpha"] for w in sr["windowed"][metric]["pre"]
-                                                    if w["alpha"] is not None]))
-                        if sr["windowed"][metric]["pre"] else None,
-                        "post_mean": float(np.mean([w["alpha"] for w in sr["windowed"][metric]["post"]
-                                                     if w["alpha"] is not None]))
-                        if sr["windowed"][metric]["post"] else None,
+                        "pre_mean": float(
+                            np.mean([w["alpha"] for w in sr["windowed"][metric]["pre"] if w["alpha"] is not None])
+                        )
+                        if sr["windowed"][metric]["pre"]
+                        else None,
+                        "post_mean": float(
+                            np.mean([w["alpha"] for w in sr["windowed"][metric]["post"] if w["alpha"] is not None])
+                        )
+                        if sr["windowed"][metric]["post"]
+                        else None,
                         "n_pre_windows": len(sr["windowed"][metric]["pre"]),
                         "n_post_windows": len(sr["windowed"][metric]["post"]),
                     }
                     for metric in ALL_METRICS
-                }
+                },
             }
             for seed_id, sr in seed_results.items()
-        }
+        },
     }
 
     results_path = out_dir / "study13_results.json"
@@ -569,15 +591,9 @@ def main():
         "seed_results": seed_results,
         "global_dfa": global_dfa,
         "test_results": test_results,
-        "all_data_steps": {
-            seed_id: [r["step"] for r in sd["hessian_records"]]
-            for seed_id, sd in all_data.items()
-        },
+        "all_data_steps": {seed_id: [r["step"] for r in sd["hessian_records"]] for seed_id, sd in all_data.items()},
         "all_data_signals": {
-            seed_id: {
-                metric: [r.get(metric) for r in sd["hessian_records"]]
-                for metric in ALL_METRICS
-            }
+            seed_id: {metric: [r.get(metric) for r in sd["hessian_records"]] for metric in ALL_METRICS}
             for seed_id, sd in all_data.items()
         },
     }

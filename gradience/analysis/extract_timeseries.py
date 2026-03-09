@@ -76,10 +76,9 @@ def _extract_meta(events: list[dict], path: Path) -> RunMeta:
     train_steps = [e["step"] for e in events if e.get("event") == "train_step"]
     eval_steps = [e["step"] for e in events if e.get("event") == "eval"]
     # Structural events may fire twice per step (known bug); deduplicate
-    structural_steps = sorted(set(
-        e["step"] for e in events
-        if e.get("event") == "metrics" and e.get("kind") == "structural"
-    ))
+    structural_steps = sorted(
+        set(e["step"] for e in events if e.get("event") == "metrics" and e.get("kind") == "structural")
+    )
 
     meta.total_train_steps = len(train_steps)
     meta.total_eval_events = len(eval_steps)
@@ -298,9 +297,7 @@ def extract_timeseries(jsonl_path: str | Path) -> ExtractedRun:
     eval_df = _build_eval_df(events)
     structural_df = _build_structural_df(events)
 
-    aligned = _align_to_eval_grid(
-        train_df, eval_df, meta.eval_interval, structural_df
-    )
+    aligned = _align_to_eval_grid(train_df, eval_df, meta.eval_interval, structural_df)
 
     return ExtractedRun(
         meta=meta,
@@ -327,10 +324,7 @@ def extract_all_runs(
     for jsonl_path in sorted(base.rglob("run.jsonl")):
         try:
             run = extract_timeseries(jsonl_path)
-            if (
-                run.meta.total_eval_events >= min_eval_events
-                and run.meta.total_train_steps >= min_train_steps
-            ):
+            if run.meta.total_eval_events >= min_eval_events and run.meta.total_train_steps >= min_train_steps:
                 runs.append(run)
         except Exception:
             continue

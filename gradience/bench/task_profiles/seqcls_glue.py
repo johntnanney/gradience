@@ -3,25 +3,29 @@ GLUE sequence classification task profile.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, Tuple, TYPE_CHECKING, cast
+
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, Tuple, cast
 
 if TYPE_CHECKING:
     from datasets import Dataset
     from transformers import (
-        PreTrainedModel, PreTrainedTokenizerBase, Trainer, 
-        TrainingArguments, DataCollatorWithPadding
+        DataCollatorWithPadding,
+        PreTrainedModel,
+        PreTrainedTokenizerBase,
+        Trainer,
+        TrainingArguments,
     )
 
 
 class GLUESequenceClassificationProfile:
     """Task profile for GLUE-style sequence classification tasks."""
-    
+
     name = "seqcls_glue"
     primary_metric = "accuracy"
     primary_metric_key = "eval_accuracy"
-    
-    def load(self, cfg: Dict[str, Any]) -> Any:
+
+    def load(self, cfg: dict[str, Any]) -> Any:
         """Load GLUE dataset from config."""
         from datasets import load_dataset
 
@@ -32,73 +36,67 @@ class GLUESequenceClassificationProfile:
         if "train" in cfg:
             train_config = cfg["train"]
             if "train_samples" in train_config:
-                dataset["train"] = dataset["train"].select(range(min(len(dataset["train"]), train_config["train_samples"])))
+                dataset["train"] = dataset["train"].select(
+                    range(min(len(dataset["train"]), train_config["train_samples"]))
+                )
             if "eval_samples" in train_config:
-                dataset["validation"] = dataset["validation"].select(range(min(len(dataset["validation"]), train_config["eval_samples"])))
+                dataset["validation"] = dataset["validation"].select(
+                    range(min(len(dataset["validation"]), train_config["eval_samples"]))
+                )
 
         return dataset
-    
-    def tokenize(self, raw_ds: Dict[str, Dataset], tokenizer: PreTrainedTokenizerBase, cfg: Dict[str, Any]) -> Dict[str, Dataset]:
+
+    def tokenize(
+        self, raw_ds: dict[str, Dataset], tokenizer: PreTrainedTokenizerBase, cfg: dict[str, Any]
+    ) -> dict[str, Dataset]:
         """Tokenize GLUE dataset with field auto-detection."""
+
         def preprocess_function(examples):
             """Tokenize examples and preserve labels."""
             # Detect task type based on available fields
             if "question" in examples and "sentence" in examples:
                 # QNLI and similar paired tasks
                 result = tokenizer(
-                    examples["question"], 
-                    examples["sentence"],
-                    truncation=True, 
-                    padding=True, 
-                    max_length=128
+                    examples["question"], examples["sentence"], truncation=True, padding=True, max_length=128
                 )
             elif "sentence" in examples:
                 # SST-2 and similar single-text tasks
-                result = tokenizer(
-                    examples["sentence"], 
-                    truncation=True, 
-                    padding=True, 
-                    max_length=128
-                )
+                result = tokenizer(examples["sentence"], truncation=True, padding=True, max_length=128)
             elif "sentence1" in examples and "sentence2" in examples:
                 # MNLI, RTE and similar paired sentence tasks
                 result = tokenizer(
-                    examples["sentence1"],
-                    examples["sentence2"],
-                    truncation=True,
-                    padding=True,
-                    max_length=128
+                    examples["sentence1"], examples["sentence2"], truncation=True, padding=True, max_length=128
                 )
             else:
                 # Fallback: try to guess the text field
                 text_keys = [k for k in examples.keys() if "text" in k.lower() or "sentence" in k.lower()]
                 if text_keys:
-                    result = tokenizer(
-                        examples[text_keys[0]], 
-                        truncation=True, 
-                        padding=True, 
-                        max_length=128
-                    )
+                    result = tokenizer(examples[text_keys[0]], truncation=True, padding=True, max_length=128)
                 else:
-                    raise ValueError(f"Could not identify text field(s) in dataset. Available keys: {list(examples.keys())}")
-            
+                    raise ValueError(
+                        f"Could not identify text field(s) in dataset. Available keys: {list(examples.keys())}"
+                    )
+
             # Make sure labels are preserved
             if "label" in examples:
                 result["labels"] = examples["label"]
             return result
-        
-        return {
-            split: dataset.map(preprocess_function, batched=True)
-            for split, dataset in raw_ds.items()
-        }
-    
-    def build_trainer(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
-                     tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any], callbacks) -> Trainer:
+
+        return {split: dataset.map(preprocess_function, batched=True) for split, dataset in raw_ds.items()}
+
+    def build_trainer(
+        self,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizerBase,
+        tokenized_ds: dict[str, Dataset],
+        cfg: dict[str, Any],
+        callbacks,
+    ) -> Trainer:
         """Build trainer for sequence classification."""
-        from transformers import TrainingArguments, Trainer, DataCollatorWithPadding
-        
+        from transformers import DataCollatorWithPadding, Trainer, TrainingArguments
+
         train_config = cfg["train"]
-        
+
         # Build training arguments
         training_args = TrainingArguments(
             output_dir="./temp_trainer_output",
@@ -120,24 +118,32 @@ class GLUESequenceClassificationProfile:
             report_to=[],  # Disable wandb/tensorboard
             bf16=True if cfg.get("model", {}).get("torch_dtype") == "bf16" else False,
         )
-        
-        return cast("Trainer", Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=tokenized_ds["train"],
-            eval_dataset=tokenized_ds["validation"],
-            data_collator=DataCollatorWithPadding(tokenizer),
-            callbacks=callbacks or [],
-        ))
-    
-    def evaluate(self, model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase,
-                tokenized_ds: Dict[str, Dataset], cfg: Dict[str, Any]) -> Dict[str, Any]:
+
+        return cast(
+            "Trainer",
+            Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=tokenized_ds["train"],
+                eval_dataset=tokenized_ds["validation"],
+                data_collator=DataCollatorWithPadding(tokenizer),
+                callbacks=callbacks or [],
+            ),
+        )
+
+    def evaluate(
+        self,
+        model: PreTrainedModel,
+        tokenizer: PreTrainedTokenizerBase,
+        tokenized_ds: dict[str, Dataset],
+        cfg: dict[str, Any],
+    ) -> dict[str, Any]:
         """Evaluate sequence classification model and return consistent eval_accuracy."""
         import numpy as np
-        from transformers import TrainingArguments, Trainer, DataCollatorWithPadding
-        
+        from transformers import DataCollatorWithPadding, Trainer, TrainingArguments
+
         train_config = cfg["train"]
-        
+
         # Create minimal trainer for evaluation
         training_args = TrainingArguments(
             output_dir="./temp_eval_output",
@@ -145,67 +151,69 @@ class GLUESequenceClassificationProfile:
             seed=train_config.get("seed", 42),
             report_to=[],
         )
-        
+
         trainer = Trainer(
             model=model,
             args=training_args,
             eval_dataset=tokenized_ds["validation"],
             data_collator=DataCollatorWithPadding(tokenizer),
         )
-        
+
         # Use trainer.predict() to get logits and labels for accuracy computation
         predictions = trainer.predict(tokenized_ds["validation"])
-        
+
         # Compute accuracy from logits and labels
         logits = predictions.predictions
         labels = predictions.label_ids
-        
+
         # Get predicted classes (argmax of logits)
         pred_classes = np.argmax(logits, axis=1)
-        
+
         # Compute accuracy
         accuracy = (pred_classes == labels).mean()
         num_samples = len(labels)
         num_correct = (pred_classes == labels).sum()
-        
+
         return {
             "eval_accuracy": float(accuracy),
             "eval_samples": int(num_samples),
             "eval_correct": int(num_correct),
             "eval_loss": float(predictions.metrics.get("test_loss", 0.0)),
         }
-    
-    def probe_gate(self, probe_eval: Dict[str, Any], cfg: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
+
+    def probe_gate(self, probe_eval: dict[str, Any], cfg: dict[str, Any]) -> tuple[bool, dict[str, Any]]:
         """Check if probe meets accuracy threshold."""
         # Get task-specific threshold
         task_name = cfg["task"]["subset"]
         threshold = self._get_probe_quality_threshold(task_name)
-        
-        accuracy = probe_eval.get("eval_accuracy") or probe_eval.get("eval_exact_match") or probe_eval.get("accuracy", 0.0)
+
+        accuracy = (
+            probe_eval.get("eval_accuracy") or probe_eval.get("eval_exact_match") or probe_eval.get("accuracy", 0.0)
+        )
         passed = accuracy >= threshold
-        
+
         gate_info = {
             "metric": self.primary_metric,
             "value": accuracy,
             "threshold": threshold,
             "passed": passed,
-            "task": task_name
+            "task": task_name,
         }
-        
+
         return passed, gate_info
-    
+
     def _get_probe_quality_threshold(self, task_name: str) -> float:
         """Get task-specific minimum probe accuracy threshold."""
         task_thresholds = {
-            "sst2": 0.75,       # SST-2 sentiment: 75% minimum
-            "mnli": 0.70,       # MNLI entailment: 70% minimum  
-            "qnli": 0.75,       # QNLI question entailment: 75% minimum
-            "qqp": 0.80,        # QQP paraphrase: 80% minimum
-            "rte": 0.60,        # RTE small dataset: 60% minimum
-            "wnli": 0.55,       # WNLI very small: 55% minimum
-            "cola": 0.70,       # CoLA linguistic: 70% minimum
-            "mrpc": 0.75,       # MRPC paraphrase: 75% minimum
-            "stsb": 0.80,       # STS-B regression converted to classification
+            "sst2": 0.75,  # SST-2 sentiment: 75% minimum
+            "mnli": 0.70,  # MNLI entailment: 70% minimum
+            "qnli": 0.75,  # QNLI question entailment: 75% minimum
+            "qqp": 0.80,  # QQP paraphrase: 80% minimum
+            "rte": 0.60,  # RTE small dataset: 60% minimum
+            "wnli": 0.55,  # WNLI very small: 55% minimum
+            "cola": 0.70,  # CoLA linguistic: 70% minimum
+            "mrpc": 0.75,  # MRPC paraphrase: 75% minimum
+            "stsb": 0.80,  # STS-B regression converted to classification
         }
-        
+
         return task_thresholds.get(task_name.lower(), 0.70)  # Default 70%

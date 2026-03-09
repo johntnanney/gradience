@@ -13,7 +13,6 @@ from gradience.vnext.merge.spectral_compat import (
     compute_subspace_metrics,
 )
 
-
 # ---------------------------------------------------------------------------
 # compute_layer_svd
 # ---------------------------------------------------------------------------
@@ -25,12 +24,12 @@ class TestComputeLayerSVD:
     def test_shapes(self):
         """U, S, Vt have correct shapes."""
         torch.manual_seed(1)
-        A = torch.randn(8, 48)   # (r, d_in)
-        B = torch.randn(64, 8)   # (d_out, r)
+        A = torch.randn(8, 48)  # (r, d_in)
+        B = torch.randn(64, 8)  # (d_out, r)
 
         U, S, Vt = compute_layer_svd(A, B)
 
-        assert U.shape == (64, 8)   # (d_out, r)
+        assert U.shape == (64, 8)  # (d_out, r)
         assert S.shape == (8,)
         assert Vt.shape == (8, 48)  # (r, d_in)
 
@@ -166,16 +165,22 @@ class TestComputeSubspaceMetrics:
 
         # Factor ΔW = U @ diag(S) @ Vt into B @ A
         sqrt_S_a = torch.sqrt(S_a).unsqueeze(1)
-        A_a = (sqrt_S_a * Vt_a) / (scaling ** 0.5)
-        B_a = (U_a * sqrt_S_a.T) / (scaling ** 0.5)
+        A_a = (sqrt_S_a * Vt_a) / (scaling**0.5)
+        B_a = (U_a * sqrt_S_a.T) / (scaling**0.5)
 
         sqrt_S_b = torch.sqrt(S_b).unsqueeze(1)
-        A_b = (sqrt_S_b * Vt_b) / (scaling ** 0.5)
-        B_b = (U_b * sqrt_S_b.T) / (scaling ** 0.5)
+        A_b = (sqrt_S_b * Vt_b) / (scaling**0.5)
+        B_b = (U_b * sqrt_S_b.T) / (scaling**0.5)
 
         return compute_subspace_metrics(
-            A_a.float(), B_a.float(), alpha, rank,
-            A_b.float(), B_b.float(), alpha, rank,
+            A_a.float(),
+            B_a.float(),
+            alpha,
+            rank,
+            A_b.float(),
+            B_b.float(),
+            alpha,
+            rank,
         )
 
     def test_identical_matrices_high_overlap(self):
@@ -264,16 +269,22 @@ class TestComputeSubspaceMetrics:
         S_b = torch.linspace(3.0, 0.5, r_b, dtype=torch.float64)
 
         sqrt_Sa = torch.sqrt(S_a).unsqueeze(1)
-        A_a = (sqrt_Sa * Vt[:r_a, :]) / (scaling_a ** 0.5)
-        B_a = (U[:, :r_a] * sqrt_Sa.T) / (scaling_a ** 0.5)
+        A_a = (sqrt_Sa * Vt[:r_a, :]) / (scaling_a**0.5)
+        B_a = (U[:, :r_a] * sqrt_Sa.T) / (scaling_a**0.5)
 
         sqrt_Sb = torch.sqrt(S_b).unsqueeze(1)
-        A_b = (sqrt_Sb * Vt[:r_b, :]) / (scaling_b ** 0.5)
-        B_b = (U[:, :r_b] * sqrt_Sb.T) / (scaling_b ** 0.5)
+        A_b = (sqrt_Sb * Vt[:r_b, :]) / (scaling_b**0.5)
+        B_b = (U[:, :r_b] * sqrt_Sb.T) / (scaling_b**0.5)
 
         metrics = compute_subspace_metrics(
-            A_a.float(), B_a.float(), alpha, r_a,
-            A_b.float(), B_b.float(), alpha, r_b,
+            A_a.float(),
+            B_a.float(),
+            alpha,
+            r_a,
+            A_b.float(),
+            B_b.float(),
+            alpha,
+            r_b,
         )
 
         assert isinstance(metrics, SubspaceMetrics)
@@ -292,7 +303,14 @@ class TestComputeSubspaceMetrics:
         B_b = torch.randn(16, 4)
 
         metrics = compute_subspace_metrics(
-            A_a, B_a, 16.0, 4, A_b, B_b, 16.0, 4,
+            A_a,
+            B_a,
+            16.0,
+            4,
+            A_b,
+            B_b,
+            16.0,
+            4,
         )
 
         d = metrics.to_dict()
@@ -309,7 +327,14 @@ class TestComputeSubspaceMetrics:
         B_b = torch.randn(64, 8)
 
         metrics = compute_subspace_metrics(
-            A_a, B_a, 16.0, 8, A_b, B_b, 16.0, 8,
+            A_a,
+            B_a,
+            16.0,
+            8,
+            A_b,
+            B_b,
+            16.0,
+            8,
         )
 
         for cos_a in metrics.principal_angle_cosines:
@@ -324,7 +349,14 @@ class TestComputeSubspaceMetrics:
         B_b = torch.randn(16, 4)
 
         metrics = compute_subspace_metrics(
-            A_a, B_a, 16.0, 4, A_b, B_b, 16.0, 4,
+            A_a,
+            B_a,
+            16.0,
+            4,
+            A_b,
+            B_b,
+            16.0,
+            4,
         )
 
         assert isinstance(metrics, SubspaceMetrics)
@@ -346,24 +378,28 @@ class TestSymmetricScaleFields:
     def _make_metrics(self, S_a, S_b, seed=20, rank=8, alpha=16.0):
         """Helper: build metrics from specified singular value spectra."""
         torch.manual_seed(seed)
-        U, _, Vt = torch.linalg.svd(
-            torch.randn(64, 48, dtype=torch.float64), full_matrices=False
-        )
+        U, _, Vt = torch.linalg.svd(torch.randn(64, 48, dtype=torch.float64), full_matrices=False)
         U_r = U[:, :rank]
         Vt_r = Vt[:rank, :]
 
         scaling = alpha / rank
         sqrt_Sa = torch.sqrt(S_a).unsqueeze(1)
-        A_a = (sqrt_Sa * Vt_r) / (scaling ** 0.5)
-        B_a = (U_r * sqrt_Sa.T) / (scaling ** 0.5)
+        A_a = (sqrt_Sa * Vt_r) / (scaling**0.5)
+        B_a = (U_r * sqrt_Sa.T) / (scaling**0.5)
 
         sqrt_Sb = torch.sqrt(S_b).unsqueeze(1)
-        A_b = (sqrt_Sb * Vt_r) / (scaling ** 0.5)
-        B_b = (U_r * sqrt_Sb.T) / (scaling ** 0.5)
+        A_b = (sqrt_Sb * Vt_r) / (scaling**0.5)
+        B_b = (U_r * sqrt_Sb.T) / (scaling**0.5)
 
         return compute_subspace_metrics(
-            A_a.float(), B_a.float(), alpha, rank,
-            A_b.float(), B_b.float(), alpha, rank,
+            A_a.float(),
+            B_a.float(),
+            alpha,
+            rank,
+            A_b.float(),
+            B_b.float(),
+            alpha,
+            rank,
         )
 
     def test_scale_bounded_ratio_in_range(self):

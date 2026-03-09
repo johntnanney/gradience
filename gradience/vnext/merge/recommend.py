@@ -41,7 +41,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from gradience.vnext.merge.eligibility import EligibilityStatus
 
-
 # ===================================================================
 # Data structures
 # ===================================================================
@@ -61,9 +60,9 @@ class LayerDiagnosis:
     """
 
     layer_name: str
-    verdict: str                            # "safe" | "redundant" | "conflicting" | "imbalanced"
+    verdict: str  # "safe" | "redundant" | "conflicting" | "imbalanced"
     confidence: float
-    risk_level: str                         # "low" | "medium" | "high"
+    risk_level: str  # "low" | "medium" | "high"
 
     # Key spectral metrics (extracted for convenience)
     mean_overlap: float
@@ -115,24 +114,15 @@ class EligibilityContext:
 
     @property
     def any_weak(self) -> bool:
-        return (
-            self.status_a == EligibilityStatus.FLAGGED_WEAK
-            or self.status_b == EligibilityStatus.FLAGGED_WEAK
-        )
+        return self.status_a == EligibilityStatus.FLAGGED_WEAK or self.status_b == EligibilityStatus.FLAGGED_WEAK
 
     @property
     def both_weak(self) -> bool:
-        return (
-            self.status_a == EligibilityStatus.FLAGGED_WEAK
-            and self.status_b == EligibilityStatus.FLAGGED_WEAK
-        )
+        return self.status_a == EligibilityStatus.FLAGGED_WEAK and self.status_b == EligibilityStatus.FLAGGED_WEAK
 
     @property
     def both_eligible(self) -> bool:
-        return (
-            self.status_a == EligibilityStatus.ELIGIBLE
-            and self.status_b == EligibilityStatus.ELIGIBLE
-        )
+        return self.status_a == EligibilityStatus.ELIGIBLE and self.status_b == EligibilityStatus.ELIGIBLE
 
 
 @dataclass(frozen=True)
@@ -145,7 +135,7 @@ class PairDiagnosis:
     """
 
     layer_diagnoses: tuple[LayerDiagnosis, ...]
-    overall_risk: str                       # "low" | "medium" | "high"
+    overall_risk: str  # "low" | "medium" | "high"
     compression_needed: bool
     n_layers_needing_compression: int
     eligibility: EligibilityContext
@@ -177,17 +167,17 @@ class LayerRecommendation:
     """Actionable recommendation for one layer pair."""
 
     layer_name: str
-    verdict: str                            # "safe" | "redundant" | "conflicting" | "imbalanced"
-    strategy: str                           # "linear" | "ties" | "dare_linear" | "dare_ties"
-    coefficients: Tuple[float, float]       # (coeff_a, coeff_b)
-    trim_fraction: float                    # TIES trim or DARE drop rate
-    risk_level: str                         # "low" | "medium" | "high"
-    compress_first: bool                    # True if pre-compression recommended
-    compress_target_rank_a: Optional[int]   # suggested rank for adapter A
-    compress_target_rank_b: Optional[int]   # suggested rank for adapter B
-    reasoning: str                          # one-line explanation
+    verdict: str  # "safe" | "redundant" | "conflicting" | "imbalanced"
+    strategy: str  # "linear" | "ties" | "dare_linear" | "dare_ties"
+    coefficients: tuple[float, float]  # (coeff_a, coeff_b)
+    trim_fraction: float  # TIES trim or DARE drop rate
+    risk_level: str  # "low" | "medium" | "high"
+    compress_first: bool  # True if pre-compression recommended
+    compress_target_rank_a: int | None  # suggested rank for adapter A
+    compress_target_rank_b: int | None  # suggested rank for adapter B
+    reasoning: str  # one-line explanation
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "layer_name": self.layer_name,
             "verdict": self.verdict,
@@ -206,15 +196,15 @@ class LayerRecommendation:
 class MergeRecommendation:
     """Complete merge recommendation from an audit report."""
 
-    overall_strategy: str                   # dominant strategy across layers
-    overall_risk: str                       # "low" | "medium" | "high"
-    layer_recommendations: Tuple[LayerRecommendation, ...]
+    overall_strategy: str  # dominant strategy across layers
+    overall_risk: str  # "low" | "medium" | "high"
+    layer_recommendations: tuple[LayerRecommendation, ...]
     compression_needed: bool
     n_layers_needing_compression: int
-    fallback_strategies: Tuple[str, ...]    # alternative approaches
-    warnings: Tuple[str, ...] = ()          # hard warnings from eligibility screening
+    fallback_strategies: tuple[str, ...]  # alternative approaches
+    warnings: tuple[str, ...] = ()  # hard warnings from eligibility screening
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "overall_strategy": self.overall_strategy,
             "overall_risk": self.overall_risk,
@@ -239,7 +229,7 @@ class MergeRecommendation:
 # ===================================================================
 
 
-def rebalance_coefficients(magnitude_ratio: float) -> Tuple[float, float]:
+def rebalance_coefficients(magnitude_ratio: float) -> tuple[float, float]:
     """Compute merge coefficients that compensate for magnitude imbalance.
 
     Given the ratio ``max(σ₁_a, σ₁_b) / min(σ₁_a, σ₁_b)``, returns
@@ -268,7 +258,7 @@ def norm_equalized_coefficients(
     frobenius_norm_b: float,
     weight_a: float = 0.5,
     eps: float = 1e-12,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Compute effective per-adapter scale factors for norm-equalized merging.
 
     Both adapters are rescaled to their geometric-mean Frobenius norm.
@@ -535,10 +525,7 @@ def _apply_layer_policy(
             compress_first=diag.compress_first,
             compress_target_rank_a=diag.compress_target_rank_a,
             compress_target_rank_b=diag.compress_target_rank_b,
-            reasoning=(
-                f"Orthogonal subspaces (overlap={diag.mean_overlap:.3f}). "
-                f"Linear merge preserves both signals."
-            ),
+            reasoning=(f"Orthogonal subspaces (overlap={diag.mean_overlap:.3f}). Linear merge preserves both signals."),
         )
 
     if verdict == "redundant":
@@ -640,9 +627,7 @@ def _eligibility_warnings(eligibility: EligibilityContext) -> list[str]:
 
     # Exactly one flagged weak
     if eligibility.any_weak:
-        warnings.append(
-            "Structural rebalance may preserve a behaviorally weak adapter."
-        )
+        warnings.append("Structural rebalance may preserve a behaviorally weak adapter.")
 
     return warnings
 
@@ -661,10 +646,7 @@ def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
     -------
     MergeRecommendation — complete Stage B output.
     """
-    layer_recs = tuple(
-        _apply_layer_policy(ld, pair_diag.eligibility)
-        for ld in pair_diag.layer_diagnoses
-    )
+    layer_recs = tuple(_apply_layer_policy(ld, pair_diag.eligibility) for ld in pair_diag.layer_diagnoses)
 
     # Overall strategy: majority vote across layers
     strategy_counts: dict[str, int] = {}
@@ -702,7 +684,7 @@ def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
 # ===================================================================
 
 
-def _recommend_layer(lv_dict: Dict[str, Any]) -> LayerRecommendation:
+def _recommend_layer(lv_dict: dict[str, Any]) -> LayerRecommendation:
     """Generate recommendation for a single layer from its verdict dict.
 
     Convenience function that composes ``diagnose_layer`` (Stage A) with
@@ -784,7 +766,7 @@ def format_recommendation(
     lines.append("  MERGE STRATEGY RECOMMENDATION")
     lines.append("  " + "=" * 47)
     lines.append("")
-    lines.append(f"  Recommended approach: audit_aware (per-layer)")
+    lines.append("  Recommended approach: audit_aware (per-layer)")
     lines.append(f"  Overall risk: {risk_str}")
     lines.append("")
 
@@ -797,9 +779,7 @@ def format_recommendation(
     for lr in rec.layer_recommendations:
         short = _shorten_layer_name(lr.layer_name)
         params = _format_params(lr)
-        lines.append(
-            f"  {short:<30s} {lr.verdict:<13s} {lr.strategy:<12s} {params:<22s} {lr.risk_level:<6s}"
-        )
+        lines.append(f"  {short:<30s} {lr.verdict:<13s} {lr.strategy:<12s} {params:<22s} {lr.risk_level:<6s}")
 
     lines.append("")
 
@@ -813,21 +793,13 @@ def format_recommendation(
             # Use the median target rank across layers
             targets_a = [lr.compress_target_rank_a for lr in compress_a]
             median_a = sorted(targets_a)[len(targets_a) // 2]
-            lines.append(
-                f"    Adapter A: {len(compress_a)} layer(s) over-provisioned with high overlap"
-            )
-            lines.append(
-                f"    $ gradience compress --peft-dir {adapter_a_path} --target-rank {median_a}"
-            )
+            lines.append(f"    Adapter A: {len(compress_a)} layer(s) over-provisioned with high overlap")
+            lines.append(f"    $ gradience compress --peft-dir {adapter_a_path} --target-rank {median_a}")
         if compress_b:
             targets_b = [lr.compress_target_rank_b for lr in compress_b]
             median_b = sorted(targets_b)[len(targets_b) // 2]
-            lines.append(
-                f"    Adapter B: {len(compress_b)} layer(s) over-provisioned with high overlap"
-            )
-            lines.append(
-                f"    $ gradience compress --peft-dir {adapter_b_path} --target-rank {median_b}"
-            )
+            lines.append(f"    Adapter B: {len(compress_b)} layer(s) over-provisioned with high overlap")
+            lines.append(f"    $ gradience compress --peft-dir {adapter_b_path} --target-rank {median_b}")
         lines.append(
             f"    Then re-run: gradience merge-audit --adapter-a {adapter_a_path} --adapter-b {adapter_b_path}"
         )
@@ -835,28 +807,16 @@ def format_recommendation(
 
     # Ready-to-run command
     lines.append("  Ready-to-run merge:")
-    lines.append(
-        f"    $ gradience merge-plan --strategy audit_aware \\"
-    )
-    lines.append(
-        f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\"
-    )
-    lines.append(
-        "        --output merge_plan.json"
-    )
+    lines.append("    $ gradience merge-plan --strategy audit_aware \\")
+    lines.append(f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\")
+    lines.append("        --output merge_plan.json")
     lines.append("")
 
     # Norm-equalized baseline
     lines.append("  Norm-equalized baseline (often competitive, simpler):")
-    lines.append(
-        f"    $ gradience merge-plan --strategy norm_equalized \\"
-    )
-    lines.append(
-        f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\"
-    )
-    lines.append(
-        "        --output merge_plan_norm_eq.json"
-    )
+    lines.append("    $ gradience merge-plan --strategy norm_equalized \\")
+    lines.append(f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\")
+    lines.append("        --output merge_plan_norm_eq.json")
     lines.append("")
 
     # Hard warnings from eligibility screening

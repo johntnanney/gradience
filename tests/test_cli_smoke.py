@@ -1,7 +1,8 @@
 import subprocess
 import sys
-from pathlib import Path
 import unittest
+from pathlib import Path
+
 
 class TestCLISmoke(unittest.TestCase):
     def test_monitor_fixture(self):
@@ -15,6 +16,7 @@ class TestCLISmoke(unittest.TestCase):
             text=True,
         )
         self.assertEqual(p.returncode, 0, p.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

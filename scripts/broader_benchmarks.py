@@ -25,7 +25,7 @@ import os
 import sys
 import time
 import traceback
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -38,28 +38,29 @@ _REPO_ROOT = _SCRIPT_DIR.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from gradience.vnext.audit.lora_audit import audit_lora_peft_dir, LoRAAuditResult
-
+from gradience.vnext.audit.lora_audit import LoRAAuditResult, audit_lora_peft_dir
 
 # ============================================================================
 # Data structures
 # ============================================================================
 
+
 @dataclass
 class AdapterRecord:
     """Metadata for one adapter to audit."""
+
     repo_id: str
     base_model: str
     task: str
     # These get filled after download / audit:
-    rank: Optional[int] = None
-    alpha: Optional[float] = None
-    n_layers: Optional[int] = None
-    total_params: Optional[int] = None
-    download_size_mb: Optional[float] = None
-    status: str = "pending"          # pending | downloaded | audited | failed
-    issues: List[str] = field(default_factory=list)
-    audit_time_s: Optional[float] = None
+    rank: int | None = None
+    alpha: float | None = None
+    n_layers: int | None = None
+    total_params: int | None = None
+    download_size_mb: float | None = None
+    status: str = "pending"  # pending | downloaded | audited | failed
+    issues: list[str] = field(default_factory=list)
+    audit_time_s: float | None = None
 
 
 # ============================================================================
@@ -85,7 +86,7 @@ def discover_adapters(
     max_per_base: int = 5,
     max_total: int = 30,
     min_downloads: int = 10,
-) -> List[AdapterRecord]:
+) -> list[AdapterRecord]:
     """
     Search HuggingFace Hub for PEFT LoRA adapters across diverse base models.
 
@@ -94,7 +95,7 @@ def discover_adapters(
     from huggingface_hub import HfApi
 
     api = HfApi()
-    records: List[AdapterRecord] = []
+    records: list[AdapterRecord] = []
     seen_repos = set()
 
     for base_model in BASE_MODELS:
@@ -127,7 +128,7 @@ def discover_adapters(
                     continue
 
                 # Check download count
-                downloads = getattr(model, 'downloads', 0) or 0
+                downloads = getattr(model, "downloads", 0) or 0
                 if downloads < min_downloads:
                     continue
 
@@ -138,27 +139,24 @@ def discover_adapters(
                 except Exception:
                     filenames = set()
 
-                has_config = any(
-                    f.startswith("adapter_config") for f in filenames
-                )
-                has_weights = any(
-                    f.startswith("adapter_model") or f == "pytorch_model.bin"
-                    for f in filenames
-                )
+                has_config = any(f.startswith("adapter_config") for f in filenames)
+                has_weights = any(f.startswith("adapter_model") or f == "pytorch_model.bin" for f in filenames)
 
                 if not (has_config and has_weights):
                     continue
 
                 # Infer task from tags or model card
-                tags = set(getattr(model, 'tags', []) or [])
+                tags = set(getattr(model, "tags", []) or [])
                 task = _infer_task(tags, repo_id)
 
                 seen_repos.add(repo_id)
-                records.append(AdapterRecord(
-                    repo_id=repo_id,
-                    base_model=base_model,
-                    task=task,
-                ))
+                records.append(
+                    AdapterRecord(
+                        repo_id=repo_id,
+                        base_model=base_model,
+                        task=task,
+                    )
+                )
                 count_for_base += 1
                 print(f"   ✅ {repo_id} ({downloads} downloads, task={task})")
 
@@ -211,11 +209,12 @@ def _infer_task(tags: set, repo_id: str) -> str:
 # Download
 # ============================================================================
 
+
 def download_adapter(
     repo_id: str,
     cache_dir: Path,
     max_size_mb: float = 500.0,
-) -> Tuple[Path, float]:
+) -> tuple[Path, float]:
     """
     Download a PEFT adapter from HuggingFace Hub.
 
@@ -252,9 +251,7 @@ def download_adapter(
         ],
     )
 
-    size_mb = sum(
-        f.stat().st_size for f in Path(local_path).rglob("*") if f.is_file()
-    ) / (1024 * 1024)
+    size_mb = sum(f.stat().st_size for f in Path(local_path).rglob("*") if f.is_file()) / (1024 * 1024)
 
     if size_mb > max_size_mb:
         raise ValueError(f"Adapter {repo_id} is {size_mb:.1f} MB (limit: {max_size_mb} MB)")
@@ -266,11 +263,12 @@ def download_adapter(
 # Audit
 # ============================================================================
 
+
 def audit_adapter(
     repo_id: str,
     adapter_path: Path,
     record: AdapterRecord,
-) -> Tuple[Optional[Dict[str, Any]], AdapterRecord]:
+) -> tuple[dict[str, Any] | None, AdapterRecord]:
     """
     Run Gradience spectral audit on one adapter.
 
@@ -321,14 +319,15 @@ def audit_adapter(
 # Analysis
 # ============================================================================
 
+
 def analyze_results(
-    records: List[AdapterRecord],
-    audit_data: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+    records: list[AdapterRecord],
+    audit_data: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
     """
     Compute aggregate statistics across all audited adapters.
     """
-    analysis: Dict[str, Any] = {}
+    analysis: dict[str, Any] = {}
 
     # Filter to successful audits
     audited = [r for r in records if r.status == "audited" and r.repo_id in audit_data]
@@ -374,39 +373,24 @@ def analyze_results(
             }
 
     # ---- By nominal rank ----
-    by_rank: Dict[int, List[float]] = {}
+    by_rank: dict[int, list[float]] = {}
     for r in audited:
         if r.rank is not None:
-            by_rank.setdefault(r.rank, []).append(
-                audit_data[r.repo_id]["utilization_mean"]
-            )
-    analysis["by_nominal_rank"] = {
-        str(rank): _distribution_stats(vals)
-        for rank, vals in sorted(by_rank.items())
-    }
+            by_rank.setdefault(r.rank, []).append(audit_data[r.repo_id]["utilization_mean"])
+    analysis["by_nominal_rank"] = {str(rank): _distribution_stats(vals) for rank, vals in sorted(by_rank.items())}
 
     # ---- By base model ----
-    by_base: Dict[str, List[float]] = {}
+    by_base: dict[str, list[float]] = {}
     for r in audited:
         short_base = r.base_model.split("/")[-1]
-        by_base.setdefault(short_base, []).append(
-            audit_data[r.repo_id]["utilization_mean"]
-        )
-    analysis["by_base_model"] = {
-        base: _distribution_stats(vals)
-        for base, vals in sorted(by_base.items())
-    }
+        by_base.setdefault(short_base, []).append(audit_data[r.repo_id]["utilization_mean"])
+    analysis["by_base_model"] = {base: _distribution_stats(vals) for base, vals in sorted(by_base.items())}
 
     # ---- By task ----
-    by_task: Dict[str, List[float]] = {}
+    by_task: dict[str, list[float]] = {}
     for r in audited:
-        by_task.setdefault(r.task, []).append(
-            audit_data[r.repo_id]["utilization_mean"]
-        )
-    analysis["by_task"] = {
-        task: _distribution_stats(vals)
-        for task, vals in sorted(by_task.items())
-    }
+        by_task.setdefault(r.task, []).append(audit_data[r.repo_id]["utilization_mean"])
+    analysis["by_task"] = {task: _distribution_stats(vals) for task, vals in sorted(by_task.items())}
 
     # ---- Energy rank analysis (compression potential) ----
     # How much of the nominal rank is actually needed at 90% energy?
@@ -434,14 +418,16 @@ def analyze_results(
         for layer in layer_rows:
             u = layer.get("utilization")
             if u is not None:
-                all_layers.append({
-                    "adapter": r.repo_id,
-                    "layer": layer.get("name", "?"),
-                    "module_type": layer.get("module_type", "?"),
-                    "utilization": u,
-                    "rank": layer.get("r", "?"),
-                    "stable_rank": layer.get("stable_rank"),
-                })
+                all_layers.append(
+                    {
+                        "adapter": r.repo_id,
+                        "layer": layer.get("name", "?"),
+                        "module_type": layer.get("module_type", "?"),
+                        "utilization": u,
+                        "rank": layer.get("r", "?"),
+                        "stable_rank": layer.get("stable_rank"),
+                    }
+                )
     all_layers.sort(key=lambda x: x["utilization"])
     analysis["most_wasteful_layers"] = all_layers[:20]
 
@@ -457,20 +443,21 @@ def analyze_results(
         analysis["rank_utilization_correlation"] = {
             "pearson_r": corr,
             "n": len(ranks_for_corr),
-            "interpretation": (
-                "Weak negative" if corr < -0.1 else
-                "Weak positive" if corr > 0.1 else
-                "Near zero"
-            ) + f" correlation ({corr:.3f}): "
-            + ("higher-rank adapters tend to underutilize" if corr < -0.1
-               else "higher-rank adapters tend to use rank more fully" if corr > 0.1
-               else "no clear relationship between rank and utilization"),
+            "interpretation": ("Weak negative" if corr < -0.1 else "Weak positive" if corr > 0.1 else "Near zero")
+            + f" correlation ({corr:.3f}): "
+            + (
+                "higher-rank adapters tend to underutilize"
+                if corr < -0.1
+                else "higher-rank adapters tend to use rank more fully"
+                if corr > 0.1
+                else "no clear relationship between rank and utilization"
+            ),
         }
 
     return analysis
 
 
-def _distribution_stats(vals: List[float]) -> Dict[str, Any]:
+def _distribution_stats(vals: list[float]) -> dict[str, Any]:
     """Compute distribution statistics for a list of values."""
     if not vals:
         return {"n": 0}
@@ -492,7 +479,7 @@ def _distribution_stats(vals: List[float]) -> Dict[str, Any]:
     }
 
 
-def _percentile(sorted_vals: List[float], q: float) -> float:
+def _percentile(sorted_vals: list[float], q: float) -> float:
     """Simple percentile on pre-sorted list."""
     if not sorted_vals:
         return 0.0
@@ -503,7 +490,7 @@ def _percentile(sorted_vals: List[float], q: float) -> float:
     return sorted_vals[lo] * (1 - frac) + sorted_vals[hi] * frac
 
 
-def _pearson(x: List[float], y: List[float]) -> float:
+def _pearson(x: list[float], y: list[float]) -> float:
     """Simple Pearson correlation coefficient."""
     n = len(x)
     if n < 2:
@@ -522,10 +509,11 @@ def _pearson(x: List[float], y: List[float]) -> float:
 # Report generation
 # ============================================================================
 
+
 def generate_markdown_report(
-    records: List[AdapterRecord],
-    audit_data: Dict[str, Dict[str, Any]],
-    analysis: Dict[str, Any],
+    records: list[AdapterRecord],
+    audit_data: dict[str, dict[str, Any]],
+    analysis: dict[str, Any],
 ) -> str:
     """Generate a human-readable markdown report for the blog post."""
     audited = [r for r in records if r.status == "audited"]
@@ -543,7 +531,7 @@ def generate_markdown_report(
         f"- Adapters discovered: {len(records)}",
         f"- Successfully audited: {len(audited)}",
         f"- Failed: {len(failed)}",
-        f"- All computation: CPU-only (no base models downloaded)",
+        "- All computation: CPU-only (no base models downloaded)",
         "",
     ]
 
@@ -586,10 +574,7 @@ def generate_markdown_report(
 
     ruc = analysis.get("rank_utilization_correlation", {})
     if ruc:
-        lines.append(
-            f"**4. Rank–utilization correlation.** "
-            f"{ruc.get('interpretation', 'N/A')}"
-        )
+        lines.append(f"**4. Rank–utilization correlation.** {ruc.get('interpretation', 'N/A')}")
         lines.append("")
 
     # Adapter summary table
@@ -622,8 +607,7 @@ def generate_markdown_report(
         ]
         for rank_str, stats in by_rank.items():
             lines.append(
-                f"| {rank_str} | {stats['n']} "
-                f"| {stats['mean']:.3f} | {stats['median']:.3f} | {stats['std']:.3f} |"
+                f"| {rank_str} | {stats['n']} | {stats['mean']:.3f} | {stats['median']:.3f} | {stats['std']:.3f} |"
             )
         lines.append("")
 
@@ -637,10 +621,7 @@ def generate_markdown_report(
             "|-----------|---|-------------|---------------|",
         ]
         for base, stats in by_base.items():
-            lines.append(
-                f"| {base} | {stats['n']} "
-                f"| {stats['mean']:.3f} | {stats['median']:.3f} |"
-            )
+            lines.append(f"| {base} | {stats['n']} | {stats['mean']:.3f} | {stats['median']:.3f} |")
         lines.append("")
 
     # By task
@@ -653,10 +634,7 @@ def generate_markdown_report(
             "|------|---|-------------|---------------|",
         ]
         for task, stats in by_task.items():
-            lines.append(
-                f"| {task} | {stats['n']} "
-                f"| {stats['mean']:.3f} | {stats['median']:.3f} |"
-            )
+            lines.append(f"| {task} | {stats['n']} | {stats['mean']:.3f} | {stats['median']:.3f} |")
         lines.append("")
 
     # Module type breakdown
@@ -689,7 +667,7 @@ def generate_markdown_report(
             "|---------|-------|------|------|-------------|-------------|",
         ]
         for w in wasteful[:10]:
-            sr = w.get('stable_rank')
+            sr = w.get("stable_rank")
             sr_str = f"{sr:.2f}" if isinstance(sr, (int, float)) else "?"
             lines.append(
                 f"| `{w['adapter']}` | {w['layer']} | {w['module_type']} "
@@ -717,10 +695,9 @@ def generate_markdown_report(
         "- **Audit**: Gradience spectral audit (CPU-only, float64). "
         "Computes stable rank, effective rank, utilization, energy ranks "
         "via efficient r×r eigendecomposition.",
-        "- **No UDR**: Base model weights not downloaded. "
-        "Study focuses on adapter-intrinsic spectral structure.",
+        "- **No UDR**: Base model weights not downloaded. Study focuses on adapter-intrinsic spectral structure.",
         f"- **Date**: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
-        f"- **Gradience version**: 0.11.0",
+        "- **Gradience version**: 0.11.0",
         "",
     ]
 
@@ -731,7 +708,8 @@ def generate_markdown_report(
 # Main orchestrator
 # ============================================================================
 
-def scan_local_adapters(local_dirs: List[Path]) -> List[Tuple[AdapterRecord, Path]]:
+
+def scan_local_adapters(local_dirs: list[Path]) -> list[tuple[AdapterRecord, Path]]:
     """
     Scan local directories for PEFT adapter directories.
 
@@ -741,7 +719,7 @@ def scan_local_adapters(local_dirs: List[Path]) -> List[Tuple[AdapterRecord, Pat
 
     Returns list of (AdapterRecord, adapter_path) tuples.
     """
-    found: List[Tuple[AdapterRecord, Path]] = []
+    found: list[tuple[AdapterRecord, Path]] = []
 
     for d in local_dirs:
         d = Path(d)
@@ -800,7 +778,7 @@ def run_study(
     max_adapters: int = 30,
     max_per_base: int = 5,
     min_downloads: int = 10,
-    local_dirs: Optional[List[Path]] = None,
+    local_dirs: list[Path] | None = None,
 ) -> None:
     """Run the full broader benchmarks study."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -809,7 +787,7 @@ def run_study(
     # Check for existing results (idempotent resume)
     manifest_path = output_dir / "manifest.json"
     results_path = output_dir / "study14_broader_benchmarks.json"
-    existing_audit_data: Dict[str, Dict[str, Any]] = {}
+    existing_audit_data: dict[str, dict[str, Any]] = {}
 
     if results_path.exists():
         print(f"\n📂 Found existing results at {results_path}, loading for resume...")
@@ -857,14 +835,14 @@ def run_study(
         print("STEP 2: DOWNLOAD ADAPTERS")
         print("=" * 72)
 
-        adapter_paths: Dict[str, Path] = {}
+        adapter_paths: dict[str, Path] = {}
         for i, record in enumerate(records):
             if record.repo_id in existing_audit_data:
-                print(f"\n[{i+1}/{len(records)}] ⏭️  {record.repo_id} — already audited, skipping download")
+                print(f"\n[{i + 1}/{len(records)}] ⏭️  {record.repo_id} — already audited, skipping download")
                 record.status = "audited"
                 continue
 
-            print(f"\n[{i+1}/{len(records)}] 📥 Downloading: {record.repo_id}")
+            print(f"\n[{i + 1}/{len(records)}] 📥 Downloading: {record.repo_id}")
             try:
                 adapter_path, size_mb = download_adapter(record.repo_id, cache_dir)
                 record.download_size_mb = size_mb
@@ -878,15 +856,17 @@ def run_study(
 
         downloaded = [r for r in records if r.status == "downloaded"]
         already_done = [r for r in records if r.repo_id in existing_audit_data]
-        print(f"\n📊 Downloaded: {len(downloaded)}, Already audited: {len(already_done)}, "
-              f"Failed: {len([r for r in records if r.status == 'failed'])}")
+        print(
+            f"\n📊 Downloaded: {len(downloaded)}, Already audited: {len(already_done)}, "
+            f"Failed: {len([r for r in records if r.status == 'failed'])}"
+        )
 
     # Step 3: Audit each adapter
     print("\n" + "=" * 72)
     print("STEP 3: AUDIT ADAPTERS")
     print("=" * 72)
 
-    audit_data: Dict[str, Dict[str, Any]] = dict(existing_audit_data)
+    audit_data: dict[str, dict[str, Any]] = dict(existing_audit_data)
     total_audit_time = 0.0
 
     for i, record in enumerate(records):
@@ -902,13 +882,13 @@ def run_study(
         else:
             ap = cache_dir / record.repo_id.replace("/", "--")
 
-        print(f"\n[{i+1}/{len(records)}] 🔬 Auditing: {record.repo_id}")
+        print(f"\n[{i + 1}/{len(records)}] 🔬 Auditing: {record.repo_id}")
 
         result_dict, record = audit_adapter(record.repo_id, ap, record)
 
         if result_dict is not None:
             audit_data[record.repo_id] = result_dict
-            total_audit_time += (record.audit_time_s or 0)
+            total_audit_time += record.audit_time_s or 0
             print(
                 f"   ✅ {record.n_layers} layers, rank={record.rank}, "
                 f"util={result_dict.get('utilization_mean', 0):.3f}, "
@@ -919,8 +899,7 @@ def run_study(
 
     audited = [r for r in records if r.status == "audited" or r.repo_id in audit_data]
     failed = [r for r in records if r.status == "failed"]
-    print(f"\n📊 Audited: {len(audited)}, Failed: {len(failed)}, "
-          f"Total audit time: {total_audit_time:.1f}s")
+    print(f"\n📊 Audited: {len(audited)}, Failed: {len(failed)}, Total audit time: {total_audit_time:.1f}s")
 
     if not audit_data:
         print("❌ No successful audits. Cannot generate analysis.")
@@ -948,8 +927,7 @@ def run_study(
     # Print key findings to console
     gu = analysis.get("global_utilization", {})
     if gu.get("n", 0) > 0:
-        print(f"\n🎯 Global utilization: mean={gu['mean']:.3f}, "
-              f"median={gu['median']:.3f}, std={gu['std']:.3f}")
+        print(f"\n🎯 Global utilization: mean={gu['mean']:.3f}, median={gu['median']:.3f}, std={gu['std']:.3f}")
 
     bmt = analysis.get("by_module_type", {})
     for mt in ("attn", "mlp"):
@@ -1011,12 +989,18 @@ def run_study(
         json.dump(
             {
                 "adapters": [
-                    {"repo_id": r.repo_id, "base_model": r.base_model,
-                     "task": r.task, "rank": r.rank, "status": r.status}
+                    {
+                        "repo_id": r.repo_id,
+                        "base_model": r.base_model,
+                        "task": r.task,
+                        "rank": r.rank,
+                        "status": r.status,
+                    }
                     for r in records
                 ]
             },
-            f, indent=2,
+            f,
+            indent=2,
         )
     print(f"✅ Manifest: {manifest_path}")
 
@@ -1035,6 +1019,7 @@ def run_study(
 # ============================================================================
 # CLI
 # ============================================================================
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -1076,7 +1061,7 @@ def main():
         nargs="+",
         default=None,
         help="Scan local directories for adapter dirs instead of downloading from HF Hub. "
-             "Each path can be a direct adapter dir or a parent dir to scan recursively.",
+        "Each path can be a direct adapter dir or a parent dir to scan recursively.",
     )
     args = parser.parse_args()
 

@@ -10,42 +10,48 @@ Extracted from protocol.py.
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json
 import os
-import sys
 import subprocess
-import hashlib
+import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from gradience.bench.decision_trace import DecisionTrace
-from gradience.bench.types import EnvironmentInfo
-from gradience.bench.escalation import EscalationTrace
-from gradience.bench.metadata import (
-    gather_environment_info, get_git_commit, get_git_tag,
-    extract_model_dataset_info,
-)
 from gradience.bench._util import (
-    get_primary_metric_key, create_config_hash,
-)
-from gradience.bench.stats_utils import (
-    confidence_interval_95, cohens_d_one_sample,
+    create_config_hash,
+    get_primary_metric_key,
 )
 from gradience.bench.compression import get_rank_source_from_config
 from gradience.bench.constants import (
-    PASS_RATE_VALID, PASS_RATE_AGGRESSIVE, DEFAULT_ACCURACY_TOLERANCE,
-    CONCENTRATION_INDEX_HIGH, CONCENTRATION_INDEX_MODERATE,
-    MIN_SEEDS_CERTIFIABLE, MIN_STEPS_CERTIFIABLE,
-    MIN_SEEDS_SCREENING_PLUS, MIN_STEPS_SCREENING_PLUS,
+    CONCENTRATION_INDEX_HIGH,
+    CONCENTRATION_INDEX_MODERATE,
+    DEFAULT_ACCURACY_TOLERANCE,
+    MIN_SEEDS_CERTIFIABLE,
+    MIN_SEEDS_SCREENING_PLUS,
     MIN_SEEDS_SUFFICIENT_POWER,
+    MIN_STEPS_CERTIFIABLE,
+    MIN_STEPS_SCREENING_PLUS,
+    PASS_RATE_AGGRESSIVE,
+    PASS_RATE_VALID,
 )
+from gradience.bench.decision_trace import DecisionTrace
+from gradience.bench.escalation import EscalationTrace
+from gradience.bench.metadata import (
+    extract_model_dataset_info,
+    gather_environment_info,
+    get_git_commit,
+    get_git_tag,
+)
+from gradience.bench.stats_utils import (
+    cohens_d_one_sample,
+    confidence_interval_95,
+)
+from gradience.bench.types import EnvironmentInfo
 
 
 def write_probe_eval_json(
-    probe_dir: Path,
-    eval_results: Dict[str, Any],
-    eval_dataset_size: int,
-    config: Dict[str, Any]
+    probe_dir: Path, eval_results: dict[str, Any], eval_dataset_size: int, config: dict[str, Any]
 ) -> Path:
     """
     Step 3.2: Write probe_r{rank}/eval.json with evaluation results.
@@ -70,7 +76,7 @@ def write_probe_eval_json(
         "rank": config["lora"]["probe_r"],
         "eval_runtime": eval_results.get("eval_runtime"),
         "eval_samples_per_second": eval_results.get("eval_samples_per_second"),
-        "eval_steps_per_second": eval_results.get("eval_steps_per_second")
+        "eval_steps_per_second": eval_results.get("eval_steps_per_second"),
     }
 
     # Add task-specific metrics
@@ -85,13 +91,13 @@ def write_probe_eval_json(
         eval_data["eval_total"] = eval_results["eval_total"]  # Preserve original key for probe_gate
 
     eval_path = probe_dir / "eval.json"
-    with open(eval_path, 'w') as f:
+    with open(eval_path, "w") as f:
         json.dump(eval_data, f, indent=2, ensure_ascii=False)
 
     return eval_path
 
 
-def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=None) -> float:
+def _extract_accuracy_with_fallback(eval_results: dict[str, Any], task_profile=None) -> float:
     """
     Extract accuracy metric from evaluation results with robust fallback.
 
@@ -107,7 +113,7 @@ def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=N
         float: Accuracy value (0.0 if not found)
     """
     # Try task profile primary metric key first
-    if task_profile and hasattr(task_profile, 'primary_metric_key'):
+    if task_profile and hasattr(task_profile, "primary_metric_key"):
         primary_key = task_profile.primary_metric_key
         if primary_key in eval_results:
             return float(eval_results[primary_key])
@@ -122,16 +128,16 @@ def _extract_accuracy_with_fallback(eval_results: Dict[str, Any], task_profile=N
 
 
 def create_canonical_bench_report(
-    probe_results: Dict[str, Any],
-    variant_results: Dict[str, Dict[str, Any]],
-    verdict_analysis: Dict[str, Any],
-    audit_data: Dict[str, Any],
-    compression_configs: Dict[str, Dict[str, Any]],
-    config: Dict[str, Any],
+    probe_results: dict[str, Any],
+    variant_results: dict[str, dict[str, Any]],
+    verdict_analysis: dict[str, Any],
+    audit_data: dict[str, Any],
+    compression_configs: dict[str, dict[str, Any]],
+    config: dict[str, Any],
     output_dir: Path,
-    decision_trace: Optional[DecisionTrace] = None,
-    escalation_trace: Optional[EscalationTrace] = None,
-) -> Dict[str, Any]:
+    decision_trace: DecisionTrace | None = None,
+    escalation_trace: EscalationTrace | None = None,
+) -> dict[str, Any]:
     """
     Create the canonical bench.json report according to specification.
     """
@@ -187,30 +193,32 @@ def create_canonical_bench_report(
             "task": f"{config['task']['dataset']}/{config['task']['subset']}",
             "status": probe_quality_status,
             "probe_quality_gate": {
-                "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
+                "metric_key": "eval_exact_match"
+                if config.get("task", {}).get("dataset", "").lower() == "gsm8k"
+                else "eval_accuracy",
                 "metric_value": probe_data.get("accuracy"),
                 "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
-                "passed": False
+                "passed": False,
             },
             "probe": {
                 "rank": probe_data.get("rank"),
                 "params": probe_data.get("params"),
                 "accuracy": probe_data.get("accuracy"),
-                "threshold_required": verdict_analysis.get("summary", {}).get("probe_threshold")
+                "threshold_required": verdict_analysis.get("summary", {}).get("probe_threshold"),
             },
             "compressed": {},
             "summary": {
                 "probe_quality": "FAILED",
                 "recommendations_validated": "N/A",
                 "best_compression": None,
-                "notes": verdict_analysis.get("summary", {}).get("notes", [])
+                "notes": verdict_analysis.get("summary", {}).get("notes", []),
             },
             "config_metadata": {
                 "primary_metric_key": get_primary_metric_key(config),
                 "config_hash": create_config_hash(config),
                 "seed": _seed,
-                "embedded_config": config  # Complete configuration for reproducibility
-            }
+                "embedded_config": config,  # Complete configuration for reproducibility
+            },
         }
 
         # Add instrumentation if available
@@ -233,7 +241,9 @@ def create_canonical_bench_report(
                 # Count non-default ranks in the pattern from compression_configs
                 compression_config = compression_configs.get(variant_name, {})
                 rank_pattern = compression_config.get("rank_pattern", {})
-                rank_pattern_nondefault = len([r for r in rank_pattern.values() if r > 0]) if rank_pattern else result.get("rank", 0)
+                rank_pattern_nondefault = (
+                    len([r for r in rank_pattern.values() if r > 0]) if rank_pattern else result.get("rank", 0)
+                )
 
                 compressed[variant_name] = {
                     "rank_pattern_nondefault": rank_pattern_nondefault,
@@ -241,7 +251,7 @@ def create_canonical_bench_report(
                     "accuracy": result["accuracy"],
                     "delta_vs_probe": verdict_info["delta_vs_probe"],
                     "param_reduction": verdict_info["param_reduction"],
-                    "verdict": verdict_info["verdict"]
+                    "verdict": verdict_info["verdict"],
                 }
 
                 # Include rank_check results if available
@@ -252,7 +262,7 @@ def create_canonical_bench_report(
                         "passed": rank_check.get("passed"),
                         "unique_ranks": rank_check.get("unique_ranks"),
                         "rank_histogram": rank_check.get("rank_histogram"),
-                        "total_modules": rank_check.get("total_modules")
+                        "total_modules": rank_check.get("total_modules"),
                     }
             elif result.get("compression_method") == "svd_truncation":
                 # SVD truncation variants
@@ -269,16 +279,19 @@ def create_canonical_bench_report(
                     "energy_retained": result.get("energy_retained"),
                     "compression_ratio": result.get("compression_ratio"),
                     "truncation_modules": result.get("truncation_modules"),
-                    "retained_energy_mean": result.get("energy_retained")  # Placeholder for future use
+                    "retained_energy_mean": result.get("energy_retained"),  # Placeholder for future use
                 }
 
                 # Add post-tuning info if applicable
                 if result.get("post_tuned", False):
-                    compression_metadata["post_tune"] = result.get("post_tune_config", {
-                        "enabled": True,
-                        "steps": 100,  # Default fallback
-                        "lr_scale": 0.1
-                    })
+                    compression_metadata["post_tune"] = result.get(
+                        "post_tune_config",
+                        {
+                            "enabled": True,
+                            "steps": 100,  # Default fallback
+                            "lr_scale": 0.1,
+                        },
+                    )
                 else:
                     compression_metadata["post_tune"] = {"enabled": False}
 
@@ -289,7 +302,7 @@ def create_canonical_bench_report(
                     "delta_vs_probe": verdict_info["delta_vs_probe"],
                     "param_reduction": verdict_info["param_reduction"],
                     "verdict": verdict_info["verdict"],
-                    "compression": compression_metadata
+                    "compression": compression_metadata,
                 }
             else:
                 # Uniform variants (non-SVD)
@@ -299,7 +312,7 @@ def create_canonical_bench_report(
                     "accuracy": result["accuracy"],
                     "delta_vs_probe": verdict_info["delta_vs_probe"],
                     "param_reduction": verdict_info["param_reduction"],
-                    "verdict": verdict_info["verdict"]
+                    "verdict": verdict_info["verdict"],
                 }
 
             # Add stability metadata from escalation enrichment (if present)
@@ -332,7 +345,7 @@ def create_canonical_bench_report(
             "udr_p90": probe_summary.get("udr_p90"),
             "udr_max": probe_summary.get("udr_max"),
             "fraction_udr_gt_0_3": probe_summary.get("fraction_udr_gt_0_3"),
-            "n_layers_with_udr": probe_summary.get("n_layers_with_udr")
+            "n_layers_with_udr": probe_summary.get("n_layers_with_udr"),
         }
 
         # Add top-5 modules by UDR for debugging value
@@ -342,11 +355,7 @@ def create_canonical_bench_report(
             layers_with_udr = [l for l in audit_layers if l.get("udr") is not None]
             layers_with_udr.sort(key=lambda x: x["udr"], reverse=True)
             top_5_modules = [
-                {
-                    "name": layer["name"],
-                    "udr": round(layer["udr"], 4),
-                    "rank": layer.get("r", "unknown")
-                }
+                {"name": layer["name"], "udr": round(layer["udr"], 4), "rank": layer.get("r", "unknown")}
                 for layer in layers_with_udr[:5]
             ]
             if top_5_modules:
@@ -365,10 +374,12 @@ def create_canonical_bench_report(
         "model": config["model"]["name"],
         "task": f"{config['task']['dataset']}/{config['task']['subset']}",
         "probe_quality_gate": {
-            "metric_key": "eval_exact_match" if config.get("task", {}).get("dataset", "").lower() == "gsm8k" else "eval_accuracy",
+            "metric_key": "eval_exact_match"
+            if config.get("task", {}).get("dataset", "").lower() == "gsm8k"
+            else "eval_accuracy",
             "metric_value": probe_results["probe"]["accuracy"],
             "min_value": verdict_analysis.get("summary", {}).get("probe_threshold", 0.1),
-            "passed": verdict_analysis.get("probe_quality_status") not in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"]
+            "passed": verdict_analysis.get("probe_quality_status") not in ["UNDERTRAINED", "UNDERTRAINED_SMOKE"],
         },
         "probe": {
             "rank": probe_results["probe"]["rank"],
@@ -378,20 +389,20 @@ def create_canonical_bench_report(
             "energy_rank_90_p50": probe_summary.get("energy_rank_90_p50"),
             "energy_rank_90_p90": probe_summary.get("energy_rank_90_p90"),
             "suggested_r_global_median": probe_summary.get("suggested_r_global_median"),
-            "suggested_r_global_90": probe_summary.get("suggested_r_global_90")
+            "suggested_r_global_90": probe_summary.get("suggested_r_global_90"),
         },
         "compressed": compressed,
         "summary": {
             "recommendations_validated": recommendations_validated,
             "best_compression": best_compression_variant,
-            "notes": notes
+            "notes": notes,
         },
         "config_metadata": {
             "primary_metric_key": get_primary_metric_key(config),
             "config_hash": create_config_hash(config),
             "seed": _seed,
-            "embedded_config": config  # Complete configuration for reproducibility
-        }
+            "embedded_config": config,  # Complete configuration for reproducibility
+        },
     }
 
     # Add instrumentation sections if available
@@ -431,7 +442,7 @@ def create_canonical_bench_report(
             "message": f"Probe {probe_gate_data['metric_key']} {probe_gate_data['metric_value']:.4f} {'\u2265' if probe_gate_data['passed'] else '<'} {probe_gate_data['min_value']:.4f}",
             "metric_key": probe_gate_data["metric_key"],
             "metric_value": probe_gate_data["metric_value"],
-            "min_value": probe_gate_data["min_value"]
+            "min_value": probe_gate_data["min_value"],
         }
     }
 
@@ -441,11 +452,7 @@ def create_canonical_bench_report(
     return report
 
 
-def create_markdown_report(
-    canonical_report: Dict[str, Any],
-    config: Dict[str, Any],
-    output_dir: Path
-) -> str:
+def create_markdown_report(canonical_report: dict[str, Any], config: dict[str, Any], output_dir: Path) -> str:
     """
     Create bench.md human-readable markdown report.
     """
@@ -486,11 +493,11 @@ def create_markdown_report(
 
     # Add results table rows
     for variant_name, data in compressed_data.items():
-        params = f"{data['params']:,}" if data['params'] else "n/a"
-        accuracy = f"{data['accuracy']:.3f}" if data['accuracy'] is not None else "n/a"
-        delta = f"{data['delta_vs_probe']:+.3f}" if data['delta_vs_probe'] is not None else "n/a"
-        reduction = f"{data['param_reduction']:.1%}" if data['param_reduction'] is not None else "n/a"
-        verdict = data['verdict']
+        params = f"{data['params']:,}" if data["params"] else "n/a"
+        accuracy = f"{data['accuracy']:.3f}" if data["accuracy"] is not None else "n/a"
+        delta = f"{data['delta_vs_probe']:+.3f}" if data["delta_vs_probe"] is not None else "n/a"
+        reduction = f"{data['param_reduction']:.1%}" if data["param_reduction"] is not None else "n/a"
+        verdict = data["verdict"]
 
         # Format variant name for display
         if variant_name == "per_layer":
@@ -514,10 +521,14 @@ def create_markdown_report(
     # Create validation-level-specific interpretation
     if validation_level == "certifiable":
         interpretation_header = "## Interpretation (Certifiable)"
-        validation_note = "- **Certifiable results** - Multi-seed validation with statistical rigor suitable for production decisions"
+        validation_note = (
+            "- **Certifiable results** - Multi-seed validation with statistical rigor suitable for production decisions"
+        )
     elif validation_level == "screening_plus":
         interpretation_header = "## Interpretation (Screening+)"
-        validation_note = "- **Enhanced screening** - Multi-seed but limited budget/seeds, good for development decisions"
+        validation_note = (
+            "- **Enhanced screening** - Multi-seed but limited budget/seeds, good for development decisions"
+        )
     else:  # screening
         interpretation_header = "## Interpretation (Screening Only)"
         validation_note = "- **Screening only** - Single-seed validation, suitable for rapid development iteration"
@@ -671,7 +682,9 @@ def create_markdown_report(
             cat_thresh = entry["catastrophic_threshold"]
 
             md_content += f"- Audit candidate `{orig}` (r={orig_rank}): **unstable**\n"
-            md_content += f"  - Worst delta: {worst_d:+.4f} (tolerance: {-acc_tolerance:+.4f}, catastrophic: {cat_thresh:+.4f})\n"
+            md_content += (
+                f"  - Worst delta: {worst_d:+.4f} (tolerance: {-acc_tolerance:+.4f}, catastrophic: {cat_thresh:+.4f})\n"
+            )
 
             esc_to = entry.get("escalated_to")
             esc_rank = entry.get("escalation_rank")
@@ -704,24 +717,23 @@ def create_markdown_report(
 - **Recommendations validated:** {summary["recommendations_validated"]}
 - **Best compression:** {summary["best_compression"] or "None"}
 
-*Generated on {timestamp[:19].replace('T', ' ')}*
+*Generated on {timestamp[:19].replace("T", " ")}*
 """
 
     return md_content
 
 
 def create_multi_seed_aggregated_report(
-    seed_reports: list[Dict[str, Any]],
-    config: Dict[str, Any],
-    output_dir: Path
-) -> Dict[str, Any]:
+    seed_reports: list[dict[str, Any]], config: dict[str, Any], output_dir: Path
+) -> dict[str, Any]:
     """
     Create aggregated report from multiple seed runs.
 
     Returns bench_aggregate.json format with mean ± std statistics.
     """
-    import numpy as np
     from datetime import datetime
+
+    import numpy as np
 
     if not seed_reports:
         raise ValueError("No seed reports provided for aggregation")
@@ -808,20 +820,13 @@ def create_multi_seed_aggregated_report(
                 **({"ci_lower": delta_ci["ci_lower"], "ci_upper": delta_ci["ci_upper"]} if delta_ci else {}),
                 **({"effect_size": delta_effect_size} if delta_effect_size is not None else {}),
             },
-            "param_reduction": {
-                "mean": red_mean,
-                "std": red_std,
-                "values": reductions
-            },
-            "params": {
-                "mean": params_mean,
-                "std": float(np.std(params, ddof=1)) if len(params) > 1 else 0.0
-            },
+            "param_reduction": {"mean": red_mean, "std": red_std, "values": reductions},
+            "params": {"mean": params_mean, "std": float(np.std(params, ddof=1)) if len(params) > 1 else 0.0},
             "pass_rate": pass_rate,
             "pass_count": pass_count,
             "total_runs": len(variant_results),
             "verdict": overall_verdict,
-            "individual_verdicts": verdicts
+            "individual_verdicts": verdicts,
         }
 
         # Preserve rank information from first result (should be consistent across seeds)
@@ -834,23 +839,27 @@ def create_multi_seed_aggregated_report(
             variant_data["compression"] = variant_results[0]["compression"]
 
             # Aggregate energy retention if present
-            energy_values = [v["compression"].get("energy_retained") for v in variant_results if v.get("compression", {}).get("energy_retained") is not None]
+            energy_values = [
+                v["compression"].get("energy_retained")
+                for v in variant_results
+                if v.get("compression", {}).get("energy_retained") is not None
+            ]
             if energy_values:
                 variant_data["compression"]["energy_retained_stats"] = {
                     "mean": float(np.mean(energy_values)),
                     "std": float(np.std(energy_values, ddof=1)) if len(energy_values) > 1 else 0.0,
-                    "values": energy_values
+                    "values": energy_values,
                 }
 
         variants_data[variant_name] = variant_data
 
     # Build detailed per-seed breakdown for self-contained reporting
-    detailed_seeds: list[Dict[str, Any]] = []
-    detailed_candidates: Dict[str, Any] = {}
-    detailed_results: Dict[str, Any] = {
+    detailed_seeds: list[dict[str, Any]] = []
+    detailed_candidates: dict[str, Any] = {}
+    detailed_results: dict[str, Any] = {
         "seeds": detailed_seeds,
         "candidates": detailed_candidates,
-        "summary_statistics": {}
+        "summary_statistics": {},
     }
 
     # Extract seed information and results
@@ -859,14 +868,10 @@ def create_multi_seed_aggregated_report(
         probe_data = report["probe"]
         compressed_data = report.get("compressed", {}) or {}
 
-        seed_detail: Dict[str, Any] = {
+        seed_detail: dict[str, Any] = {
             "seed_id": seed_id,
-            "probe": {
-                "accuracy": probe_data["accuracy"],
-                "params": probe_data["params"],
-                "rank": probe_data["rank"]
-            },
-            "candidates": {}
+            "probe": {"accuracy": probe_data["accuracy"], "params": probe_data["params"], "rank": probe_data["rank"]},
+            "candidates": {},
         }
 
         # Add candidate results for this seed
@@ -880,9 +885,16 @@ def create_multi_seed_aggregated_report(
                     "delta_vs_probe": variant_data.get("delta_vs_probe"),
                     "param_reduction": variant_data.get("param_reduction"),
                     "verdict": variant_data.get("verdict"),
-                    "verdict_reason": variant_data.get("verdict_reason", "Accuracy within tolerance" if variant_data.get("verdict") == "PASS" else f"Accuracy drop {variant_data.get('delta_vs_probe', 0):.3f} exceeds tolerance"),
+                    "verdict_reason": variant_data.get(
+                        "verdict_reason",
+                        "Accuracy within tolerance"
+                        if variant_data.get("verdict") == "PASS"
+                        else f"Accuracy drop {variant_data.get('delta_vs_probe', 0):.3f} exceeds tolerance",
+                    ),
                     "policy_name": variant_data.get("policy_name", variant_name),
-                    "compression_method": variant_data.get("compression", {}).get("method", "uniform") if variant_data.get("compression") else "uniform"
+                    "compression_method": variant_data.get("compression", {}).get("method", "uniform")
+                    if variant_data.get("compression")
+                    else "uniform",
                 }
             else:
                 # Candidate wasn't run in this seed (skip or fail)
@@ -895,7 +907,7 @@ def create_multi_seed_aggregated_report(
                     "verdict": "SKIP",
                     "verdict_reason": "Candidate not evaluated in this seed",
                     "policy_name": variant_name,
-                    "compression_method": "unknown"
+                    "compression_method": "unknown",
                 }
 
         detailed_seeds.append(seed_detail)
@@ -911,18 +923,20 @@ def create_multi_seed_aggregated_report(
                 if variant_name in seed_detail["candidates"]:
                     candidate_data = seed_detail["candidates"][variant_name]
                     if candidate_data["accuracy"] is not None:  # Only include successful runs
-                        candidate_seeds.append({
-                            "seed_id": seed_detail["seed_id"],
-                            "probe_accuracy": seed_detail["probe"]["accuracy"],
-                            "compressed_accuracy": candidate_data["accuracy"],
-                            "delta_accuracy": candidate_data["delta_vs_probe"],
-                            "probe_params": seed_detail["probe"]["params"],
-                            "compressed_params": candidate_data["params"],
-                            "param_reduction": candidate_data["param_reduction"],
-                            "verdict": candidate_data["verdict"],
-                            "verdict_reason": candidate_data["verdict_reason"],
-                            "rank": candidate_data["rank"]
-                        })
+                        candidate_seeds.append(
+                            {
+                                "seed_id": seed_detail["seed_id"],
+                                "probe_accuracy": seed_detail["probe"]["accuracy"],
+                                "compressed_accuracy": candidate_data["accuracy"],
+                                "delta_accuracy": candidate_data["delta_vs_probe"],
+                                "probe_params": seed_detail["probe"]["params"],
+                                "compressed_params": candidate_data["params"],
+                                "param_reduction": candidate_data["param_reduction"],
+                                "verdict": candidate_data["verdict"],
+                                "verdict_reason": candidate_data["verdict_reason"],
+                                "rank": candidate_data["rank"],
+                            }
+                        )
 
             # Calculate worst-case and mean deltas across seeds
             if candidate_seeds:
@@ -938,7 +952,7 @@ def create_multi_seed_aggregated_report(
                     "mean_delta": sum(deltas) / len(deltas) if deltas else None,
                     "mean_param_reduction": sum(param_reductions) / len(param_reductions) if param_reductions else None,
                     "pass_rate": variant_stats.get("pass_rate", 0.0),
-                    "overall_verdict": variant_stats.get("verdict", "UNKNOWN")
+                    "overall_verdict": variant_stats.get("verdict", "UNKNOWN"),
                 }
 
     # Two-tier defensible selection system
@@ -946,8 +960,9 @@ def create_multi_seed_aggregated_report(
     safe_variants = {name: data for name, data in variants_data.items() if data["pass_rate"] == 1.0}
 
     # Tier 2: Aggressive variants (>=60% pass rate but <100% - majority pass, clearly labeled)
-    aggressive_variants = {name: data for name, data in variants_data.items()
-                         if PASS_RATE_AGGRESSIVE <= data["pass_rate"] < 1.0}
+    aggressive_variants = {
+        name: data for name, data in variants_data.items() if PASS_RATE_AGGRESSIVE <= data["pass_rate"] < 1.0
+    }
 
     # Select best safe variant (highest compression among 100% pass rate)
     best_safe_variant = None
@@ -964,13 +979,15 @@ def create_multi_seed_aggregated_report(
             "pass_count": best_safe_data["pass_count"],
             "total_runs": best_safe_data["total_runs"],
             "confidence_level": "high",
-            "rationale": "All seeds pass tolerance - recommended for production"
+            "rationale": "All seeds pass tolerance - recommended for production",
         }
 
     # Select best aggressive variant (highest compression among majority-pass)
     best_aggressive_variant = None
     if aggressive_variants:
-        best_aggressive_name = max(aggressive_variants.keys(), key=lambda x: aggressive_variants[x]["param_reduction"]["mean"])
+        best_aggressive_name = max(
+            aggressive_variants.keys(), key=lambda x: aggressive_variants[x]["param_reduction"]["mean"]
+        )
         best_aggressive_data = aggressive_variants[best_aggressive_name]
         best_aggressive_variant = {
             "variant": best_aggressive_name,
@@ -982,7 +999,7 @@ def create_multi_seed_aggregated_report(
             "pass_count": best_aggressive_data["pass_count"],
             "total_runs": best_aggressive_data["total_runs"],
             "confidence_level": "moderate",
-            "rationale": f"{best_aggressive_data['pass_count']}/{best_aggressive_data['total_runs']} seeds pass - higher risk, higher reward"
+            "rationale": f"{best_aggressive_data['pass_count']}/{best_aggressive_data['total_runs']} seeds pass - higher risk, higher reward",
         }
 
     # Legacy best_compression for backward compatibility (prefer safe, fallback to aggressive)
@@ -1007,7 +1024,7 @@ def create_multi_seed_aggregated_report(
         "rationale": validation_rationale,
         "is_multiseed": True,
         "n_seeds": n_seeds,
-        "max_steps": max_steps
+        "max_steps": max_steps,
     }
 
     # Copy environment but update validation_classification
@@ -1031,12 +1048,14 @@ def create_multi_seed_aggregated_report(
                 "mean": probe_acc_mean,
                 "std": probe_acc_std,
                 "values": probe_accuracies,
-                **({"ci_lower": probe_acc_ci["ci_lower"], "ci_upper": probe_acc_ci["ci_upper"]} if probe_acc_ci else {}),
+                **(
+                    {"ci_lower": probe_acc_ci["ci_lower"], "ci_upper": probe_acc_ci["ci_upper"]} if probe_acc_ci else {}
+                ),
             },
             "params": {
                 "mean": probe_params_mean,
-                "std": float(np.std(probe_params, ddof=1)) if len(probe_params) > 1 else 0.0
-            }
+                "std": float(np.std(probe_params, ddof=1)) if len(probe_params) > 1 else 0.0,
+            },
         },
         "compressed": variants_data,
         "detailed_results": detailed_results,  # Self-contained per-seed, per-candidate breakdown
@@ -1050,19 +1069,18 @@ def create_multi_seed_aggregated_report(
             "selection_strategy": {
                 "safe_available": best_safe_variant is not None,
                 "aggressive_available": best_aggressive_variant is not None,
-                "recommendation": "use_safe" if best_safe_variant else ("use_aggressive_with_caution" if best_aggressive_variant else "no_viable_variants")
+                "recommendation": "use_safe"
+                if best_safe_variant
+                else ("use_aggressive_with_caution" if best_aggressive_variant else "no_viable_variants"),
             },
             "defensible_claims": True,
-            "statistical_power": "sufficient" if len(seed_reports) >= MIN_SEEDS_SUFFICIENT_POWER else "limited"
+            "statistical_power": "sufficient" if len(seed_reports) >= MIN_SEEDS_SUFFICIENT_POWER else "limited",
         },
-        "config_metadata": base_report.get("config_metadata", {})  # Use config metadata from first report
+        "config_metadata": base_report.get("config_metadata", {}),  # Use config metadata from first report
     }
 
     # Aggregate escalation traces from seed reports
-    escalation_traces = [
-        r["escalation"] for r in seed_reports
-        if r.get("escalation", {}).get("triggered")
-    ]
+    escalation_traces = [r["escalation"] for r in seed_reports if r.get("escalation", {}).get("triggered")]
     if escalation_traces:
         aggregated_report["escalation"] = {
             "seeds_with_escalation": len(escalation_traces),
@@ -1074,9 +1092,7 @@ def create_multi_seed_aggregated_report(
 
 
 def create_multi_seed_markdown_report(
-    aggregated_report: Dict[str, Any],
-    config: Dict[str, Any],
-    output_dir: Path
+    aggregated_report: dict[str, Any], config: dict[str, Any], output_dir: Path
 ) -> str:
     """
     Create bench_aggregate.md human-readable markdown report for multi-seed results.
@@ -1097,7 +1113,7 @@ def create_multi_seed_markdown_report(
 
 - **Model:** {model}
 - **Task:** {task}
-- **Seeds:** {n_seeds} ({', '.join(str(s) for s in aggregated_report.get("seeds", []))})
+- **Seeds:** {n_seeds} ({", ".join(str(s) for s in aggregated_report.get("seeds", []))})
 - **Validation Level:** {validation_level.title()}
 - **Statistical Power:** {summary["statistical_power"]}
 
@@ -1119,10 +1135,14 @@ def create_multi_seed_markdown_report(
         delta_str = f"{data['delta_vs_probe']['mean']:+.3f} ± {data['delta_vs_probe']['std']:.3f}"
         red_str = f"{data['param_reduction']['mean']:.1%} ± {data['param_reduction']['std']:.1%}"
         pass_rate_str = f"{data['pass_count']}/{data['total_runs']} ({data['pass_rate']:.0%})"
-        verdict = data['verdict']
+        verdict = data["verdict"]
 
         # Extract policy_origin from compression metadata
-        policy_origin = data.get("compression", {}).get("policy_origin", "\u2014") if isinstance(data.get("compression"), dict) else "\u2014"
+        policy_origin = (
+            data.get("compression", {}).get("policy_origin", "\u2014")
+            if isinstance(data.get("compression"), dict)
+            else "\u2014"
+        )
 
         # Format variant name for display
         if variant_name == "per_layer":
@@ -1152,7 +1172,7 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
 """
 
     # Group variants by rank for clearer reporting
-    rank_to_variants: Dict[int, list[tuple[str, Dict[str, Any]]]] = {}
+    rank_to_variants: dict[int, list[tuple[str, dict[str, Any]]]] = {}
     for variant_name, data in compressed_data.items():
         # Extract rank from variant data or name
         rank = None
@@ -1161,7 +1181,8 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
         elif "r" in variant_name:
             # Try to extract from name like "uniform_r32" or "energy_p90"
             import re
-            rank_match = re.search(r'r(\d+)', variant_name)
+
+            rank_match = re.search(r"r(\d+)", variant_name)
             if rank_match:
                 rank = int(rank_match.group(1))
 
@@ -1204,7 +1225,7 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
 
         md_content += f"- **r={rank}** is {validation_status} ({detail})\n"
 
-    md_content += f"""
+    md_content += """
 
 This evidence-based approach ensures complete transparency about which compression levels can be trusted across independent random seeds.
 
@@ -1256,7 +1277,9 @@ This benchmark uses a two-tier selection system for defensible recommendations:
     if strategy["recommendation"] == "use_safe":
         md_content += "\u2705 Safe variant available - recommended for production deployment.\n\n"
     elif strategy["recommendation"] == "use_aggressive_with_caution":
-        md_content += "\u26a0\ufe0f  Only aggressive variants available - proceed with caution and additional validation.\n\n"
+        md_content += (
+            "\u26a0\ufe0f  Only aggressive variants available - proceed with caution and additional validation.\n\n"
+        )
     else:
         md_content += "\u274c No variants meet minimum reliability thresholds.\n\n"
 
@@ -1321,7 +1344,7 @@ This section contains complete self-contained results for all seeds and candidat
             md_content += f"""
 #### Seed: {seed_id}
 
-**Probe baseline:** {probe_info.get('accuracy', 0.0):.3f} accuracy, r={probe_info.get('rank', '?')}, {probe_info.get('params', 0):,} params
+**Probe baseline:** {probe_info.get("accuracy", 0.0):.3f} accuracy, r={probe_info.get("rank", "?")}, {probe_info.get("params", 0):,} params
 
 | Candidate | Accuracy | \u0394 vs Probe | Trainable Params | Param Reduction | Verdict | Reason |
 |---|---:|---:|---:|---:|---|---|
@@ -1341,7 +1364,7 @@ This section contains complete self-contained results for all seeds and candidat
 
     md_content += f"""
 
-*Generated on {timestamp[:19].replace('T', ' ')}*
+*Generated on {timestamp[:19].replace("T", " ")}*
 """
 
     return md_content

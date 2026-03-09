@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 from scipy import signal as sp_signal
 
-
 # ---------------------------------------------------------------------------
 # Cross-Correlation Functions (CCF)
 # ---------------------------------------------------------------------------
@@ -155,11 +154,7 @@ def compute_ccf(
         peak_corr = np.nan
 
     # Significant lags
-    significant = [
-        int(lags[i])
-        for i in range(len(lags))
-        if not np.isnan(ccf_values[i]) and abs(ccf_values[i]) > ci
-    ]
+    significant = [int(lags[i]) for i in range(len(lags)) if not np.isnan(ccf_values[i]) and abs(ccf_values[i]) > ci]
 
     return CCFResult(
         feature_name=feature_name,
@@ -333,9 +328,7 @@ def granger_causality_test(
     sse_r = float(np.sum(resid_r**2))
 
     # Unrestricted: AR(p) on y + lags of x
-    X_u = np.column_stack(
-        [X_r] + [dx[p - i - 1 : n_total - i - 1] for i in range(p)]
-    )
+    X_u = np.column_stack([X_r] + [dx[p - i - 1 : n_total - i - 1] for i in range(p)])
     beta_u = np.linalg.lstsq(X_u, Y, rcond=None)[0]
     resid_u = Y - X_u @ beta_u
     sse_u = float(np.sum(resid_u**2))
@@ -580,9 +573,7 @@ def surrogate_null_test(
     rng = np.random.default_rng(rng_seed)
 
     # Get actual forecast result
-    actual = ridge_forecast(
-        aligned_df, geometric_features, target, horizon=horizon, alpha=alpha
-    )
+    actual = ridge_forecast(aligned_df, geometric_features, target, horizon=horizon, alpha=alpha)
     actual_reduction = actual.rmse_reduction_pct
 
     surrogate_reductions = []
@@ -612,9 +603,7 @@ def surrogate_null_test(
 
             df_surr[feat] = series
 
-        surr_result = ridge_forecast(
-            df_surr, geometric_features, target, horizon=horizon, alpha=alpha
-        )
+        surr_result = ridge_forecast(df_surr, geometric_features, target, horizon=horizon, alpha=alpha)
         surrogate_reductions.append(surr_result.rmse_reduction_pct)
 
     surrogate_reductions = np.array(surrogate_reductions)
@@ -623,10 +612,7 @@ def surrogate_null_test(
     valid_surr = surrogate_reductions[~np.isnan(surrogate_reductions)]
     if len(valid_surr) > 0:
         p_value = float(np.mean(valid_surr >= actual_reduction))
-        z_score = float(
-            (actual_reduction - np.mean(valid_surr))
-            / (np.std(valid_surr) + 1e-12)
-        )
+        z_score = float((actual_reduction - np.mean(valid_surr)) / (np.std(valid_surr) + 1e-12))
     else:
         p_value = 1.0
         z_score = 0.0
@@ -660,12 +646,20 @@ def run_lead_lag_analysis(
     """
     if geometric_features is None:
         # Auto-detect: grad_norm aggregates + structural metrics (base columns, not deltas)
-        _prefixes = ("grad_norm_", "stable_rank_", "effective_rank_", "energy_rank_90_", "adapter_frob_norm_", "sigma_max_")
+        _prefixes = (
+            "grad_norm_",
+            "stable_rank_",
+            "effective_rank_",
+            "energy_rank_90_",
+            "adapter_frob_norm_",
+            "sigma_max_",
+        )
         geometric_features = [
             c
             for c in aligned_df.columns
             if any(c.startswith(p) for p in _prefixes)
-            and not c.endswith("_delta") and not c.endswith("_accel")
+            and not c.endswith("_delta")
+            and not c.endswith("_accel")
             and "_lag" not in c
         ]
 

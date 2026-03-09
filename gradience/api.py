@@ -19,14 +19,15 @@ Note:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Mapping, Sequence, Optional
 import json
-import os
 import logging
+import os
 import subprocess
 import sys
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -35,36 +36,44 @@ logger = logging.getLogger(__name__)
 # Data containers (lightweight)
 # -----------------------------
 
+
 @dataclass(frozen=True)
 class BenchRunArtifacts:
     """Paths produced by a single `run_bench` invocation."""
+
     output_dir: Path
     bench_json: Path
     bench_md: Path
 
+
 @dataclass(frozen=True)
 class BenchAggregateArtifacts:
     """Paths produced by `aggregate_bench_runs`."""
+
     output_dir: Path
     aggregate_json: Path
     aggregate_md: Path
 
+
 @dataclass(frozen=True)
 class AuditResult:
     """Result from running ``gradience audit``."""
+
     returncode: int
-    log_path: Optional[Path] = None
+    log_path: Path | None = None
 
     @property
     def success(self) -> bool:
         """True when the audit process exited cleanly."""
         return self.returncode == 0
 
+
 @dataclass(frozen=True)
 class MonitorResult:
     """Result from running ``gradience monitor``."""
+
     returncode: int
-    log_path: Optional[Path] = None
+    log_path: Path | None = None
 
     @property
     def success(self) -> bool:
@@ -76,7 +85,8 @@ class MonitorResult:
 # Helpers
 # -----------------------------
 
-def _pyexe(python: Optional[str] = None) -> str:
+
+def _pyexe(python: str | None = None) -> str:
     """Resolve which Python executable to use."""
     return python or sys.executable
 
@@ -84,10 +94,10 @@ def _pyexe(python: Optional[str] = None) -> str:
 def _run(
     argv: Sequence[str],
     *,
-    cwd: Optional[Path] = None,
-    env: Optional[Mapping[str, str]] = None,
+    cwd: Path | None = None,
+    env: Mapping[str, str] | None = None,
     check: bool = True,
-    log_path: Optional[Path] = None,
+    log_path: Path | None = None,
 ) -> int:
     """
     Run a command with optional logging, returning the exit code.
@@ -134,15 +144,16 @@ def _read_json(path: Path) -> dict[str, Any]:
 # Public API: Bench
 # -----------------------------
 
+
 def run_bench(
     *,
     config: str | Path,
     output: str | Path,
     smoke: bool = False,
     ci: bool = False,
-    python: Optional[str] = None,
-    env: Optional[Mapping[str, str]] = None,
-    log_path: Optional[str | Path] = None,
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
     check: bool = True,
 ) -> BenchRunArtifacts:
     """
@@ -189,9 +200,9 @@ def aggregate_bench_runs(
     runs: Sequence[str | Path],
     output: str | Path,
     include_smoke: bool = False,
-    python: Optional[str] = None,
-    env: Optional[Mapping[str, str]] = None,
-    log_path: Optional[str | Path] = None,
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
     check: bool = True,
 ) -> BenchAggregateArtifacts:
     """
@@ -229,17 +240,18 @@ def aggregate_bench_runs(
 # Public API: Audit + Monitor
 # -----------------------------
 
+
 def audit(
     *,
     peft_dir: str | Path,
     layers: bool = True,
-    base_model: Optional[str] = None,
-    base_norms_cache: Optional[str | Path] = None,
+    base_model: str | None = None,
+    base_norms_cache: str | Path | None = None,
     no_udr: bool = False,
-    extra_args: Optional[Sequence[str]] = None,
-    python: Optional[str] = None,
-    env: Optional[Mapping[str, str]] = None,
-    log_path: Optional[str | Path] = None,
+    extra_args: Sequence[str] | None = None,
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
     check: bool = True,
 ) -> AuditResult:
     """
@@ -281,10 +293,10 @@ def monitor(
     *,
     run_jsonl: str | Path,
     verbose: bool = False,
-    extra_args: Optional[Sequence[str]] = None,
-    python: Optional[str] = None,
-    env: Optional[Mapping[str, str]] = None,
-    log_path: Optional[str | Path] = None,
+    extra_args: Sequence[str] | None = None,
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
     check: bool = True,
 ) -> MonitorResult:
     """
@@ -316,6 +328,7 @@ def monitor(
 # -----------------------------
 # Convenience: load canonical artifacts
 # -----------------------------
+
 
 def load_bench_report(output_dir: str | Path) -> dict[str, Any]:
     """Load <output_dir>/bench.json."""

@@ -29,40 +29,37 @@ See docs/RESEARCH_AGENDA.md for the theoretical questions we're investigating:
 4. Implicit regularization (rank dynamics)
 """
 
-from .spectral_extended import (
-    FullSpectralSnapshot,
-    compute_full_spectrum,
-    compute_layerwise_spectra,
-    aggregate_layerwise_spectra,
-    RankTracker,
-    fit_spectral_decay,
+from .fisher import (
+    FisherSnapshot,
+    FisherTracker,
+    compute_effective_dimensionality,
+    compute_empirical_fisher_diagonal,
+    compute_fisher_spectral_properties,
+    compute_natural_gradient_alignment,
 )
-
 from .hessian import (
     HessianSnapshot,
     HessianTracker,
     compute_hessian_snapshot,
-    hessian_vector_product,
-    power_iteration_hessian,
-    hutchinson_trace,
     create_loss_fn_for_batch,
+    hessian_vector_product,
+    hutchinson_trace,
+    power_iteration_hessian,
 )
-
 from .phase_transitions import (
+    GrokDetector,
     PhaseTransitionMetrics,
     PhaseTransitionTracker,
-    GrokDetector,
     compute_autocorrelation,
     compute_integrated_autocorr_time,
 )
-
-from .fisher import (
-    FisherSnapshot,
-    FisherTracker,
-    compute_empirical_fisher_diagonal,
-    compute_fisher_spectral_properties,
-    compute_natural_gradient_alignment,
-    compute_effective_dimensionality,
+from .spectral_extended import (
+    FullSpectralSnapshot,
+    RankTracker,
+    aggregate_layerwise_spectra,
+    compute_full_spectrum,
+    compute_layerwise_spectra,
+    fit_spectral_decay,
 )
 
 __all__ = [
@@ -73,7 +70,6 @@ __all__ = [
     "aggregate_layerwise_spectra",
     "RankTracker",
     "fit_spectral_decay",
-    
     # Hessian
     "HessianSnapshot",
     "HessianTracker",
@@ -82,14 +78,12 @@ __all__ = [
     "power_iteration_hessian",
     "hutchinson_trace",
     "create_loss_fn_for_batch",
-    
     # Phase transitions
     "PhaseTransitionMetrics",
     "PhaseTransitionTracker",
     "GrokDetector",
     "compute_autocorrelation",
     "compute_integrated_autocorr_time",
-    
     # Fisher
     "FisherSnapshot",
     "FisherTracker",

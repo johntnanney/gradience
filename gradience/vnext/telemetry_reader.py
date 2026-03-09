@@ -21,9 +21,10 @@ of schema and envelope requirements, enable ``strict_schema=True``.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .types import (
     TELEMETRY_SCHEMA_VERSION,
@@ -32,11 +33,10 @@ from .types import (
     SignalSnapshot,
 )
 
-
-JsonDict = Dict[str, Any]
+JsonDict = dict[str, Any]
 
 # Re-export from canonical location for backward compatibility
-from gradience.exceptions import TelemetrySchemaError, TelemetryFormatError  # noqa: E402
+from gradience.exceptions import TelemetryFormatError, TelemetrySchemaError  # noqa: E402
 
 
 @dataclass
@@ -48,7 +48,7 @@ class ValidationIssue:
         return f"line {self.line}: {self.message}"
 
 
-def _safe_json_loads(line: str) -> Optional[JsonDict]:
+def _safe_json_loads(line: str) -> JsonDict | None:
     """Parse JSON into a dict, returning None on failure."""
     try:
         obj = json.loads(line)
@@ -94,10 +94,10 @@ def _normalize_event(e: JsonDict) -> JsonDict:
 
 
 def _evalmetrics_from_metrics_dict(
-    metrics: Dict[str, Any],
+    metrics: dict[str, Any],
     *,
-    step: Optional[int] = None,
-    split: Optional[str] = None,
+    step: int | None = None,
+    split: str | None = None,
 ) -> EvalMetrics:
     """Convert an eval metrics dict into :class:`~gradience.vnext.types.EvalMetrics`.
 
@@ -127,23 +127,23 @@ class TelemetryReader:
 
     def __init__(
         self,
-        path: Union[str, Path],
+        path: str | Path,
         *,
         strict_schema: bool = False,
         normalize: bool = True,
-        allowed_schemas: Optional[Sequence[str]] = None,
+        allowed_schemas: Sequence[str] | None = None,
     ):
         self.path = Path(path)
         self.strict_schema = strict_schema
         self.normalize = normalize
         self.allowed_schemas = tuple(allowed_schemas) if allowed_schemas is not None else (TELEMETRY_SCHEMA_VERSION,)
-        self.issues: List[ValidationIssue] = []
+        self.issues: list[ValidationIssue] = []
 
     # ------------------------------------------------------------------
     # Streaming API
     # ------------------------------------------------------------------
 
-    def iter_events(self, event_type: Optional[str] = None) -> Iterator[JsonDict]:
+    def iter_events(self, event_type: str | None = None) -> Iterator[JsonDict]:
         """Iterate telemetry events.
 
         - Skips blank lines and malformed JSON.
@@ -199,7 +199,7 @@ class TelemetryReader:
     # Validation helpers
     # ------------------------------------------------------------------
 
-    def validate(self, *, max_issues: int = 1000) -> List[str]:
+    def validate(self, *, max_issues: int = 1000) -> list[str]:
         """Scan the file and return human-friendly validation issues."""
         self.issues.clear()
         for _ in self.iter_events(event_type=None):
@@ -212,9 +212,9 @@ class TelemetryReader:
     # Convenience accessors
     # ------------------------------------------------------------------
 
-    def latest_config(self) -> Optional[ConfigSnapshot]:
+    def latest_config(self) -> ConfigSnapshot | None:
         """Return the most recent :class:`~gradience.vnext.types.ConfigSnapshot` (from run_start)."""
-        last: Optional[JsonDict] = None
+        last: JsonDict | None = None
         for e in self.iter_events(event_type="run_start"):
             last = e
         if not last:
@@ -224,15 +224,15 @@ class TelemetryReader:
             return None
         return ConfigSnapshot.from_dict(cfg)
 
-    def latest_eval_event(self, *, split: str = "test") -> Optional[JsonDict]:
+    def latest_eval_event(self, *, split: str = "test") -> JsonDict | None:
         """Return the most recent raw eval event for a given split."""
-        last: Optional[JsonDict] = None
+        last: JsonDict | None = None
         for e in self.iter_events(event_type="eval"):
             if str(e.get("split") or "") == split:
                 last = e
         return last
 
-    def latest_eval(self, split: str = "test") -> Optional[EvalMetrics]:
+    def latest_eval(self, split: str = "test") -> EvalMetrics | None:
         """Return the most recent eval metrics for a given split as EvalMetrics."""
         e = self.latest_eval_event(split=split)
         if not e:
@@ -251,7 +251,7 @@ class TelemetryReader:
         train_eval = self.latest_eval(split="train") or EvalMetrics()
         test_eval = self.latest_eval(split="test") or EvalMetrics()
 
-        gap: Optional[float] = None
+        gap: float | None = None
         if train_eval.ppl is not None and test_eval.ppl is not None and train_eval.ppl != 0:
             try:
                 gap = float(test_eval.ppl) / float(train_eval.ppl)
@@ -259,25 +259,25 @@ class TelemetryReader:
                 gap = None
 
         # Generic (non-kind-specific) metrics
-        stable_rank_mean: Optional[float] = None
-        utilization_mean: Optional[float] = None
-        dominance_act_mean: Optional[float] = None
-        kappa_mean: Optional[float] = None
+        stable_rank_mean: float | None = None
+        utilization_mean: float | None = None
+        dominance_act_mean: float | None = None
+        kappa_mean: float | None = None
 
         # If present, we treat metrics(kind="lora_audit") as the authoritative
         # source for stable-rank/utilization summaries (because it is derived
         # from a full adapter audit rather than a partial live probe).
-        lora_audit_summary: Optional[Dict[str, Any]] = None
-        lora_audit_step: Optional[int] = None
-        sr_from_audit: Optional[float] = None
-        util_from_audit: Optional[float] = None
+        lora_audit_summary: dict[str, Any] | None = None
+        lora_audit_step: int | None = None
+        sr_from_audit: float | None = None
+        util_from_audit: float | None = None
 
         sr_keys = ("stable_rank_mean", "avg_stable_rank", "stable_rank")
         util_keys = ("utilization_mean", "utilization", "rank_utilization")
         dom_keys = ("dominance_act_mean", "activation_dominance_mean", "avg_dominance_act")
         kappa_keys = ("kappa_mean", "kappa")
 
-        last_step: Optional[int] = None
+        last_step: int | None = None
         for e in self.iter_events(event_type="metrics"):
             if isinstance(e.get("step"), int):
                 last_step = e.get("step")
@@ -326,7 +326,7 @@ class TelemetryReader:
         if util_from_audit is not None:
             utilization_mean = util_from_audit
 
-        extras: Dict[str, Any] = {}
+        extras: dict[str, Any] = {}
         cfg = self.latest_config()
         if cfg is not None:
             extras["model_name"] = cfg.model_name
@@ -356,13 +356,13 @@ class TelemetryReader:
         )
 
     # Back-compat alias for older tooling
-    def summary(self) -> Dict[str, Any]:  # pragma: no cover
+    def summary(self) -> dict[str, Any]:  # pragma: no cover
         """Return a human-friendly dict summary.
 
         Prefer :meth:`summarize` for typed output.
         """
         s = self.summarize()
-        out: Dict[str, Any] = {
+        out: dict[str, Any] = {
             "train": s.train.to_dict(),
             "test": s.test.to_dict(),
             "gap": s.gap,

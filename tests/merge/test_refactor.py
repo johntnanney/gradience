@@ -11,7 +11,6 @@ import torch
 
 from gradience.vnext.merge.refactor import refactor_to_lora
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -28,7 +27,7 @@ def known_dW():
     S = torch.tensor([10.0, 5.0, 2.5, 1.25, 0.6, 0.3, 0.15, 0.07])
     # Pad with zeros to full min(d_out, d_in) = 24
     S_full = torch.zeros(min(d_out, d_in))
-    S_full[:len(S)] = S
+    S_full[: len(S)] = S
     dW = U @ torch.diag(S_full) @ Vt
     return dW, S
 
@@ -91,9 +90,7 @@ class TestRefactorToLora:
     def test_dtype_float32(self, known_dW):
         """Float32 compute path should work correctly."""
         dW, _ = known_dW
-        B, A, error = refactor_to_lora(
-            dW, target_rank=4, alpha=16.0, compute_dtype="float32"
-        )
+        B, A, error = refactor_to_lora(dW, target_rank=4, alpha=16.0, compute_dtype="float32")
 
         assert B.shape == (32, 4)
         assert A.shape == (4, 24)

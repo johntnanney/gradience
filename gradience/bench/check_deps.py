@@ -19,11 +19,11 @@ def get_module_version(module_name: str) -> str:
     """Get the version of an installed module."""
     try:
         module = __import__(module_name)
-        if hasattr(module, '__version__'):
+        if hasattr(module, "__version__"):
             return str(module.__version__)
-        elif hasattr(module, 'version'):
+        elif hasattr(module, "version"):
             return str(module.version)
-        elif hasattr(module, 'VERSION'):
+        elif hasattr(module, "VERSION"):
             return str(module.VERSION)
         else:
             return "installed"
@@ -31,9 +31,9 @@ def get_module_version(module_name: str) -> str:
         return "not found"
 
 
-def check_dependencies() -> Dict[str, Dict[str, Any]]:
+def check_dependencies() -> dict[str, dict[str, Any]]:
     """Check all Gradience dependencies and categorize them."""
-    
+
     deps = {
         "core": {
             "torch": ("PyTorch", True),
@@ -58,10 +58,10 @@ def check_dependencies() -> Dict[str, Dict[str, Any]]:
             "build": ("Build", False),
             "ruff": ("Ruff", False),
             "mypy": ("MyPy", False),
-        }
+        },
     }
-    
-    results: Dict[str, Dict[str, Any]] = {}
+
+    results: dict[str, dict[str, Any]] = {}
     for category, modules in deps.items():
         results[category] = {}
         for module, (display_name, is_required) in modules.items():
@@ -71,13 +71,13 @@ def check_dependencies() -> Dict[str, Dict[str, Any]]:
                 "display_name": display_name,
                 "installed": installed,
                 "version": version,
-                "required": is_required
+                "required": is_required,
             }
-    
+
     return results
 
 
-def get_missing_for_command(command: str, results: Dict) -> List[str]:
+def get_missing_for_command(command: str, results: dict) -> list[str]:
     """Get list of missing modules for a specific command."""
     if command == "bench":
         missing = []
@@ -99,9 +99,9 @@ def main():
     print("🩺 Gradience Dependency Doctor")
     print("=" * 50)
     print()
-    
+
     results = check_dependencies()
-    
+
     # Check core dependencies
     core_missing = []
     for module, info in results["core"].items():
@@ -109,13 +109,13 @@ def main():
             print(f"✅ {info['display_name']:12} {info['version']}")
         else:
             print(f"❌ {info['display_name']:12} MISSING (required)")
-            core_missing.append(info['display_name'])
-    
+            core_missing.append(info["display_name"])
+
     if core_missing:
         print("\n⚠️  Core dependencies missing!")
-        print(f"   Install with: pip install gradience")
+        print("   Install with: pip install gradience")
         print()
-    
+
     # Check HF integration
     print("\n📦 HuggingFace Integration ([hf] extra):")
     hf_missing = []
@@ -127,8 +127,8 @@ def main():
                 print(f"   ✅ {info['display_name']:12} {info['version']}")
             else:
                 print(f"   ⭕ {info['display_name']:12} not installed")
-                hf_missing.append(info['display_name'])
-    
+                hf_missing.append(info["display_name"])
+
     # Check bench dependencies
     print("\n🧪 Benchmarking Suite ([bench] extra):")
     bench_missing = []
@@ -141,7 +141,7 @@ def main():
             else:
                 print(f"   ⭕ {info['display_name']:12} not installed")
                 bench_missing.append(module)
-    
+
     # Check dev dependencies
     print("\n🔧 Development Tools ([dev] extra):")
     dev_missing = []
@@ -150,33 +150,33 @@ def main():
             print(f"   ✅ {info['display_name']:12} {info['version']}")
         else:
             print(f"   ⭕ {info['display_name']:12} not installed")
-            dev_missing.append(info['display_name'])
-    
+            dev_missing.append(info["display_name"])
+
     # Provide installation commands
     print("\n" + "=" * 50)
     print("📋 Installation Commands:")
     print()
-    
+
     if hf_missing:
         print("To use HuggingFace integration:")
         print('  pip install -e ".[hf]"')
         print()
-    
+
     if bench_missing:
         print("To run benchmarks:")
         print('  pip install -e ".[bench]"')
         print()
-    
+
     if dev_missing:
         print("For development:")
         print('  pip install -e ".[dev]"')
         print()
-    
+
     if hf_missing and bench_missing and dev_missing:
         print("To install everything:")
         print('  pip install -e ".[all]"')
         print()
-    
+
     # Check common use cases
     if not results["hf"]["transformers"]["installed"]:
         print("💡 Tip: Most users want HuggingFace integration:")
@@ -186,9 +186,9 @@ def main():
         print('   pip install -e ".[bench]"')
     else:
         print("✨ All commonly used dependencies are installed!")
-    
+
     print()
-    
+
     # Return appropriate exit code
     if core_missing:
         return 1  # Core dependencies missing

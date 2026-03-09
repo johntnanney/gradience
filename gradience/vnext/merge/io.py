@@ -8,11 +8,10 @@ pair modules across two adapters by their canonical prefix.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
-
-import logging
 
 import torch
 
@@ -20,11 +19,11 @@ from gradience.exceptions import MergeError
 from gradience.vnext.audit import (
     LoRAAdapterConfig,
     find_peft_files,
-    load_peft_adapter_config,
-    load_adapter_state_dict,
-    iter_lora_pairs,
-    orient_lora_factors,
     infer_module_type,
+    iter_lora_pairs,
+    load_adapter_state_dict,
+    load_peft_adapter_config,
+    orient_lora_factors,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,15 +35,14 @@ class AdapterInfo:
 
     path: Path
     config: LoRAAdapterConfig
-    state_dict: Dict[str, torch.Tensor]
-    lora_pairs: Tuple[Tuple[str, str, str], ...]  # (module_prefix, a_key, b_key)
+    state_dict: dict[str, torch.Tensor]
+    lora_pairs: tuple[tuple[str, str, str], ...]  # (module_prefix, a_key, b_key)
 
     @property
     def rank(self) -> int:
         if self.config.r is None:
             raise MergeError(
-                f"Adapter at {self.path} has no 'r' (rank) in config. "
-                f"Cannot compute merge audit without a known rank."
+                f"Adapter at {self.path} has no 'r' (rank) in config. Cannot compute merge audit without a known rank."
             )
         return self.config.r
 
@@ -64,11 +62,11 @@ class AdapterInfo:
         return self.alpha / max(r, 1)
 
     @property
-    def module_prefixes(self) -> List[str]:
+    def module_prefixes(self) -> list[str]:
         return [prefix for prefix, _, _ in self.lora_pairs]
 
 
-def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
+def load_adapter(adapter_dir: str | Path) -> AdapterInfo:
     """Load a PEFT adapter: config + weights + discovered LoRA pairs.
 
     Parameters
@@ -95,25 +93,17 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
     config_path, weights_path, issues = find_peft_files(adapter_dir)
 
     if config_path is None:
-        raise FileNotFoundError(
-            f"No adapter_config.json found in {adapter_dir}"
-        )
+        raise FileNotFoundError(f"No adapter_config.json found in {adapter_dir}")
     if weights_path is None:
-        raise FileNotFoundError(
-            f"No adapter weights (safetensors or bin) found in {adapter_dir}"
-        )
+        raise FileNotFoundError(f"No adapter weights (safetensors or bin) found in {adapter_dir}")
 
     config = load_peft_adapter_config(config_path)
 
     if config.r is None:
-        raise MergeError(
-            f"Adapter config at {config_path} is missing 'r' (rank). "
-            f"Merge audit requires a known rank."
-        )
+        raise MergeError(f"Adapter config at {config_path} is missing 'r' (rank). Merge audit requires a known rank.")
     if config.lora_alpha is None:
         raise MergeError(
-            f"Adapter config at {config_path} is missing 'lora_alpha'. "
-            f"Merge audit requires a known alpha."
+            f"Adapter config at {config_path} is missing 'lora_alpha'. Merge audit requires a known alpha."
         )
 
     state_dict = load_adapter_state_dict(weights_path, map_location="cpu")
@@ -122,8 +112,7 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
     logger.debug("Loaded %d LoRA pairs from %s", len(pairs), adapter_dir)
     if not pairs:
         raise MergeError(
-            f"No LoRA A/B pairs found in weights at {weights_path}. "
-            f"Keys: {list(state_dict.keys())[:5]}..."
+            f"No LoRA A/B pairs found in weights at {weights_path}. Keys: {list(state_dict.keys())[:5]}..."
         )
 
     return AdapterInfo(
@@ -137,7 +126,7 @@ def load_adapter(adapter_dir: Union[str, Path]) -> AdapterInfo:
 def match_layers(
     info_a: AdapterInfo,
     info_b: AdapterInfo,
-) -> Tuple[List[str], List[str], List[str]]:
+) -> tuple[list[str], list[str], list[str]]:
     """Match LoRA layers between two adapters by module prefix.
 
     Returns
@@ -161,7 +150,7 @@ def match_layers(
 def extract_factors(
     info: AdapterInfo,
     module_prefix: str,
-) -> Tuple[torch.Tensor, torch.Tensor, int]:
+) -> tuple[torch.Tensor, torch.Tensor, int]:
     """Extract oriented (A, B, rank) for a specific layer.
 
     Parameters
@@ -188,8 +177,7 @@ def extract_factors(
             return A, B, r
 
     raise KeyError(
-        f"Module prefix '{module_prefix}' not found in adapter at {info.path}. "
-        f"Available: {info.module_prefixes[:5]}..."
+        f"Module prefix '{module_prefix}' not found in adapter at {info.path}. Available: {info.module_prefixes[:5]}..."
     )
 
 

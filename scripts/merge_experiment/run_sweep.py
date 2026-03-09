@@ -41,9 +41,9 @@ except ImportError:
 
 # Gradience core imports
 from gradience.vnext.merge import (
+    execute_merge,
     merge_audit,
     plan_from_audit,
-    execute_merge,
 )
 
 # Sibling imports
@@ -51,16 +51,15 @@ sys.path.insert(0, str(Path(__file__).parent))
 from evaluate import evaluate_nli  # noqa: E402
 from sweep_configs import SWEEP_GRID, SweepConfig, get_experiment_names  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Phase 1: Audit (shared per adapter source)
 # ---------------------------------------------------------------------------
 
 
 def run_audits(
-    adapter_dirs: Dict[str, Tuple[Path, Path]],
+    adapter_dirs: dict[str, tuple[Path, Path]],
     output_dir: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run merge-audit for each adapter source, caching results.
 
     Parameters
@@ -108,7 +107,7 @@ def run_single_merge(
     adapter_a_dir: Path,
     adapter_b_dir: Path,
     output_dir: Path,
-) -> Tuple[Path, Dict[str, Any]]:
+) -> tuple[Path, dict[str, Any]]:
     """Execute a single merge config.
 
     Returns
@@ -137,11 +136,11 @@ def run_single_merge(
 
 
 def run_all_merges(
-    configs: List[SweepConfig],
-    audits: Dict[str, Any],
-    adapter_dirs: Dict[str, Tuple[Path, Path]],
+    configs: list[SweepConfig],
+    audits: dict[str, Any],
+    adapter_dirs: dict[str, tuple[Path, Path]],
     output_dir: Path,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """Execute merges for all configs.
 
     Returns
@@ -160,7 +159,11 @@ def run_all_merges(
         a_dir, b_dir = adapter_dirs[config.adapter_source]
 
         merge_dir, metrics = run_single_merge(
-            config, report, a_dir, b_dir, output_dir,
+            config,
+            report,
+            a_dir,
+            b_dir,
+            output_dir,
         )
 
         results[config.name] = {
@@ -171,11 +174,7 @@ def run_all_merges(
 
         elapsed = time.monotonic() - start
         recon = metrics["mean_reconstruction_error"]
-        print(
-            f"  [{i}/{len(configs)}] {config.name}: "
-            f"recon={recon:.4f}, "
-            f"{elapsed:.0f}s elapsed"
-        )
+        print(f"  [{i}/{len(configs)}] {config.name}: recon={recon:.4f}, {elapsed:.0f}s elapsed")
 
     total = time.monotonic() - start
     print(f"\n  All merges completed in {total:.0f}s")
@@ -188,12 +187,12 @@ def run_all_merges(
 
 
 def run_quick_screen(
-    merged_results: Dict[str, Dict[str, Any]],
+    merged_results: dict[str, dict[str, Any]],
     base_model: str,
     n_samples: int,
     device: str,
-    time_budget_seconds: Optional[float] = None,
-) -> Dict[Tuple[str, str], float]:
+    time_budget_seconds: float | None = None,
+) -> dict[tuple[str, str], float]:
     """Evaluate all merged configs with a small sample count.
 
     Returns
@@ -204,7 +203,7 @@ def run_quick_screen(
     print(f"  Phase 3: Quick-screen evaluation ({n_samples} samples)")
     print("=" * 70)
 
-    quick_results: Dict[Tuple[str, str], float] = {}
+    quick_results: dict[tuple[str, str], float] = {}
     datasets = ["mnli", "qnli"]
     total_evals = len(merged_results) * len(datasets)
     start = time.monotonic()
@@ -222,8 +221,7 @@ def run_quick_screen(
             if time_budget_seconds is not None:
                 elapsed = time.monotonic() - start
                 if elapsed > time_budget_seconds:
-                    print(f"\n  TIME BUDGET EXCEEDED ({elapsed:.0f}s). "
-                          f"Completed {eval_count - 1}/{total_evals} evals.")
+                    print(f"\n  TIME BUDGET EXCEEDED ({elapsed:.0f}s). Completed {eval_count - 1}/{total_evals} evals.")
                     return quick_results
 
             print(f"\n  [{eval_count}/{total_evals}] {name} on {dataset}...")
@@ -243,11 +241,7 @@ def run_quick_screen(
             elapsed = time.monotonic() - start
             eta_per = elapsed / eval_count
             remaining = (total_evals - eval_count) * eta_per
-            print(
-                f"    acc={acc:.4f} | "
-                f"{elapsed:.0f}s elapsed, "
-                f"~{remaining / 60:.0f}min remaining"
-            )
+            print(f"    acc={acc:.4f} | {elapsed:.0f}s elapsed, ~{remaining / 60:.0f}min remaining")
 
     total = time.monotonic() - start
     print(f"\n  Quick-screen completed in {total / 60:.1f} minutes")
@@ -260,10 +254,10 @@ def run_quick_screen(
 
 
 def rank_configs(
-    quick_results: Dict[Tuple[str, str], float],
-    merged_results: Dict[str, Dict[str, Any]],
+    quick_results: dict[tuple[str, str], float],
+    merged_results: dict[str, dict[str, Any]],
     top_k: int,
-) -> List[str]:
+) -> list[str]:
     """Rank configs by combined MNLI+QNLI accuracy, return top-k names."""
     print("\n" + "=" * 70)
     print("  Phase 4: Ranking configs")
@@ -283,10 +277,7 @@ def rank_configs(
         mnli = quick_results.get((name, "mnli"), 0.0)
         qnli = quick_results.get((name, "qnli"), 0.0)
         marker = " ***" if i <= top_k else ""
-        print(
-            f"  {i:<6d} {name:<30s} "
-            f"{mnli:8.4f} {qnli:8.4f} {combined[name]:10.4f}{marker}"
-        )
+        print(f"  {i:<6d} {name:<30s} {mnli:8.4f} {qnli:8.4f} {combined[name]:10.4f}{marker}")
 
     top_names = ranked[:top_k]
     print(f"\n  Selected top-{top_k}: {top_names}")
@@ -299,12 +290,12 @@ def rank_configs(
 
 
 def run_full_eval(
-    top_names: List[str],
-    merged_results: Dict[str, Dict[str, Any]],
+    top_names: list[str],
+    merged_results: dict[str, dict[str, Any]],
     base_model: str,
     n_samples: int,
     device: str,
-) -> Dict[Tuple[str, str], Dict[str, Any]]:
+) -> dict[tuple[str, str], dict[str, Any]]:
     """Full evaluation on top-k configs with more samples.
 
     Returns
@@ -315,7 +306,7 @@ def run_full_eval(
     print(f"  Phase 5: Full evaluation ({n_samples} samples) on top-{len(top_names)}")
     print("=" * 70)
 
-    full_results: Dict[Tuple[str, str], Dict[str, Any]] = {}
+    full_results: dict[tuple[str, str], dict[str, Any]] = {}
     datasets = ["mnli", "qnli"]
     total_evals = len(top_names) * len(datasets)
     start = time.monotonic()
@@ -342,10 +333,7 @@ def run_full_eval(
 
             elapsed = time.monotonic() - start
             acc = result["accuracy"]
-            print(
-                f"    acc={acc:.4f} | "
-                f"{elapsed / 60:.1f}min elapsed"
-            )
+            print(f"    acc={acc:.4f} | {elapsed / 60:.1f}min elapsed")
 
     total = time.monotonic() - start
     print(f"\n  Full evaluation completed in {total / 60:.1f} minutes")
@@ -358,11 +346,11 @@ def run_full_eval(
 
 
 def collect_results(
-    configs: List[SweepConfig],
-    merged_results: Dict[str, Dict[str, Any]],
-    quick_results: Dict[Tuple[str, str], float],
-    full_results: Dict[Tuple[str, str], Dict[str, Any]],
-    top_names: List[str],
+    configs: list[SweepConfig],
+    merged_results: dict[str, dict[str, Any]],
+    quick_results: dict[tuple[str, str], float],
+    full_results: dict[tuple[str, str], dict[str, Any]],
+    top_names: list[str],
     quick_samples: int,
     full_samples: int,
     output_dir: Path,
@@ -380,29 +368,31 @@ def collect_results(
         qnli_acc = quick_results.get((name, "qnli"))
         merge_metrics = merged_results.get(name, {}).get("merge_metrics", {})
 
-        quick_rows.append({
-            "config": config.to_dict(),
-            "mnli_accuracy": mnli_acc,
-            "qnli_accuracy": qnli_acc,
-            "combined_accuracy": (
-                (mnli_acc or 0) + (qnli_acc or 0) if mnli_acc is not None else None
-            ),
-            "mean_reconstruction_error": merge_metrics.get("mean_reconstruction_error"),
-            "max_reconstruction_error": merge_metrics.get("max_reconstruction_error"),
-        })
+        quick_rows.append(
+            {
+                "config": config.to_dict(),
+                "mnli_accuracy": mnli_acc,
+                "qnli_accuracy": qnli_acc,
+                "combined_accuracy": ((mnli_acc or 0) + (qnli_acc or 0) if mnli_acc is not None else None),
+                "mean_reconstruction_error": merge_metrics.get("mean_reconstruction_error"),
+                "max_reconstruction_error": merge_metrics.get("max_reconstruction_error"),
+            }
+        )
 
     # Full eval table
     full_rows = []
     for name in top_names:
         for dataset in ["mnli", "qnli"]:
             result = full_results.get((name, dataset), {})
-            full_rows.append({
-                "config_name": name,
-                "dataset": dataset,
-                "accuracy": result.get("accuracy"),
-                "n_samples": result.get("n_samples"),
-                "time_seconds": result.get("total_time_seconds"),
-            })
+            full_rows.append(
+                {
+                    "config_name": name,
+                    "dataset": dataset,
+                    "accuracy": result.get("accuracy"),
+                    "n_samples": result.get("n_samples"),
+                    "time_seconds": result.get("total_time_seconds"),
+                }
+            )
 
     summary = {
         "schema_version": "gradience.merge_sweep/v1",
@@ -435,9 +425,11 @@ def collect_results(
 
         # Quick-screen table
         f.write(f"## Quick Screen ({quick_samples} samples)\n\n")
-        f.write(f"| {'Config':<30s} | {'Experiment':<20s} | {'Strategy':<18s} | "
-                f"{'MNLI':>6s} | {'QNLI':>6s} | {'Combined':>9s} | {'Recon Err':>9s} |\n")
-        f.write(f"|{'-'*31}|{'-'*21}|{'-'*19}|{'-'*8}|{'-'*8}|{'-'*11}|{'-'*11}|\n")
+        f.write(
+            f"| {'Config':<30s} | {'Experiment':<20s} | {'Strategy':<18s} | "
+            f"{'MNLI':>6s} | {'QNLI':>6s} | {'Combined':>9s} | {'Recon Err':>9s} |\n"
+        )
+        f.write(f"|{'-' * 31}|{'-' * 21}|{'-' * 19}|{'-' * 8}|{'-' * 8}|{'-' * 11}|{'-' * 11}|\n")
 
         # Sort by combined accuracy descending
         sorted_rows = sorted(
@@ -450,7 +442,11 @@ def collect_results(
             mnli = f"{row['mnli_accuracy']:.4f}" if row["mnli_accuracy"] is not None else "  N/A "
             qnli = f"{row['qnli_accuracy']:.4f}" if row["qnli_accuracy"] is not None else "  N/A "
             combined = f"{row['combined_accuracy']:.4f}" if row["combined_accuracy"] is not None else "    N/A  "
-            recon = f"{row['mean_reconstruction_error']:.4f}" if row["mean_reconstruction_error"] is not None else "    N/A  "
+            recon = (
+                f"{row['mean_reconstruction_error']:.4f}"
+                if row["mean_reconstruction_error"] is not None
+                else "    N/A  "
+            )
             top_marker = " *" if cfg["name"] in top_names else ""
             f.write(
                 f"| {cfg['name']:<30s} | {cfg['experiment']:<20s} | "
@@ -461,17 +457,15 @@ def collect_results(
         # Full eval table
         if full_rows:
             f.write(f"\n## Full Evaluation ({full_samples} samples) — Top {len(top_names)}\n\n")
-            f.write(f"| {'Config':<30s} | {'Dataset':<8s} | {'Accuracy':>10s} | "
-                    f"{'N Samples':>10s} | {'Time (s)':>10s} |\n")
-            f.write(f"|{'-'*31}|{'-'*9}|{'-'*12}|{'-'*12}|{'-'*12}|\n")
+            f.write(
+                f"| {'Config':<30s} | {'Dataset':<8s} | {'Accuracy':>10s} | {'N Samples':>10s} | {'Time (s)':>10s} |\n"
+            )
+            f.write(f"|{'-' * 31}|{'-' * 9}|{'-' * 12}|{'-' * 12}|{'-' * 12}|\n")
             for row in full_rows:
                 acc = f"{row['accuracy']:.4f}" if row["accuracy"] is not None else "   N/A   "
                 ns = f"{row['n_samples']}" if row["n_samples"] is not None else "  N/A"
                 ts = f"{row['time_seconds']:.1f}" if row["time_seconds"] is not None else "  N/A"
-                f.write(
-                    f"| {row['config_name']:<30s} | {row['dataset']:<8s} | "
-                    f"{acc:>10s} | {ns:>10s} | {ts:>10s} |\n"
-                )
+                f.write(f"| {row['config_name']:<30s} | {row['dataset']:<8s} | {acc:>10s} | {ns:>10s} | {ts:>10s} |\n")
 
         # Per-experiment summary
         f.write("\n## Per-Experiment Summary\n\n")
@@ -486,10 +480,8 @@ def collect_results(
             best = max(rows, key=lambda r: r["combined_accuracy"] or 0)
             worst = min(rows, key=lambda r: r["combined_accuracy"] or 0)
             f.write(f"### {exp_name}\n\n")
-            f.write(f"- **Best**: {best['config']['name']} "
-                    f"(combined={best['combined_accuracy']:.4f})\n")
-            f.write(f"- **Worst**: {worst['config']['name']} "
-                    f"(combined={worst['combined_accuracy']:.4f})\n\n")
+            f.write(f"- **Best**: {best['config']['name']} (combined={best['combined_accuracy']:.4f})\n")
+            f.write(f"- **Worst**: {worst['config']['name']} (combined={worst['combined_accuracy']:.4f})\n\n")
 
     print(f"  Markdown: {md_path}")
 
@@ -503,10 +495,7 @@ def collect_results(
         qnli = row["qnli_accuracy"] or 0
         combined = row["combined_accuracy"] or 0
         marker = " ***" if cfg["name"] in top_names else ""
-        print(
-            f"  {cfg['name']:<30s} "
-            f"{mnli:8.4f} {qnli:8.4f} {combined:10.4f}{marker}"
-        )
+        print(f"  {cfg['name']:<30s} {mnli:8.4f} {qnli:8.4f} {combined:10.4f}{marker}")
     print("=" * 70)
 
 
@@ -516,9 +505,7 @@ def collect_results(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Parameter sweep for merge experiments"
-    )
+    parser = argparse.ArgumentParser(description="Parameter sweep for merge experiments")
     parser.add_argument(
         "--workspace",
         type=str,
@@ -591,8 +578,7 @@ def main():
         type=str,
         nargs="*",
         default=None,
-        help="Subset of experiments to run (default: all). "
-             f"Available: {get_experiment_names()}",
+        help=f"Subset of experiments to run (default: all). Available: {get_experiment_names()}",
     )
     parser.add_argument(
         "--skip-full-eval",
@@ -608,7 +594,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Build adapter dirs mapping
-    adapter_dirs: Dict[str, Tuple[Path, Path]] = {}
+    adapter_dirs: dict[str, tuple[Path, Path]] = {}
     if args.trained_a_dir and args.trained_b_dir:
         adapter_dirs["trained"] = (
             Path(args.trained_a_dir),
@@ -636,10 +622,7 @@ def main():
     # Filter to available adapter sources
     configs = [c for c in configs if c.adapter_source in adapter_dirs]
     if not configs:
-        parser.error(
-            "No configs match available adapter sources. "
-            f"Available: {list(adapter_dirs.keys())}"
-        )
+        parser.error(f"No configs match available adapter sources. Available: {list(adapter_dirs.keys())}")
 
     # Banner
     total_start = time.monotonic()
@@ -662,27 +645,39 @@ def main():
     # Phase 3: Quick-screen
     time_budget_s = args.time_budget * 60 if args.time_budget > 0 else None
     quick_results = run_quick_screen(
-        merged_results, args.base_model, args.quick_samples,
-        args.device, time_budget_s,
+        merged_results,
+        args.base_model,
+        args.quick_samples,
+        args.device,
+        time_budget_s,
     )
 
     # Phase 4: Rank
     top_names = rank_configs(quick_results, merged_results, args.top_k)
 
     # Phase 5: Full eval (optional)
-    full_results: Dict[Tuple[str, str], Dict[str, Any]] = {}
+    full_results: dict[tuple[str, str], dict[str, Any]] = {}
     if not args.skip_full_eval:
         full_results = run_full_eval(
-            top_names, merged_results, args.base_model,
-            args.full_samples, args.device,
+            top_names,
+            merged_results,
+            args.base_model,
+            args.full_samples,
+            args.device,
         )
     else:
         print("\n  Skipping full evaluation (--skip-full-eval)")
 
     # Phase 6: Collect
     collect_results(
-        configs, merged_results, quick_results, full_results,
-        top_names, args.quick_samples, args.full_samples, output_dir,
+        configs,
+        merged_results,
+        quick_results,
+        full_results,
+        top_names,
+        args.quick_samples,
+        args.full_samples,
+        output_dir,
     )
 
     total_time = time.monotonic() - total_start

@@ -49,7 +49,7 @@ class AdapterSummary:
     alpha: float
     n_layers: int
     base_model: str
-    eligibility: str   # "eligible" | "flagged_weak" | "uncertain" | "unknown" | "not provided"
+    eligibility: str  # "eligible" | "flagged_weak" | "uncertain" | "unknown" | "not provided"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -72,12 +72,12 @@ class MergeQAReport:
 
     adapter_a: AdapterSummary
     adapter_b: AdapterSummary
-    pair_risk: str                  # "low" | "medium" | "high"
-    dominant_issue: str             # human-readable label
-    recommended_action: str         # one-sentence action
-    recommended_strategy: str       # strategy name for the merge plan
-    confidence_note: str            # how much to trust the recommendation
-    caveats: tuple[str, ...]        # things the user should know
+    pair_risk: str  # "low" | "medium" | "high"
+    dominant_issue: str  # human-readable label
+    recommended_action: str  # one-sentence action
+    recommended_strategy: str  # strategy name for the merge plan
+    confidence_note: str  # how much to trust the recommendation
+    caveats: tuple[str, ...]  # things the user should know
     verdict_distribution: dict[str, int]  # {"safe": N, "redundant": N, ...}
     compatibility_score: float
 
@@ -216,17 +216,12 @@ def _confidence_note(diag: PairDiagnosis, score: float) -> str:
 
     if not diag.eligibility.has_data:
         parts.append(
-            "— no behavioral evaluation data available, so recommendation "
-            "is based on structural analysis only"
+            "— no behavioral evaluation data available, so recommendation is based on structural analysis only"
         )
     elif diag.eligibility.any_weak:
-        parts.append(
-            "— at least one adapter lacks behavioral evidence of quality"
-        )
+        parts.append("— at least one adapter lacks behavioral evidence of quality")
     elif diag.eligibility.both_eligible:
-        parts.append(
-            "— both adapters have verified behavioral quality"
-        )
+        parts.append("— both adapters have verified behavioral quality")
 
     return ". ".join(p if p.startswith("—") or p.startswith("(") else p for p in parts[:1]) + " " + " ".join(parts[1:])
 
@@ -242,18 +237,11 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
             "structural balance only and cannot predict downstream task performance."
         )
     if diag.eligibility.any_weak and not diag.eligibility.both_weak:
-        weak_label = "A" if (
-            diag.eligibility.status_a
-            and diag.eligibility.status_a.value == "flagged_weak"
-        ) else "B"
-        caveats.append(
-            f"Adapter {weak_label} underperforms the base model. "
-            f"Rebalancing may preserve a weak signal."
-        )
+        weak_label = "A" if (diag.eligibility.status_a and diag.eligibility.status_a.value == "flagged_weak") else "B"
+        caveats.append(f"Adapter {weak_label} underperforms the base model. Rebalancing may preserve a weak signal.")
     if diag.eligibility.both_weak:
         caveats.append(
-            "Both adapters underperform the base model. "
-            "Merging two weak adapters rarely produces a strong one."
+            "Both adapters underperform the base model. Merging two weak adapters rarely produces a strong one."
         )
 
     # Structural caveats
@@ -265,8 +253,7 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
 
     if diag.overall_risk == "high":
         caveats.append(
-            "High structural risk. Always validate the merged adapter on "
-            "your target task before deployment."
+            "High structural risk. Always validate the merged adapter on your target task before deployment."
         )
 
     # From recommendation warnings
@@ -390,11 +377,15 @@ def format_qa_report(qa: MergeQAReport) -> str:
 
     # Adapter structural summaries
     lines.append("")
-    lines.append(f"  Adapter A:  rank={qa.adapter_a.rank}, alpha={qa.adapter_a.alpha}, "
-                 f"{qa.adapter_a.n_layers} layers ({qa.adapter_a.base_model})")
+    lines.append(
+        f"  Adapter A:  rank={qa.adapter_a.rank}, alpha={qa.adapter_a.alpha}, "
+        f"{qa.adapter_a.n_layers} layers ({qa.adapter_a.base_model})"
+    )
     lines.append(f"              {qa.adapter_a.path}")
-    lines.append(f"  Adapter B:  rank={qa.adapter_b.rank}, alpha={qa.adapter_b.alpha}, "
-                 f"{qa.adapter_b.n_layers} layers ({qa.adapter_b.base_model})")
+    lines.append(
+        f"  Adapter B:  rank={qa.adapter_b.rank}, alpha={qa.adapter_b.alpha}, "
+        f"{qa.adapter_b.n_layers} layers ({qa.adapter_b.base_model})"
+    )
     lines.append(f"              {qa.adapter_b.path}")
 
     # ---------------------------------------------------------------

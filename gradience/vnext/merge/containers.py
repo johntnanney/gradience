@@ -129,7 +129,7 @@ class MatchingSummary:
 class AggregateResult:
     """Aggregate spectral metrics across all shared layers."""
 
-    overall_verdict: str              # "safe" | "redundant" | "conflicting" | "imbalanced"
+    overall_verdict: str  # "safe" | "redundant" | "conflicting" | "imbalanced"
     compatibility_score: float
 
     # Overlap statistics
@@ -236,8 +236,8 @@ class MergeWarning:
 
     code: WarningCode
     message: str
-    severity: str = "warning"         # "info" | "warning" | "error"
-    adapter: str | None = None        # "a" | "b" | None (pair-level)
+    severity: str = "warning"  # "info" | "warning" | "error"
+    adapter: str | None = None  # "a" | "b" | None (pair-level)
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -276,10 +276,10 @@ class PairAuditResult:
     adapter_b: AdapterMetadata
     matching: MatchingSummary
     aggregate: AggregateResult
-    layer_verdicts: tuple[dict[str, Any], ...]   # LayerVerdict.to_dict() form for now
+    layer_verdicts: tuple[dict[str, Any], ...]  # LayerVerdict.to_dict() form for now
     recommendations: tuple[str, ...]
     typed_warnings: tuple[MergeWarning, ...] = ()
-    source_qa: dict[str, Any] | None = None      # preserved for eligibility parsing
+    source_qa: dict[str, Any] | None = None  # preserved for eligibility parsing
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -300,19 +300,23 @@ class PairAuditResult:
     def from_audit_report(cls, report: Any) -> PairAuditResult:
         """Construct from a MergeAuditReport (typed or dict-based)."""
         adapter_a = (
-            report.adapter_a if isinstance(report.adapter_a, AdapterMetadata)
+            report.adapter_a
+            if isinstance(report.adapter_a, AdapterMetadata)
             else AdapterMetadata.from_dict(report.adapter_a)
         )
         adapter_b = (
-            report.adapter_b if isinstance(report.adapter_b, AdapterMetadata)
+            report.adapter_b
+            if isinstance(report.adapter_b, AdapterMetadata)
             else AdapterMetadata.from_dict(report.adapter_b)
         )
         matching = (
-            report.matching if isinstance(report.matching, MatchingSummary)
+            report.matching
+            if isinstance(report.matching, MatchingSummary)
             else MatchingSummary.from_dict(report.matching)
         )
         aggregate = (
-            report.aggregate if isinstance(report.aggregate, AggregateResult)
+            report.aggregate
+            if isinstance(report.aggregate, AggregateResult)
             else AggregateResult.from_dict(report.aggregate)
         )
 
@@ -322,10 +326,12 @@ class PairAuditResult:
             if isinstance(w, MergeWarning):
                 typed.append(w)
             elif isinstance(w, str):
-                typed.append(MergeWarning(
-                    code=_classify_warning_string(w),
-                    message=w,
-                ))
+                typed.append(
+                    MergeWarning(
+                        code=_classify_warning_string(w),
+                        message=w,
+                    )
+                )
 
         return cls(
             adapter_a=adapter_a,
@@ -347,14 +353,14 @@ class RecommendationResult:
     needs to decide whether and how to merge.
     """
 
-    strategy: str                           # recommended merge strategy
-    risk: str                               # "low" | "medium" | "high"
-    action: str                             # one-sentence recommended action
-    confidence: str                         # confidence note
-    dominant_issue: str                     # primary concern
-    caveats: tuple[str, ...]                # things the user should know
+    strategy: str  # recommended merge strategy
+    risk: str  # "low" | "medium" | "high"
+    action: str  # one-sentence recommended action
+    confidence: str  # confidence note
+    dominant_issue: str  # primary concern
+    caveats: tuple[str, ...]  # things the user should know
     typed_warnings: tuple[MergeWarning, ...]  # machine-readable warnings
-    fallback_strategies: tuple[str, ...]    # alternative approaches
+    fallback_strategies: tuple[str, ...]  # alternative approaches
 
     def to_dict(self) -> dict[str, Any]:
         return {

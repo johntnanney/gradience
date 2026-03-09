@@ -14,6 +14,7 @@ from unittest.mock import Mock
 # Check if transformers is available
 try:
     import transformers
+
     HAS_TRANSFORMERS = True
 except ImportError:
     HAS_TRANSFORMERS = False
@@ -44,10 +45,7 @@ class TestGradienceCallback(unittest.TestCase):
         from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
         # Create callback with explicit output dir
-        config = GradienceCallbackConfig(
-            output_dir=str(self.output_dir),
-            filename="test_run.jsonl"
-        )
+        config = GradienceCallbackConfig(output_dir=str(self.output_dir), filename="test_run.jsonl")
         callback = GradienceCallback(config)
 
         # Mock HF objects (minimal attributes needed)
@@ -86,24 +84,15 @@ class TestGradienceCallback(unittest.TestCase):
         self.assertIsNotNone(callback._run_id)
 
         # Check output file was created
-        output_file = self.output_dir / "test_run.jsonl" 
+        output_file = self.output_dir / "test_run.jsonl"
         self.assertTrue(output_file.exists())
 
         # 2. Test on_log
-        test_logs = {
-            "loss": 1.234,
-            "learning_rate": 5e-4,
-            "grad_norm": 0.123,
-            "epoch": 0.5
-        }
+        test_logs = {"loss": 1.234, "learning_rate": 5e-4, "grad_norm": 0.123, "epoch": 0.5}
         callback.on_log(mock_args, mock_state, mock_control, logs=test_logs)
 
-        # 3. Test on_evaluate  
-        test_metrics = {
-            "eval_loss": 1.456,
-            "eval_accuracy": 0.85,
-            "eval_f1": 0.82
-        }
+        # 3. Test on_evaluate
+        test_metrics = {"eval_loss": 1.456, "eval_accuracy": 0.85, "eval_f1": 0.82}
         callback.on_evaluate(mock_args, mock_state, mock_control, metrics=test_metrics)
 
         # 4. Test on_train_end
@@ -116,17 +105,17 @@ class TestGradienceCallback(unittest.TestCase):
 
         # Read and validate with TelemetryReader
         from gradience.vnext.telemetry_reader import TelemetryReader
-        
+
         reader = TelemetryReader(output_file, strict_schema=True)
-        
+
         # Test validation passes
         issues = reader.validate()
         self.assertEqual(issues, [], f"Telemetry validation failed: {issues}")
-        
+
         # Test summarize works without crashing
         summary = reader.summarize()
         self.assertIsNotNone(summary)
-        
+
         # Test config roundtrip
         config_snap = reader.latest_config()
         self.assertIsNotNone(config_snap)
@@ -158,8 +147,8 @@ class TestGradienceCallback(unittest.TestCase):
         mock_args.optim = "adamw_torch"
         mock_args.fp16 = False
         mock_args.bf16 = False
-        
-        mock_state = Mock() 
+
+        mock_state = Mock()
         mock_state.global_step = 1
         mock_control = Mock()
         mock_model = Mock()

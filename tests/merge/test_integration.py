@@ -9,9 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from gradience.vnext.merge import merge_audit, VerdictThresholds
+from gradience.vnext.merge import VerdictThresholds, merge_audit
 from gradience.vnext.merge.report import MergeAuditReport
-
 
 # ---------------------------------------------------------------------------
 # Full pipeline tests
@@ -115,12 +114,16 @@ class TestMergeAuditPipeline:
 
     def test_no_shared_layers_raises(self, tmp_path):
         """Completely disjoint modules -> ValueError."""
+        import torch
+
         from tests.merge.conftest import (
+            ALPHA,
+            D_IN,
+            D_OUT,
+            RANK,
             _make_adapter_dir,
             _make_lora_weights_from_svd,
-            D_OUT, D_IN, RANK, ALPHA,
         )
-        import torch
 
         torch.manual_seed(999)
         U, _, Vt = torch.linalg.svd(torch.randn(D_OUT, D_IN), full_matrices=False)
@@ -128,11 +131,19 @@ class TestMergeAuditPipeline:
 
         weights_a = _make_lora_weights_from_svd(
             ["base_model.model.layers.0.self_attn.q_proj"],
-            U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA,
+            U[:, :RANK],
+            S,
+            Vt[:RANK, :],
+            RANK,
+            ALPHA,
         )
         weights_b = _make_lora_weights_from_svd(
             ["base_model.model.layers.0.self_attn.o_proj"],
-            U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA,
+            U[:, :RANK],
+            S,
+            Vt[:RANK, :],
+            RANK,
+            ALPHA,
         )
 
         dir_a = _make_adapter_dir(tmp_path, "a", RANK, ALPHA, ["q_proj"], weights_a)
@@ -196,10 +207,14 @@ class TestCLIIntegration:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "gradience.cli",
+                sys.executable,
+                "-m",
+                "gradience.cli",
                 "merge-audit",
-                "--adapter-a", str(dir_a),
-                "--adapter-b", str(dir_b),
+                "--adapter-a",
+                str(dir_a),
+                "--adapter-b",
+                str(dir_b),
                 "--json",
             ],
             capture_output=True,
@@ -218,10 +233,14 @@ class TestCLIIntegration:
 
         result = subprocess.run(
             [
-                sys.executable, "-m", "gradience.cli",
+                sys.executable,
+                "-m",
+                "gradience.cli",
                 "merge-audit",
-                "--adapter-a", str(dir_a),
-                "--adapter-b", str(dir_b),
+                "--adapter-a",
+                str(dir_a),
+                "--adapter-b",
+                str(dir_b),
             ],
             capture_output=True,
             text=True,
@@ -235,10 +254,14 @@ class TestCLIIntegration:
         """Missing adapter directory -> exit code 1."""
         result = subprocess.run(
             [
-                sys.executable, "-m", "gradience.cli",
+                sys.executable,
+                "-m",
+                "gradience.cli",
                 "merge-audit",
-                "--adapter-a", str(tmp_path / "nonexistent_a"),
-                "--adapter-b", str(tmp_path / "nonexistent_b"),
+                "--adapter-a",
+                str(tmp_path / "nonexistent_a"),
+                "--adapter-b",
+                str(tmp_path / "nonexistent_b"),
             ],
             capture_output=True,
             text=True,

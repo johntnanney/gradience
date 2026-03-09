@@ -8,20 +8,36 @@ for multi-seed aggregation. All functions handle small sample sizes gracefully.
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import numpy as np
-
 
 # t-distribution critical values for 95% CI (two-tailed)
 # Key: degrees of freedom (n-1), Value: t critical value
 # For n >= 30, use z = 1.96
 _T_CRIT_95 = {
-    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
-    6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
-    11: 2.201, 12: 2.179, 13: 2.160, 14: 2.145, 15: 2.131,
-    16: 2.120, 17: 2.110, 18: 2.101, 19: 2.093, 20: 2.086,
-    25: 2.060, 29: 2.045,
+    1: 12.706,
+    2: 4.303,
+    3: 3.182,
+    4: 2.776,
+    5: 2.571,
+    6: 2.447,
+    7: 2.365,
+    8: 2.306,
+    9: 2.262,
+    10: 2.228,
+    11: 2.201,
+    12: 2.179,
+    13: 2.160,
+    14: 2.145,
+    15: 2.131,
+    16: 2.120,
+    17: 2.110,
+    18: 2.101,
+    19: 2.093,
+    20: 2.086,
+    25: 2.060,
+    29: 2.045,
 }
 
 
@@ -44,7 +60,7 @@ def _t_critical(df: int) -> float:
     return 1.96
 
 
-def confidence_interval_95(values: List[float]) -> Optional[Dict[str, float]]:
+def confidence_interval_95(values: list[float]) -> dict[str, float] | None:
     """Compute 95% confidence interval using t-distribution.
 
     Returns None if fewer than 2 values (CI undefined for n=1).
@@ -70,7 +86,7 @@ def confidence_interval_95(values: List[float]) -> Optional[Dict[str, float]]:
     }
 
 
-def cohens_d(group1: List[float], group2: List[float]) -> Optional[float]:
+def cohens_d(group1: list[float], group2: list[float]) -> float | None:
     """Compute Cohen's d effect size between two groups.
 
     Uses pooled standard deviation. Returns None if either group has < 2 values.
@@ -92,7 +108,7 @@ def cohens_d(group1: List[float], group2: List[float]) -> Optional[float]:
     return float((a1.mean() - a2.mean()) / pooled_std)
 
 
-def cohens_d_one_sample(values: List[float], mu: float = 0.0) -> Optional[float]:
+def cohens_d_one_sample(values: list[float], mu: float = 0.0) -> float | None:
     """Compute one-sample Cohen's d (effect size vs a reference value).
 
     Useful for measuring how far delta_vs_probe deviates from zero.
@@ -110,10 +126,10 @@ def cohens_d_one_sample(values: List[float], mu: float = 0.0) -> Optional[float]
 
 
 def augment_stats_with_ci(
-    values: List[float],
-    existing_stats: Dict[str, Any],
+    values: list[float],
+    existing_stats: dict[str, Any],
     prefix: str = "",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Add CI fields to an existing stats dict.
 
     Mutates and returns existing_stats for convenience.

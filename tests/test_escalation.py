@@ -10,19 +10,19 @@ from __future__ import annotations
 import unittest
 
 from gradience.bench.escalation import (
-    classify_failure,
-    compute_escalation_candidate,
-    run_escalation_round,
-    update_escalation_trace_with_results,
-    enrich_verdicts_with_stability,
     EscalationTrace,
     EscalationTraceEntry,
+    classify_failure,
+    compute_escalation_candidate,
+    enrich_verdicts_with_stability,
+    run_escalation_round,
+    update_escalation_trace_with_results,
 )
-
 
 # ---------------------------------------------------------------------------
 # classify_failure
 # ---------------------------------------------------------------------------
+
 
 class TestClassifyFailure(unittest.TestCase):
     """Tests for classify_failure()."""
@@ -99,6 +99,7 @@ class TestClassifyFailure(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # compute_escalation_candidate
 # ---------------------------------------------------------------------------
+
 
 class TestComputeEscalationCandidate(unittest.TestCase):
     """Tests for compute_escalation_candidate()."""
@@ -193,6 +194,7 @@ class TestComputeEscalationCandidate(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # run_escalation_round
 # ---------------------------------------------------------------------------
+
 
 class TestRunEscalationRound(unittest.TestCase):
     """Tests for run_escalation_round()."""
@@ -319,6 +321,7 @@ class TestRunEscalationRound(unittest.TestCase):
 # update_escalation_trace_with_results
 # ---------------------------------------------------------------------------
 
+
 class TestUpdateEscalationTrace(unittest.TestCase):
     """Tests for update_escalation_trace_with_results()."""
 
@@ -379,14 +382,13 @@ class TestUpdateEscalationTrace(unittest.TestCase):
 # enrich_verdicts_with_stability
 # ---------------------------------------------------------------------------
 
+
 class TestEnrichVerdicts(unittest.TestCase):
     """Tests for enrich_verdicts_with_stability()."""
 
     def test_passing_gets_stable(self):
         """Passing variant → stability_status='stable'."""
-        verdicts = {
-            "energy_p90": {"verdict": "PASS", "delta_vs_probe": +0.005}
-        }
+        verdicts = {"energy_p90": {"verdict": "PASS", "delta_vs_probe": +0.005}}
         trace = EscalationTrace()
         enrich_verdicts_with_stability(verdicts, acc_tolerance=0.005, escalation_trace=trace)
 
@@ -396,9 +398,7 @@ class TestEnrichVerdicts(unittest.TestCase):
 
     def test_near_miss_status(self):
         """Near-miss failure → stability_status='near_miss'."""
-        verdicts = {
-            "energy_p90": {"verdict": "FAIL", "delta_vs_probe": -0.010}
-        }
+        verdicts = {"energy_p90": {"verdict": "FAIL", "delta_vs_probe": -0.010}}
         trace = EscalationTrace()
         enrich_verdicts_with_stability(verdicts, acc_tolerance=0.005, escalation_trace=trace)
 
@@ -407,9 +407,7 @@ class TestEnrichVerdicts(unittest.TestCase):
 
     def test_catastrophic_gets_unstable_with_escalation(self):
         """Catastrophic failure with escalation → unstable + escalated_to set."""
-        verdicts = {
-            "energy_p90": {"verdict": "FAIL", "delta_vs_probe": -0.060}
-        }
+        verdicts = {"energy_p90": {"verdict": "FAIL", "delta_vs_probe": -0.060}}
         trace = EscalationTrace(
             triggered=True,
             escalation_trace=[
@@ -434,9 +432,7 @@ class TestEnrichVerdicts(unittest.TestCase):
 
     def test_unknown_when_delta_is_none(self):
         """Variant with no delta → unknown stability."""
-        verdicts = {
-            "skipped_variant": {"verdict": "SKIP", "delta_vs_probe": None}
-        }
+        verdicts = {"skipped_variant": {"verdict": "SKIP", "delta_vs_probe": None}}
         trace = EscalationTrace()
         enrich_verdicts_with_stability(verdicts, acc_tolerance=0.005, escalation_trace=trace)
 
@@ -446,6 +442,7 @@ class TestEnrichVerdicts(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # EscalationTrace serialisation
 # ---------------------------------------------------------------------------
+
 
 class TestEscalationTraceSerialization(unittest.TestCase):
     """Tests for EscalationTrace.to_dict()."""
@@ -490,6 +487,7 @@ class TestEscalationTraceSerialization(unittest.TestCase):
 # Integration: end-to-end escalation simulation
 # ---------------------------------------------------------------------------
 
+
 class TestEscalationIntegration(unittest.TestCase):
     """End-to-end test simulating a catastrophic failure → escalation → pass."""
 
@@ -524,9 +522,7 @@ class TestEscalationIntegration(unittest.TestCase):
                 "param_reduction": 0.5,
             }
         }
-        compression_configs = {
-            "energy_p90": {"status": "ready", "actual_r": 8}
-        }
+        compression_configs = {"energy_p90": {"status": "ready", "actual_r": 8}}
 
         # Step 2: Run escalation round
         esc_configs, trace = run_escalation_round(
@@ -569,7 +565,9 @@ class TestEscalationIntegration(unittest.TestCase):
             "energy_p90_esc_r12": escalation_verdicts["energy_p90_esc_r12"],
         }
         enrich_verdicts_with_stability(
-            all_verdicts, acc_tolerance=0.005, escalation_trace=trace,
+            all_verdicts,
+            acc_tolerance=0.005,
+            escalation_trace=trace,
         )
 
         # Original: unstable with escalation link

@@ -1,5 +1,7 @@
 import unittest
+
 from gradience.vnext.rank_suggestion import suggest_per_layer_ranks
+
 
 class TestPerLayerRankSuggestion(unittest.TestCase):
     def test_suggest_per_layer(self):
@@ -31,7 +33,7 @@ class TestPerLayerRankSuggestion(unittest.TestCase):
         }
 
         rep = suggest_per_layer_ranks(audit)
-        
+
         # Most common suggestion should be default_r (2 appears twice, 4 once)
         self.assertEqual(rep.default_r, 2)
         # Only layer.2 should be in rank_pattern (differs from default)
@@ -40,10 +42,10 @@ class TestPerLayerRankSuggestion(unittest.TestCase):
 
     def test_missing_layers_field(self):
         audit = {"summary": "no layers field"}
-        
+
         with self.assertRaises(ValueError) as cm:
             suggest_per_layer_ranks(audit)
-        
+
         self.assertIn("layers", str(cm.exception))
 
     def test_margin_application(self):
@@ -54,9 +56,10 @@ class TestPerLayerRankSuggestion(unittest.TestCase):
         }
 
         rep = suggest_per_layer_ranks(audit, margin=1.5)
-        
+
         # 2.0 * 1.5 = 3.0 -> buckets to 4
         self.assertEqual(rep.layers[0].suggested_r, 4)
+
 
 if __name__ == "__main__":
     unittest.main()

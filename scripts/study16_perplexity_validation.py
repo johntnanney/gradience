@@ -67,7 +67,7 @@ import logging
 import random
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -83,51 +83,49 @@ SEED = 42
 # Pair definitions  (mirrors study16_merge_ablation.py)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class AdapterDef:
     """A single adapter with its HF repo, label, and task domain."""
+
     repo: str
     label: str
-    task: str          # math | code | chat
+    task: str  # math | code | chat
 
 
 @dataclass
 class EvalSetDef:
     """An evaluation set tied to a specific adapter or domain."""
-    eval_id: str                # unique key, e.g. "metamath_math"
-    task: str                   # math | code | chat
-    dataset: str                # HF dataset name
-    subset: Optional[str]       # HF dataset subset
-    split: str                  # HF split
+
+    eval_id: str  # unique key, e.g. "metamath_math"
+    task: str  # math | code | chat
+    dataset: str  # HF dataset name
+    subset: str | None  # HF dataset subset
+    split: str  # HF split
     description: str
-    adapter_label: Optional[str]  # if adapter-specific, else None (generic)
+    adapter_label: str | None  # if adapter-specific, else None (generic)
 
 
 @dataclass
 class PairDef:
     """An adapter pair to merge and evaluate."""
+
     pair_id: str
     adapter_a: AdapterDef
     adapter_b: AdapterDef
     expected_verdict: str
-    eval_sets: List[str] = field(default_factory=list)  # eval_id references
+    eval_sets: list[str] = field(default_factory=list)  # eval_id references
 
 
 # ─── Unique source adapters ──────────────────────────────────────────────
 
-SOURCE_ADAPTERS: List[AdapterDef] = [
-    AdapterDef("LoRA-TMLR-2024/metamath-lora-rank-16-alpha-32",
-               "metamath-r16", "math"),
-    AdapterDef("LoRA-TMLR-2024/openwebmath-lora-rank-16-20B-tokens",
-               "openwebmath-r16", "math"),
-    AdapterDef("LoRA-TMLR-2024/openwebmath-lora-rank-64-20B-tokens",
-               "openwebmath-r64", "math"),
-    AdapterDef("LoRA-TMLR-2024/magicoder-lora-rank-16-alpha-32",
-               "magicoder-r16", "code"),
-    AdapterDef("AIRLab-POLIMI/llama-2-7b-chat-hf-btgenbot-adapter",
-               "btgenbot-r8", "chat"),
-    AdapterDef("shivanikerai/Llama-2-7b-chat-hf-adapter-cat-subcat-mapping-v2.0",
-               "catsubcat-r16", "chat"),
+SOURCE_ADAPTERS: list[AdapterDef] = [
+    AdapterDef("LoRA-TMLR-2024/metamath-lora-rank-16-alpha-32", "metamath-r16", "math"),
+    AdapterDef("LoRA-TMLR-2024/openwebmath-lora-rank-16-20B-tokens", "openwebmath-r16", "math"),
+    AdapterDef("LoRA-TMLR-2024/openwebmath-lora-rank-64-20B-tokens", "openwebmath-r64", "math"),
+    AdapterDef("LoRA-TMLR-2024/magicoder-lora-rank-16-alpha-32", "magicoder-r16", "code"),
+    AdapterDef("AIRLab-POLIMI/llama-2-7b-chat-hf-btgenbot-adapter", "btgenbot-r8", "chat"),
+    AdapterDef("shivanikerai/Llama-2-7b-chat-hf-adapter-cat-subcat-mapping-v2.0", "catsubcat-r16", "chat"),
 ]
 
 # ─── Eval set definitions ────────────────────────────────────────────────
@@ -144,7 +142,7 @@ SOURCE_ADAPTERS: List[AdapterDef] = [
 # catsubcat → category-mapping chat adapter; eval on oasst2
 #   Pair 06 similarly gets two eval rows for structural parallelism.
 
-EVAL_SETS: Dict[str, EvalSetDef] = {
+EVAL_SETS: dict[str, EvalSetDef] = {
     "gsm8k_math": EvalSetDef(
         eval_id="gsm8k_math",
         task="math",
@@ -178,11 +176,11 @@ EVAL_SETS: Dict[str, EvalSetDef] = {
 # Same-domain pairs get separate eval entries for EACH source adapter.
 # This prevents collapsing into a single eval that blurs provenance diffs.
 
-PAIRS: List[PairDef] = [
+PAIRS: list[PairDef] = [
     PairDef(
         pair_id="pair_01",
-        adapter_a=SOURCE_ADAPTERS[0],   # metamath-r16
-        adapter_b=SOURCE_ADAPTERS[1],   # openwebmath-r16
+        adapter_a=SOURCE_ADAPTERS[0],  # metamath-r16
+        adapter_b=SOURCE_ADAPTERS[1],  # openwebmath-r16
         expected_verdict="redundant",
         # Same-domain: both math.  Eval each source on GSM8K separately.
         # "task_a_eval" and "task_b_eval" both point to gsm8k_math,
@@ -191,29 +189,29 @@ PAIRS: List[PairDef] = [
     ),
     PairDef(
         pair_id="pair_02",
-        adapter_a=SOURCE_ADAPTERS[0],   # metamath-r16
-        adapter_b=SOURCE_ADAPTERS[3],   # magicoder-r16
+        adapter_a=SOURCE_ADAPTERS[0],  # metamath-r16
+        adapter_b=SOURCE_ADAPTERS[3],  # magicoder-r16
         expected_verdict="moderate",
         eval_sets=["gsm8k_math", "mbpp_code"],
     ),
     PairDef(
         pair_id="pair_03",
-        adapter_a=SOURCE_ADAPTERS[3],   # magicoder-r16
-        adapter_b=SOURCE_ADAPTERS[4],   # btgenbot-r8
+        adapter_a=SOURCE_ADAPTERS[3],  # magicoder-r16
+        adapter_b=SOURCE_ADAPTERS[4],  # btgenbot-r8
         expected_verdict="conflicting",
         eval_sets=["mbpp_code", "oasst2_chat"],
     ),
     PairDef(
         pair_id="pair_04",
-        adapter_a=SOURCE_ADAPTERS[2],   # openwebmath-r64
-        adapter_b=SOURCE_ADAPTERS[4],   # btgenbot-r8
+        adapter_a=SOURCE_ADAPTERS[2],  # openwebmath-r64
+        adapter_b=SOURCE_ADAPTERS[4],  # btgenbot-r8
         expected_verdict="imbalanced",
         eval_sets=["gsm8k_math", "oasst2_chat"],
     ),
     PairDef(
         pair_id="pair_06",
-        adapter_a=SOURCE_ADAPTERS[5],   # catsubcat-r16
-        adapter_b=SOURCE_ADAPTERS[4],   # btgenbot-r8
+        adapter_a=SOURCE_ADAPTERS[5],  # catsubcat-r16
+        adapter_b=SOURCE_ADAPTERS[4],  # btgenbot-r8
         expected_verdict="mixed",
         # Same-domain: both chat.  Both eval on oasst2 but as two rows.
         eval_sets=["oasst2_chat", "oasst2_chat"],
@@ -228,16 +226,18 @@ IMBALANCED_PAIRS = {"pair_01", "pair_03", "pair_04", "pair_06"}
 # Dataset formatting
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class FormattedExample:
     """A tokenization-ready example with prompt/completion split."""
-    full_text: str              # entire text for tokenization
-    prompt_text: str            # prompt portion (masked from loss)
-    completion_text: str        # completion portion (scored)
-    source_id: Optional[str]    # dataset row id for traceability
+
+    full_text: str  # entire text for tokenization
+    prompt_text: str  # prompt portion (masked from loss)
+    completion_text: str  # completion portion (scored)
+    source_id: str | None  # dataset row id for traceability
 
 
-def format_gsm8k(example: dict) -> Optional[FormattedExample]:
+def format_gsm8k(example: dict) -> FormattedExample | None:
     """GSM8K: score the answer conditioned on the question."""
     q = example.get("question", "")
     a = example.get("answer", "")
@@ -253,7 +253,7 @@ def format_gsm8k(example: dict) -> Optional[FormattedExample]:
     )
 
 
-def format_mbpp(example: dict) -> Optional[FormattedExample]:
+def format_mbpp(example: dict) -> FormattedExample | None:
     """MBPP: score the code conditioned on the description."""
     desc = example.get("text", example.get("prompt", ""))
     code = example.get("code", example.get("canonical_solution", ""))
@@ -265,11 +265,11 @@ def format_mbpp(example: dict) -> Optional[FormattedExample]:
         full_text=prompt + completion,
         prompt_text=prompt,
         completion_text=completion,
-        source_id=str(example.get("task_id", None)),
+        source_id=str(example.get("task_id")),
     )
 
 
-def format_oasst2(example: dict) -> Optional[FormattedExample]:
+def format_oasst2(example: dict) -> FormattedExample | None:
     """OpenAssistant oasst2: score full text (no clear prompt/completion split
     in the flat validation set, so we score all tokens)."""
     text = example.get("text", "")
@@ -277,9 +277,9 @@ def format_oasst2(example: dict) -> Optional[FormattedExample]:
         return None
     return FormattedExample(
         full_text=text,
-        prompt_text="",         # no masking — score all tokens
+        prompt_text="",  # no masking — score all tokens
         completion_text=text,
-        source_id=example.get("message_id", None),
+        source_id=example.get("message_id"),
     )
 
 
@@ -293,6 +293,7 @@ FORMATTERS = {
 # ═══════════════════════════════════════════════════════════════════════════
 # Phase 1: Download + Merge  (CPU)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def download_adapter(repo_id: str, cache_dir: Path) -> Path:
     """Download a PEFT adapter from HuggingFace Hub.  Returns local path."""
@@ -316,8 +317,12 @@ def download_adapter(repo_id: str, cache_dir: Path) -> Path:
             "pytorch_model.bin",
         ],
         ignore_patterns=[
-            "*.md", "*.txt", ".gitattributes",
-            "tokenizer*", "special_tokens*", "training_args*",
+            "*.md",
+            "*.txt",
+            ".gitattributes",
+            "tokenizer*",
+            "special_tokens*",
+            "training_args*",
         ],
     )
     return local_dir
@@ -333,8 +338,9 @@ def merged_adapter_has_weights(adapter_dir: Path) -> bool:
 
 
 def compute_global_frob_coefficients(
-    dir_a: Path, dir_b: Path,
-) -> Tuple[float, float]:
+    dir_a: Path,
+    dir_b: Path,
+) -> tuple[float, float]:
     """Compute global Frobenius-proportional merge coefficients.
 
     Returns (coeff_a, coeff_b) such that the weaker adapter gets
@@ -343,7 +349,8 @@ def compute_global_frob_coefficients(
     analysis, just global rebalancing.
     """
     import torch
-    from gradience.vnext.merge.io import load_adapter, extract_factors
+
+    from gradience.vnext.merge.io import extract_factors, load_adapter
 
     info_a = load_adapter(dir_a)
     info_b = load_adapter(dir_b)
@@ -367,8 +374,8 @@ def compute_global_frob_coefficients(
         except (KeyError, RuntimeError):
             continue
 
-    frob_a = frob_sq_a ** 0.5
-    frob_b = frob_sq_b ** 0.5
+    frob_a = frob_sq_a**0.5
+    frob_b = frob_sq_b**0.5
     total = frob_a + frob_b
 
     if total < 1e-12:
@@ -382,34 +389,34 @@ def compute_global_frob_coefficients(
 
 
 def run_merges(
-    pairs: List[PairDef],
+    pairs: list[PairDef],
     cache_dir: Path,
     output_dir: Path,
     verbose: bool = False,
-) -> Dict[str, Dict[str, Path]]:
+) -> dict[str, dict[str, Path]]:
     """Execute naive, norm_equalized, and recommended merges for each pair.
 
     Returns mapping: pair_id → {"naive": Path, "norm_equalized": Path,
                                  "recommended": Path}
     """
     from gradience.vnext.merge import (
+        execute_merge,
         merge_audit,
         plan_from_audit,
-        execute_merge,
         recommend_merge,
     )
 
     merge_dir = output_dir / "merged_adapters"
     merge_dir.mkdir(parents=True, exist_ok=True)
 
-    merged_paths: Dict[str, Dict[str, Path]] = {}
+    merged_paths: dict[str, dict[str, Path]] = {}
 
     for pair in pairs:
         pair_label = f"{pair.adapter_a.label} × {pair.adapter_b.label}"
         if verbose:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"  Merging: {pair_label}")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
         # Download
         dir_a = download_adapter(pair.adapter_a.repo, cache_dir)
@@ -419,7 +426,8 @@ def run_merges(
         audit_dir = merge_dir / pair.pair_id / "audit"
         try:
             report = merge_audit(
-                str(dir_a), str(dir_b),
+                str(dir_a),
+                str(dir_b),
                 output_dir=str(audit_dir),
                 verbose=verbose,
             )
@@ -442,26 +450,26 @@ def run_merges(
         if pair.pair_id in IMBALANCED_PAIRS:
             try:
                 coeff_a, coeff_b = compute_global_frob_coefficients(dir_a, dir_b)
-                conditions.insert(1, (
-                    "norm_equalized", "uniform_linear",
-                    {"coeff_a": coeff_a, "coeff_b": coeff_b},
-                ))
+                conditions.insert(
+                    1,
+                    (
+                        "norm_equalized",
+                        "uniform_linear",
+                        {"coeff_a": coeff_a, "coeff_b": coeff_b},
+                    ),
+                )
                 if verbose:
-                    print(f"  Norm-equalized coefficients: "
-                          f"A={coeff_a:.4f}, B={coeff_b:.4f}")
+                    print(f"  Norm-equalized coefficients: A={coeff_a:.4f}, B={coeff_b:.4f}")
             except Exception as e:
-                logger.warning("Could not compute norm-eq coefficients for %s: %s",
-                               pair.pair_id, e)
+                logger.warning("Could not compute norm-eq coefficients for %s: %s", pair.pair_id, e)
 
-        pair_paths: Dict[str, Path] = {}
+        pair_paths: dict[str, Path] = {}
 
         # Pre-load adapters once for all merge conditions in this pair
         # (avoids 2-3 redundant load_adapter calls per condition)
         from gradience.vnext.merge.io import load_adapter as _load_adapter
-        needs_merge = any(
-            not merged_adapter_has_weights(merge_dir / pair.pair_id / c[0])
-            for c in conditions
-        )
+
+        needs_merge = any(not merged_adapter_has_weights(merge_dir / pair.pair_id / c[0]) for c in conditions)
         if needs_merge:
             if verbose:
                 print("  Pre-loading adapters for merge...")
@@ -499,20 +507,24 @@ def run_merges(
                     )
 
                 plan = plan_from_audit(
-                    strategy_name, report,
-                    str(dir_a), str(dir_b),
+                    strategy_name,
+                    report,
+                    str(dir_a),
+                    str(dir_b),
                     **plan_kwargs,
                 )
 
                 merge_result = execute_merge(
-                    plan, str(cond_dir), verbose=verbose,
-                    preloaded_a=_info_a, preloaded_b=_info_b,
+                    plan,
+                    str(cond_dir),
+                    verbose=verbose,
+                    preloaded_a=_info_a,
+                    preloaded_b=_info_b,
                 )
                 dt = time.time() - t0
 
                 if verbose:
-                    print(f"    Done in {dt:.1f}s  "
-                          f"(recon error: {merge_result.mean_reconstruction_error:.4f})")
+                    print(f"    Done in {dt:.1f}s  (recon error: {merge_result.mean_reconstruction_error:.4f})")
 
                 merge_result.to_json(cond_dir / "merge_result.json")
                 pair_paths[cond_name] = cond_dir
@@ -527,8 +539,7 @@ def run_merges(
         if "naive" in pair_paths and "recommended" in pair_paths:
             merged_paths[pair.pair_id] = pair_paths
         else:
-            logger.warning("Incomplete merges for %s — got %s",
-                           pair.pair_id, list(pair_paths.keys()))
+            logger.warning("Incomplete merges for %s — got %s", pair.pair_id, list(pair_paths.keys()))
 
     return merged_paths
 
@@ -537,29 +548,31 @@ def run_merges(
 # Phase 2: Perplexity evaluation  (GPU)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class EvalResult:
     """Perplexity evaluation result for a single adapter × eval_set."""
+
     adapter_label: str
-    adapter_type: str          # "base" | "source" | "naive" | "norm_equalized" | "recommended"
-    pair_id: Optional[str]     # None for base/source
-    eval_set_id: str           # which eval set was used
-    eval_task: str             # domain: math | code | chat
+    adapter_type: str  # "base" | "source" | "naive" | "norm_equalized" | "recommended"
+    pair_id: str | None  # None for base/source
+    eval_set_id: str  # which eval set was used
+    eval_task: str  # domain: math | code | chat
     # Primary metrics (token-weighted)
-    perplexity: float          # exp(total_nll / total_scored_tokens)
-    token_mean_loss: float     # total_nll / total_scored_tokens
+    perplexity: float  # exp(total_nll / total_scored_tokens)
+    token_mean_loss: float  # total_nll / total_scored_tokens
     # Secondary metrics
-    example_mean_loss: float   # mean of per-example losses (for comparison)
-    example_std_loss: float    # std of per-example losses
+    example_mean_loss: float  # mean of per-example losses (for comparison)
+    example_std_loss: float  # std of per-example losses
     # Counts
     n_examples: int
-    total_tokens: int          # total tokens seen (prompt + completion)
-    scored_tokens: int         # tokens included in loss (completion only)
-    truncated_examples: int    # how many examples hit max_length
+    total_tokens: int  # total tokens seen (prompt + completion)
+    scored_tokens: int  # tokens included in loss (completion only)
+    truncated_examples: int  # how many examples hit max_length
     # Per-example detail (saved in JSON, not printed)
-    per_example_losses: List[float] = field(default_factory=list)
-    per_example_tokens: List[int] = field(default_factory=list)
-    per_example_scored: List[int] = field(default_factory=list)
+    per_example_losses: list[float] = field(default_factory=list)
+    per_example_tokens: list[int] = field(default_factory=list)
+    per_example_scored: list[int] = field(default_factory=list)
     eval_time_s: float = 0.0
 
 
@@ -592,7 +605,7 @@ def load_base_model(model_name: str, dtype=None):
 def load_eval_dataset(
     eval_set: EvalSetDef,
     max_examples: int,
-) -> List[FormattedExample]:
+) -> list[FormattedExample]:
     """Load, format, and deterministically sample an eval dataset."""
     from datasets import load_dataset
 
@@ -620,15 +633,13 @@ def load_eval_dataset(
     rng.shuffle(all_formatted)
     selected = all_formatted[:max_examples]
 
-    print(f"    {len(selected)} examples selected "
-          f"(from {len(all_formatted)} valid, seed={SEED})")
+    print(f"    {len(selected)} examples selected (from {len(all_formatted)} valid, seed={SEED})")
 
     # Preview first 2 examples for sanity
     for i, ex in enumerate(selected[:2]):
         prompt_preview = ex.prompt_text[:80].replace("\n", "\\n")
         comp_preview = ex.completion_text[:80].replace("\n", "\\n")
-        print(f"    Example {i}: prompt='{prompt_preview}...' "
-              f"completion='{comp_preview}...'")
+        print(f"    Example {i}: prompt='{prompt_preview}...' completion='{comp_preview}...'")
 
     return selected
 
@@ -636,9 +647,9 @@ def load_eval_dataset(
 def evaluate_perplexity(
     model,
     tokenizer,
-    examples: List[FormattedExample],
+    examples: list[FormattedExample],
     max_length: int = 512,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute token-weighted perplexity with completion-only scoring.
 
     For each example:
@@ -752,18 +763,18 @@ def evaluate_with_adapter(
     base_model_name: str,
     tokenizer,
     adapter_path: Path,
-    examples: List[FormattedExample],
+    examples: list[FormattedExample],
     max_length: int = 512,
     dtype=None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load a fresh base model + PEFT adapter, evaluate, then discard.
 
     Uses clean reinstantiation rather than PEFT unload to avoid
     state contamination between adapter evaluations.
     """
     import torch
-    from transformers import AutoModelForCausalLM
     from peft import PeftModel
+    from transformers import AutoModelForCausalLM
 
     if dtype is None:
         dtype = torch.float16
@@ -795,28 +806,30 @@ def evaluate_with_adapter(
 # Evaluation scheduler
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class EvalJob:
     """A single evaluation to run."""
+
     adapter_label: str
-    adapter_type: str           # "base" | "source" | "naive" | "norm_equalized" | "recommended"
-    pair_id: Optional[str]
-    adapter_path: Optional[Path]
+    adapter_type: str  # "base" | "source" | "naive" | "norm_equalized" | "recommended"
+    pair_id: str | None
+    adapter_path: Path | None
     eval_set_id: str
-    side: Optional[str] = None  # "a" or "b" — which source adapter this eval relates to
+    side: str | None = None  # "a" or "b" — which source adapter this eval relates to
 
 
 def build_eval_schedule(
-    pairs: List[PairDef],
-    source_adapters: List[AdapterDef],
-    merged_paths: Dict[str, Dict[str, Path]],
-    source_adapter_dirs: Dict[str, Path],
-) -> Dict[str, List[EvalJob]]:
+    pairs: list[PairDef],
+    source_adapters: list[AdapterDef],
+    merged_paths: dict[str, dict[str, Path]],
+    source_adapter_dirs: dict[str, Path],
+) -> dict[str, list[EvalJob]]:
     """Build evaluation schedule grouped by eval_set_id.
 
     Grouping by eval_set_id means the dataset loads once per unique eval set.
     """
-    schedule: Dict[str, List[EvalJob]] = {}
+    schedule: dict[str, list[EvalJob]] = {}
 
     def add_job(eval_set_id: str, job: EvalJob):
         if eval_set_id not in schedule:
@@ -825,13 +838,16 @@ def build_eval_schedule(
 
     # 1. Base model — one eval per unique eval set
     for es_id in EVAL_SETS:
-        add_job(es_id, EvalJob(
-            adapter_label="base_model",
-            adapter_type="base",
-            pair_id=None,
-            adapter_path=None,
-            eval_set_id=es_id,
-        ))
+        add_job(
+            es_id,
+            EvalJob(
+                adapter_label="base_model",
+                adapter_type="base",
+                pair_id=None,
+                adapter_path=None,
+                eval_set_id=es_id,
+            ),
+        )
 
     # 2. Source adapters — each on its primary eval set
     seen_source = set()
@@ -858,13 +874,16 @@ def build_eval_schedule(
                 continue
             seen_source.add(key)
 
-            add_job(es_id, EvalJob(
-                adapter_label=adapter.label,
-                adapter_type="source",
-                pair_id=None,
-                adapter_path=source_adapter_dirs[adapter.label],
-                eval_set_id=es_id,
-            ))
+            add_job(
+                es_id,
+                EvalJob(
+                    adapter_label=adapter.label,
+                    adapter_type="source",
+                    pair_id=None,
+                    adapter_path=source_adapter_dirs[adapter.label],
+                    eval_set_id=es_id,
+                ),
+            )
 
     # 3. Merged adapters — each on both source adapters' eval sets
     for pair in pairs:
@@ -877,23 +896,29 @@ def build_eval_schedule(
             label = f"{pair.pair_id}_{cond}"
 
             # Eval on adapter_a's eval set
-            add_job(pair.eval_sets[0], EvalJob(
-                adapter_label=label,
-                adapter_type=cond,
-                pair_id=pair.pair_id,
-                adapter_path=adapter_path,
-                eval_set_id=pair.eval_sets[0],
-                side="a",
-            ))
+            add_job(
+                pair.eval_sets[0],
+                EvalJob(
+                    adapter_label=label,
+                    adapter_type=cond,
+                    pair_id=pair.pair_id,
+                    adapter_path=adapter_path,
+                    eval_set_id=pair.eval_sets[0],
+                    side="a",
+                ),
+            )
             # Eval on adapter_b's eval set (may be same for same-domain)
-            add_job(pair.eval_sets[1], EvalJob(
-                adapter_label=label,
-                adapter_type=cond,
-                pair_id=pair.pair_id,
-                adapter_path=adapter_path,
-                eval_set_id=pair.eval_sets[1],
-                side="b",
-            ))
+            add_job(
+                pair.eval_sets[1],
+                EvalJob(
+                    adapter_label=label,
+                    adapter_type=cond,
+                    pair_id=pair.pair_id,
+                    adapter_path=adapter_path,
+                    eval_set_id=pair.eval_sets[1],
+                    side="b",
+                ),
+            )
 
     return schedule
 
@@ -902,18 +927,18 @@ def run_evaluation(
     base_model,
     base_model_name: str,
     tokenizer,
-    schedule: Dict[str, List[EvalJob]],
+    schedule: dict[str, list[EvalJob]],
     max_examples: int = 500,
     max_length: int = 512,
     verbose: bool = False,
     dtype=None,
-) -> List[EvalResult]:
+) -> list[EvalResult]:
     """Execute all evaluations, grouped by eval set to minimise data reloading.
 
     Uses clean model reinstantiation for each adapter to prevent PEFT
     state contamination.
     """
-    all_results: List[EvalResult] = []
+    all_results: list[EvalResult] = []
 
     for es_id, jobs in schedule.items():
         if not jobs:
@@ -922,50 +947,56 @@ def run_evaluation(
         eval_set = EVAL_SETS[es_id]
         unique_adapters = len(set(j.adapter_label for j in jobs))
 
-        print(f"\n{'─'*60}")
+        print(f"\n{'─' * 60}")
         print(f"  Eval set: {es_id}  ({eval_set.description})")
         print(f"  {len(jobs)} evaluations, {unique_adapters} unique adapters")
-        print(f"{'─'*60}")
+        print(f"{'─' * 60}")
 
         # Load eval data once per eval set
         examples = load_eval_dataset(eval_set, max_examples)
 
         # Deduplicate: if same adapter appears twice for same-domain pair,
         # compute once and duplicate the result
-        seen_results: Dict[str, Dict[str, Any]] = {}
+        seen_results: dict[str, dict[str, Any]] = {}
 
         for i, job in enumerate(jobs):
             label = job.adapter_label
             atype = job.adapter_type
 
             if verbose:
-                print(f"\n  [{i+1}/{len(jobs)}] {label} ({atype}) on {es_id}")
+                print(f"\n  [{i + 1}/{len(jobs)}] {label} ({atype}) on {es_id}")
 
             # Check if we already computed this exact adapter × eval_set
             cache_key = f"{label}_{es_id}"
             if cache_key in seen_results:
                 if verbose:
-                    print(f"    (reusing cached result)")
+                    print("    (reusing cached result)")
                 metrics = seen_results[cache_key]
             else:
                 t0 = time.time()
                 try:
                     if atype == "base":
                         metrics = evaluate_perplexity(
-                            base_model, tokenizer, examples, max_length,
+                            base_model,
+                            tokenizer,
+                            examples,
+                            max_length,
                         )
                     else:
                         # Clean reinstantiation for each adapter
                         metrics = evaluate_with_adapter(
-                            base_model_name, tokenizer, job.adapter_path,
-                            examples, max_length, dtype=dtype,
+                            base_model_name,
+                            tokenizer,
+                            job.adapter_path,
+                            examples,
+                            max_length,
+                            dtype=dtype,
                         )
                     metrics["eval_time_s"] = round(time.time() - t0, 2)
                     seen_results[cache_key] = metrics
 
                 except Exception as e:
-                    logger.error("Eval failed for %s on %s: %s", label, es_id, e,
-                                 exc_info=True)
+                    logger.error("Eval failed for %s on %s: %s", label, es_id, e, exc_info=True)
                     metrics = {
                         "perplexity": float("nan"),
                         "token_mean_loss": float("nan"),
@@ -982,10 +1013,12 @@ def run_evaluation(
                     }
 
             if verbose and not np.isnan(metrics["perplexity"]):
-                print(f"    PPL: {metrics['perplexity']:.2f}  "
-                      f"(token_loss: {metrics['token_mean_loss']:.4f}, "
-                      f"scored: {metrics['scored_tokens']} tokens, "
-                      f"truncated: {metrics['truncated_examples']})")
+                print(
+                    f"    PPL: {metrics['perplexity']:.2f}  "
+                    f"(token_loss: {metrics['token_mean_loss']:.4f}, "
+                    f"scored: {metrics['scored_tokens']} tokens, "
+                    f"truncated: {metrics['truncated_examples']})"
+                )
 
             result = EvalResult(
                 adapter_label=label,
@@ -1015,10 +1048,11 @@ def run_evaluation(
 # Output
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def save_results(
-    results: List[EvalResult],
+    results: list[EvalResult],
     output_dir: Path,
-    metadata: Dict[str, Any],
+    metadata: dict[str, Any],
 ) -> Path:
     """Save evaluation results to JSON."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1036,28 +1070,33 @@ def save_results(
     return output_path
 
 
-def print_summary(results: List[EvalResult]) -> None:
+def print_summary(results: list[EvalResult]) -> None:
     """Print a human-readable summary table."""
-    print(f"\n{'='*100}")
+    print(f"\n{'=' * 100}")
     print("  PERPLEXITY RESULTS (token-weighted)")
-    print(f"{'='*100}")
-    print(f"  {'Adapter':<35s}  {'Type':<14s}  {'EvalSet':<12s}  "
-          f"{'PPL':>8s}  {'TokLoss':>8s}  {'Scored':>7s}  {'Trunc':>5s}")
-    print(f"  {'─'*96}")
+    print(f"{'=' * 100}")
+    print(
+        f"  {'Adapter':<35s}  {'Type':<14s}  {'EvalSet':<12s}  "
+        f"{'PPL':>8s}  {'TokLoss':>8s}  {'Scored':>7s}  {'Trunc':>5s}"
+    )
+    print(f"  {'─' * 96}")
 
     for r in sorted(results, key=lambda x: (x.eval_set_id, x.adapter_type, x.adapter_label)):
         ppl_str = f"{r.perplexity:.2f}" if not np.isnan(r.perplexity) else "FAILED"
         loss_str = f"{r.token_mean_loss:.4f}" if not np.isnan(r.token_mean_loss) else "—"
-        print(f"  {r.adapter_label:<35s}  {r.adapter_type:<14s}  {r.eval_set_id:<12s}  "
-              f"{ppl_str:>8s}  {loss_str:>8s}  {r.scored_tokens:>7d}  "
-              f"{r.truncated_examples:>5d}")
+        print(
+            f"  {r.adapter_label:<35s}  {r.adapter_type:<14s}  {r.eval_set_id:<12s}  "
+            f"{ppl_str:>8s}  {loss_str:>8s}  {r.scored_tokens:>7d}  "
+            f"{r.truncated_examples:>5d}"
+        )
 
-    print(f"{'='*100}\n")
+    print(f"{'=' * 100}\n")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Main
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -1065,37 +1104,50 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--base-model", type=str, default="meta-llama/Llama-2-7b-hf",
+        "--base-model",
+        type=str,
+        default="meta-llama/Llama-2-7b-hf",
         help="Base model name or path (default: meta-llama/Llama-2-7b-hf)",
     )
     parser.add_argument(
-        "--output-dir", type=Path,
+        "--output-dir",
+        type=Path,
         default=Path("results/study16_perplexity"),
         help="Directory for all output files",
     )
     parser.add_argument(
-        "--cache-dir", type=Path,
+        "--cache-dir",
+        type=Path,
         default=Path.home() / ".cache" / "gradience" / "adapters",
         help="Cache directory for downloaded adapters",
     )
     parser.add_argument(
-        "--max-examples", type=int, default=500,
+        "--max-examples",
+        type=int,
+        default=500,
         help="Max examples per eval set (default: 500)",
     )
     parser.add_argument(
-        "--max-length", type=int, default=512,
+        "--max-length",
+        type=int,
+        default=512,
         help="Max token length per example (default: 512)",
     )
     parser.add_argument(
-        "--pairs", type=str, nargs="*", default=None,
+        "--pairs",
+        type=str,
+        nargs="*",
+        default=None,
         help="Specific pair IDs to run (default: all)",
     )
     parser.add_argument(
-        "--skip-merge", action="store_true",
+        "--skip-merge",
+        action="store_true",
         help="Skip merge phase (assumes merged adapters already have weights)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="CPU dry-run: test imports and paths, skip GPU evaluation",
     )
     parser.add_argument("--verbose", action="store_true")
@@ -1122,10 +1174,9 @@ def main() -> None:
     for pair in pairs_to_run:
         needed_sources.add(pair.adapter_a.label)
         needed_sources.add(pair.adapter_b.label)
-    source_adapters_to_eval = [a for a in SOURCE_ADAPTERS
-                                if a.label in needed_sources]
+    source_adapters_to_eval = [a for a in SOURCE_ADAPTERS if a.label in needed_sources]
 
-    print(f"Study 16 — Perplexity Validation")
+    print("Study 16 — Perplexity Validation")
     print(f"  Base model:     {args.base_model}")
     print(f"  Pairs:          {len(pairs_to_run)}")
     print(f"  Source adapters: {len(source_adapters_to_eval)}")
@@ -1138,7 +1189,7 @@ def main() -> None:
 
     # ── Phase 1a: Download source adapters ─────────────────────────────
     print("Phase 1a: Downloading source adapters ...")
-    source_adapter_dirs: Dict[str, Path] = {}
+    source_adapter_dirs: dict[str, Path] = {}
     for adapter in source_adapters_to_eval:
         try:
             local_dir = download_adapter(adapter.repo, args.cache_dir)
@@ -1152,10 +1203,10 @@ def main() -> None:
     if args.skip_merge:
         print("Phase 1b: Skipping merge (--skip-merge)")
         merge_base = args.output_dir / "merged_adapters"
-        merged_paths: Dict[str, Dict[str, Path]] = {}
+        merged_paths: dict[str, dict[str, Path]] = {}
         for pair in pairs_to_run:
             pair_dir = merge_base / pair.pair_id
-            pair_merged: Dict[str, Path] = {}
+            pair_merged: dict[str, Path] = {}
             for cond in ["naive", "norm_equalized", "recommended"]:
                 cond_dir = pair_dir / cond
                 if merged_adapter_has_weights(cond_dir):
@@ -1167,7 +1218,9 @@ def main() -> None:
     else:
         print("Phase 1b: Executing merges ...")
         merged_paths = run_merges(
-            pairs_to_run, args.cache_dir, args.output_dir,
+            pairs_to_run,
+            args.cache_dir,
+            args.output_dir,
             verbose=args.verbose,
         )
 
@@ -1177,8 +1230,10 @@ def main() -> None:
     if args.dry_run:
         print("Dry-run complete. Merge phase done. Skipping GPU evaluation.")
         schedule = build_eval_schedule(
-            pairs_to_run, source_adapters_to_eval,
-            merged_paths, source_adapter_dirs,
+            pairs_to_run,
+            source_adapters_to_eval,
+            merged_paths,
+            source_adapter_dirs,
         )
         total_evals = sum(len(jobs) for jobs in schedule.values())
         print(f"  Would run {total_evals} evaluations:")
@@ -1193,22 +1248,26 @@ def main() -> None:
     print()
 
     import torch
+
     dtype = torch.float16
 
     base_model, tokenizer = load_base_model(args.base_model, dtype=dtype)
 
     schedule = build_eval_schedule(
-        pairs_to_run, source_adapters_to_eval,
-        merged_paths, source_adapter_dirs,
+        pairs_to_run,
+        source_adapters_to_eval,
+        merged_paths,
+        source_adapter_dirs,
     )
     total_evals = sum(len(jobs) for jobs in schedule.values())
-    unique_evals = len(set(
-        f"{j.adapter_label}_{es}" for es, jobs in schedule.items() for j in jobs
-    ))
+    unique_evals = len(set(f"{j.adapter_label}_{es}" for es, jobs in schedule.items() for j in jobs))
     print(f"\n  Total eval jobs: {total_evals}  (unique adapter×set: {unique_evals})")
 
     results = run_evaluation(
-        base_model, args.base_model, tokenizer, schedule,
+        base_model,
+        args.base_model,
+        tokenizer,
+        schedule,
         max_examples=args.max_examples,
         max_length=args.max_length,
         verbose=args.verbose,
@@ -1235,7 +1294,7 @@ def main() -> None:
     output_path = save_results(results, args.output_dir, metadata)
     print_summary(results)
     print(f"Results saved to {output_path}")
-    print(f"Total time: {total_time:.1f}s ({total_time/60:.1f} min)")
+    print(f"Total time: {total_time:.1f}s ({total_time / 60:.1f} min)")
 
 
 if __name__ == "__main__":

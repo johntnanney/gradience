@@ -39,12 +39,11 @@ except ImportError:
 
 # Gradience imports (core — no bench deps needed)
 from gradience.vnext.merge import (
+    PLAN_STRATEGIES,
+    execute_merge,
     merge_audit,
     plan_from_audit,
-    execute_merge,
-    PLAN_STRATEGIES,
 )
-
 
 # ---------------------------------------------------------------------------
 # Phase 1: Download adapters
@@ -129,8 +128,8 @@ def run_merges(
     output_dir: Path,
     output_rank: int = 8,
     output_alpha: float = 16.0,
-    strategy_kwargs: Optional[Dict[str, Dict[str, Any]]] = None,
-) -> Dict[str, Path]:
+    strategy_kwargs: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Path]:
     """Execute all 3 merge strategies.
 
     Parameters
@@ -144,14 +143,14 @@ def run_merges(
     """
     print("\n--- Phase 3: Executing merges ---")
     strategies = ["uniform_linear", "audit_aware", "overlap_ties"]
-    merged_dirs: Dict[str, Path] = {}
+    merged_dirs: dict[str, Path] = {}
 
     for strategy in strategies:
         print(f"\n  Strategy: {strategy}")
         merge_dir = output_dir / f"merged_{strategy}"
         merge_dir.mkdir(parents=True, exist_ok=True)
 
-        kwargs: Dict[str, Any] = {
+        kwargs: dict[str, Any] = {
             "output_rank": output_rank,
             "output_alpha": output_alpha,
         }
@@ -188,12 +187,12 @@ def run_evaluations(
     base_model: str,
     adapter_a_dir: Path,
     adapter_b_dir: Path,
-    merged_dirs: Dict[str, Path],
+    merged_dirs: dict[str, Path],
     output_dir: Path,
     max_samples: int = 500,
     device: str = "cuda",
     template_mode: str = "custom",
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Evaluate all adapters on both MNLI and QNLI."""
     print("\n--- Phase 4: Evaluating adapters ---")
     print(f"  Template mode: {template_mode}")
@@ -215,7 +214,7 @@ def run_evaluations(
         adapters.append((f"merged_{strategy}", str(merge_dir)))
 
     datasets = ["mnli", "qnli"]
-    all_results: List[Dict[str, Any]] = []
+    all_results: list[dict[str, Any]] = []
 
     for adapter_name, adapter_dir in adapters:
         for dataset in datasets:
@@ -248,7 +247,7 @@ def run_evaluations(
 
 
 def collect_results(
-    all_results: List[Dict[str, Any]],
+    all_results: list[dict[str, Any]],
     output_dir: Path,
 ) -> None:
     """Collect all results into a summary JSON."""
@@ -257,13 +256,15 @@ def collect_results(
     # Build summary table
     summary_rows = []
     for r in all_results:
-        summary_rows.append({
-            "adapter": r["adapter_name"],
-            "dataset": r["dataset"],
-            "accuracy": r["accuracy"],
-            "n_samples": r["n_samples"],
-            "time_seconds": r.get("total_time_seconds", 0),
-        })
+        summary_rows.append(
+            {
+                "adapter": r["adapter_name"],
+                "dataset": r["dataset"],
+                "accuracy": r["accuracy"],
+                "n_samples": r["n_samples"],
+                "time_seconds": r.get("total_time_seconds", 0),
+            }
+        )
 
     summary = {
         "schema_version": "gradience.merge_experiment/v1",
@@ -280,11 +281,7 @@ def collect_results(
     print(f"  {'Adapter':<30s} {'Dataset':<8s} {'Accuracy':>10s}")
     print("  " + "-" * 60)
     for row in summary_rows:
-        print(
-            f"  {row['adapter']:<30s} "
-            f"{row['dataset']:<8s} "
-            f"{row['accuracy']:10.4f}"
-        )
+        print(f"  {row['adapter']:<30s} {row['dataset']:<8s} {row['accuracy']:10.4f}")
     print("=" * 70)
     print(f"\nFull results: {summary_path}")
 
@@ -295,9 +292,7 @@ def collect_results(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Merge Execution & Validation Experiment"
-    )
+    parser = argparse.ArgumentParser(description="Merge Execution & Validation Experiment")
     parser.add_argument(
         "--workspace",
         type=str,
@@ -378,10 +373,7 @@ def main():
     use_local = args.adapter_a_dir is not None and args.adapter_b_dir is not None
     use_remote = args.adapter_a_repo is not None and args.adapter_b_repo is not None
     if not use_local and not use_remote:
-        parser.error(
-            "Provide either --adapter-a-dir/--adapter-b-dir "
-            "OR --adapter-a-repo/--adapter-b-repo"
-        )
+        parser.error("Provide either --adapter-a-dir/--adapter-b-dir OR --adapter-a-repo/--adapter-b-repo")
 
     workspace = Path(args.workspace)
     workspace.mkdir(parents=True, exist_ok=True)
@@ -410,7 +402,10 @@ def main():
 
     # Phase 3: Merge
     merged_dirs = run_merges(
-        report, adapter_a_dir, adapter_b_dir, output_dir,
+        report,
+        adapter_a_dir,
+        adapter_b_dir,
+        output_dir,
         output_rank=args.output_rank,
         output_alpha=args.output_alpha,
     )

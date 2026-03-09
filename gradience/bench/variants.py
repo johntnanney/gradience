@@ -5,40 +5,46 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 # Check for optional dependencies
 try:
     import torch
-    from transformers import (
-        AutoTokenizer, AutoModelForSequenceClassification,
-        TrainingArguments, Trainer, DataCollatorWithPadding
-    )
-    from peft import LoraConfig, get_peft_model, TaskType
     from datasets import load_dataset
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import (
+        AutoModelForSequenceClassification,
+        AutoTokenizer,
+        DataCollatorWithPadding,
+        Trainer,
+        TrainingArguments,
+    )
+
     HAS_TRAINING_DEPS = True
 except ImportError:
     HAS_TRAINING_DEPS = False
 
-from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
-from gradience.bench.task_profiles import get_task_profile_from_config
-from gradience.bench.monitored_stage import monitor_training, monitor_evaluation, monitor_file_operations
 from gradience.bench.model_setup import (
-    setup_dataset, setup_compressed_model_and_tokenizer, _save_peft_adapter_only
+    _save_peft_adapter_only,
+    load_config,
+    setup_compressed_model_and_tokenizer,
+    setup_dataset,
 )
-from gradience.bench.reporting import write_probe_eval_json, _extract_accuracy_with_fallback
-from gradience.bench.model_setup import load_config
+from gradience.bench.monitored_stage import monitor_evaluation, monitor_file_operations, monitor_training
+from gradience.bench.reporting import _extract_accuracy_with_fallback, write_probe_eval_json
+from gradience.bench.task_profiles import get_task_profile_from_config
 from gradience.peft_utils import check_heterogeneous_ranks
+from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
 
 
 def run_post_tuning(
     model,
     tokenizer,
-    dataset: Dict[str, Any],
-    config: Dict[str, Any],
-    post_tune_config: Dict[str, Any],
+    dataset: dict[str, Any],
+    config: dict[str, Any],
+    post_tune_config: dict[str, Any],
     output_dir: Path,
-    smoke: bool = False
+    smoke: bool = False,
 ):
     """
     Perform post-tuning on a truncated adapter to recover performance.
@@ -58,8 +64,7 @@ def run_post_tuning(
     Returns:
         Updated model with post-tuned adapter
     """
-    from transformers import Trainer, TrainingArguments
-    from transformers import DataCollatorWithPadding
+    from transformers import DataCollatorWithPadding, Trainer, TrainingArguments
 
     # Extract post-tuning parameters
     post_tune_steps = post_tune_config.get("steps", 100)
@@ -92,14 +97,14 @@ def run_post_tuning(
         load_best_model_at_end=False,
         dataloader_num_workers=0,
         remove_unused_columns=False,
-        report_to=[]  # Disable wandb/tensorboard
+        report_to=[],  # Disable wandb/tensorboard
     )
 
     # Setup data collator
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     # Get training split
-    train_dataset = dataset.get("train", dataset.get("dataset", None))
+    train_dataset = dataset.get("train", dataset.get("dataset"))
     if train_dataset is None:
         print("Warning: No training dataset available for post-tuning")
         return model
@@ -130,9 +135,9 @@ def run_svd_truncation_variant(
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
-    compression_config: Dict[str, Any],
-    smoke: bool = False
-) -> Dict[str, Any]:
+    compression_config: dict[str, Any],
+    smoke: bool = False,
+) -> dict[str, Any]:
     """
     Run SVD truncation variant by truncating the trained probe adapter.
 
@@ -159,7 +164,7 @@ def run_svd_truncation_variant(
             "reason": f"Probe directory not found: {probe_dir}",
             "accuracy": None,
             "params": None,
-            "output_dir": str(variant_dir)
+            "output_dir": str(variant_dir),
         }
 
     try:
@@ -171,11 +176,7 @@ def run_svd_truncation_variant(
         from gradience.vnext.svd_truncate import svd_truncate_peft_dir
 
         truncation_report = svd_truncate_peft_dir(
-            peft_dir=probe_dir,
-            out_dir=variant_dir,
-            target_rank=actual_r,
-            alpha_mode="keep_ratio",
-            save_dtype="fp16"
+            peft_dir=probe_dir, out_dir=variant_dir, target_rank=actual_r, alpha_mode="keep_ratio", save_dtype="fp16"
         )
 
         print(f"  ✅ Truncation completed: {truncation_report.energy_retained:.1%} energy retained")
@@ -183,8 +184,9 @@ def run_svd_truncation_variant(
 
         # Save truncation report
         import json
+
         report_path = variant_dir / "svd_truncation_report.json"
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(truncation_report.__dict__, f, indent=2)
 
         # Get device from config
@@ -194,8 +196,8 @@ def run_svd_truncation_variant(
         dataset = setup_dataset(config, smoke=smoke)
 
         # Setup base model and tokenizer
-        from transformers import AutoTokenizer, AutoModelForSequenceClassification
         from peft import PeftModel
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         model_name = config["model"]["name"]
         tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
@@ -224,20 +226,19 @@ def run_svd_truncation_variant(
                 config=config,
                 post_tune_config=post_tune_config,
                 output_dir=variant_dir,
-                smoke=smoke
+                smoke=smoke,
             )
-            print(f"  ✅ Post-tuning completed")
+            print("  ✅ Post-tuning completed")
 
         # Evaluate the (possibly post-tuned) model
         eval_results = task_profile.evaluate(model, tokenizer, tokenized_dataset, config)
 
         # Write eval.json for this variant
-        eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
+        eval_dataset_size = eval_results.get(
+            "eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"]))
+        )
         eval_json_path = write_probe_eval_json(
-            probe_dir=variant_dir,
-            eval_results=eval_results,
-            eval_dataset_size=eval_dataset_size,
-            config=config
+            probe_dir=variant_dir, eval_results=eval_results, eval_dataset_size=eval_dataset_size, config=config
         )
 
         # Count parameters
@@ -261,7 +262,7 @@ def run_svd_truncation_variant(
             "energy_retained": truncation_report.energy_retained,
             "compression_ratio": truncation_report.compression_ratio,
             "truncation_modules": truncation_report.total_modules,
-            "post_tuned": post_tuned
+            "post_tuned": post_tuned,
         }
 
         # Add post-tuning details if applicable
@@ -269,7 +270,7 @@ def run_svd_truncation_variant(
             result["post_tune_config"] = {
                 "steps": post_tune_config.get("steps", 100),
                 "lr_scale": post_tune_config.get("lr_scale", 0.1),
-                "warmup_steps": post_tune_config.get("warmup_steps", 0)
+                "warmup_steps": post_tune_config.get("warmup_steps", 0),
             }
 
         return result
@@ -277,6 +278,7 @@ def run_svd_truncation_variant(
     except Exception as e:
         print(f"❌ SVD truncation failed: {e}")
         import traceback
+
         traceback.print_exc()
         return {
             "variant": variant_name,
@@ -284,7 +286,7 @@ def run_svd_truncation_variant(
             "reason": f"SVD truncation failed: {str(e)}",
             "accuracy": None,
             "params": None,
-            "output_dir": str(variant_dir)
+            "output_dir": str(variant_dir),
         }
 
 
@@ -292,11 +294,11 @@ def run_compressed_variant_training(
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
-    compression_config: Dict[str, Any],
+    compression_config: dict[str, Any],
     smoke: bool = False,
-    stage_manager = None,
-    resume: bool = False
-) -> Dict[str, Any]:
+    stage_manager=None,
+    resume: bool = False,
+) -> dict[str, Any]:
     """
     Step 3.5: Train a single compressed variant.
 
@@ -304,8 +306,7 @@ def run_compressed_variant_training(
     """
     if not HAS_TRAINING_DEPS:
         raise ImportError(
-            "Training dependencies not available. "
-            "Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
+            "Training dependencies not available. Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
         )
 
     # Load configuration
@@ -319,7 +320,7 @@ def run_compressed_variant_training(
             "reason": compression_config.get("reason", "Not ready"),
             "accuracy": None,
             "params": None,
-            "output_dir": None
+            "output_dir": None,
         }
 
     # Setup output directory for this variant
@@ -345,7 +346,7 @@ def run_compressed_variant_training(
             output_dir=output_dir,
             variant_name=variant_name,
             compression_config=compression_config,
-            smoke=smoke
+            smoke=smoke,
         )
 
     # Setup dataset
@@ -372,19 +373,12 @@ def run_compressed_variant_training(
         config = modified_config
 
     # Setup Gradience callback
-    callback_config = GradienceCallbackConfig(
-        output_dir=str(variant_dir),
-        filename="run.jsonl"
-    )
+    callback_config = GradienceCallbackConfig(output_dir=str(variant_dir), filename="run.jsonl")
     gradience_callback = GradienceCallback(callback_config)
 
     # Build trainer using task profile
     trainer = task_profile.build_trainer(
-        model=model,
-        tokenizer=tokenizer,
-        tokenized_ds=tokenized_dataset,
-        cfg=config,
-        callbacks=[gradience_callback]
+        model=model, tokenizer=tokenizer, tokenized_ds=tokenized_dataset, cfg=config, callbacks=[gradience_callback]
     )
 
     # Update trainer output dir to variant directory
@@ -409,11 +403,9 @@ def run_compressed_variant_training(
 
         # Mark training as completed early (before evaluation in case it fails)
         if stage_manager:
-            stage_manager.mark_variant_completed(variant_name, {
-                "actual_r": actual_r,
-                "max_steps": max_steps,
-                "output_dir": str(variant_dir)
-            })
+            stage_manager.mark_variant_completed(
+                variant_name, {"actual_r": actual_r, "max_steps": max_steps, "output_dir": str(variant_dir)}
+            )
     else:
         # Skip training, will load existing results
         print(f"Skipping {variant_name} training - already completed")
@@ -437,15 +429,16 @@ def run_compressed_variant_training(
         eval_json_path = variant_dir / "eval.json"
         with open(eval_json_path) as f:
             eval_results = json.load(f)
-        print(f"Loaded existing evaluation results for {variant_name}: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
+        print(
+            f"Loaded existing evaluation results for {variant_name}: accuracy = {eval_results.get('eval_accuracy', 'unknown')}"
+        )
 
     # Write eval.json for this variant
-    eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
+    eval_dataset_size = eval_results.get(
+        "eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"]))
+    )
     eval_json_path = write_probe_eval_json(
-        probe_dir=variant_dir,
-        eval_results=eval_results,
-        eval_dataset_size=eval_dataset_size,
-        config=config
+        probe_dir=variant_dir, eval_results=eval_results, eval_dataset_size=eval_dataset_size, config=config
     )
 
     # Count parameters
@@ -471,7 +464,7 @@ def run_compressed_variant_training(
                 "reason": f"Skipped due to missing adapter weights: {e}",
                 "unique_ranks": [],
                 "rank_histogram": {},
-                "total_modules": 0
+                "total_modules": 0,
             }
 
         if not rank_check_result["passed"]:
@@ -487,12 +480,12 @@ def run_compressed_variant_training(
                 "accuracy": _extract_accuracy_with_fallback(eval_results, task_profile),
                 "eval_loss": eval_results.get("eval_loss"),
                 "output_dir": str(variant_dir),
-                "rank_check": rank_check_result
+                "rank_check": rank_check_result,
             }
         elif rank_check_result.get("degrade_to_uniform", False):
             print(f"⚠️  RANK DEGENERATION: {rank_check_result['reason']}")
             print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
-            print(f"   per_layer variant collapsed to uniform - treating as legitimate degeneration")
+            print("   per_layer variant collapsed to uniform - treating as legitimate degeneration")
         else:
             print(f"✅ Rank check passed: {len(rank_check_result['unique_ranks'])} distinct ranks")
             print(f"   Rank histogram: {rank_check_result['rank_histogram']}")
@@ -504,10 +497,10 @@ def run_compressed_variant_training(
     accuracy_value = _extract_accuracy_with_fallback(eval_results, task_profile)
 
     if accuracy_value > 0.0:
-        metric_key = getattr(task_profile, 'primary_metric_key', 'eval_accuracy')
+        metric_key = getattr(task_profile, "primary_metric_key", "eval_accuracy")
         print(f"Final {metric_key}: {accuracy_value:.4f}")
     else:
-        print(f"Warning: No accuracy metric found in evaluation results")
+        print("Warning: No accuracy metric found in evaluation results")
         print(f"Available metrics: {list(eval_results.keys())}")
         accuracy_value = 0.0
 
@@ -526,7 +519,7 @@ def run_compressed_variant_training(
         "total_params": total_params,
         "accuracy": _extract_accuracy_with_fallback(eval_results, task_profile),
         "eval_loss": eval_results.get("eval_loss"),
-        "output_dir": str(variant_dir)
+        "output_dir": str(variant_dir),
     }
 
     # Add rank check results for per-layer variants
@@ -545,11 +538,11 @@ def run_compressed_variant_training(
 def run_all_compressed_variants(
     config_path: str | Path,
     output_dir: str | Path,
-    compression_configs: Dict[str, Dict[str, Any]],
+    compression_configs: dict[str, dict[str, Any]],
     smoke: bool = False,
-    stage_manager = None,
-    resume: bool = False
-) -> Dict[str, Any]:
+    stage_manager=None,
+    resume: bool = False,
+) -> dict[str, Any]:
     """
     Step 3.5: Train and evaluate all compressed variants.
 
@@ -558,7 +551,7 @@ def run_all_compressed_variants(
     results = {}
 
     for variant_name, compression_config in compression_configs.items():
-        print(f"\n" + "="*50)
+        print("\n" + "=" * 50)
         print(f"Training variant: {variant_name}")
         print(f"Status: {compression_config['status']}")
 
@@ -577,7 +570,7 @@ def run_all_compressed_variants(
             compression_config=compression_config,
             smoke=smoke,
             stage_manager=stage_manager,
-            resume=resume
+            resume=resume,
         )
 
         results[variant_name] = result

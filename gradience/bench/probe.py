@@ -5,41 +5,47 @@ from __future__ import annotations
 import datetime
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 # Check for optional dependencies
 try:
     import torch
-    from transformers import (
-        AutoTokenizer, AutoModelForSequenceClassification,
-        TrainingArguments, Trainer, DataCollatorWithPadding
-    )
-    from peft import LoraConfig, get_peft_model, TaskType
     from datasets import load_dataset
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import (
+        AutoModelForSequenceClassification,
+        AutoTokenizer,
+        DataCollatorWithPadding,
+        Trainer,
+        TrainingArguments,
+    )
+
     HAS_TRAINING_DEPS = True
 except ImportError:
     HAS_TRAINING_DEPS = False
 
 # Gradience imports (always available)
-from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
-from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
-from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
-from gradience.bench.task_profiles import get_task_profile_from_config
-from gradience.bench.monitored_stage import (
-    monitor_training, monitor_evaluation, monitor_audit,
-    monitor_file_operations,
-)
 from gradience.bench.model_setup import (
-    load_config, setup_dataset, setup_model_and_tokenizer,
-    _save_peft_adapter_only, HAS_TRAINING_DEPS,
+    HAS_TRAINING_DEPS,
+    _save_peft_adapter_only,
+    load_config,
+    setup_dataset,
+    setup_model_and_tokenizer,
 )
-from gradience.bench.reporting import write_probe_eval_json, _extract_accuracy_with_fallback
+from gradience.bench.monitored_stage import (
+    monitor_audit,
+    monitor_evaluation,
+    monitor_file_operations,
+    monitor_training,
+)
+from gradience.bench.reporting import _extract_accuracy_with_fallback, write_probe_eval_json
+from gradience.bench.task_profiles import get_task_profile_from_config
+from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
+from gradience.vnext.integrations.hf import GradienceCallback, GradienceCallbackConfig
+from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit, suggest_per_layer_ranks
 
 
-def run_probe_audit(
-    probe_dir: Path,
-    config: Dict[str, Any]
-) -> Path:
+def run_probe_audit(probe_dir: Path, config: dict[str, Any]) -> Path:
     """
     Step 3.3: Run audit on trained probe and write audit.json.
 
@@ -91,7 +97,7 @@ def run_probe_audit(
         audit_dir,
         base_model_id=base_model_id if compute_udr else None,
         base_norms_cache=base_norms_cache,
-        compute_udr=compute_udr
+        compute_udr=compute_udr,
     )
 
     # Convert audit result to dict for JSON serialization
@@ -102,8 +108,8 @@ def run_probe_audit(
     audit_summary["current_r"] = probe_rank
 
     # Validate LoRA attachment - prevent wasted GPU cycles
-    stable_rank_mean = audit_summary.get('stable_rank_mean', 0.0)
-    utilization_mean = audit_summary.get('utilization_mean', 0.0)
+    stable_rank_mean = audit_summary.get("stable_rank_mean", 0.0)
+    utilization_mean = audit_summary.get("utilization_mean", 0.0)
 
     if stable_rank_mean == 0.0 and utilization_mean == 0.0:
         print("")
@@ -130,14 +136,14 @@ def run_probe_audit(
             "reason": "LoRA_NOT_ATTACHED",
             "stable_rank_mean": stable_rank_mean,
             "utilization_mean": utilization_mean,
-            "message": "LoRA adapters likely did not train or attach properly"
+            "message": "LoRA adapters likely did not train or attach properly",
         }
     else:
         audit_summary["probe_validity"] = {
             "valid": True,
             "reason": "NORMAL_OPERATION",
             "stable_rank_mean": stable_rank_mean,
-            "utilization_mean": utilization_mean
+            "utilization_mean": utilization_mean,
         }
 
     # Generate additional global rank suggestions
@@ -157,7 +163,7 @@ def run_probe_audit(
         audit_dict_for_layers = {"layers": [layer.to_dict() for layer in audit_result.layers]}
         per_layer_suggestions = suggest_per_layer_ranks(
             audit_dict_for_layers,
-            allowed_ranks=config.get("compression", {}).get("allowed_ranks", [1, 2, 4, 8, 16, 32])
+            allowed_ranks=config.get("compression", {}).get("allowed_ranks", [1, 2, 4, 8, 16, 32]),
         )
 
     # Compute gain metrics
@@ -175,24 +181,17 @@ def run_probe_audit(
         "audit_timestamp": datetime.datetime.now().isoformat(),
         "probe_rank": config["lora"]["probe_r"],
         "seed": config["train"]["seed"],
-
         # Summary statistics (includes suggested_r_global_median, suggested_r_global_90)
-        "summary": {
-            **audit_summary,
-            "gain": gain_metrics["summary"]
-        },
-
+        "summary": {**audit_summary, "gain": gain_metrics["summary"]},
         # Global rank suggestions (required) - using audit summary values
         "suggested_r_global_median": audit_summary.get("suggested_r_global_median"),
         "suggested_r_global_90": audit_summary.get("suggested_r_global_90"),
-
         # Policy-based global suggestions (Step 7)
         "policy_global_suggestions": (
-            getattr(audit_result, 'policy_global_suggestions', {})
-            if isinstance(getattr(audit_result, 'policy_global_suggestions', None), dict)
+            getattr(audit_result, "policy_global_suggestions", {})
+            if isinstance(getattr(audit_result, "policy_global_suggestions", None), dict)
             else {}
         ),
-
         # Additional global suggestion details from rank_suggestion module
         "global_suggestions": {
             "current_r": global_suggestions.current_r,
@@ -201,51 +200,34 @@ def run_probe_audit(
             "total_lora_params": global_suggestions.total_lora_params,
             "reduction_ratio_median": global_suggestions.reduction_ratio_median,
             "reduction_ratio_p90": global_suggestions.reduction_ratio_p90,
-            "evidence": global_suggestions.evidence
+            "evidence": global_suggestions.evidence,
         },
-
         # Per-module gain metrics
-        "per_module": {
-            "gain": gain_metrics["per_module"]
-        },
-
+        "per_module": {"gain": gain_metrics["per_module"]},
         # Per-layer gain metrics
-        "per_layer": {
-            "gain": gain_metrics["per_layer"]
-        },
-
+        "per_layer": {"gain": gain_metrics["per_layer"]},
         # Global gain metrics
-        "global": {
-            "gain": gain_metrics["global"]
-        },
-
+        "global": {"gain": gain_metrics["global"]},
         # Composition analysis (energy concentration across layers) - optional
         **({"composition": gain_metrics.get("composition", {})} if enable_composition else {}),
-
         # Per-layer analysis (your 1.3/1.4 work)
         "layers": [layer.to_dict() for layer in audit_result.layers],
-
         # Per-layer suggestions if available
         "per_layer_suggestions": per_layer_suggestions.to_dict() if per_layer_suggestions else None,
-
         # Issues encountered during audit
-        "issues": audit_result.issues
+        "issues": audit_result.issues,
     }
 
     audit_path = probe_dir / "audit.json"
-    with open(audit_path, 'w') as f:
+    with open(audit_path, "w") as f:
         json.dump(audit_data, f, indent=2, ensure_ascii=False)
 
     return audit_path
 
 
 def run_probe_training(
-    config_path: str | Path,
-    output_dir: str | Path,
-    smoke: bool = False,
-    stage_manager = None,
-    resume: bool = False
-) -> Dict[str, Any]:
+    config_path: str | Path, output_dir: str | Path, smoke: bool = False, stage_manager=None, resume: bool = False
+) -> dict[str, Any]:
     """
     Step 3.1: Train probe adapter (r=16).
 
@@ -253,8 +235,7 @@ def run_probe_training(
     """
     if not HAS_TRAINING_DEPS:
         raise ImportError(
-            "Training dependencies not available. "
-            "Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
+            "Training dependencies not available. Install: pip install transformers>=4.20.0 peft>=0.4.0 datasets torch"
         )
 
     # Load configuration
@@ -292,10 +273,7 @@ def run_probe_training(
 
     # Setup Gradience callback
     # Optional: pass dataset/task info for richer telemetry if available
-    callback_config = GradienceCallbackConfig(
-        output_dir=str(probe_dir),
-        filename="run.jsonl"
-    )
+    callback_config = GradienceCallbackConfig(output_dir=str(probe_dir), filename="run.jsonl")
 
     # Add optional dataset/task context for richer telemetry
     task_config = config.get("task", {})
@@ -309,11 +287,7 @@ def run_probe_training(
 
     # Build trainer using task profile
     trainer = task_profile.build_trainer(
-        model=model,
-        tokenizer=tokenizer,
-        tokenized_ds=tokenized_dataset,
-        cfg=config,
-        callbacks=[gradience_callback]
+        model=model, tokenizer=tokenizer, tokenized_ds=tokenized_dataset, cfg=config, callbacks=[gradience_callback]
     )
 
     # Update trainer output dir to probe directory
@@ -322,7 +296,7 @@ def run_probe_training(
 
     # Train the model
     # Check if training can be skipped
-    probe_rank = config['lora']['probe_r']
+    probe_rank = config["lora"]["probe_r"]
     skip_training = resume and stage_manager and stage_manager.should_skip_probe_training(probe_rank)
 
     if not skip_training:
@@ -339,11 +313,10 @@ def run_probe_training(
 
         # Mark training as completed
         if stage_manager:
-            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_trained", {
-                "probe_rank": probe_rank,
-                "max_steps": trainer.args.max_steps,
-                "output_dir": str(probe_dir)
-            })
+            stage_manager.mark_stage_completed(
+                f"probe_r{probe_rank}_trained",
+                {"probe_rank": probe_rank, "max_steps": trainer.args.max_steps, "output_dir": str(probe_dir)},
+            )
     else:
         # Load existing model for evaluation (skip training)
         print(f"Loading existing probe model from {probe_dir}...")
@@ -369,10 +342,10 @@ def run_probe_training(
 
         # Mark evaluation as completed
         if stage_manager:
-            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_evaluated", {
-                "probe_rank": probe_rank,
-                "accuracy": eval_results.get("eval_accuracy", 0.0)
-            })
+            stage_manager.mark_stage_completed(
+                f"probe_r{probe_rank}_evaluated",
+                {"probe_rank": probe_rank, "accuracy": eval_results.get("eval_accuracy", 0.0)},
+            )
     else:
         # Load existing evaluation results
         eval_json_path = probe_dir / "eval.json"
@@ -381,12 +354,11 @@ def run_probe_training(
         print(f"Loaded existing evaluation results: accuracy = {eval_results.get('eval_accuracy', 'unknown')}")
 
     # Step 3.2: Write eval.json
-    eval_dataset_size = eval_results.get("eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"])))
+    eval_dataset_size = eval_results.get(
+        "eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"]))
+    )
     eval_json_path = write_probe_eval_json(
-        probe_dir=probe_dir,
-        eval_results=eval_results,
-        eval_dataset_size=eval_dataset_size,
-        config=config
+        probe_dir=probe_dir, eval_results=eval_results, eval_dataset_size=eval_dataset_size, config=config
     )
 
     # Step 3.3: Run audit and write audit.json
@@ -403,19 +375,15 @@ def run_probe_training(
         seed = config.get("train", {}).get("seed", 42)
         with monitor_audit("audit_probe", output_dir=probe_dir, seed=seed) as stage:
             stage.progress("Starting probe audit analysis")
-            audit_json_path = run_probe_audit(
-                probe_dir=probe_dir,
-                config=config
-            )
+            audit_json_path = run_probe_audit(probe_dir=probe_dir, config=config)
             stage.progress("Probe audit analysis completed")
             stage.add_artifact("audit.json")
 
         # Mark audit as completed
         if stage_manager:
-            stage_manager.mark_stage_completed(f"probe_r{probe_rank}_audited", {
-                "probe_rank": probe_rank,
-                "audit_path": str(audit_json_path)
-            })
+            stage_manager.mark_stage_completed(
+                f"probe_r{probe_rank}_audited", {"probe_rank": probe_rank, "audit_path": str(audit_json_path)}
+            )
     else:
         # Audit already exists
         audit_json_path = probe_dir / "audit.json"
@@ -425,7 +393,7 @@ def run_probe_training(
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    print(f"Probe training complete!")
+    print("Probe training complete!")
 
     # Get task profile for robust metric extraction
     task_profile = get_task_profile_from_config(config)
@@ -446,6 +414,6 @@ def run_probe_training(
             "total_params": total_params,
             "accuracy": accuracy,
             "eval_loss": eval_results.get("eval_loss"),
-            "output_dir": str(probe_dir)
+            "output_dir": str(probe_dir),
         }
     }

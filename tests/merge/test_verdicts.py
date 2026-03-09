@@ -13,7 +13,6 @@ from gradience.vnext.merge.verdicts import (
     assess_overall,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -197,7 +196,9 @@ class TestAssessLayer:
 
         # With conservative thresholds (high_overlap=0.35), 0.4 is high
         lv_conservative = assess_layer(
-            "test.q_proj", "attn", metrics,
+            "test.q_proj",
+            "attn",
+            metrics,
             thresholds=VerdictThresholds.conservative(),
         )
 
@@ -317,7 +318,9 @@ class TestFrobeniusImbalance:
         assert lv_default.verdict == CompatibilityVerdict.SAFE
 
         lv_conservative = assess_layer(
-            "test.q_proj", "attn", metrics,
+            "test.q_proj",
+            "attn",
+            metrics,
             thresholds=VerdictThresholds.conservative(),
         )
         assert lv_conservative.verdict == CompatibilityVerdict.IMBALANCED
@@ -384,12 +387,16 @@ class TestAssessOverall:
     def test_recommendations_for_each_type(self):
         """Each verdict type gets appropriate recommendations."""
         redundant_metrics = _make_metrics(
-            mean_overlap=0.8, directional_agreement=0.8,
+            mean_overlap=0.8,
+            directional_agreement=0.8,
             principal_angle_cosines=(0.9, 0.8, 0.7),
         )
         imbalanced_metrics = _make_metrics(
-            mean_overlap=0.3, directional_agreement=0.2,
-            frobenius_ratio=8.0, frobenius_norm_a=80.0, frobenius_norm_b=10.0,
+            mean_overlap=0.3,
+            directional_agreement=0.2,
+            frobenius_ratio=8.0,
+            frobenius_norm_a=80.0,
+            frobenius_norm_b=10.0,
         )
 
         lvs = [

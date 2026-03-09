@@ -11,7 +11,6 @@ from gradience.vnext.merge.scale import (
     symmetric_scale_metrics,
 )
 
-
 # ---------------------------------------------------------------------------
 # symmetric_scale_metrics
 # ---------------------------------------------------------------------------
@@ -55,20 +54,14 @@ class TestSymmetricScaleMetrics:
     def test_negative_values_take_abs(self):
         pos_result = symmetric_scale_metrics(4.0, 2.0)
         neg_result = symmetric_scale_metrics(-4.0, -2.0)
-        assert neg_result["scale_bounded_ratio"] == pytest.approx(
-            pos_result["scale_bounded_ratio"]
-        )
-        assert neg_result["scale_log_ratio"] == pytest.approx(
-            pos_result["scale_log_ratio"]
-        )
+        assert neg_result["scale_bounded_ratio"] == pytest.approx(pos_result["scale_bounded_ratio"])
+        assert neg_result["scale_log_ratio"] == pytest.approx(pos_result["scale_log_ratio"])
 
     def test_symmetry_bounded_ratio_invariant(self):
         a, b = 7.0, 3.0
         r_ab = symmetric_scale_metrics(a, b)
         r_ba = symmetric_scale_metrics(b, a)
-        assert r_ab["scale_bounded_ratio"] == pytest.approx(
-            r_ba["scale_bounded_ratio"]
-        )
+        assert r_ab["scale_bounded_ratio"] == pytest.approx(r_ba["scale_bounded_ratio"])
 
     def test_symmetry_log_ratio_flips_sign(self):
         a, b = 7.0, 3.0

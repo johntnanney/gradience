@@ -153,10 +153,7 @@ def main():
                 merge_dir = merges_dir / pair_name / f"seed_{seed}" / wlabel
 
                 for eval_task in eval_tasks_for_pair:
-                    expected_path = (
-                        merged_eval_dir
-                        / f"{pair_name}_seed_{seed}_{wlabel}_{eval_task}.json"
-                    )
+                    expected_path = merged_eval_dir / f"{pair_name}_seed_{seed}_{wlabel}_{eval_task}.json"
                     if expected_path.exists():
                         try:
                             with open(expected_path) as f:
@@ -206,10 +203,7 @@ def main():
                 cal_dir_name = f"{task}_seeds_{seed_a}_{seed_b}"
                 for weights in weight_grid:
                     wlabel = _weight_label(weights)
-                    expected_path = (
-                        merged_eval_dir
-                        / f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json"
-                    )
+                    expected_path = merged_eval_dir / f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json"
                     if expected_path.exists():
                         try:
                             with open(expected_path) as f:
@@ -260,7 +254,7 @@ def main():
             print(f"  [SCAN] {relative} → task={detected_task}")
             unmapped += 1
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"  Recovered:  {recovered}")
     print(f"  Skipped OK: {skipped}")
     print(f"  Missing:    {missing}")

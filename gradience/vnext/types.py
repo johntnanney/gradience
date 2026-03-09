@@ -18,7 +18,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-
 # ---------------------------------------------------------------------------
 # Telemetry schema versioning
 # ---------------------------------------------------------------------------
@@ -30,6 +29,7 @@ TELEMETRY_SCHEMA_VERSION: str = "gradience.vnext.telemetry/v1"
 # ---------------------------------------------------------------------------
 # Core enums
 # ---------------------------------------------------------------------------
+
 
 class TaskFamily(str, Enum):
     """Coarse task family labels used for policy decisions."""
@@ -55,7 +55,7 @@ class Severity(str, Enum):
 
 class EventType(str, Enum):
     """Event types for telemetry (backward compatibility)."""
-    
+
     AUDIT = "audit"
     TRAIN = "train"
     EVAL = "eval"
@@ -66,29 +66,30 @@ class EventType(str, Enum):
 # Config snapshots
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class LoRAConfigSnapshot:
     """A minimal, stable representation of a LoRA/PEFT adapter config."""
 
-    r: Optional[int] = None
-    alpha: Optional[float] = None
-    target_modules: List[str] = field(default_factory=list)
+    r: int | None = None
+    alpha: float | None = None
+    target_modules: list[str] = field(default_factory=list)
 
     # Optional extras that vary by library/version.
-    dropout: Optional[float] = None
-    bias: Optional[str] = None
+    dropout: float | None = None
+    bias: str | None = None
 
     # Room for future PEFT parameters without breaking schema.
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def alpha_over_r(self) -> Optional[float]:
+    def alpha_over_r(self) -> float | None:
         r = self.r
         if self.alpha is None or r is None or r == 0:
             return None
         return float(self.alpha) / float(r)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "r": self.r,
             "alpha": self.alpha,
@@ -100,7 +101,7 @@ class LoRAConfigSnapshot:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "LoRAConfigSnapshot":
+    def from_dict(d: dict[str, Any]) -> LoRAConfigSnapshot:
         return LoRAConfigSnapshot(
             r=d.get("r"),
             alpha=d.get("alpha"),
@@ -115,16 +116,16 @@ class LoRAConfigSnapshot:
 class OptimizerConfigSnapshot:
     """Optimizer hyperparameters relevant to the restraint story."""
 
-    name: Optional[str] = None
-    lr: Optional[float] = None
-    weight_decay: Optional[float] = None
+    name: str | None = None
+    lr: float | None = None
+    weight_decay: float | None = None
 
-    betas: Optional[Tuple[float, float]] = None
-    eps: Optional[float] = None
+    betas: tuple[float, float] | None = None
+    eps: float | None = None
 
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "lr": self.lr,
@@ -135,7 +136,7 @@ class OptimizerConfigSnapshot:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "OptimizerConfigSnapshot":
+    def from_dict(d: dict[str, Any]) -> OptimizerConfigSnapshot:
         betas = d.get("betas")
         betas_t = tuple(betas) if isinstance(betas, (list, tuple)) and len(betas) == 2 else None
         return OptimizerConfigSnapshot(
@@ -152,16 +153,16 @@ class OptimizerConfigSnapshot:
 class TrainingConfigSnapshot:
     """Training-loop parameters that affect dynamics and comparability."""
 
-    seed: Optional[int] = None
-    batch_size: Optional[int] = None
-    gradient_accumulation: Optional[int] = None
-    max_steps: Optional[int] = None
-    epochs: Optional[int] = None
-    dtype: Optional[str] = None
+    seed: int | None = None
+    batch_size: int | None = None
+    gradient_accumulation: int | None = None
+    max_steps: int | None = None
+    epochs: int | None = None
+    dtype: str | None = None
 
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "seed": self.seed,
             "batch_size": self.batch_size,
@@ -173,7 +174,7 @@ class TrainingConfigSnapshot:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "TrainingConfigSnapshot":
+    def from_dict(d: dict[str, Any]) -> TrainingConfigSnapshot:
         return TrainingConfigSnapshot(
             seed=d.get("seed"),
             batch_size=d.get("batch_size"),
@@ -190,8 +191,8 @@ class ConfigSnapshot:
     """Top-level run configuration snapshot."""
 
     # Identification
-    model_name: Optional[str] = None
-    dataset_name: Optional[str] = None
+    model_name: str | None = None
+    dataset_name: str | None = None
 
     # Coarse task family label (used by policy).
     task_profile: TaskFamily = TaskFamily.UNKNOWN
@@ -202,10 +203,10 @@ class ConfigSnapshot:
     training: TrainingConfigSnapshot = field(default_factory=TrainingConfigSnapshot)
 
     # Freeform notes + future extension point.
-    notes: Optional[str] = None
-    extras: Dict[str, Any] = field(default_factory=dict)
+    notes: str | None = None
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "model_name": self.model_name,
             "dataset_name": self.dataset_name,
@@ -218,7 +219,7 @@ class ConfigSnapshot:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "ConfigSnapshot":
+    def from_dict(d: dict[str, Any]) -> ConfigSnapshot:
         tp = d.get("task_profile", TaskFamily.UNKNOWN.value)
         try:
             task_profile = TaskFamily(tp)
@@ -241,18 +242,19 @@ class ConfigSnapshot:
 # Metric / signal snapshots
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class EvalMetrics:
     """Common evaluation metrics for a given split."""
 
-    loss: Optional[float] = None
-    ppl: Optional[float] = None
-    accuracy: Optional[float] = None
-    n: Optional[int] = None  # number of examples used
+    loss: float | None = None
+    ppl: float | None = None
+    accuracy: float | None = None
+    n: int | None = None  # number of examples used
 
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "loss": self.loss,
             "ppl": self.ppl,
@@ -262,7 +264,7 @@ class EvalMetrics:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "EvalMetrics":
+    def from_dict(d: dict[str, Any]) -> EvalMetrics:
         return EvalMetrics(
             loss=d.get("loss"),
             ppl=d.get("ppl"),
@@ -281,21 +283,21 @@ class SignalSnapshot:
     test: EvalMetrics = field(default_factory=EvalMetrics)
 
     # Precomputed convenience scalars
-    gap: Optional[float] = None  # e.g., test_ppl / train_ppl
+    gap: float | None = None  # e.g., test_ppl / train_ppl
 
     # Efficiency / geometry (usually from LoRA delta auditing)
-    stable_rank_mean: Optional[float] = None
-    utilization_mean: Optional[float] = None  # stable_rank_mean / r (if available)
+    stable_rank_mean: float | None = None
+    utilization_mean: float | None = None  # stable_rank_mean / r (if available)
 
     # Overwrite / amplitude (activation-based dominance recommended)
-    dominance_act_mean: Optional[float] = None
+    dominance_act_mean: float | None = None
 
     # Spectral (optional, mainly for grokking / long training)
-    kappa_mean: Optional[float] = None
+    kappa_mean: float | None = None
 
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "train": self.train.to_dict(),
             "test": self.test.to_dict(),
@@ -308,7 +310,7 @@ class SignalSnapshot:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "SignalSnapshot":
+    def from_dict(d: dict[str, Any]) -> SignalSnapshot:
         return SignalSnapshot(
             train=EvalMetrics.from_dict(d.get("train") or {}),
             test=EvalMetrics.from_dict(d.get("test") or {}),
@@ -325,6 +327,7 @@ class SignalSnapshot:
 # Recommendations
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Recommendation:
     """A small, human-readable recommendation emitted by policies/monitors."""
@@ -334,15 +337,15 @@ class Recommendation:
     message: str
 
     # Optional: why we think this helps
-    rationale: Optional[str] = None
+    rationale: str | None = None
 
     # Optional: scope/caveats/confidence
-    confidence: Optional[float] = None  # 0..1
-    scope: Optional[str] = None
+    confidence: float | None = None  # 0..1
+    scope: str | None = None
 
-    evidence: Dict[str, Any] = field(default_factory=dict)
+    evidence: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "severity": self.severity.value,
             "action": self.action,
@@ -354,7 +357,7 @@ class Recommendation:
         }
 
     @staticmethod
-    def from_dict(d: Dict[str, Any]) -> "Recommendation":
+    def from_dict(d: dict[str, Any]) -> Recommendation:
         sev = d.get("severity", Severity.INFO.value)
         try:
             severity = Severity(sev)

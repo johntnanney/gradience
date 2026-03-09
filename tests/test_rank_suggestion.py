@@ -4,6 +4,7 @@ from gradience.vnext.rank_suggestion import (
     suggest_global_ranks_from_audit,
 )
 
+
 class TestRankSuggestion(unittest.TestCase):
     def test_infer_current_r(self):
         audit = {
@@ -29,7 +30,7 @@ class TestRankSuggestion(unittest.TestCase):
         self.assertEqual(result.suggested_r_median, 2)
         self.assertEqual(result.suggested_r_p90, 4)
         self.assertEqual(result.params_at_r_median, 250)  # 1000*(2/8)
-        self.assertEqual(result.params_at_r_p90, 500)     # 1000*(4/8)
+        self.assertEqual(result.params_at_r_p90, 500)  # 1000*(4/8)
 
     def test_never_suggest_increase(self):
         audit = {
@@ -44,6 +45,7 @@ class TestRankSuggestion(unittest.TestCase):
         self.assertEqual(result.current_r, 8)
         self.assertEqual(result.suggested_r_median, 8)
         self.assertEqual(result.suggested_r_p90, 8)
+
 
 if __name__ == "__main__":
     unittest.main()

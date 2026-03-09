@@ -18,7 +18,7 @@ def compute_merge_outcomes(
     score_B_merged: float,
     *,
     eps: float = 1e-12,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute merge outcome metrics.
 
     Parameters
@@ -74,4 +74,4 @@ def is_bad_merge(
     -------
     True if the merge is classified as bad (Q_min below threshold OR D above threshold).
     """
-    return Q_min < Q_min_threshold or D > D_threshold
+    return Q_min < Q_min_threshold or D_threshold < D

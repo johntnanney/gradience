@@ -17,11 +17,7 @@ def format_sql(example: dict) -> str:
     Dataset: b-mc2/sql-create-context
     Fields: context (schema), question, answer (SQL)
     """
-    return (
-        f"### Schema:\n{example['context']}\n\n"
-        f"### Question:\n{example['question']}\n\n"
-        f"### SQL:\n{example['answer']}"
-    )
+    return f"### Schema:\n{example['context']}\n\n### Question:\n{example['question']}\n\n### SQL:\n{example['answer']}"
 
 
 def format_chat(example: dict) -> str:
@@ -35,15 +31,8 @@ def format_chat(example: dict) -> str:
     output = example["output"]
 
     if inp and inp.strip():
-        return (
-            f"### Instruction:\n{instruction}\n\n"
-            f"### Input:\n{inp}\n\n"
-            f"### Response:\n{output}"
-        )
-    return (
-        f"### Instruction:\n{instruction}\n\n"
-        f"### Response:\n{output}"
-    )
+        return f"### Instruction:\n{instruction}\n\n### Input:\n{inp}\n\n### Response:\n{output}"
+    return f"### Instruction:\n{instruction}\n\n### Response:\n{output}"
 
 
 def format_math(example: dict) -> str:
@@ -52,10 +41,7 @@ def format_math(example: dict) -> str:
     Dataset: gsm8k (main)
     Fields: question, answer (includes reasoning + #### final_answer)
     """
-    return (
-        f"### Question:\n{example['question']}\n\n"
-        f"### Answer:\n{example['answer']}"
-    )
+    return f"### Question:\n{example['question']}\n\n### Answer:\n{example['answer']}"
 
 
 def format_code(example: dict) -> str:
@@ -69,15 +55,8 @@ def format_code(example: dict) -> str:
     output = example["output"]
 
     if inp and inp.strip():
-        return (
-            f"### Instruction:\n{instruction}\n\n"
-            f"### Input:\n{inp}\n\n"
-            f"### Code:\n{output}"
-        )
-    return (
-        f"### Instruction:\n{instruction}\n\n"
-        f"### Code:\n{output}"
-    )
+        return f"### Instruction:\n{instruction}\n\n### Input:\n{inp}\n\n### Code:\n{output}"
+    return f"### Instruction:\n{instruction}\n\n### Code:\n{output}"
 
 
 # Registry mapping task name -> formatter
@@ -96,7 +75,5 @@ def get_formatter(task_name: str):
     """
     fn = TASK_FORMATTERS.get(task_name)
     if fn is None:
-        raise ValueError(
-            f"Unknown task '{task_name}'. Available: {sorted(TASK_FORMATTERS.keys())}"
-        )
+        raise ValueError(f"Unknown task '{task_name}'. Available: {sorted(TASK_FORMATTERS.keys())}")
     return fn

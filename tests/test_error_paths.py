@@ -32,7 +32,6 @@ from gradience.exceptions import (
     TelemetryError,
 )
 
-
 # ===========================================================================
 # lora_audit error paths
 # ===========================================================================
@@ -73,8 +72,8 @@ class TestLoraAuditErrors:
         from gradience.vnext.audit.lora_audit import _orient_lora_factors
 
         # Use asymmetric dims so standard check (A[0]==B[1]) fails
-        A = torch.randn(64, 4)   # (in, r) — transposed
-        B = torch.randn(4, 32)   # (r, out) — transposed
+        A = torch.randn(64, 4)  # (in, r) — transposed
+        B = torch.randn(4, 32)  # (r, out) — transposed
         A_out, B_out, r = _orient_lora_factors(A, B)
         assert r == 4
 
@@ -102,9 +101,8 @@ class TestLoraAuditErrors:
         yaml_path = tmp_path / "config.yaml"
         yaml_path.write_text("r: 4\nlora_alpha: 4\n")
 
-        with patch.object(lora_audit, "yaml", None):
-            with pytest.raises(DependencyError, match="PyYAML"):
-                lora_audit._load_json_or_yaml(yaml_path)
+        with patch.object(lora_audit, "yaml", None), pytest.raises(DependencyError, match="PyYAML"):
+            lora_audit._load_json_or_yaml(yaml_path)
 
     def test_load_json_config_valid(self, tmp_path: Path):
         """Loading valid JSON config should succeed."""
@@ -142,6 +140,7 @@ class TestMergeErrors:
             }
             try:
                 from safetensors.torch import save_file
+
                 save_file(weights, d / "adapter_model.safetensors")
             except ImportError:
                 torch.save(weights, d / "adapter_model.bin")
@@ -166,6 +165,7 @@ class TestMergeErrors:
         }
         try:
             from safetensors.torch import save_file
+
             save_file(weights, d / "adapter_model.safetensors")
         except ImportError:
             torch.save(weights, d / "adapter_model.bin")
@@ -190,6 +190,7 @@ class TestMergeErrors:
         }
         try:
             from safetensors.torch import save_file
+
             save_file(weights, d / "adapter_model.safetensors")
         except ImportError:
             torch.save(weights, d / "adapter_model.bin")
@@ -235,7 +236,7 @@ class TestRankSuggestionErrors:
         """Audit dict without rank info should raise ValueError."""
         from gradience.vnext.rank_suggestion import suggest_global_ranks_from_audit
 
-        audit: Dict[str, Any] = {
+        audit: dict[str, Any] = {
             "total_lora_params": 1000,
             # No r, current_r, stable_rank_mean, or utilization_mean
         }
@@ -253,7 +254,7 @@ class TestRankSuggestionErrors:
         """Audit dict without layer data should raise AuditError."""
         from gradience.vnext.rank_suggestion import suggest_per_layer_ranks
 
-        audit: Dict[str, Any] = {"n_layers": 0}
+        audit: dict[str, Any] = {"n_layers": 0}
         with pytest.raises(AuditError, match="layer data"):
             suggest_per_layer_ranks(audit)
 
@@ -295,6 +296,7 @@ class TestSvdTruncateErrors:
         }
         try:
             from safetensors.torch import save_file
+
             save_file(weights, d / "adapter_model.safetensors")
         except ImportError:
             torch.save(weights, d / "adapter_model.bin")
@@ -339,6 +341,7 @@ class TestSvdTruncateErrors:
         weights = {"some_other_key": torch.randn(4, 4)}
         try:
             from safetensors.torch import save_file
+
             save_file(weights, d / "adapter_model.safetensors")
         except ImportError:
             torch.save(weights, d / "adapter_model.bin")
@@ -435,10 +438,7 @@ class TestTelemetryReaderErrors:
         from gradience.vnext.telemetry_reader import TelemetryReader
 
         jsonl = tmp_path / "bad_schema.jsonl"
-        jsonl.write_text(
-            json.dumps({"schema": "wrong/v999", "ts": 1.0, "run_id": "x", "event": "run_start"})
-            + "\n"
-        )
+        jsonl.write_text(json.dumps({"schema": "wrong/v999", "ts": 1.0, "run_id": "x", "event": "run_start"}) + "\n")
 
         reader = TelemetryReader(jsonl, strict_schema=True)
         with pytest.raises(TelemetrySchemaError, match="schema mismatch"):
@@ -451,10 +451,7 @@ class TestTelemetryReaderErrors:
 
         jsonl = tmp_path / "bad_format.jsonl"
         # Valid schema but missing 'run_id'
-        jsonl.write_text(
-            json.dumps({"schema": "gradience.vnext.telemetry/v1", "ts": 1.0, "event": "run_start"})
-            + "\n"
-        )
+        jsonl.write_text(json.dumps({"schema": "gradience.vnext.telemetry/v1", "ts": 1.0, "event": "run_start"}) + "\n")
 
         reader = TelemetryReader(jsonl, strict_schema=True)
         with pytest.raises(TelemetryFormatError, match="missing required key"):
@@ -465,10 +462,7 @@ class TestTelemetryReaderErrors:
         from gradience.vnext.telemetry_reader import TelemetryReader
 
         jsonl = tmp_path / "bad_schema.jsonl"
-        jsonl.write_text(
-            json.dumps({"schema": "wrong/v999", "ts": 1.0, "run_id": "x", "event": "run_start"})
-            + "\n"
-        )
+        jsonl.write_text(json.dumps({"schema": "wrong/v999", "ts": 1.0, "run_id": "x", "event": "run_start"}) + "\n")
 
         reader = TelemetryReader(jsonl, strict_schema=False)
         events = list(reader.iter_events())
@@ -481,10 +475,7 @@ class TestTelemetryReaderErrors:
         from gradience.vnext.telemetry_reader import TelemetryReader
 
         jsonl = tmp_path / "bad_format.jsonl"
-        jsonl.write_text(
-            json.dumps({"schema": "gradience.vnext.telemetry/v1", "ts": 1.0, "event": "run_start"})
-            + "\n"
-        )
+        jsonl.write_text(json.dumps({"schema": "gradience.vnext.telemetry/v1", "ts": 1.0, "event": "run_start"}) + "\n")
 
         reader = TelemetryReader(jsonl, strict_schema=False)
         events = list(reader.iter_events())

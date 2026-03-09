@@ -22,16 +22,16 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 pairs = [
-    ("Pair 06\ncatsubcat \u00d7 btgenbot",       0.74, 0.18),
-    ("Pair 04\nopenwebmath-r64 \u00d7 btgenbot",  0.68, 0.15),
-    ("Pair 03\nmagicoder \u00d7 btgenbot",         0.61, 0.12),
-    ("Pair 01\nmetamath \u00d7 openwebmath",       0.22, 0.11),
-    ("Pair 02\nmetamath \u00d7 magicoder",         0.09, 0.08),
+    ("Pair 06\ncatsubcat \u00d7 btgenbot", 0.74, 0.18),
+    ("Pair 04\nopenwebmath-r64 \u00d7 btgenbot", 0.68, 0.15),
+    ("Pair 03\nmagicoder \u00d7 btgenbot", 0.61, 0.12),
+    ("Pair 01\nmetamath \u00d7 openwebmath", 0.22, 0.11),
+    ("Pair 02\nmetamath \u00d7 magicoder", 0.09, 0.08),
 ]
 
-labels    = [p[0] for p in pairs]
-d_naive   = [p[1] for p in pairs]
-d_rec     = [p[2] for p in pairs]
+labels = [p[0] for p in pairs]
+d_naive = [p[1] for p in pairs]
+d_rec = [p[2] for p in pairs]
 
 y_pos = np.arange(len(pairs))
 
@@ -40,8 +40,8 @@ y_pos = np.arange(len(pairs))
 # ---------------------------------------------------------------------------
 
 COL_NAIVE = "#c44e52"
-COL_REC   = "#2a7b9b"
-COL_LINE  = "#c0c0c0"
+COL_REC = "#2a7b9b"
+COL_LINE = "#c0c0c0"
 COL_THRESH = "#d4a84a"
 COL_ANNOT = "#888888"
 
@@ -56,22 +56,36 @@ for i in range(len(pairs)):
     delta = d_naive[i] - d_rec[i]
     lw = 2.8 if delta > 0.3 else 1.8
     ax.plot(
-        [d_naive[i], d_rec[i]], [y_pos[i], y_pos[i]],
-        color=COL_LINE, linewidth=lw, zorder=1, solid_capstyle="round",
+        [d_naive[i], d_rec[i]],
+        [y_pos[i], y_pos[i]],
+        color=COL_LINE,
+        linewidth=lw,
+        zorder=1,
+        solid_capstyle="round",
     )
 
 # Naive dots
 ax.scatter(
-    d_naive, y_pos,
-    s=100, color=COL_NAIVE, edgecolors="white", linewidths=0.9,
-    zorder=3, label="Naive merge",
+    d_naive,
+    y_pos,
+    s=100,
+    color=COL_NAIVE,
+    edgecolors="white",
+    linewidths=0.9,
+    zorder=3,
+    label="Naive merge",
 )
 
 # Recommended dots
 ax.scatter(
-    d_rec, y_pos,
-    s=100, color=COL_REC, edgecolors="white", linewidths=0.9,
-    zorder=3, label="Recommended merge",
+    d_rec,
+    y_pos,
+    s=100,
+    color=COL_REC,
+    edgecolors="white",
+    linewidths=0.9,
+    zorder=3,
+    label="Recommended merge",
 )
 
 # ---------------------------------------------------------------------------
@@ -82,10 +96,14 @@ for i in range(3):
     delta = d_naive[i] - d_rec[i]
     midx = (d_naive[i] + d_rec[i]) / 2
     ax.text(
-        midx, y_pos[i] - 0.28,
+        midx,
+        y_pos[i] - 0.28,
         f"\u0394D = {delta:.2f}",
-        fontsize=8, fontweight="bold", color=COL_REC,
-        ha="center", va="center",
+        fontsize=8,
+        fontweight="bold",
+        color=COL_REC,
+        ha="center",
+        va="center",
     )
 
 # Pair 02 — balanced control annotation
@@ -93,7 +111,9 @@ ax.annotate(
     "balanced control: unchanged",
     xy=((d_naive[4] + d_rec[4]) / 2, y_pos[4]),
     xytext=(0.42, y_pos[4] + 0.02),
-    fontsize=7.5, fontstyle="italic", color=COL_ANNOT,
+    fontsize=7.5,
+    fontstyle="italic",
+    color=COL_ANNOT,
     va="center",
     arrowprops=dict(arrowstyle="-", color="#d0d0d0", lw=0.6),
 )
@@ -104,8 +124,13 @@ ax.annotate(
 
 ax.axvline(x=0.2, color=COL_THRESH, linewidth=1.0, linestyle="--", alpha=0.6, zorder=0)
 ax.text(
-    0.21, len(pairs) - 0.65, "D = 0.2",
-    fontsize=7, color=COL_THRESH, fontstyle="italic", va="top",
+    0.21,
+    len(pairs) - 0.65,
+    "D = 0.2",
+    fontsize=7,
+    color=COL_THRESH,
+    fontstyle="italic",
+    va="top",
 )
 
 # ---------------------------------------------------------------------------
@@ -130,14 +155,19 @@ ax.xaxis.grid(True, color="#eee", linewidth=0.5)
 
 # Legend
 ax.legend(
-    loc="lower right", fontsize=8.5, framealpha=0.95,
-    edgecolor="#ddd", handletextpad=0.5,
+    loc="lower right",
+    fontsize=8.5,
+    framealpha=0.95,
+    edgecolor="#ddd",
+    handletextpad=0.5,
 )
 
 # Title
 fig.suptitle(
     "Figure 1.  Structural domination drops sharply in the imbalanced pairs",
-    fontsize=11, fontweight="bold", y=0.99,
+    fontsize=11,
+    fontweight="bold",
+    y=0.99,
 )
 
 plt.tight_layout(rect=[0, 0, 1, 0.94])

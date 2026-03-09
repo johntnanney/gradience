@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 
 
-def _write_json(path: Path, obj: Dict[str, Any]) -> None:
+def _write_json(path: Path, obj: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
@@ -23,7 +23,7 @@ def _write_json(path: Path, obj: Dict[str, Any]) -> None:
     )
 
 
-def render_markdown(report: Dict[str, Any]) -> str:
+def render_markdown(report: dict[str, Any]) -> str:
     """
     Render a minimal, stable markdown summary.
     Expected (v0.1): report contains keys similar to the planned bench schema,
@@ -73,21 +73,21 @@ def render_markdown(report: Dict[str, Any]) -> str:
         lines.append(f"| `{k}` | {params} | {acc} | {delta} | {red} | {verdict} |")
 
     lines.append("")
-    
+
     # Magnitude diagnostics section
     # Try instrumentation first (for v0.1 schema), then fallback to top-level
     instrumentation = report.get("instrumentation", {})
     composition = instrumentation.get("composition", {}) or report.get("composition", {})
     gain_summary = report.get("summary", {}).get("gain", {})
     global_gain = report.get("global", {}).get("gain", {})
-    
+
     # Check if composition analysis was enabled
     has_composition = bool(composition)
-    
+
     if gain_summary or global_gain:
         lines.append("## Magnitude diagnostics (LoRA ΔW)")
         lines.append("")
-        
+
         # Overall magnitude metrics
         delta_fro_mean = gain_summary.get("delta_fro_mean")
         delta_op_mean = gain_summary.get("delta_op_mean")
@@ -99,21 +99,21 @@ def render_markdown(report: Dict[str, Any]) -> str:
             if delta_op_mean is not None:
                 lines.append(f"- **Mean ||ΔW||_2:** {delta_op_mean:.6f}")
             lines.append("")
-        
+
         # Top 5 layers by energy concentration (if composition analysis enabled)
         if has_composition and composition.get("top_k", {}).get("layers"):
             lines.append("### Top 5 layers by Δ energy")
             lines.append("")
             top_layers = composition["top_k"]["layers"][:5]  # Ensure max 5
             total_energy = composition.get("energy_total_fro2", 0)
-            
+
             for i, layer_info in enumerate(top_layers, 1):
                 layer_num = layer_info["layer"]
                 share = layer_info["share"]
                 energy = layer_info["energy_fro2"]
                 lines.append(f"{i}. **Layer {layer_num}:** {share:.1%} ({energy:.6f})")
             lines.append("")
-        
+
         # Top 5 modules by Frobenius norm
         top_modules = global_gain.get("top_modules_by_delta_fro", [])
         if top_modules:
@@ -128,7 +128,7 @@ def render_markdown(report: Dict[str, Any]) -> str:
                 short_name = ".".join(short_name)
                 lines.append(f"{i}. **{short_name}** (L{layer_num}): {delta_fro:.6f}")
             lines.append("")
-        
+
         # Energy concentration summary (if composition analysis enabled)
         if has_composition:
             top_10pct_share = composition.get("top_10pct", {}).get("share")
@@ -168,7 +168,7 @@ def render_markdown(report: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_report(output_dir: str | Path, report: Dict[str, Any]) -> Tuple[Path, Path]:
+def write_report(output_dir: str | Path, report: dict[str, Any]) -> tuple[Path, Path]:
     """
     Write bench.json and bench.md into output_dir.
     Returns (json_path, md_path).

@@ -104,9 +104,7 @@ def format_mnli_prompt(
     Formatted prompt string ready for causal LM generation.
     """
     if template_mode == "predibase":
-        return _PREDIBASE_MNLI_TEMPLATE.format(
-            premise=premise.strip(), hypothesis=hypothesis.strip()
-        )
+        return _PREDIBASE_MNLI_TEMPLATE.format(premise=premise.strip(), hypothesis=hypothesis.strip())
     template = _MNLI_FEW_SHOT if few_shot else _MNLI_TEMPLATE
     return template.format(premise=premise.strip(), hypothesis=hypothesis.strip())
 
@@ -158,9 +156,7 @@ def format_qnli_prompt(
     Formatted prompt string ready for causal LM generation.
     """
     if template_mode == "predibase":
-        return _PREDIBASE_QNLI_TEMPLATE.format(
-            question=question.strip(), sentence=sentence.strip()
-        )
+        return _PREDIBASE_QNLI_TEMPLATE.format(question=question.strip(), sentence=sentence.strip())
     template = _QNLI_FEW_SHOT if few_shot else _QNLI_TEMPLATE
     return template.format(question=question.strip(), sentence=sentence.strip())
 

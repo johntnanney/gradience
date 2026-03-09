@@ -6,13 +6,6 @@ import json
 
 import pytest
 
-from gradience.vnext.merge.spectral_compat import SubspaceMetrics
-from gradience.vnext.merge.verdicts import (
-    CompatibilityVerdict,
-    LayerVerdict,
-    VerdictThresholds,
-    assess_layer,
-)
 from gradience.vnext.merge.report import (
     MergeAuditReport,
     build_report,
@@ -20,7 +13,13 @@ from gradience.vnext.merge.report import (
     to_markdown,
     write_reports,
 )
-
+from gradience.vnext.merge.spectral_compat import SubspaceMetrics
+from gradience.vnext.merge.verdicts import (
+    CompatibilityVerdict,
+    LayerVerdict,
+    VerdictThresholds,
+    assess_layer,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -174,9 +173,17 @@ class TestToJson:
         report = _make_report()
         data = to_json(report)
         required = [
-            "timestamp", "gradience_version", "adapter_a", "adapter_b",
-            "matching", "aggregate", "per_layer", "recommendations",
-            "issues", "warnings", "thresholds",
+            "timestamp",
+            "gradience_version",
+            "adapter_a",
+            "adapter_b",
+            "matching",
+            "aggregate",
+            "per_layer",
+            "recommendations",
+            "issues",
+            "warnings",
+            "thresholds",
         ]
         for key in required:
             assert key in data, f"Missing key: {key}"

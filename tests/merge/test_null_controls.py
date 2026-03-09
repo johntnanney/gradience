@@ -6,10 +6,9 @@ import pytest
 import torch
 
 from gradience.vnext.merge.null_controls import (
-    randomized_subspace_control,
     layer_shuffle_control,
+    randomized_subspace_control,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

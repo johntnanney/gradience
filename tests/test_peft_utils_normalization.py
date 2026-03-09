@@ -5,17 +5,17 @@ Tests for peft_utils normalization and pattern-completion functions.
 import pytest
 
 from gradience.peft_utils import (
+    create_complete_alpha_pattern,
+    create_complete_rank_pattern,
+    normalize_alpha_pattern,
     normalize_peft_module_name,
     normalize_rank_pattern,
-    normalize_alpha_pattern,
-    create_complete_rank_pattern,
-    create_complete_alpha_pattern,
 )
-
 
 # ---------------------------------------------------------------------------
 # normalize_peft_module_name
 # ---------------------------------------------------------------------------
+
 
 class TestNormalizePeftModuleName:
     """Group of tests kept as plain functions via parametrize."""
@@ -74,6 +74,7 @@ def test_normalize_peft_module_name_empty_after_strip():
 # normalize_rank_pattern
 # ---------------------------------------------------------------------------
 
+
 def test_normalize_rank_pattern_strips_prefixes():
     pattern = {
         "base_model.model.layer.0.q": 8,
@@ -104,6 +105,7 @@ def test_normalize_rank_pattern_preserves_values():
 # normalize_alpha_pattern
 # ---------------------------------------------------------------------------
 
+
 def test_normalize_alpha_pattern_strips_prefixes():
     pattern = {
         "base_model.model.layer.0.q": 16,
@@ -124,6 +126,7 @@ def test_normalize_alpha_pattern_empty_dict():
 # ---------------------------------------------------------------------------
 # create_complete_rank_pattern
 # ---------------------------------------------------------------------------
+
 
 def test_create_complete_rank_pattern_fills_defaults():
     """Modules absent from partial_rank_pattern get default_rank."""
@@ -183,6 +186,7 @@ def test_create_complete_rank_pattern_all_specified():
 # ---------------------------------------------------------------------------
 # create_complete_alpha_pattern
 # ---------------------------------------------------------------------------
+
 
 def test_create_complete_alpha_pattern_fills_defaults():
     """Modules absent from partial_alpha_pattern get default_alpha."""

@@ -26,15 +26,15 @@ Design goals:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
-
 import json
 import logging
 import math
 import sys
 import time
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
 
@@ -42,25 +42,49 @@ from gradience.exceptions import AuditError, DependencyError
 
 logger = logging.getLogger(__name__)
 
+
 # ------------------------------------------------------------
 # Module typing (attn/mlp/other) across common architectures
 # ------------------------------------------------------------
 def infer_module_type(name: str) -> str:
     n = (name or "").lower()
     attn_hits = [
-        "q_proj","k_proj","v_proj","o_proj",
-        ".attention.","self_attn",".attn.","attn.",
-        "c_attn","c_proj","out_proj",
-        "attention.self.query","attention.self.key","attention.self.value",
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        ".attention.",
+        "self_attn",
+        ".attn.",
+        "attn.",
+        "c_attn",
+        "c_proj",
+        "out_proj",
+        "attention.self.query",
+        "attention.self.key",
+        "attention.self.value",
         "attention.output.dense",
-        "q_lin","k_lin","v_lin","out_lin",
-        ".query.",".key.",".value.",
+        "q_lin",
+        "k_lin",
+        "v_lin",
+        "out_lin",
+        ".query.",
+        ".key.",
+        ".value.",
     ]
     mlp_hits = [
-        "gate_proj","up_proj","down_proj",
-        ".mlp.","mlp.",".ffn.","ffn.","feed_forward",
+        "gate_proj",
+        "up_proj",
+        "down_proj",
+        ".mlp.",
+        "mlp.",
+        ".ffn.",
+        "ffn.",
+        "feed_forward",
         "intermediate.dense",
-        "fc1","fc2","c_fc",
+        "fc1",
+        "fc2",
+        "c_fc",
     ]
     if any(h in n for h in attn_hits):
         if "output.dense" in n and "attention.output" not in n and "attention." not in n and "attn" not in n:
@@ -78,7 +102,7 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 
-safetensors_load_file: Optional[Any] = None
+safetensors_load_file: Any | None = None
 try:
     from safetensors.torch import load_file as safetensors_load_file
 except ImportError:  # pragma: no cover
@@ -89,17 +113,19 @@ except ImportError:  # pragma: no cover
 # Public data structures
 # -----------------------------
 
+
 @dataclass(frozen=True)
 class LoRALayerAudit:
     """Audit metrics for a single LoRA layer (one A/B pair)."""
+
     name: str
     module_type: str  # "attn" | "mlp" | "other"
     r: int
-    alpha: Optional[float]
+    alpha: float | None
     a_key: str
     b_key: str
-    a_shape: Tuple[int, int]
-    b_shape: Tuple[int, int]
+    a_shape: tuple[int, int]
+    b_shape: tuple[int, int]
     params: int
 
     stable_rank: float
@@ -115,42 +141,42 @@ class LoRALayerAudit:
     energy_rank_99: int
 
     # optional: store top singular values (JSON-friendly floats)
-    top_singular_values: Optional[List[float]] = None
+    top_singular_values: list[float] | None = None
 
-    # optional: policy-based rank suggestions 
-    rank_suggestions: Optional[Dict[str, Any]] = None
+    # optional: policy-based rank suggestions
+    rank_suggestions: dict[str, Any] | None = None
 
     # Update Dominance Ratio (UDR) fields
-    delta_sigma_max: float = 0.0        # ||ΔW||_2 (spectral norm of update)
-    delta_fro_norm: float = 0.0         # ||ΔW||_F (Frobenius norm of update) 
-    scale: float = 0.0                  # alpha/r scaling factor
-    
+    delta_sigma_max: float = 0.0  # ||ΔW||_2 (spectral norm of update)
+    delta_fro_norm: float = 0.0  # ||ΔW||_F (Frobenius norm of update)
+    scale: float = 0.0  # alpha/r scaling factor
+
     # Base model norms (optional - None if not available)
-    base_sigma_max: Optional[float] = None    # ||W_base||_2
-    base_fro_norm: Optional[float] = None     # ||W_base||_F
-    
+    base_sigma_max: float | None = None  # ||W_base||_2
+    base_fro_norm: float | None = None  # ||W_base||_F
+
     # UDR metrics (computed when base available)
-    udr: Optional[float] = None               # delta_sigma_max / base_sigma_max
-    udr_f: Optional[float] = None             # delta_fro_norm / base_fro_norm  
-    sdi: Optional[float] = None               # log10(udr + eps)
+    udr: float | None = None  # delta_sigma_max / base_sigma_max
+    udr_f: float | None = None  # delta_fro_norm / base_fro_norm
+    sdi: float | None = None  # log10(udr + eps)
 
     # Relative perturbation metrics (computed from in-memory base weights when available)
-    rel_delta_fro: Optional[float] = None     # ||ΔW||_F / ||W_base||_F (in-memory)
-    rel_delta_op: Optional[float] = None      # ||ΔW||_2 / ||W_base||_2 (in-memory)
+    rel_delta_fro: float | None = None  # ||ΔW||_F / ||W_base||_F (in-memory)
+    rel_delta_op: float | None = None  # ||ΔW||_2 / ||W_base||_2 (in-memory)
 
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
     @property
     def layer_name(self) -> str:
         """Compatibility alias for name attribute."""
         return self.name
-    
+
     @property
     def policy_rank_suggestions(self):
         """Compatibility alias for rank_suggestions attribute."""
         return self.rank_suggestions
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = {
             "name": self.name,
             "module_type": self.module_type,
@@ -175,7 +201,7 @@ class LoRALayerAudit:
             "delta_fro_norm": self.delta_fro_norm,
             "scale": self.scale,
             "base_sigma_max": self.base_sigma_max,
-            "base_fro_norm": self.base_fro_norm, 
+            "base_fro_norm": self.base_fro_norm,
             "udr": self.udr,
             "udr_f": self.udr_f,
             "sdi": self.sdi,
@@ -192,18 +218,20 @@ class LoRALayerAudit:
             scale = None
             if self.r and self.alpha is not None:
                 scale = float(self.alpha) / float(self.r)
-            d['adapter_scale'] = scale
+            d["adapter_scale"] = scale
             # Unscaled Frobenius norm of ΔW
-            if getattr(self, 'frob_sq', None) is not None:
+            if getattr(self, "frob_sq", None) is not None:
                 import math
-                d['frob_norm'] = math.sqrt(max(float(self.frob_sq), 0.0))
+
+                d["frob_norm"] = math.sqrt(max(float(self.frob_sq), 0.0))
             # Scaled norms (proxy for 'loudness')
             if scale is not None:
-                if getattr(self, 'sigma_max', None) is not None:
-                    d['sigma_max_scaled'] = scale * float(self.sigma_max)
-                if getattr(self, 'frob_sq', None) is not None:
+                if getattr(self, "sigma_max", None) is not None:
+                    d["sigma_max_scaled"] = scale * float(self.sigma_max)
+                if getattr(self, "frob_sq", None) is not None:
                     import math
-                    d['frob_norm_scaled'] = scale * math.sqrt(max(float(self.frob_sq), 0.0))
+
+                    d["frob_norm_scaled"] = scale * math.sqrt(max(float(self.frob_sq), 0.0))
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
@@ -213,9 +241,10 @@ class LoRALayerAudit:
 @dataclass(frozen=True)
 class LoRAAuditResult:
     """Full adapter audit result."""
-    peft_dir: Optional[str]
-    adapter_config_path: Optional[str]
-    adapter_weights_path: Optional[str]
+
+    peft_dir: str | None
+    adapter_config_path: str | None
+    adapter_weights_path: str | None
 
     total_lora_params: int
     n_layers: int
@@ -230,24 +259,24 @@ class LoRAAuditResult:
     energy_rank_90_p50: float
     energy_rank_90_p90: float
 
-    by_type: Dict[str, Dict[str, float]]
-    layers: List[LoRALayerAudit]
+    by_type: dict[str, dict[str, float]]
+    layers: list[LoRALayerAudit]
 
     # UDR computation tracking (must be mutable to set after creation)
     _udr_enabled: bool = field(default=False, init=False, repr=False, compare=False)
 
     # Per-policy global suggestions (Step 5) - DEPRECATED: Use policies.global_statistics
-    policy_global_suggestions: Optional[Dict[str, Dict[str, float]]] = None
-    
+    policy_global_suggestions: dict[str, dict[str, float]] | None = None
+
     # Future-proof policy structure (Schema v1)
     rank_policy_schema_version: int = 1
-    policies: Optional[Dict[str, Any]] = None
+    policies: dict[str, Any] | None = None
 
-    issues: List[str] = field(default_factory=list)
+    issues: list[str] = field(default_factory=list)
 
-    def to_summary_dict(self, *, include_layers: bool = False, topk_layers: Optional[int] = None) -> Dict[str, Any]:
+    def to_summary_dict(self, *, include_layers: bool = False, topk_layers: int | None = None) -> dict[str, Any]:
         """Return a JSON-serializable summary. Suitable for telemetry metrics(kind="lora_audit")."""
-        out: Dict[str, Any] = {
+        out: dict[str, Any] = {
             "total_lora_params": self.total_lora_params,
             "n_layers": self.n_layers,
             "stable_rank_mean": self.stable_rank_mean,
@@ -262,7 +291,7 @@ class LoRAAuditResult:
         # Legacy field for backward compatibility
         if self.policy_global_suggestions is not None:
             out["policy_global_suggestions"] = self.policy_global_suggestions
-        
+
         # New structured policy schema (v1)
         out["rank_policy_schema_version"] = self.rank_policy_schema_version
         if self.policies is not None:
@@ -282,17 +311,14 @@ class LoRAAuditResult:
                 # show the most "wasteful" layers first (lowest utilization)
                 layers = sorted(layers, key=lambda x: x.utilization)[:topk_layers]
             layer_rows = [l.to_dict() for l in layers]
-            out["layer_data"] = {
-                "layer_rows_schema": "v1",
-                "layer_rows": layer_rows
-            }
+            out["layer_data"] = {"layer_rows_schema": "v1", "layer_rows": layer_rows}
         # Normalize module_type for layer rows
-        layer_data = out.get('layer_data')
-        if isinstance(layer_data, dict) and isinstance(layer_data.get('layer_rows'), list):
-            for row in layer_data['layer_rows']:
+        layer_data = out.get("layer_data")
+        if isinstance(layer_data, dict) and isinstance(layer_data.get("layer_rows"), list):
+            for row in layer_data["layer_rows"]:
                 if isinstance(row, dict):
-                    nm = row.get('name') or row.get('module') or row.get('full_name') or ''
-                    row['module_type'] = infer_module_type(str(nm))
+                    nm = row.get("name") or row.get("module") or row.get("full_name") or ""
+                    row["module_type"] = infer_module_type(str(nm))
 
         # Suggested global ranks (snap k@90% p50/p90 into {1,2,4,8,16,32})
         def _snap_rank(k):
@@ -302,52 +328,54 @@ class LoRAAuditResult:
                 k = float(k)
             except (ValueError, TypeError):
                 return None
-            for r in (1,2,4,8,16,32):
+            for r in (1, 2, 4, 8, 16, 32):
                 if k <= r:
                     return r
             return 32
 
         if isinstance(out, dict):
-            p50 = out.get('energy_rank_90_p50')
-            p90 = out.get('energy_rank_90_p90')
-            out['suggested_r_global_median'] = _snap_rank(p50)
-            out['suggested_r_global_90'] = _snap_rank(p90)
+            p50 = out.get("energy_rank_90_p50")
+            p90 = out.get("energy_rank_90_p90")
+            out["suggested_r_global_median"] = _snap_rank(p50)
+            out["suggested_r_global_90"] = _snap_rank(p90)
 
         # Dominance ingredients summary (scaled by alpha/r)
         try:
             import math
+
             def _pct(vals, q):
                 if not vals:
                     return None
                 vals = sorted(vals)
                 idx = int(round((len(vals) - 1) * q))
                 return float(vals[idx])
+
             sigma_scaled = []
             frob_scaled = []
-            for l in getattr(self, 'layers', []) or []:
-                r = getattr(l, 'r', None)
-                alpha = getattr(l, 'alpha', None)
+            for l in getattr(self, "layers", []) or []:
+                r = getattr(l, "r", None)
+                alpha = getattr(l, "alpha", None)
                 if not r or alpha is None:
                     continue
                 try:
                     scale = float(alpha) / float(r)
                 except (ValueError, TypeError):
                     continue
-                sigma = getattr(l, 'sigma_max', None)
+                sigma = getattr(l, "sigma_max", None)
                 if sigma is not None:
                     sigma_scaled.append(scale * float(sigma))
-                frob_sq = getattr(l, 'frob_sq', None)
+                frob_sq = getattr(l, "frob_sq", None)
                 if frob_sq is not None:
                     frob = math.sqrt(max(float(frob_sq), 0.0))
                     frob_scaled.append(scale * frob)
             if sigma_scaled:
-                out['delta_sigma_max_scaled_mean'] = float(sum(sigma_scaled) / len(sigma_scaled))
-                out['delta_sigma_max_scaled_p50'] = _pct(sigma_scaled, 0.50)
-                out['delta_sigma_max_scaled_p90'] = _pct(sigma_scaled, 0.90)
+                out["delta_sigma_max_scaled_mean"] = float(sum(sigma_scaled) / len(sigma_scaled))
+                out["delta_sigma_max_scaled_p50"] = _pct(sigma_scaled, 0.50)
+                out["delta_sigma_max_scaled_p90"] = _pct(sigma_scaled, 0.90)
             if frob_scaled:
-                out['delta_frob_norm_scaled_mean'] = float(sum(frob_scaled) / len(frob_scaled))
-                out['delta_frob_norm_scaled_p50'] = _pct(frob_scaled, 0.50)
-                out['delta_frob_norm_scaled_p90'] = _pct(frob_scaled, 0.90)
+                out["delta_frob_norm_scaled_mean"] = float(sum(frob_scaled) / len(frob_scaled))
+                out["delta_frob_norm_scaled_p50"] = _pct(frob_scaled, 0.50)
+                out["delta_frob_norm_scaled_p90"] = _pct(frob_scaled, 0.90)
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
@@ -355,24 +383,24 @@ class LoRAAuditResult:
         try:
             udr_values = [l.udr for l in self.layers if l.udr is not None]
             sdi_values = [l.sdi for l in self.layers if l.sdi is not None]
-            
+
             # Check if UDR computation was enabled at audit time
             if self._udr_enabled:
                 # Always emit n_layers_with_udr for API consistency when UDR is enabled
-                out['n_layers_with_udr'] = len(udr_values)
-            
+                out["n_layers_with_udr"] = len(udr_values)
+
             if udr_values:
-                out['udr_median'] = _pct(udr_values, 0.50)
-                out['udr_p90'] = _pct(udr_values, 0.90)
-                out['udr_max'] = max(udr_values)
-                out['udr_mean'] = float(sum(udr_values) / len(udr_values))
-                out['fraction_udr_gt_0_1'] = sum(1 for x in udr_values if x > 0.1) / len(udr_values)
-                out['fraction_udr_gt_0_3'] = sum(1 for x in udr_values if x > 0.3) / len(udr_values)
-            
+                out["udr_median"] = _pct(udr_values, 0.50)
+                out["udr_p90"] = _pct(udr_values, 0.90)
+                out["udr_max"] = max(udr_values)
+                out["udr_mean"] = float(sum(udr_values) / len(udr_values))
+                out["fraction_udr_gt_0_1"] = sum(1 for x in udr_values if x > 0.1) / len(udr_values)
+                out["fraction_udr_gt_0_3"] = sum(1 for x in udr_values if x > 0.3) / len(udr_values)
+
             if sdi_values:
-                out['sdi_median'] = _pct(sdi_values, 0.50)
-                out['sdi_p90'] = _pct(sdi_values, 0.90)
-                out['sdi_mean'] = float(sum(sdi_values) / len(sdi_values))
+                out["sdi_median"] = _pct(sdi_values, 0.50)
+                out["sdi_p90"] = _pct(sdi_values, 0.90)
+                out["sdi_mean"] = float(sum(sdi_values) / len(sdi_values))
 
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
@@ -380,11 +408,11 @@ class LoRAAuditResult:
         # Gain metrics
         try:
             gain_metrics = compute_gain_metrics(self.layers)
-            out['gain'] = gain_metrics['summary']
-            out['per_module_gain'] = gain_metrics['per_module']
-            out['per_layer_gain'] = gain_metrics['per_layer']
-            out['global_gain'] = gain_metrics['global']
-            out['composition'] = gain_metrics['composition']  # Add composition analysis
+            out["gain"] = gain_metrics["summary"]
+            out["per_module_gain"] = gain_metrics["per_module"]
+            out["per_layer_gain"] = gain_metrics["per_layer"]
+            out["global_gain"] = gain_metrics["global"]
+            out["composition"] = gain_metrics["composition"]  # Add composition analysis
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
 
@@ -394,12 +422,12 @@ class LoRAAuditResult:
         self,
         *,
         run_id: str,
-        step: Optional[int] = None,
-        ts: Optional[float] = None,
+        step: int | None = None,
+        ts: float | None = None,
         schema: str = "gradience.vnext.telemetry/v1",
         include_layers: bool = False,
-        topk_layers: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        topk_layers: int | None = None,
+    ) -> dict[str, Any]:
         """Convenience: wrap the summary as a vNext telemetry metrics event."""
         return {
             "schema": schema,
@@ -416,7 +444,7 @@ class LoRAAuditResult:
 
         We keep this tolerant so the auditor can be used standalone.
         """
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "stable_rank_mean": self.stable_rank_mean,
             "utilization_mean": self.utilization_mean,
             "extras": {"lora_audit": self.to_summary_dict(include_layers=False)},
@@ -424,10 +452,11 @@ class LoRAAuditResult:
 
         try:
             import dataclasses as _dc
+
             from gradience.vnext.types import SignalSnapshot
 
             fields = {f.name for f in _dc.fields(SignalSnapshot)}
-            filtered: Dict[str, Any] = {k: v for k, v in payload.items() if k in fields}
+            filtered: dict[str, Any] = {k: v for k, v in payload.items() if k in fields}
             # If SignalSnapshot has other required args, this will raise -> fallback to dict
             return SignalSnapshot(**filtered)
         except (AttributeError, KeyError, TypeError, ValueError):
@@ -438,36 +467,37 @@ class LoRAAuditResult:
 # Adapter config loading
 # -----------------------------
 
+
 @dataclass(frozen=True)
 class LoRAAdapterConfig:
-    r: Optional[int] = None
-    lora_alpha: Optional[float] = None
-    target_modules: Optional[List[str]] = None
+    r: int | None = None
+    lora_alpha: float | None = None
+    target_modules: list[str] | None = None
 
     # Optional PEFT pattern overrides (best-effort supported)
-    rank_pattern: Optional[Dict[str, int]] = None
-    alpha_pattern: Optional[Dict[str, float]] = None
+    rank_pattern: dict[str, int] | None = None
+    alpha_pattern: dict[str, float] | None = None
 
-    peft_type: Optional[str] = None
-    raw: Dict[str, Any] = field(default_factory=dict)
-    
+    peft_type: str | None = None
+    raw: dict[str, Any] = field(default_factory=dict)
+
     # UDR support: base model norms for dominance ratio computation
-    base_norms: Optional[Dict[str, Dict[str, float]]] = None
+    base_norms: dict[str, dict[str, float]] | None = None
 
 
-def _load_json_or_yaml(path: Union[str, Path]) -> Dict[str, Any]:
+def _load_json_or_yaml(path: str | Path) -> dict[str, Any]:
     p = Path(path)
     text = p.read_text(encoding="utf-8")
     if p.suffix.lower() in {".yaml", ".yml"}:
         if yaml is None:
             raise DependencyError("PyYAML is not installed, cannot read YAML adapter config.")
-        result: Dict[str, Any] = yaml.safe_load(text) or {}
+        result: dict[str, Any] = yaml.safe_load(text) or {}
         return result
-    parsed: Dict[str, Any] = json.loads(text)
+    parsed: dict[str, Any] = json.loads(text)
     return parsed
 
 
-def load_peft_adapter_config(path: Union[str, Path]) -> LoRAAdapterConfig:
+def load_peft_adapter_config(path: str | Path) -> LoRAAdapterConfig:
     """Load PEFT adapter_config.* and return a minimal normalized config."""
     raw = _load_json_or_yaml(path)
     # PEFT uses keys: r, lora_alpha, target_modules, rank_pattern, alpha_pattern
@@ -528,21 +558,21 @@ DEFAULT_ADAPTER_WEIGHT_NAMES = (
 
 
 def find_peft_files(
-    peft_dir: Union[str, Path],
+    peft_dir: str | Path,
     *,
     adapter_config_names: Sequence[str] = DEFAULT_ADAPTER_CONFIG_NAMES,
     adapter_weight_names: Sequence[str] = DEFAULT_ADAPTER_WEIGHT_NAMES,
-) -> Tuple[Optional[Path], Optional[Path], List[str]]:
+) -> tuple[Path | None, Path | None, list[str]]:
     """Find adapter_config.* and adapter weights file in a PEFT directory.
 
     Returns: (config_path, weights_path, issues)
     """
-    issues: List[str] = []
+    issues: list[str] = []
     d = Path(peft_dir)
     if not d.exists() or not d.is_dir():
         return None, None, [f"peft_dir not found or not a directory: {d}"]
 
-    config_path: Optional[Path] = None
+    config_path: Path | None = None
     for name in adapter_config_names:
         p = d / name
         if p.exists() and p.is_file():
@@ -560,7 +590,7 @@ def find_peft_files(
         else:
             issues.append(f"No adapter_config file found under {d}.")
 
-    weights_path: Optional[Path] = None
+    weights_path: Path | None = None
     for name in adapter_weight_names:
         p = d / name
         if p.exists() and p.is_file():
@@ -580,7 +610,7 @@ def find_peft_files(
     return config_path, weights_path, issues
 
 
-def load_adapter_state_dict(weights_path: Union[str, Path], *, map_location: str = "cpu") -> Dict[str, torch.Tensor]:
+def load_adapter_state_dict(weights_path: str | Path, *, map_location: str = "cpu") -> dict[str, torch.Tensor]:
     """Load adapter weights into a (key -> tensor) dict.
 
     Supports:
@@ -595,10 +625,9 @@ def load_adapter_state_dict(weights_path: Union[str, Path], *, map_location: str
     if p.suffix.lower() == ".safetensors":
         if safetensors_load_file is None:
             raise DependencyError(
-                "Cannot load .safetensors because 'safetensors' is not installed. "
-                "Install with: pip install safetensors"
+                "Cannot load .safetensors because 'safetensors' is not installed. Install with: pip install safetensors"
             )
-        result: Dict[str, torch.Tensor] = safetensors_load_file(str(p), device=map_location)
+        result: dict[str, torch.Tensor] = safetensors_load_file(str(p), device=map_location)
         return result
 
     obj = torch.load(str(p), map_location=map_location, weights_only=True)
@@ -625,7 +654,7 @@ def _infer_module_type(name: str) -> str:
     return "other"
 
 
-def _orient_lora_factors(A: torch.Tensor, B: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, int]:
+def _orient_lora_factors(A: torch.Tensor, B: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, int]:
     """Return A2 (r×in), B2 (out×r), r.
 
     PEFT typically stores:
@@ -653,7 +682,7 @@ def _orient_lora_factors(A: torch.Tensor, B: torch.Tensor) -> Tuple[torch.Tensor
     raise AuditError(f"Cannot align LoRA shapes: A={tuple(A.shape)}, B={tuple(B.shape)}")
 
 
-def _iter_lora_pairs(state_dict: Dict[str, torch.Tensor]) -> Iterable[Tuple[str, str, str]]:
+def _iter_lora_pairs(state_dict: dict[str, torch.Tensor]) -> Iterable[tuple[str, str, str]]:
     """Yield (module_prefix, a_key, b_key) for each detected LoRA A/B pair.
 
     Supports keys like:
@@ -664,7 +693,7 @@ def _iter_lora_pairs(state_dict: Dict[str, torch.Tensor]) -> Iterable[Tuple[str,
       ...<module>.lora_A.default.weight
       ...<module>.lora_B.default.weight
     """
-    for k in state_dict.keys():
+    for k in state_dict:
         if ".lora_A." in k and k.endswith(".weight"):
             b_key = k.replace(".lora_A.", ".lora_B.")
             if b_key in state_dict:
@@ -680,6 +709,7 @@ def _iter_lora_pairs(state_dict: Dict[str, torch.Tensor]) -> Iterable[Tuple[str,
 # -----------------------------
 # Low-rank spectral math
 # -----------------------------
+
 
 def _effective_rank_from_singular_values(s: torch.Tensor, eps: float = 1e-12) -> float:
     s = s[s > eps]
@@ -753,15 +783,15 @@ def low_rank_stable_rank(
     *,
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
-    topk_singular_values: Optional[int] = None,
-    rank_policies: Optional[List[str]] = None,
-) -> Tuple[float, float, float, float, int, int, int, Optional[List[float]], Optional[Dict[str, Any]]]:
+    topk_singular_values: int | None = None,
+    rank_policies: list[str] | None = None,
+) -> tuple[float, float, float, float, int, int, int, list[float] | None, dict[str, Any] | None]:
     """Compute (stable_rank, effective_rank, sigma_max, frob_sq, r90, r95, r99, top_singular_values, policy_results).
-    
+
     Args:
         rank_policies: List of rank selection policies to apply (e.g., ['oht', 'entropy_effective'])
                       If None, only computes traditional energy ranks.
-    
+
     Returns:
         Traditional tuple + optional policy_results dict with rank suggestions from multiple policies.
     """
@@ -784,91 +814,84 @@ def low_rank_stable_rank(
     r95 = _energy_rank(s, 0.95, eps=eps)
     r99 = _energy_rank(s, 0.99, eps=eps)
 
-    top_sv: Optional[List[float]] = None
+    top_sv: list[float] | None = None
     if topk_singular_values is not None:
         k = max(0, int(topk_singular_values))
         if k > 0:
             top_sv = [float(x) for x in s[:k].tolist()]
 
     # Apply rank selection policies (both new and existing)
-    policy_results: Optional[Dict[str, Any]] = None
+    policy_results: dict[str, Any] | None = None
     if rank_policies is not None or True:  # Always compute policies for consistency
         policy_results = {}
-        
-        # Always include existing energy@90 policy for consistency  
-        policy_results['energy_90'] = {'k': r90}
-        
+
+        # Always include existing energy@90 policy for consistency
+        policy_results["energy_90"] = {"k": r90}
+
         # Apply additional rank selection policies if requested
         if rank_policies is not None:
             try:
-                from .rank_policies import apply_rank_policy, RankPolicySpec
                 import numpy as np
-                
+
+                from .rank_policies import RankPolicySpec, apply_rank_policy
+
                 # Convert torch tensor to numpy for policy application
                 s_np = s.detach().cpu().numpy()
-                
+
                 for policy_name in rank_policies:
                     try:
                         # Create policy spec
                         policy_spec = RankPolicySpec(policy_name)
-                        
+
                         # Apply policy (need shape info for OHT)
                         # Compute effective ΔW shape from A and B
                         out_dim, in_dim = B.shape[0], A.shape[1]  # B is (out × r), A is (r × in)
                         effective_shape = (out_dim, in_dim)
                         r_alloc = len(s_np)
-                        
+
                         result = apply_rank_policy(
-                            policy_spec=policy_spec,
-                            s=s_np,
-                            shape=effective_shape,
-                            r_alloc=r_alloc
+                            policy_spec=policy_spec, s=s_np, shape=effective_shape, r_alloc=r_alloc
                         )
-                        
+
                         # Format according to requested schema
-                        policy_data = {
-                            'k': result.k,
-                            'confidence': float(result.confidence)
-                        }
-                        
+                        policy_data = {"k": result.k, "confidence": float(result.confidence)}
+
                         # Add key details based on policy type
-                        if policy_name == 'optimal_hard_threshold':
-                            policy_data.update({
-                                'tau': float(result.details.get('tau') or 0),
-                                'omega': float(result.details.get('omega') or 0),
-                                'beta': float(result.details.get('beta') or 0)
-                            })
-                        elif policy_name == 'entropy_effective':
-                            policy_data.update({
-                                'erank': float(result.details.get('erank_float') or 0),
-                                'entropy': float(result.details.get('entropy') or 0)
-                            })
-                        elif policy_name == 'knee_elbow':
-                            policy_data.update({
-                                'score': float(result.details.get('knee_diff_max') or 0)
-                            })
-                        
+                        if policy_name == "optimal_hard_threshold":
+                            policy_data.update(
+                                {
+                                    "tau": float(result.details.get("tau") or 0),
+                                    "omega": float(result.details.get("omega") or 0),
+                                    "beta": float(result.details.get("beta") or 0),
+                                }
+                            )
+                        elif policy_name == "entropy_effective":
+                            policy_data.update(
+                                {
+                                    "erank": float(result.details.get("erank_float") or 0),
+                                    "entropy": float(result.details.get("entropy") or 0),
+                                }
+                            )
+                        elif policy_name == "knee_elbow":
+                            policy_data.update({"score": float(result.details.get("knee_diff_max") or 0)})
+
                         # Use policy names as specified by user
-                        if policy_name == 'optimal_hard_threshold':
-                            key = 'oht'
-                        elif policy_name == 'entropy_effective':
-                            key = 'erank'  
-                        elif policy_name == 'knee_elbow':
-                            key = 'knee'
+                        if policy_name == "optimal_hard_threshold":
+                            key = "oht"
+                        elif policy_name == "entropy_effective":
+                            key = "erank"
+                        elif policy_name == "knee_elbow":
+                            key = "knee"
                         else:
                             key = policy_name
-                            
+
                         policy_results[key] = policy_data
-                        
+
                     except (ValueError, RuntimeError, TypeError, ZeroDivisionError) as e:
-                        policy_results[policy_name] = {
-                            'k': 0,
-                            'confidence': 0.0,
-                            'error': str(e)
-                        }
+                        policy_results[policy_name] = {"k": 0, "confidence": 0.0, "error": str(e)}
             except ImportError:
                 # Graceful degradation if rank_policies module not available
-                policy_results['error'] = 'rank_policies module not available'
+                policy_results["error"] = "rank_policies module not available"
 
     return stable_rank, effective_rank, sigma_max, frob_sq, r90, r95, r99, top_sv, policy_results
 
@@ -877,12 +900,13 @@ def low_rank_stable_rank(
 # Gain Metrics Computation
 # -----------------------------
 
-def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
+
+def compute_gain_metrics(layers: list[LoRALayerAudit]) -> dict[str, Any]:
     """Compute gain/magnitude metrics across all layers.
-    
+
     Returns gain metrics organized by:
     - per_module: Individual module metrics
-    - per_layer: Layer-wise aggregated metrics  
+    - per_layer: Layer-wise aggregated metrics
     - global: Global statistics and rankings
     - summary: High-level summary statistics
     """
@@ -893,67 +917,66 @@ def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
             "global": {
                 "top_modules_by_delta_fro": [],
                 "top_modules_by_rel_delta_fro": [],
-                "energy_concentration": {
-                    "top_k_layers_share": 0.0,
-                    "top_10pct_layers_share": 0.0
-                }
+                "energy_concentration": {"top_k_layers_share": 0.0, "top_10pct_layers_share": 0.0},
             },
             "summary": {
                 "delta_fro_mean": 0.0,
                 "delta_op_mean": 0.0,
                 "rel_delta_fro_mean": None,
                 "top_layers_by_delta_fro": [],
-                "energy_concentration_top10pct": 0.0
-            }
+                "energy_concentration_top10pct": 0.0,
+            },
         }
-    
+
     # Extract layer numbers from module names
     def extract_layer_num(name: str) -> int:
         """Extract layer number from module name like 'model.layers.17.self_attn.q_proj'"""
         try:
-            parts = name.split('.')
+            parts = name.split(".")
             for i, part in enumerate(parts):
-                if part in ('layers', 'layer') and i + 1 < len(parts):
+                if part in ("layers", "layer") and i + 1 < len(parts):
                     return int(parts[i + 1])
-                if 'layer.' in part:
-                    return int(part.split('.')[1])
+                if "layer." in part:
+                    return int(part.split(".")[1])
             return 0
         except (ValueError, IndexError):
             return 0
-    
+
     # Per-module gain metrics
-    per_module_metrics: List[Dict[str, Any]] = []
+    per_module_metrics: list[dict[str, Any]] = []
     for layer in layers:
         # Use existing computed norms (already scaled with alpha/r)
         delta_fro = layer.delta_fro_norm  # Frobenius norm ||ΔW||_F
         delta_op = layer.delta_sigma_max  # Spectral norm ||ΔW||_2
-        
+
         # Use relative perturbation metrics (computed from in-memory weights when available)
         # Fall back to UDR-style relative metrics if in-memory not available
         rel_delta_fro = layer.rel_delta_fro
         rel_delta_op = layer.rel_delta_op
-        
+
         # Fallback: use UDR-style computation if in-memory relative not available
         if rel_delta_fro is None and layer.base_fro_norm is not None and layer.base_fro_norm > 0:
             rel_delta_fro = delta_fro / layer.base_fro_norm
         if rel_delta_op is None and layer.base_sigma_max is not None and layer.base_sigma_max > 0:
             rel_delta_op = delta_op / layer.base_sigma_max
-        
+
         layer_num = extract_layer_num(layer.name)
-        
-        per_module_metrics.append({
-            "module": layer.name,
-            "layer": layer_num,
-            "r": layer.r,
-            "scaling": layer.scale,
-            "delta_fro": float(delta_fro),
-            "delta_op": float(delta_op),
-            "rel_delta_fro": float(rel_delta_fro) if rel_delta_fro is not None else None,
-            "rel_delta_op": float(rel_delta_op) if rel_delta_op is not None else None
-        })
-    
+
+        per_module_metrics.append(
+            {
+                "module": layer.name,
+                "layer": layer_num,
+                "r": layer.r,
+                "scaling": layer.scale,
+                "delta_fro": float(delta_fro),
+                "delta_op": float(delta_op),
+                "rel_delta_fro": float(rel_delta_fro) if rel_delta_fro is not None else None,
+                "rel_delta_op": float(rel_delta_op) if rel_delta_op is not None else None,
+            }
+        )
+
     # Per-layer aggregated metrics (sum across modules in same layer)
-    layer_aggregates: Dict[int, Dict[str, Any]] = {}
+    layer_aggregates: dict[int, dict[str, Any]] = {}
     for module in per_module_metrics:
         layer_num = module["layer"]
         if layer_num not in layer_aggregates:
@@ -963,66 +986,65 @@ def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
                 "delta_fro_sum": 0.0,
                 "rel_delta_fro_sq_sum": None,
                 "count": 0,
-                "rel_count": 0
+                "rel_count": 0,
             }
-        
+
         agg = layer_aggregates[layer_num]
         agg["delta_fro_sq_sum"] += module["delta_fro"] ** 2
         agg["delta_fro_sum"] += module["delta_fro"]
         agg["count"] += 1
-        
+
         if module["rel_delta_fro"] is not None:
             if agg["rel_delta_fro_sq_sum"] is None:
                 agg["rel_delta_fro_sq_sum"] = 0.0
             agg["rel_delta_fro_sq_sum"] += module["rel_delta_fro"] ** 2
             agg["rel_count"] += 1
-    
-    per_layer_metrics: List[Dict[str, Any]] = []
+
+    per_layer_metrics: list[dict[str, Any]] = []
     for layer_num in sorted(layer_aggregates.keys()):
         agg = layer_aggregates[layer_num]
-        per_layer_metrics.append({
-            "layer": layer_num,
-            "delta_fro_sq_sum": agg["delta_fro_sq_sum"],
-            "delta_fro_sum": agg["delta_fro_sum"],
-            "rel_delta_fro_sq_sum": agg["rel_delta_fro_sq_sum"]
-        })
-    
+        per_layer_metrics.append(
+            {
+                "layer": layer_num,
+                "delta_fro_sq_sum": agg["delta_fro_sq_sum"],
+                "delta_fro_sum": agg["delta_fro_sum"],
+                "rel_delta_fro_sq_sum": agg["rel_delta_fro_sq_sum"],
+            }
+        )
+
     # Global metrics and rankings
-    
+
     # Sort modules by delta_fro (Frobenius norm)
-    modules_by_delta_fro = sorted(per_module_metrics, 
-                                  key=lambda x: x["delta_fro"], reverse=True)
+    modules_by_delta_fro = sorted(per_module_metrics, key=lambda x: x["delta_fro"], reverse=True)
     top_modules_by_delta_fro = [
-        {"module": m["module"], "layer": m["layer"], "delta_fro": m["delta_fro"]} 
-        for m in modules_by_delta_fro[:10]
+        {"module": m["module"], "layer": m["layer"], "delta_fro": m["delta_fro"]} for m in modules_by_delta_fro[:10]
     ]
-    
+
     # Sort modules by relative delta_fro (if available)
     modules_with_rel = [m for m in per_module_metrics if m["rel_delta_fro"] is not None]
     top_modules_by_rel_delta_fro = []
     if modules_with_rel:
-        modules_by_rel_delta_fro = sorted(modules_with_rel, 
-                                          key=lambda x: x["rel_delta_fro"], reverse=True)
+        modules_by_rel_delta_fro = sorted(modules_with_rel, key=lambda x: x["rel_delta_fro"], reverse=True)
         top_modules_by_rel_delta_fro = [
-            {"module": m["module"], "layer": m["layer"], "rel_delta_fro": m["rel_delta_fro"]} 
+            {"module": m["module"], "layer": m["layer"], "rel_delta_fro": m["rel_delta_fro"]}
             for m in modules_by_rel_delta_fro[:10]
         ]
-    
+
     # Composition-style energy concentration analysis
     from .gain_metrics import compute_layer_energy_concentration
-    
+
     # Build module energy dict for concentration analysis
-    module_energies: Dict[str, float] = {}
+    module_energies: dict[str, float] = {}
     for module in per_module_metrics:
         delta_fro_val = float(module["delta_fro"])
-        module_energies[str(module["module"])] = delta_fro_val ** 2  # Use squared Frobenius norm as energy
-    
+        module_energies[str(module["module"])] = delta_fro_val**2  # Use squared Frobenius norm as energy
+
     # Compute comprehensive concentration metrics
     concentration_analysis = compute_layer_energy_concentration(
-        module_energies, 
-        top_k=5  # Analyze top-5 layers
+        module_energies,
+        top_k=5,  # Analyze top-5 layers
     )
-    
+
     # Extract simple metrics for backward compatibility
     if concentration_analysis["top_10pct"]["n"] > 0:
         top_10pct_layers_share = concentration_analysis["top_10pct"]["share"]
@@ -1030,32 +1052,34 @@ def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
     else:
         top_10pct_layers_share = 0.0
         top_k_layers_share = 0.0
-    
+
     # Summary statistics
-    delta_fro_values: List[float] = [float(m["delta_fro"]) for m in per_module_metrics]
-    delta_op_values: List[float] = [float(m["delta_op"]) for m in per_module_metrics]
-    rel_delta_fro_values: List[float] = [float(m["rel_delta_fro"]) for m in per_module_metrics
-                                         if m["rel_delta_fro"] is not None]
-    rel_delta_op_values: List[float] = [float(m["rel_delta_op"]) for m in per_module_metrics
-                                        if m["rel_delta_op"] is not None]
+    delta_fro_values: list[float] = [float(m["delta_fro"]) for m in per_module_metrics]
+    delta_op_values: list[float] = [float(m["delta_op"]) for m in per_module_metrics]
+    rel_delta_fro_values: list[float] = [
+        float(m["rel_delta_fro"]) for m in per_module_metrics if m["rel_delta_fro"] is not None
+    ]
+    rel_delta_op_values: list[float] = [
+        float(m["rel_delta_op"]) for m in per_module_metrics if m["rel_delta_op"] is not None
+    ]
 
     delta_fro_mean = sum(delta_fro_values) / len(delta_fro_values) if delta_fro_values else 0.0
     delta_op_mean = sum(delta_op_values) / len(delta_op_values) if delta_op_values else 0.0
-    rel_delta_fro_mean: Optional[float] = (sum(rel_delta_fro_values) / len(rel_delta_fro_values)
-                                           if rel_delta_fro_values else None)
-    rel_delta_op_mean: Optional[float] = (sum(rel_delta_op_values) / len(rel_delta_op_values)
-                                          if rel_delta_op_values else None)
-    
+    rel_delta_fro_mean: float | None = (
+        sum(rel_delta_fro_values) / len(rel_delta_fro_values) if rel_delta_fro_values else None
+    )
+    rel_delta_op_mean: float | None = (
+        sum(rel_delta_op_values) / len(rel_delta_op_values) if rel_delta_op_values else None
+    )
+
     # Top layers by delta_fro (for summary)
     top_layers_by_delta_fro = []
     if per_layer_metrics:
-        layers_by_energy = sorted(per_layer_metrics, 
-                                  key=lambda x: x["delta_fro_sq_sum"], reverse=True)
+        layers_by_energy = sorted(per_layer_metrics, key=lambda x: x["delta_fro_sq_sum"], reverse=True)
         top_layers_by_delta_fro = [
-            {"layer": l["layer"], "delta_fro_sq_sum": l["delta_fro_sq_sum"]}
-            for l in layers_by_energy[:5]
+            {"layer": l["layer"], "delta_fro_sq_sum": l["delta_fro_sq_sum"]} for l in layers_by_energy[:5]
         ]
-    
+
     return {
         "per_module": per_module_metrics,
         "per_layer": per_layer_metrics,
@@ -1065,20 +1089,20 @@ def compute_gain_metrics(layers: List[LoRALayerAudit]) -> Dict[str, Any]:
             "top_modules_by_rel_delta_fro": top_modules_by_rel_delta_fro,
             "energy_concentration": {
                 "top_k_layers_share": float(top_k_layers_share),
-                "top_10pct_layers_share": float(top_10pct_layers_share)
-            }
+                "top_10pct_layers_share": float(top_10pct_layers_share),
+            },
         },
         "summary": {
             "delta_fro_mean": float(delta_fro_mean),
-            "delta_op_mean": float(delta_op_mean), 
+            "delta_op_mean": float(delta_op_mean),
             "rel_delta_fro_mean": float(rel_delta_fro_mean) if rel_delta_fro_mean is not None else None,
             "rel_delta_op_mean": float(rel_delta_op_mean) if rel_delta_op_mean is not None else None,
             "top_layers_by_delta_fro": top_layers_by_delta_fro,
             "energy_concentration_top10pct": float(top_10pct_layers_share),
             # Availability indicators
             "relative_available": len(rel_delta_fro_values) > 0 or len(rel_delta_op_values) > 0,
-            "n_modules_with_relative": max(len(rel_delta_fro_values), len(rel_delta_op_values))
-        }
+            "n_modules_with_relative": max(len(rel_delta_fro_values), len(rel_delta_op_values)),
+        },
     }
 
 
@@ -1174,6 +1198,7 @@ GUARANTEES:
 5. All UDR-related fields are either consistently present or consistently None
 """
 
+
 def compute_update_norms(
     A: torch.Tensor,
     B: torch.Tensor,
@@ -1181,32 +1206,28 @@ def compute_update_norms(
     *,
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
-) -> Tuple[float, float, float, float]:
+) -> tuple[float, float, float, float]:
     """Compute update delta norms without forming BA.
-    
+
     Args:
         A: (r × d_in) LoRA factor
-        B: (d_out × r) LoRA factor  
+        B: (d_out × r) LoRA factor
         scale: alpha/r scaling factor
-        
+
     Returns:
         (delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization)
-        
+
     Note:
         UDR = ||ΔW||_2 / ||W_base||_2 where ΔW = scale * B @ A
         This computes ||ΔW||_2 and ||ΔW||_F efficiently via r×r operations.
     """
     from .gain_metrics import compute_lora_norms, compute_lora_stable_rank
-    
+
     # Use optimized utility functions
-    delta_fro_norm, delta_sigma_max = compute_lora_norms(
-        A, B, scale, compute_dtype=compute_dtype, eps=eps
-    )
-    
-    stable_rank_delta, utilization, r = compute_lora_stable_rank(
-        A, B, scale, compute_dtype=compute_dtype, eps=eps
-    )
-    
+    delta_fro_norm, delta_sigma_max = compute_lora_norms(A, B, scale, compute_dtype=compute_dtype, eps=eps)
+
+    stable_rank_delta, utilization, r = compute_lora_stable_rank(A, B, scale, compute_dtype=compute_dtype, eps=eps)
+
     return delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization
 
 
@@ -1214,18 +1235,18 @@ def spectral_norm_power_iter(W: torch.Tensor, n_iter: int = 20) -> float:
     """Power iteration for spectral norm estimation."""
     if W.numel() == 0:
         return 0.0
-    
+
     # Handle 1D case
     if W.ndim == 1:
         return float(torch.norm(W, 2).item())
-    
+
     m, n = W.shape[0], W.shape[1]
-    
+
     # Random initialization
     with torch.no_grad():
         v = torch.randn(n, device=W.device, dtype=W.dtype)
         v = v / torch.norm(v)
-        
+
         for _ in range(n_iter):
             # v <- W^T @ W @ v / ||W^T @ W @ v||
             Wv = W @ v
@@ -1235,7 +1256,7 @@ def spectral_norm_power_iter(W: torch.Tensor, n_iter: int = 20) -> float:
                 v = WTWv / norm
             else:
                 break
-        
+
         # Final singular value estimate
         Wv = W @ v
         return float(torch.norm(Wv).item())
@@ -1243,104 +1264,98 @@ def spectral_norm_power_iter(W: torch.Tensor, n_iter: int = 20) -> float:
 
 def compute_base_norms(
     model: torch.nn.Module,
-    target_modules: List[str],
+    target_modules: list[str],
     *,
     map_location: str = "cpu",
     n_power_iter: int = 20,
-) -> Dict[str, Dict[str, float]]:
+) -> dict[str, dict[str, float]]:
     """Compute base model spectral and Frobenius norms for target modules.
-    
+
     Args:
         model: Base model to analyze
         target_modules: List of module name patterns to include
         map_location: Device for computation (default: "cpu")
         n_power_iter: Power iteration steps for spectral norm
-        
+
     Returns:
         {module_name: {"base_sigma_max": float, "base_fro_norm": float}}
     """
     base_norms = {}
-    
+
     with torch.no_grad():
         for name, module in model.named_modules():
             # Check if this module matches target_modules patterns
             if not any(target in name for target in target_modules):
                 continue
-                
-            if not hasattr(module, 'weight') or module.weight is None:
+
+            if not hasattr(module, "weight") or module.weight is None:
                 continue
-                
+
             W = module.weight.detach().to(device=map_location)
-            
+
             # Frobenius norm (exact)
-            base_fro_norm = torch.norm(W, 'fro').item()
-            
+            base_fro_norm = torch.norm(W, "fro").item()
+
             # Spectral norm (power iteration)
             base_sigma_max = spectral_norm_power_iter(W, n_iter=n_power_iter)
-            
+
             base_norms[name] = {
                 "base_sigma_max": base_sigma_max,
                 "base_fro_norm": base_fro_norm,
             }
-    
+
     return base_norms
 
 
 def compute_udr_metrics(
     delta_sigma_max: float,
-    delta_fro_norm: float, 
-    base_sigma_max: Optional[float],
-    base_fro_norm: Optional[float],
+    delta_fro_norm: float,
+    base_sigma_max: float | None,
+    base_fro_norm: float | None,
     eps: float = 1e-12,
-) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+) -> tuple[float | None, float | None, float | None]:
     """Compute UDR and SDI metrics if base norms available.
-    
+
     Args:
         delta_sigma_max: Spectral norm of adapter update ||ΔW||_2
         delta_fro_norm: Frobenius norm of adapter update ||ΔW||_F
         base_sigma_max: Base model spectral norm ||W_base||_2
         base_fro_norm: Base model Frobenius norm ||W_base||_F
         eps: Numerical stability threshold
-        
+
     Returns:
         (udr, udr_f, sdi) where:
         - udr = ||ΔW||_2 / ||W_base||_2 (spectral dominance ratio)
-        - udr_f = ||ΔW||_F / ||W_base||_F (Frobenius dominance ratio)  
+        - udr_f = ||ΔW||_F / ||W_base||_F (Frobenius dominance ratio)
         - sdi = log10(udr + eps) (spectral drift index)
     """
     if base_sigma_max is None or base_fro_norm is None:
         return None, None, None
-        
+
     # Use epsilon protection for division by zero/near-zero
     udr = delta_sigma_max / (base_sigma_max + eps)
     udr_f = delta_fro_norm / (base_fro_norm + eps)
     sdi = math.log10(udr + eps)
-    
+
     return udr, udr_f, sdi
 
 
 def save_base_norms_cache(
-    base_norms: Dict[str, Dict[str, float]], 
-    cache_path: Union[str, Path],
-    model_id: str = "unknown"
+    base_norms: dict[str, dict[str, float]], cache_path: str | Path, model_id: str = "unknown"
 ) -> None:
     """Save base norms to cache file."""
-    cache_data = {
-        "model_id": model_id,
-        "timestamp": time.time(),
-        "base_norms": base_norms
-    }
-    
-    with open(cache_path, 'w') as f:
+    cache_data = {"model_id": model_id, "timestamp": time.time(), "base_norms": base_norms}
+
+    with open(cache_path, "w") as f:
         json.dump(cache_data, f, indent=2)
 
 
-def load_base_norms_cache(cache_path: Union[str, Path]) -> Optional[Dict[str, Dict[str, float]]]:
+def load_base_norms_cache(cache_path: str | Path) -> dict[str, dict[str, float]] | None:
     """Load base norms from cache file."""
     try:
-        with open(cache_path, 'r') as f:
+        with open(cache_path) as f:
             cache_data = json.load(f)
-        norms: Dict[str, Dict[str, float]] = cache_data.get("base_norms", {})
+        norms: dict[str, dict[str, float]] = cache_data.get("base_norms", {})
         return norms
     except (FileNotFoundError, json.JSONDecodeError, KeyError):
         return None
@@ -1350,73 +1365,73 @@ def load_base_norms_cache(cache_path: Union[str, Path]) -> Optional[Dict[str, Di
 # Base model norms loading
 # -----------------------------
 
+
 def load_base_model_norms(
-    base_model_id: Optional[str] = None,
-    base_norms_cache: Optional[Union[str, Path]] = None,
-    adapter_config: Optional[LoRAAdapterConfig] = None,
-    issues: Optional[List[str]] = None,
-) -> Optional[Dict[str, Dict[str, float]]]:
+    base_model_id: str | None = None,
+    base_norms_cache: str | Path | None = None,
+    adapter_config: LoRAAdapterConfig | None = None,
+    issues: list[str] | None = None,
+) -> dict[str, dict[str, float]] | None:
     """Load base model norms for UDR computation.
-    
+
     Returns dict mapping layer_key -> {'sigma_max': float, 'fro_norm': float}
     """
     if issues is None:
         issues = []
-        
+
     # Try cache first
     if base_norms_cache is not None:
         cache_path = Path(base_norms_cache)
         if cache_path.exists():
             try:
                 import json
-                with cache_path.open('r') as f:
-                    cached: Dict[str, Dict[str, float]] = json.load(f)
+
+                with cache_path.open("r") as f:
+                    cached: dict[str, dict[str, float]] = json.load(f)
                 return cached
             except (json.JSONDecodeError, OSError) as e:
                 issues.append(f"Failed to load base norms cache {cache_path}: {e}")
-    
+
     # Try to compute from base model if provided
     if base_model_id is not None and adapter_config is not None:
         try:
             norms = compute_base_model_norms(base_model_id, adapter_config, issues)
-            
+
             # Cache the computed norms if successful and cache path provided
             if norms is not None and base_norms_cache is not None:
                 try:
                     cache_base_model_norms(norms, base_norms_cache)
                 except (OSError, TypeError) as e:
                     issues.append(f"Failed to cache base norms to {base_norms_cache}: {e}")
-            
+
             return norms
         except (OSError, ValueError, RuntimeError) as e:
             issues.append(f"Failed to compute base model norms for {base_model_id}: {e}")
-    
+
     return None
 
 
-def cache_base_model_norms(
-    norms: Dict[str, Dict[str, float]], 
-    cache_path: Union[str, Path]
-) -> None:
+def cache_base_model_norms(norms: dict[str, dict[str, float]], cache_path: str | Path) -> None:
     """Save computed base model norms to cache file."""
     import json
+
     cache_file = Path(cache_path)
     cache_file.parent.mkdir(parents=True, exist_ok=True)
-    
-    with cache_file.open('w') as f:
+
+    with cache_file.open("w") as f:
         json.dump(norms, f, indent=2)
 
 
 def compute_base_model_norms(
     base_model_id: str,
     adapter_config: LoRAAdapterConfig,
-    issues: List[str],
-) -> Optional[Dict[str, Dict[str, float]]]:
+    issues: list[str],
+) -> dict[str, dict[str, float]] | None:
     """Compute base model norms for all LoRA target modules.
-    
+
     Loads the base model and computes spectral and Frobenius norms
     for all 2D weight matrices that match the LoRA target_modules pattern.
-    
+
     Uses state_dict-based extraction to capture all architectures
     (nn.Linear, Conv1D, etc.) without module type filtering.
     """
@@ -1424,18 +1439,18 @@ def compute_base_model_norms(
         # Try to import transformers
         try:
             import transformers
-            from transformers import AutoModelForCausalLM, AutoConfig
+            from transformers import AutoConfig, AutoModelForCausalLM
         except ImportError:
             issues.append("transformers library not available for base model loading")
             return None
-        
+
         # Load model config to understand architecture
         try:
             config = AutoConfig.from_pretrained(base_model_id)
         except (OSError, ValueError, RuntimeError) as e:
             issues.append(f"Failed to load config for {base_model_id}: {e}")
             return None
-        
+
         # Load model weights (CPU only to save memory) - use AutoModelForCausalLM for GPT-2
         try:
             model = AutoModelForCausalLM.from_pretrained(
@@ -1447,15 +1462,15 @@ def compute_base_model_norms(
         except Exception as e:  # Intentionally broad: HF model loading can fail in unpredictable ways
             issues.append(f"Failed to load model {base_model_id}: {e}")
             return None
-        
+
         # Extract target modules based on adapter config
         target_modules = adapter_config.target_modules or []
         if not target_modules:
             issues.append("No target_modules specified in adapter config")
             return None
-        
+
         norms_dict = {}
-        
+
         # STATE_DICT-based approach: iterate through all 2D weight matrices
         for param_name, param in model.state_dict().items():
             # Only process weight matrices (skip biases, embeddings, etc.)
@@ -1463,17 +1478,17 @@ def compute_base_model_norms(
                 continue
             if getattr(param, "ndim", None) != 2:
                 continue
-                
+
             # Check if this parameter name matches any target module pattern
             if any(_module_name_matches(param_name, target) for target in target_modules):
                 # Convert to module name (remove .weight suffix)
                 module_name = _convert_to_lora_prefix(param_name)
-                
+
                 try:
                     # Compute norms on CPU with proper tensor handling
                     param_cpu = param.detach().cpu().to(torch.float64)
-                    
-                    # Spectral norm (largest singular value) 
+
+                    # Spectral norm (largest singular value)
                     try:
                         _, s, _ = torch.linalg.svd(param_cpu, full_matrices=False)
                         sigma_max = float(s[0]) if len(s) > 0 else 0.0
@@ -1481,34 +1496,35 @@ def compute_base_model_norms(
                         # Fallback: use matrix norm if SVD fails
                         sigma_max = float(torch.norm(param_cpu, p=2))
                         issues.append(f"SVD failed for {param_name}, using L2 norm: {svd_e}")
-                    
+
                     # Frobenius norm
-                    fro_norm = float(torch.norm(param_cpu, p='fro'))
-                    
+                    fro_norm = float(torch.norm(param_cpu, p="fro"))
+
                     # Only store non-zero norms (avoid division by zero in UDR)
                     if fro_norm > 1e-12:
                         norms_dict[module_name] = {
-                            'sigma_max': sigma_max,
-                            'fro_norm': fro_norm,
+                            "sigma_max": sigma_max,
+                            "fro_norm": fro_norm,
                         }
                     else:
                         issues.append(f"Skipping {param_name}: zero norm detected")
-                    
+
                 except (ValueError, RuntimeError) as e:
                     issues.append(f"Failed to compute norms for {param_name}: {e}")
                     continue
-        
+
         # Clean up model to free memory
         del model
         import gc
+
         gc.collect()
-        
+
         if not norms_dict:
             issues.append(f"No matching target modules found in {base_model_id} for patterns: {target_modules}")
             return None
-        
+
         return norms_dict
-        
+
     except Exception as e:  # Intentionally broad: base model norm computation has many failure modes
         issues.append(f"Base model norm computation failed: {e}")
         return None
@@ -1523,22 +1539,22 @@ def _module_name_matches(param_name: str, target_pattern: str) -> bool:
 
 def _convert_to_lora_prefix(param_name: str) -> str:
     """Convert model parameter name to LoRA prefix format.
-    
+
     Examples:
     - 'model.layers.0.self_attn.q_proj.weight' -> 'model.layers.0.self_attn.q_proj'
     - 'transformer.h.0.mlp.c_fc.weight' -> 'transformer.h.0.mlp.c_fc'
     """
     # Remove .weight, .bias suffixes
-    if param_name.endswith('.weight') or param_name.endswith('.bias'):
-        return param_name.rsplit('.', 1)[0]
+    if param_name.endswith(".weight") or param_name.endswith(".bias"):
+        return param_name.rsplit(".", 1)[0]
     return param_name
 
 
 def _canonicalize_module_name(name: str) -> str:
     """Canonicalize module name for consistent matching between adapter and base model.
-    
+
     Removes common PEFT prefixes and suffixes to enable consistent lookups.
-    
+
     Examples:
     - 'base_model.model.transformer.h.0.attn.c_attn' -> 'transformer.h.0.attn.c_attn'
     - 'base_model.transformer.h.0.attn.c_attn.weight' -> 'transformer.h.0.attn.c_attn'
@@ -1547,27 +1563,27 @@ def _canonicalize_module_name(name: str) -> str:
     # Remove common PEFT prefixes
     for prefix in ("base_model.model.", "base_model.", "model."):
         if name.startswith(prefix):
-            name = name[len(prefix):]
-    
+            name = name[len(prefix) :]
+
     # Remove .weight suffix if present
     if name.endswith(".weight"):
-        name = name[:-len(".weight")]
-    
+        name = name[: -len(".weight")]
+
     return name
 
 
 def _convert_lora_prefix_to_base_weight_key(lora_prefix: str) -> str:
     """Convert LoRA module prefix to base model parameter key.
-    
+
     Examples:
     - 'model.layers.0.self_attn.q_proj' -> 'model.layers.0.self_attn.q_proj.weight'
     - 'base_model.model.layers.0.self_attn.q_proj' -> 'model.layers.0.self_attn.q_proj.weight'
     """
     # Remove common PEFT prefixes
     prefix = lora_prefix
-    if prefix.startswith('base_model.'):
-        prefix = prefix[len('base_model.'):]
-    
+    if prefix.startswith("base_model."):
+        prefix = prefix[len("base_model.") :]
+
     # Add .weight suffix (most common case)
     return f"{prefix}.weight"
 
@@ -1575,6 +1591,7 @@ def _convert_lora_prefix_to_base_weight_key(lora_prefix: str) -> str:
 # -----------------------------
 # Extracted helpers for audit_lora_state_dict
 # -----------------------------
+
 
 def _resolve_layer_alpha(adapter_config, prefix):
     """Resolve per-layer alpha from adapter config, with pattern matching."""
@@ -1598,7 +1615,7 @@ def _compute_relative_perturbation(prefix, base_model_weights, delta_sigma_max, 
         return None, None
 
     base_weight_cpu = base_weight.detach().to(dtype=compute_dtype, device="cpu")
-    base_fro_in_memory = torch.norm(base_weight_cpu, p='fro').item()
+    base_fro_in_memory = torch.norm(base_weight_cpu, p="fro").item()
 
     if base_weight_cpu.dim() >= 2:
         _, s, _ = torch.linalg.svd(base_weight_cpu, full_matrices=False)
@@ -1611,11 +1628,11 @@ def _compute_relative_perturbation(prefix, base_model_weights, delta_sigma_max, 
     return rel_delta_fro, rel_delta_op
 
 
-def _mean(xs: List[float]) -> float:
+def _mean(xs: list[float]) -> float:
     return float(sum(xs) / len(xs)) if xs else 0.0
 
 
-def _median(xs: List[float]) -> float:
+def _median(xs: list[float]) -> float:
     if not xs:
         return 0.0
     ys = sorted(xs)
@@ -1625,13 +1642,13 @@ def _median(xs: List[float]) -> float:
     return float(0.5 * (ys[m - 1] + ys[m]))
 
 
-def _weighted_mean(xs: List[float], ws: List[int]) -> float:
+def _weighted_mean(xs: list[float], ws: list[int]) -> float:
     if not xs or not ws or sum(ws) == 0:
         return 0.0
     return float(sum(x * w for x, w in zip(xs, ws)) / sum(ws))
 
 
-def _percentile_int(xs: List[int], q: float) -> float:
+def _percentile_int(xs: list[int], q: float) -> float:
     if not xs:
         return 0.0
     ys = sorted(xs)
@@ -1647,47 +1664,45 @@ def _percentile_int(xs: List[int], q: float) -> float:
 
 
 def _build_structured_policy_data(
-    layers: List[LoRALayerAudit],
-    applied_policies: List[str],
-    policy_global_suggestions: Dict[str, Dict[str, float]]
-) -> Dict[str, Any]:
+    layers: list[LoRALayerAudit], applied_policies: list[str], policy_global_suggestions: dict[str, dict[str, float]]
+) -> dict[str, Any]:
     """Build future-proof structured policy data (Schema v1)."""
 
     # Map internal policy names to user-friendly names
     policy_name_mapping = {
-        'energy_threshold': 'energy_threshold',
-        'knee_elbow': 'knee_elbow',
-        'entropy_effective': 'entropy_effective',
-        'optimal_hard_threshold': 'optimal_hard_threshold'
+        "energy_threshold": "energy_threshold",
+        "knee_elbow": "knee_elbow",
+        "entropy_effective": "entropy_effective",
+        "optimal_hard_threshold": "optimal_hard_threshold",
     }
 
     # Default parameters for each policy
     default_parameters = {
-        'energy_threshold': {'threshold': 0.90},
-        'knee_elbow': {},
-        'entropy_effective': {},
-        'optimal_hard_threshold': {}
+        "energy_threshold": {"threshold": 0.90},
+        "knee_elbow": {},
+        "entropy_effective": {},
+        "optimal_hard_threshold": {},
     }
 
     # Build per-layer suggestions with rich metadata
-    per_layer_suggestions: List[Dict[str, Any]] = []
+    per_layer_suggestions: list[dict[str, Any]] = []
     for layer in layers:
         if not layer.rank_suggestions:
             continue
 
         # Calculate importance metrics for this layer
-        energy_raw = layer.frob_sq if hasattr(layer, 'frob_sq') else 0.0
-        frobenius_norm = (layer.frob_sq ** 0.5) if hasattr(layer, 'frob_sq') else 0.0
-        param_count = getattr(layer, 'lora_params', 0)
-        utilization = getattr(layer, 'utilization', 0.0) if hasattr(layer, 'utilization') else 0.0
+        energy_raw = layer.frob_sq if hasattr(layer, "frob_sq") else 0.0
+        frobenius_norm = (layer.frob_sq**0.5) if hasattr(layer, "frob_sq") else 0.0
+        param_count = getattr(layer, "lora_params", 0)
+        utilization = getattr(layer, "utilization", 0.0) if hasattr(layer, "utilization") else 0.0
 
         importance_raw = (
-            frobenius_norm * 0.6 +           # Primary: magnitude of update
-            (param_count / 10000) * 0.3 +    # Secondary: layer size (normalized)
-            utilization * 100 * 0.1          # Tertiary: how much layer is used
+            frobenius_norm * 0.6  # Primary: magnitude of update
+            + (param_count / 10000) * 0.3  # Secondary: layer size (normalized)
+            + utilization * 100 * 0.1  # Tertiary: how much layer is used
         )
 
-        layer_data: Dict[str, Any] = {
+        layer_data: dict[str, Any] = {
             "layer_name": layer.layer_name,
             "allocated_rank": layer.r,
             "suggestions": {},
@@ -1697,8 +1712,8 @@ def _build_structured_policy_data(
                 "energy_raw": energy_raw,
                 "frobenius_norm": frobenius_norm,
                 "param_count": param_count,
-                "utilization": utilization
-            }
+                "utilization": utilization,
+            },
         }
 
         for policy_internal, suggestion in layer.rank_suggestions.items():
@@ -1706,43 +1721,43 @@ def _build_structured_policy_data(
                 policy_name = policy_name_mapping[policy_internal]
 
                 # Extract core suggestion data
-                raw_metadata: Dict[str, Any] = suggestion.get('details', {})
-                structured_suggestion: Dict[str, Any] = {
-                    "k": suggestion.get('k', 0),
-                    "confidence": suggestion.get('confidence', 0.0),
-                    "metadata": raw_metadata
+                raw_metadata: dict[str, Any] = suggestion.get("details", {})
+                structured_suggestion: dict[str, Any] = {
+                    "k": suggestion.get("k", 0),
+                    "confidence": suggestion.get("confidence", 0.0),
+                    "metadata": raw_metadata,
                 }
 
                 # Add policy-specific metadata normalization
-                if policy_internal == 'energy_threshold':
-                    metadata: Dict[str, Any] = raw_metadata
-                    structured_suggestion['metadata'] = {
-                        "threshold_used": metadata.get('threshold', 0.90),
-                        "energy_captured": metadata.get('actual_energy_captured', 0.0),
-                        "total_energy": metadata.get('total_energy', 0.0)
+                if policy_internal == "energy_threshold":
+                    metadata: dict[str, Any] = raw_metadata
+                    structured_suggestion["metadata"] = {
+                        "threshold_used": metadata.get("threshold", 0.90),
+                        "energy_captured": metadata.get("actual_energy_captured", 0.0),
+                        "total_energy": metadata.get("total_energy", 0.0),
                     }
-                elif policy_internal == 'entropy_effective':
+                elif policy_internal == "entropy_effective":
                     metadata = raw_metadata
-                    structured_suggestion['metadata'] = {
-                        "erank_float": metadata.get('erank_float', 0.0),
-                        "entropy": metadata.get('entropy', 0.0),
-                        "max_possible_entropy": metadata.get('max_possible_entropy', 0.0),
-                        "normalized_entropy": metadata.get('normalized_entropy', 0.0)
+                    structured_suggestion["metadata"] = {
+                        "erank_float": metadata.get("erank_float", 0.0),
+                        "entropy": metadata.get("entropy", 0.0),
+                        "max_possible_entropy": metadata.get("max_possible_entropy", 0.0),
+                        "normalized_entropy": metadata.get("normalized_entropy", 0.0),
                     }
-                elif policy_internal == 'optimal_hard_threshold':
+                elif policy_internal == "optimal_hard_threshold":
                     metadata = raw_metadata
-                    structured_suggestion['metadata'] = {
-                        "omega_beta": metadata.get('omega_beta', 0.0),
-                        "beta": metadata.get('beta', 1.0),
-                        "threshold": metadata.get('threshold', 0.0),
-                        "median_sv": metadata.get('median_sv', 0.0)
+                    structured_suggestion["metadata"] = {
+                        "omega_beta": metadata.get("omega_beta", 0.0),
+                        "beta": metadata.get("beta", 1.0),
+                        "threshold": metadata.get("threshold", 0.0),
+                        "median_sv": metadata.get("median_sv", 0.0),
                     }
-                elif policy_internal == 'knee_elbow':
+                elif policy_internal == "knee_elbow":
                     metadata = raw_metadata
-                    structured_suggestion['metadata'] = {
-                        "knee_index": metadata.get('knee_index', 0),
-                        "difference_curve_max": metadata.get('difference_curve_max', 0.0),
-                        "smoothing_applied": metadata.get('smoothing_applied', False)
+                    structured_suggestion["metadata"] = {
+                        "knee_index": metadata.get("knee_index", 0),
+                        "difference_curve_max": metadata.get("difference_curve_max", 0.0),
+                        "smoothing_applied": metadata.get("smoothing_applied", False),
                     }
 
                 layer_data["suggestions"][policy_name] = structured_suggestion
@@ -1752,18 +1767,20 @@ def _build_structured_policy_data(
 
     # Calculate global importance distribution metrics for downstream tooling
     if per_layer_suggestions:
-        total_energy = sum(layer['importance_metrics']['energy_raw'] for layer in per_layer_suggestions)
+        total_energy = sum(layer["importance_metrics"]["energy_raw"] for layer in per_layer_suggestions)
         n_layers = len(per_layer_suggestions)
         uniform_share = 1.0 / n_layers if n_layers > 0 else 0.0
 
         # Add energy share and uniform multiplier to each layer
         max_uniform_mult = 0.0
         for layer_data in per_layer_suggestions:
-            energy_share = layer_data['importance_metrics']['energy_raw'] / total_energy if total_energy > 0 else uniform_share
+            energy_share = (
+                layer_data["importance_metrics"]["energy_raw"] / total_energy if total_energy > 0 else uniform_share
+            )
             uniform_mult = energy_share / uniform_share if uniform_share > 0 else 1.0
 
-            layer_data['importance_metrics']['energy_share'] = energy_share
-            layer_data['importance_metrics']['uniform_mult'] = uniform_mult
+            layer_data["importance_metrics"]["energy_share"] = energy_share
+            layer_data["importance_metrics"]["uniform_mult"] = uniform_mult
             max_uniform_mult = max(max_uniform_mult, uniform_mult)
 
         # Global distribution characteristics
@@ -1776,7 +1793,7 @@ def _build_structured_policy_data(
             "max_uniform_mult": max_uniform_mult,
             "distribution_is_flat": distribution_is_flat,
             "min_uniform_mult_threshold": min_uniform_mult_threshold,
-            "uniform_share": uniform_share
+            "uniform_share": uniform_share,
         }
     else:
         importance_distribution = {
@@ -1785,7 +1802,7 @@ def _build_structured_policy_data(
             "max_uniform_mult": 0.0,
             "distribution_is_flat": True,
             "min_uniform_mult_threshold": 1.5,
-            "uniform_share": 0.0
+            "uniform_share": 0.0,
         }
 
     # Build the complete structured schema
@@ -1793,17 +1810,19 @@ def _build_structured_policy_data(
         "metadata": {
             "version": 1,
             "applied_policies": [policy_name_mapping.get(p, p) for p in applied_policies],
-            "default_parameters": {policy_name_mapping.get(p, p): default_parameters.get(p, {}) for p in applied_policies}
+            "default_parameters": {
+                policy_name_mapping.get(p, p): default_parameters.get(p, {}) for p in applied_policies
+            },
         },
-        "global_statistics": {
-            policy_name_mapping.get(k, k): v for k, v in policy_global_suggestions.items()
-        },
+        "global_statistics": {policy_name_mapping.get(k, k): v for k, v in policy_global_suggestions.items()},
         "importance_distribution": importance_distribution,
-        "per_layer": per_layer_suggestions
+        "per_layer": per_layer_suggestions,
     }
 
 
-def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ranks, utilizations, by_type_acc, r90_list, rank_policies):
+def _aggregate_audit_statistics(
+    layers, params_list, stable_ranks, effective_ranks, utilizations, by_type_acc, r90_list, rank_policies
+):
     """Aggregate per-layer audit data into summary statistics.
 
     Returns a dict with keys:
@@ -1826,7 +1845,7 @@ def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ran
     r90_p90 = _percentile_int(r90_list, 0.90)
 
     # Compute per-policy global suggestions (Step 5)
-    policy_global_suggestions: Optional[Dict[str, Dict[str, float]]] = None
+    policy_global_suggestions: dict[str, dict[str, float]] | None = None
     if layers and any(layer.rank_suggestions for layer in layers):
         policy_global_suggestions = {}
 
@@ -1840,24 +1859,26 @@ def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ran
             # Collect k values for this policy across all layers
             policy_k_values = []
             for layer in layers:
-                if (layer.rank_suggestions and
-                    policy_name in layer.rank_suggestions and
-                    'k' in layer.rank_suggestions[policy_name]):
-                    k = layer.rank_suggestions[policy_name]['k']
+                if (
+                    layer.rank_suggestions
+                    and policy_name in layer.rank_suggestions
+                    and "k" in layer.rank_suggestions[policy_name]
+                ):
+                    k = layer.rank_suggestions[policy_name]["k"]
                     if isinstance(k, (int, float)) and k >= 0:
                         policy_k_values.append(int(k))
 
             # Compute global statistics for this policy
             if policy_k_values:
                 policy_global_suggestions[policy_name] = {
-                    'uniform_median': float(_percentile_int(policy_k_values, 0.50)),
-                    'uniform_p90': float(_percentile_int(policy_k_values, 0.90)),
-                    'uniform_max': float(max(policy_k_values)),
-                    'n_layers': len(policy_k_values)
+                    "uniform_median": float(_percentile_int(policy_k_values, 0.50)),
+                    "uniform_p90": float(_percentile_int(policy_k_values, 0.90)),
+                    "uniform_max": float(max(policy_k_values)),
+                    "n_layers": len(policy_k_values),
                 }
 
     # by-type aggregates
-    by_type: Dict[str, Dict[str, float]] = {}
+    by_type: dict[str, dict[str, float]] = {}
     for t, ls in by_type_acc.items():
         if not ls:
             continue
@@ -1873,9 +1894,7 @@ def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ran
     # Build structured policy schema (v1)
     structured_policies = None
     if rank_policies and policy_global_suggestions:
-        structured_policies = _build_structured_policy_data(
-            layers, rank_policies, policy_global_suggestions
-        )
+        structured_policies = _build_structured_policy_data(layers, rank_policies, policy_global_suggestions)
 
     return {
         "n_layers": n_layers,
@@ -1897,16 +1916,17 @@ def _aggregate_audit_statistics(layers, params_list, stable_ranks, effective_ran
 # Main audit entrypoints
 # -----------------------------
 
+
 def audit_lora_state_dict(
-    state_dict: Dict[str, torch.Tensor],
+    state_dict: dict[str, torch.Tensor],
     *,
-    adapter_config: Optional[LoRAAdapterConfig] = None,
+    adapter_config: LoRAAdapterConfig | None = None,
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
     include_top_singular_values: int = 0,
-    base_norms: Optional[Dict[str, Dict[str, float]]] = None,
-    base_model_weights: Optional[Dict[str, torch.Tensor]] = None,
-    rank_policies: Optional[List[str]] = None,
+    base_norms: dict[str, dict[str, float]] | None = None,
+    base_model_weights: dict[str, torch.Tensor] | None = None,
+    rank_policies: list[str] | None = None,
 ) -> LoRAAuditResult:
     """Audit LoRA A/B pairs in a state_dict.
 
@@ -1923,35 +1943,38 @@ def audit_lora_state_dict(
 
     adapter_config is optional; we infer per-layer r from shapes regardless.
     """
-    layers: List[LoRALayerAudit] = []
-    issues: List[str] = []
+    layers: list[LoRALayerAudit] = []
+    issues: list[str] = []
 
     # Collect per-layer ranks for summaries
-    stable_ranks: List[float] = []
-    effective_ranks: List[float] = []
-    utilizations: List[float] = []
-    params_list: List[int] = []
-    r90_list: List[int] = []
+    stable_ranks: list[float] = []
+    effective_ranks: list[float] = []
+    utilizations: list[float] = []
+    params_list: list[int] = []
+    r90_list: list[int] = []
 
-    by_type_acc: Dict[str, List[LoRALayerAudit]] = {"attn": [], "mlp": [], "other": []}
+    by_type_acc: dict[str, list[LoRALayerAudit]] = {"attn": [], "mlp": [], "other": []}
 
     # Get total number of pairs for progress tracking
     all_pairs = list(_iter_lora_pairs(state_dict))
     total_pairs = len(all_pairs)
     logger.debug("Starting audit: %d LoRA pairs", total_pairs)
     print(f"🔍 Auditing {total_pairs} LoRA layer pairs...", file=sys.stderr)
-    
+
     for idx, (prefix, a_key, b_key) in enumerate(all_pairs, 1):
         # Progress reporting every 10 layers or for significant progress
         if total_pairs >= 20:
             if idx % 10 == 0 or idx == total_pairs:
-                print(f"  audit progress: {idx}/{total_pairs} layers processed ({100*idx/total_pairs:.1f}%)", file=sys.stderr)
+                print(
+                    f"  audit progress: {idx}/{total_pairs} layers processed ({100 * idx / total_pairs:.1f}%)",
+                    file=sys.stderr,
+                )
         elif total_pairs >= 5:
             if idx % 5 == 0 or idx == total_pairs:
                 print(f"  audit progress: {idx}/{total_pairs} layers processed", file=sys.stderr)
-        
-        A = state_dict.get(a_key, None)
-        B = state_dict.get(b_key, None)
+
+        A = state_dict.get(a_key)
+        B = state_dict.get(b_key)
         if A is None or B is None:
             issues.append(f"Missing tensors for pair: {a_key} / {b_key}")
             continue
@@ -1972,7 +1995,7 @@ def audit_lora_state_dict(
             # Show progress for expensive operations on large models
             if total_pairs >= 50 and idx % 20 == 0:
                 print(f"    computing SVD and metrics for layer: {prefix}")
-            
+
             stable_rank, eff_rank, sigma_max, frob_sq, r90, r95, r99, top_sv, policy_results = low_rank_stable_rank(
                 A2,
                 B2,
@@ -1981,13 +2004,13 @@ def audit_lora_state_dict(
                 topk_singular_values=include_top_singular_values if include_top_singular_values > 0 else None,
                 rank_policies=rank_policies,
             )
-            
+
             # NEW: Compute UDR metrics
             scale = float(alpha) / float(r) if alpha is not None else 1.0
             delta_fro_norm, delta_sigma_max, stable_rank_delta, utilization_delta = compute_update_norms(
                 A2, B2, scale=scale, compute_dtype=compute_dtype, eps=eps
             )
-            
+
             # Get base norms if available
             base_sigma_max = None
             base_fro_norm = None
@@ -1995,32 +2018,33 @@ def audit_lora_state_dict(
                 # Try both canonical and original prefix for flexible lookup
                 canonical_prefix = _canonicalize_module_name(prefix)
                 base_data = base_norms.get(canonical_prefix, {})
-                
+
                 # If canonical lookup failed, try with original prefix
                 if not base_data:
                     base_data = base_norms.get(prefix, {})
-                    
-                base_sigma_max = base_data.get('sigma_max')
-                base_fro_norm = base_data.get('fro_norm')
+
+                base_sigma_max = base_data.get("sigma_max")
+                base_fro_norm = base_data.get("fro_norm")
             elif adapter_config is not None and adapter_config.base_norms:
                 # Fallback to adapter config for backward compatibility
                 base_data = adapter_config.base_norms.get(prefix, {})
-                base_sigma_max = base_data.get('base_sigma_max')
-                base_fro_norm = base_data.get('base_fro_norm')
-            
+                base_sigma_max = base_data.get("base_sigma_max")
+                base_fro_norm = base_data.get("base_fro_norm")
+
             # Compute UDR/SDI
             udr, udr_f, sdi = compute_udr_metrics(
                 delta_sigma_max, delta_fro_norm, base_sigma_max, base_fro_norm, eps=eps
             )
-            
+
             # Compute relative perturbation metrics from in-memory base weights (safe)
             try:
                 rel_delta_fro, rel_delta_op = _compute_relative_perturbation(
-                    prefix, base_model_weights, delta_sigma_max, delta_fro_norm, compute_dtype, eps)
+                    prefix, base_model_weights, delta_sigma_max, delta_fro_norm, compute_dtype, eps
+                )
             except (ValueError, RuntimeError) as e:
                 issues.append(f"Failed to compute relative perturbation for {prefix}: {e}")
                 rel_delta_fro, rel_delta_op = None, None
-            
+
         except (ValueError, RuntimeError) as e:
             issues.append(f"Spectral computation failed for {prefix}: {e}")
             continue
@@ -2064,10 +2088,10 @@ def audit_lora_state_dict(
         )
         layers.append(layer)
         # Derive module_type from the true module name (frozen dataclass workaround)
-        layer_name = getattr(layer, 'name', None) or getattr(layer, 'full_name', None) or getattr(layer, 'key', None)
-        module_type = infer_module_type(str(layer_name or ''))
+        layer_name = getattr(layer, "name", None) or getattr(layer, "full_name", None) or getattr(layer, "key", None)
+        module_type = infer_module_type(str(layer_name or ""))
         try:
-            object.__setattr__(layer, 'module_type', module_type)
+            object.__setattr__(layer, "module_type", module_type)
         except (AttributeError, TypeError):
             pass
         by_type_acc.setdefault(module_type, []).append(layer)
@@ -2080,8 +2104,7 @@ def audit_lora_state_dict(
 
     # Aggregate statistics from collected per-layer data
     agg = _aggregate_audit_statistics(
-        layers, params_list, stable_ranks, effective_ranks,
-        utilizations, by_type_acc, r90_list, rank_policies
+        layers, params_list, stable_ranks, effective_ranks, utilizations, by_type_acc, r90_list, rank_policies
     )
 
     n_layers = agg["n_layers"]
@@ -2116,24 +2139,24 @@ def audit_lora_state_dict(
 
 
 def audit_lora_peft_dir(
-    peft_dir: Union[str, Path],
+    peft_dir: str | Path,
     *,
-    adapter_config_path: Optional[Union[str, Path]] = None,
-    adapter_weights_path: Optional[Union[str, Path]] = None,
+    adapter_config_path: str | Path | None = None,
+    adapter_weights_path: str | Path | None = None,
     map_location: str = "cpu",
     compute_dtype: torch.dtype = torch.float64,
     eps: float = 1e-12,
     include_top_singular_values: int = 0,
-    base_model_id: Optional[str] = None,
-    base_norms_cache: Optional[Union[str, Path]] = None,
+    base_model_id: str | None = None,
+    base_norms_cache: str | Path | None = None,
     compute_udr: bool = True,
-    base_model_weights: Optional[Dict[str, torch.Tensor]] = None,
-    rank_policies: Optional[List[str]] = None,
+    base_model_weights: dict[str, torch.Tensor] | None = None,
+    rank_policies: list[str] | None = None,
 ) -> LoRAAuditResult:
     """Audit a PEFT adapter directory (adapter_config + weights)."""
     d = Path(peft_dir)
     logger.debug("Auditing PEFT dir: %s", d)
-    issues: List[str] = []
+    issues: list[str] = []
 
     cfg_path, w_path, find_issues = find_peft_files(d)
     issues.extend(find_issues)
@@ -2143,7 +2166,7 @@ def audit_lora_peft_dir(
     if adapter_weights_path is not None:
         w_path = Path(adapter_weights_path)
 
-    adapter_config: Optional[LoRAAdapterConfig] = None
+    adapter_config: LoRAAdapterConfig | None = None
     if cfg_path is not None and cfg_path.exists():
         try:
             adapter_config = load_peft_adapter_config(cfg_path)
@@ -2241,8 +2264,8 @@ def audit_lora_peft_dir(
         policies=result.policies,
         issues=(issues + result.issues),
     )
-    
+
     # Set UDR enablement flag for schema consistency (frozen dataclass workaround)
-    object.__setattr__(audit_result, '_udr_enabled', compute_udr)
-    
+    object.__setattr__(audit_result, "_udr_enabled", compute_udr)
+
     return audit_result

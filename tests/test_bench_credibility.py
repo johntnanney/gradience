@@ -7,16 +7,16 @@ ownership, effective_overrides, Rank Policy column in markdown.
 import json
 import tempfile
 import unittest
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
-from gradience.bench.reporting import (
-    create_multi_seed_aggregated_report,
-    create_multi_seed_markdown_report,
-)
 from gradience.bench.aggregate import (
     _extract_seed_id,
     generate_markdown_report,
+)
+from gradience.bench.reporting import (
+    create_multi_seed_aggregated_report,
+    create_multi_seed_markdown_report,
 )
 
 
@@ -35,7 +35,7 @@ def _make_seed_report(seed, accuracy=0.85, probe_rank=64, probe_params=1024, max
                 "is_multiseed": False,
                 "n_seeds": 1,
                 "max_steps": max_steps,
-            }
+            },
         },
         "git_commit": "abc123",
         "probe": {
@@ -158,7 +158,11 @@ class TestValidationClassificationOwnership(unittest.TestCase):
 
     def test_aggregate_level_certifiable_with_3_seeds_sufficient_steps(self):
         """3 seeds with sufficient steps should be certifiable."""
-        reports = [_make_seed_report(42, max_steps=1200), _make_seed_report(123, max_steps=1200), _make_seed_report(456, max_steps=1200)]
+        reports = [
+            _make_seed_report(42, max_steps=1200),
+            _make_seed_report(123, max_steps=1200),
+            _make_seed_report(456, max_steps=1200),
+        ]
         config = {}
         agg = create_multi_seed_aggregated_report(reports, config, Path("/tmp"))
         vc = agg["env"]["validation_classification"]
@@ -226,10 +230,7 @@ class TestEffectiveOverrides(unittest.TestCase):
         agg = create_multi_seed_aggregated_report(reports, config, Path("/tmp"))
         # Effective overrides comes through config_metadata from base_report
         self.assertIn("effective_overrides", agg["config_metadata"])
-        self.assertEqual(
-            agg["config_metadata"]["effective_overrides"]["variants_evaluated"],
-            ["energy_p90"]
-        )
+        self.assertEqual(agg["config_metadata"]["effective_overrides"]["variants_evaluated"], ["energy_p90"])
 
 
 class TestStandaloneAggregateMd(unittest.TestCase):
@@ -247,7 +248,12 @@ class TestStandaloneAggregateMd(unittest.TestCase):
             "policy_compliance": {},
             "safety_policy": {"name": "Test Policy", "pass_rate_min": 0.67, "worst_delta_min": -0.025},
             "invariants": {},
-            "summary": {"total_variants": 0, "policy_compliant_variants": 0, "best_compression": None, "recommendations": []},
+            "summary": {
+                "total_variants": 0,
+                "policy_compliant_variants": 0,
+                "best_compression": None,
+                "recommendations": [],
+            },
             "aggregation_timestamp": "2026-02-10T00:00:00",
         }
         md = generate_markdown_report(data)
@@ -276,7 +282,12 @@ class TestStandaloneAggregateMd(unittest.TestCase):
             "policy_compliance": {"energy_p90": {"policy_compliant": True}},
             "safety_policy": {"name": "Test Policy", "pass_rate_min": 0.67, "worst_delta_min": -0.025},
             "invariants": {},
-            "summary": {"total_variants": 1, "policy_compliant_variants": 1, "best_compression": None, "recommendations": []},
+            "summary": {
+                "total_variants": 1,
+                "policy_compliant_variants": 1,
+                "best_compression": None,
+                "recommendations": [],
+            },
             "aggregation_timestamp": "2026-02-10T00:00:00",
         }
         md = generate_markdown_report(data)
@@ -290,6 +301,7 @@ class TestSeedInBenchJson(unittest.TestCase):
     def _build_canonical(self, seed_value):
         """Invoke create_canonical_bench_report with a config carrying a seed."""
         from gradience.bench.reporting import create_canonical_bench_report
+
         config = {
             "bench_version": "0.1",
             "model": {"name": "test-model"},
@@ -297,9 +309,7 @@ class TestSeedInBenchJson(unittest.TestCase):
             "train": {"seed": seed_value},
             "lora": {"probe_r": 16},
         }
-        probe_results = {
-            "probe": {"rank": 16, "params": 1024, "accuracy": 0.85}
-        }
+        probe_results = {"probe": {"rank": 16, "params": 1024, "accuracy": 0.85}}
         variant_results = {}
         verdict_analysis = {
             "probe_quality_status": "PASSED",
@@ -333,6 +343,7 @@ class TestSeedInBenchJson(unittest.TestCase):
     def test_seed_none_when_missing(self):
         """If config has no train.seed, the field should be None (not crash)."""
         from gradience.bench.reporting import create_canonical_bench_report
+
         config = {
             "bench_version": "0.1",
             "model": {"name": "test-model"},
@@ -340,9 +351,7 @@ class TestSeedInBenchJson(unittest.TestCase):
             "lora": {"probe_r": 16},
             # no "train" key at all
         }
-        probe_results = {
-            "probe": {"rank": 16, "params": 1024, "accuracy": 0.85}
-        }
+        probe_results = {"probe": {"rank": 16, "params": 1024, "accuracy": 0.85}}
         verdict_analysis = {
             "probe_quality_status": "PASSED",
             "probe_baseline": 0.85,
@@ -425,11 +434,7 @@ class TestSeedExtractionFallback(unittest.TestCase):
             seed_dir.mkdir()
             cfg = seed_dir / "config.yaml"
             # Top-level seed: 999, but train.seed: 42 — should return 42
-            cfg.write_text(
-                "seed: 999\n"
-                "model:\n  name: test\n"
-                "train:\n  seed: 42\n  lr: 0.001\n"
-            )
+            cfg.write_text("seed: 999\nmodel:\n  name: test\ntrain:\n  seed: 42\n  lr: 0.001\n")
             self.assertEqual(_extract_seed_id(seed_dir), 42)
 
     def test_config_yaml_top_level_seed_when_no_train_block(self):
@@ -447,13 +452,7 @@ class TestSeedExtractionFallback(unittest.TestCase):
             seed_dir = Path(td) / "run_0"
             seed_dir.mkdir()
             cfg = seed_dir / "config.yaml"
-            cfg.write_text(
-                "train:\n"
-                "  lr: 0.001\n"
-                "  epochs: 3\n"
-                "  batch_size: 16\n"
-                "  seed: 123\n"
-            )
+            cfg.write_text("train:\n  lr: 0.001\n  epochs: 3\n  batch_size: 16\n  seed: 123\n")
             self.assertEqual(_extract_seed_id(seed_dir), 123)
 
 

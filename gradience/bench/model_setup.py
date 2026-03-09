@@ -2,40 +2,48 @@
 
 from __future__ import annotations
 
-import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
+import yaml
 
 # Check for optional dependencies
 try:
     import torch
-    from transformers import (
-        AutoTokenizer, AutoModelForSequenceClassification,
-        TrainingArguments, Trainer, DataCollatorWithPadding
-    )
-    from peft import LoraConfig, get_peft_model, TaskType
     from datasets import load_dataset
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import (
+        AutoModelForSequenceClassification,
+        AutoTokenizer,
+        DataCollatorWithPadding,
+        Trainer,
+        TrainingArguments,
+    )
+
     HAS_TRAINING_DEPS = True
 except ImportError:
     HAS_TRAINING_DEPS = False
 
-from gradience.peft_utils import (
-    normalize_rank_pattern, normalize_alpha_pattern,
-    create_complete_rank_pattern, create_complete_alpha_pattern,
-    check_heterogeneous_ranks
-)
 from gradience.bench.task_profiles import get_task_profile_from_config
+from gradience.peft_utils import (
+    check_heterogeneous_ranks,
+    create_complete_alpha_pattern,
+    create_complete_rank_pattern,
+    normalize_alpha_pattern,
+    normalize_rank_pattern,
+)
 
 
-def load_config(config_path: str | Path) -> Dict[str, Any]:
+def load_config(config_path: str | Path) -> dict[str, Any]:
     """Load and validate YAML configuration file."""
     from gradience.bench.config_schema import validate_config
-    with open(config_path, 'r') as f:
+
+    with open(config_path) as f:
         raw = yaml.safe_load(f)
     return validate_config(raw)
 
 
-def setup_dataset(config: Dict[str, Any], smoke: bool = False):
+def setup_dataset(config: dict[str, Any], smoke: bool = False):
     """Load and prepare dataset based on config using task profile."""
     if not HAS_TRAINING_DEPS:
         raise ImportError("Training dependencies not available (transformers, datasets, peft)")
@@ -60,7 +68,7 @@ def setup_dataset(config: Dict[str, Any], smoke: bool = False):
     return dataset
 
 
-def _load_base_model(model_config: Dict[str, Any], model_name: str, device: str):
+def _load_base_model(model_config: dict[str, Any], model_name: str, device: str):
     """Load tokenizer and base model with shared configuration logic.
 
     Returns:
@@ -88,10 +96,9 @@ def _load_base_model(model_config: Dict[str, Any], model_name: str, device: str)
     # Load model based on type
     if model_type == "causal_lm":
         from transformers import AutoModelForCausalLM
+
         model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype=torch_dtype,
-            device_map="auto" if device == "cuda" else None
+            model_name, torch_dtype=torch_dtype, device_map="auto" if device == "cuda" else None
         )
 
         # Configure for training
@@ -103,17 +110,13 @@ def _load_base_model(model_config: Dict[str, Any], model_name: str, device: str)
         task_type = TaskType.CAUSAL_LM
     else:
         # Default to sequence classification
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_name,
-            num_labels=2,
-            torch_dtype=torch_dtype
-        )
+        model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2, torch_dtype=torch_dtype)
         task_type = TaskType.SEQ_CLS
 
     return tokenizer, model, task_type
 
 
-def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
+def setup_model_and_tokenizer(config: dict[str, Any], device: str = "cpu"):
     """Setup base model, tokenizer, and LoRA configuration."""
     model_config = config["model"]
     model_name = model_config["name"]
@@ -136,7 +139,9 @@ def setup_model_and_tokenizer(config: Dict[str, Any], device: str = "cpu"):
     return tokenizer, model
 
 
-def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_config: Dict[str, Any], device: str = "cpu"):
+def setup_compressed_model_and_tokenizer(
+    config: dict[str, Any], compression_config: dict[str, Any], device: str = "cpu"
+):
     """Setup model and tokenizer with compressed LoRA configuration."""
     model_config = config["model"]
     model_name = model_config["name"]
@@ -175,16 +180,8 @@ def setup_compressed_model_and_tokenizer(config: Dict[str, Any], compression_con
         rank_pattern = compression_config.get("rank_pattern") or variant_config.get("rank_pattern", {})
         alpha_pattern = compression_config.get("alpha_pattern") or variant_config.get("alpha_pattern", {})
 
-        full_rank_pattern = create_complete_rank_pattern(
-            rank_pattern,
-            audit_layers,
-            default_rank_from_audit
-        )
-        full_alpha_pattern = create_complete_alpha_pattern(
-            alpha_pattern,
-            audit_layers,
-            default_alpha_from_audit
-        )
+        full_rank_pattern = create_complete_rank_pattern(rank_pattern, audit_layers, default_rank_from_audit)
+        full_alpha_pattern = create_complete_alpha_pattern(alpha_pattern, audit_layers, default_alpha_from_audit)
 
         # Use minimum rank as default for PEFT compatibility
         # This conservative approach ensures rank_pattern overrides work correctly
@@ -241,6 +238,7 @@ def _unwrap_model_for_save(trainer, model):
         return model.module
     return model
 
+
 def _save_peft_adapter_only(trainer, model, output_dir: str | Path, *, label: str = "adapter") -> Path:
     """
     Save PEFT adapter weights/config to output_dir.
@@ -256,9 +254,7 @@ def _save_peft_adapter_only(trainer, model, output_dir: str | Path, *, label: st
 
     # Guardrail: only PEFT models should pass
     if not hasattr(m, "peft_config"):
-        raise RuntimeError(
-            f"Bench expected a PEFT model but got {type(m)}. Refusing to save full model. ({label})"
-        )
+        raise RuntimeError(f"Bench expected a PEFT model but got {type(m)}. Refusing to save full model. ({label})")
 
     # Save adapter weights/config (small)
     try:
@@ -276,8 +272,6 @@ def _save_peft_adapter_only(trainer, model, output_dir: str | Path, *, label: st
     safetensors_path = out / "adapter_model.safetensors"
     bin_path = out / "adapter_model.bin"
     if not safetensors_path.exists() and not bin_path.exists():
-        raise RuntimeError(
-            f"Adapter save succeeded but adapter_model.(safetensors|bin) missing in: {out} ({label})"
-        )
+        raise RuntimeError(f"Adapter save succeeded but adapter_model.(safetensors|bin) missing in: {out} ({label})")
 
     return out

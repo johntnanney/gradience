@@ -24,8 +24,8 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 BASE_PPL = {
-    "GSM8K":  5.89,
-    "MBPP":   5.89,
+    "GSM8K": 5.89,
+    "MBPP": 5.89,
     "oasst2": 5.89,
 }
 
@@ -37,20 +37,20 @@ PAIRS = {
     "Pair 02\nmetamath × magicoder": {
         "evals": {
             "GSM8K": (5.31, 5.24, 5.21),
-            "MBPP":  (5.48, 5.42, 5.39),
+            "MBPP": (5.48, 5.42, 5.39),
         },
         "annotation": "no real change",
     },
     "Pair 03\nmagicoder × btgenbot": {
         "evals": {
-            "MBPP":  (7.24, 5.81, 5.52),
+            "MBPP": (7.24, 5.81, 5.52),
             "oasst2": (5.14, 5.58, 5.71),
         },
         "annotation": "tradeoff case",
     },
     "Pair 04\nopenwebmath-r64 × btgenbot": {
         "evals": {
-            "GSM8K":  (7.51, 5.93, 5.62),
+            "GSM8K": (7.51, 5.93, 5.62),
             "oasst2": (5.02, 5.54, 5.78),
         },
         "annotation": "tradeoff case",
@@ -65,11 +65,11 @@ PAIRS = {
 # Colors
 # ---------------------------------------------------------------------------
 
-COL_NAIVE  = "#c44e52"
+COL_NAIVE = "#c44e52"
 COL_NORMEQ = "#e8a838"
-COL_REC    = "#2a7b9b"
-COL_BASE   = "#555555"
-COL_ANNOT  = "#777777"
+COL_REC = "#2a7b9b"
+COL_BASE = "#555555"
+COL_ANNOT = "#777777"
 
 BAR_COLORS = [COL_NAIVE, COL_NORMEQ, COL_REC]
 BAR_LABELS = ["Naive", "Norm-equalized", "Recommended"]
@@ -97,9 +97,12 @@ for panel_idx, (pair_name, pair_data) in enumerate(PAIRS.items()):
         offsets = x_centers + (bar_idx - 1) * bar_width
         heights = [evals[ev][bar_idx] for ev in eval_names]
         bars = ax.bar(
-            offsets, heights, bar_width * 0.90,
+            offsets,
+            heights,
+            bar_width * 0.90,
             color=BAR_COLORS[bar_idx],
-            edgecolor="white", linewidth=0.4,
+            edgecolor="white",
+            linewidth=0.4,
             label=BAR_LABELS[bar_idx] if panel_idx == 0 else None,
             zorder=3,
         )
@@ -110,8 +113,12 @@ for panel_idx, (pair_name, pair_data) in enumerate(PAIRS.items()):
         x_lo = ev_idx - 0.42
         x_hi = ev_idx + 0.42
         ax.plot(
-            [x_lo, x_hi], [base_val, base_val],
-            color=COL_BASE, linewidth=1.2, linestyle="--", alpha=0.7,
+            [x_lo, x_hi],
+            [base_val, base_val],
+            color=COL_BASE,
+            linewidth=1.2,
+            linestyle="--",
+            alpha=0.7,
             zorder=4,
             label="Base model" if (panel_idx == 0 and ev_idx == 0) else None,
         )
@@ -127,10 +134,15 @@ for panel_idx, (pair_name, pair_data) in enumerate(PAIRS.items()):
     annot = pair_data["annotation"]
     if annot:
         ax.text(
-            0.5, 0.97, annot,
+            0.5,
+            0.97,
+            annot,
             transform=ax.transAxes,
-            fontsize=7, fontstyle="italic", color=COL_ANNOT,
-            ha="center", va="top",
+            fontsize=7,
+            fontstyle="italic",
+            color=COL_ANNOT,
+            ha="center",
+            va="top",
         )
 
     # Formatting
@@ -149,16 +161,23 @@ axes[0].set_ylim(4.0, 9.0)
 # Legend — single row at bottom
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(
-    handles, labels,
-    loc="lower center", ncol=4, fontsize=8.5,
-    framealpha=0.95, edgecolor="#ddd", handletextpad=0.4,
+    handles,
+    labels,
+    loc="lower center",
+    ncol=4,
+    fontsize=8.5,
+    framealpha=0.95,
+    edgecolor="#ddd",
+    handletextpad=0.4,
     bbox_to_anchor=(0.5, -0.02),
 )
 
 # Suptitle
 fig.suptitle(
     "Figure 2.  Behavioral gains are selective rather than universal",
-    fontsize=11, fontweight="bold", y=1.02,
+    fontsize=11,
+    fontweight="bold",
+    y=1.02,
 )
 
 plt.tight_layout(rect=[0, 0.06, 1, 0.96])

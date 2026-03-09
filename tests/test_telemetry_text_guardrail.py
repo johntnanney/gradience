@@ -15,7 +15,7 @@ class TestTelemetryTextGuardrail(unittest.TestCase):
             w.log("metrics", step=0, kind="test", metrics={"ppl": 1.0}, prompt=long)
             w.close()
 
-            with open(p, "r", encoding="utf-8") as f:
+            with open(p, encoding="utf-8") as f:
                 raw = f.read()
             self.assertNotIn(long, raw, "Long raw string should not appear in telemetry JSONL")
 
@@ -40,7 +40,7 @@ class TestTelemetryTextGuardrail(unittest.TestCase):
             w.log("train_step", step=1, prompt=long)
             w.close()
 
-            with open(p, "r", encoding="utf-8") as f:
+            with open(p, encoding="utf-8") as f:
                 raw = f.read()
             obj = json.loads(raw.strip())
             self.assertEqual(obj["prompt"], long)

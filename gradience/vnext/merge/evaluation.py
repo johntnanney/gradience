@@ -61,7 +61,7 @@ def _auc_roc_numpy(
     fpr = np.concatenate([[0.0], fpr])
 
     # Trapezoidal integration (np.trapezoid in numpy >=2, np.trapz before)
-    _trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz")
+    _trapz = getattr(np, "trapezoid", None) or np.trapz
     return float(_trapz(tpr, fpr))
 
 
@@ -96,9 +96,9 @@ def _average_precision_numpy(
 
 
 def _compute_r_squared(
-    predicted: List[float],
-    actual: List[float],
-) -> Optional[float]:
+    predicted: list[float],
+    actual: list[float],
+) -> float | None:
     """Compute R² of linear regression: actual ~ predicted.
 
     Uses the normal equation (closed-form OLS) with numpy.
@@ -142,10 +142,10 @@ def _compute_r_squared(
 
 
 def _compute_calibration(
-    predicted_risk: List[float],
-    actual_bad_merge: List[bool],
+    predicted_risk: list[float],
+    actual_bad_merge: list[bool],
     n_bins: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute binned calibration (reliability) analysis.
 
     Divides the predicted risk range [0, 1] into equal-width bins and
@@ -162,10 +162,10 @@ def _compute_calibration(
     pred = np.array(predicted_risk, dtype=float)
     actual = np.array(actual_bad_merge, dtype=float)
 
-    bin_edges: List[tuple[float, float]] = []
-    mean_predicted: List[Optional[float]] = []
-    mean_observed: List[Optional[float]] = []
-    bin_counts: List[int] = []
+    bin_edges: list[tuple[float, float]] = []
+    mean_predicted: list[float | None] = []
+    mean_observed: list[float | None] = []
+    bin_counts: list[int] = []
 
     lo = 0.0
     step = 1.0 / n_bins
@@ -205,12 +205,12 @@ def _compute_calibration(
 
 
 def merge_prediction_evaluation(
-    predicted_risk: List[float],
-    actual_bad_merge: List[bool],
-    actual_Q_min: List[float],
+    predicted_risk: list[float],
+    actual_bad_merge: list[bool],
+    actual_Q_min: list[float],
     *,
     n_calibration_bins: int = 5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute evaluation metrics for merge outcome prediction.
 
     Parameters
@@ -265,8 +265,8 @@ def merge_prediction_evaluation(
     n_good = n_samples - n_bad
 
     # --- Classification metrics ---
-    auc_roc: Optional[float] = None
-    average_precision: Optional[float] = None
+    auc_roc: float | None = None
+    average_precision: float | None = None
 
     # AUC-ROC and AP require both classes to be present
     if n_bad > 0 and n_good > 0:
@@ -279,9 +279,7 @@ def merge_prediction_evaluation(
             except ValueError:
                 auc_roc = None
             try:
-                average_precision = float(
-                    average_precision_score(y_true, y_score)
-                )
+                average_precision = float(average_precision_score(y_true, y_score))
             except ValueError:
                 average_precision = None
         else:
@@ -294,7 +292,9 @@ def merge_prediction_evaluation(
     # --- Calibration ---
     effective_bins = min(n_calibration_bins, n_samples)
     calibration = _compute_calibration(
-        predicted_risk, actual_bad_merge, effective_bins,
+        predicted_risk,
+        actual_bad_merge,
+        effective_bins,
     )
 
     return {

@@ -13,9 +13,9 @@ from gradience.vnext.merge.recommend import (
     PairDiagnosis,
     _apply_layer_policy,
     _apply_policy,
+    _compression_target,
     _compute_dare_drop_rate,
     _compute_trim_fraction,
-    _compression_target,
     _recommend_layer,
     _should_compress,
     diagnose_layer,
@@ -25,7 +25,6 @@ from gradience.vnext.merge.recommend import (
     rebalance_coefficients,
     recommend_merge,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers — synthetic layer verdict dicts
@@ -275,10 +274,7 @@ class TestRecommendMerge:
     """Tests for recommend_merge() on synthetic reports."""
 
     def test_all_safe_layers(self):
-        layers = [
-            _make_lv_dict(verdict="safe", layer_name=f"layer.{i}", mean_overlap=0.05)
-            for i in range(3)
-        ]
+        layers = [_make_lv_dict(verdict="safe", layer_name=f"layer.{i}", mean_overlap=0.05) for i in range(3)]
         report = _FakeReport(layers)
         rec = recommend_merge(report)
 
@@ -291,13 +287,17 @@ class TestRecommendMerge:
         layers = [
             _make_lv_dict(verdict="safe", layer_name="layer.0", mean_overlap=0.05),
             _make_lv_dict(
-                verdict="conflicting", layer_name="layer.1",
-                mean_overlap=0.8, directional_agreement=-0.7,
+                verdict="conflicting",
+                layer_name="layer.1",
+                mean_overlap=0.8,
+                directional_agreement=-0.7,
                 conflict_dimensions=2,
             ),
             _make_lv_dict(
-                verdict="redundant", layer_name="layer.2",
-                mean_overlap=0.7, directional_agreement=0.8,
+                verdict="redundant",
+                layer_name="layer.2",
+                mean_overlap=0.7,
+                directional_agreement=0.8,
             ),
         ]
         report = _FakeReport(layers)
@@ -311,9 +311,11 @@ class TestRecommendMerge:
     def test_compression_needed_flag(self):
         layers = [
             _make_lv_dict(
-                verdict="redundant", layer_name="layer.0",
+                verdict="redundant",
+                layer_name="layer.0",
                 mean_overlap=0.8,
-                effective_rank_a=5, nominal_rank_a=64,
+                effective_rank_a=5,
+                nominal_rank_a=64,
             ),
         ]
         report = _FakeReport(layers)
@@ -367,7 +369,8 @@ class TestFormatRecommendation:
             _make_lv_dict(
                 verdict="conflicting",
                 layer_name="model.layers.1.self_attn.q_proj",
-                mean_overlap=0.8, conflict_dimensions=2,
+                mean_overlap=0.8,
+                conflict_dimensions=2,
             ),
         ]
         report = _FakeReport(layers)
@@ -381,9 +384,11 @@ class TestFormatRecommendation:
     def test_compression_section_when_needed(self):
         layers = [
             _make_lv_dict(
-                verdict="redundant", layer_name="layer.0",
+                verdict="redundant",
+                layer_name="layer.0",
                 mean_overlap=0.8,
-                effective_rank_a=5, nominal_rank_a=64,
+                effective_rank_a=5,
+                nominal_rank_a=64,
             ),
         ]
         report = _FakeReport(layers)
@@ -455,10 +460,13 @@ class TestEligibilityHardWarnings:
     def test_one_adapter_flagged_weak(self):
         """When one adapter is flagged weak, warn about preserving weak adapter."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
-            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+                "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+            },
+        )
         rec = recommend_merge(report)
 
         assert len(rec.warnings) == 1
@@ -467,10 +475,13 @@ class TestEligibilityHardWarnings:
     def test_both_adapters_flagged_weak(self):
         """When both adapters are flagged weak, warn about uncertain deployment value."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
-            "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+                "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
+            },
+        )
         rec = recommend_merge(report)
 
         assert len(rec.warnings) == 1
@@ -480,10 +491,13 @@ class TestEligibilityHardWarnings:
     def test_both_eligible_no_warnings(self):
         """When both adapters are eligible, no hard warnings are emitted."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
-            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+                "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+            },
+        )
         rec = recommend_merge(report)
 
         assert len(rec.warnings) == 0
@@ -501,10 +515,13 @@ class TestEligibilityHardWarnings:
     def test_warnings_in_format_output(self):
         """Warnings appear in CLI-formatted output."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
-            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+                "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+            },
+        )
         rec = recommend_merge(report)
         output = format_recommendation(rec)
 
@@ -745,8 +762,11 @@ class TestDiagnosePair:
         """Compression needs are aggregated."""
         layers = [
             _make_lv_dict(
-                verdict="redundant", layer_name="layer.0",
-                mean_overlap=0.8, effective_rank_a=5, nominal_rank_a=64,
+                verdict="redundant",
+                layer_name="layer.0",
+                mean_overlap=0.8,
+                effective_rank_a=5,
+                nominal_rank_a=64,
             ),
             _make_lv_dict(verdict="safe", layer_name="layer.1"),
         ]
@@ -759,10 +779,13 @@ class TestDiagnosePair:
     def test_eligibility_parsed(self):
         """Source QA is parsed into EligibilityContext."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
-            "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+                "adapter_b": {"status": "flagged_weak", "adapter_path": "./b"},
+            },
+        )
         diag = diagnose_pair(report)
 
         assert diag.eligibility.has_data
@@ -783,9 +806,12 @@ class TestDiagnosePair:
         import json
 
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "eligible", "adapter_path": "./a"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "eligible", "adapter_path": "./a"},
+            },
+        )
         diag = diagnose_pair(report)
         d = diag.to_dict()
         json_str = json.dumps(d)
@@ -813,10 +839,13 @@ class TestApplyLayerPolicy:
 
     def test_conflicting_gets_dare_ties(self):
         """CONFLICTING diagnosis → dare_ties strategy."""
-        diag = diagnose_layer(_make_lv_dict(
-            verdict="conflicting", mean_overlap=0.8,
-            conflict_dimensions=3,
-        ))
+        diag = diagnose_layer(
+            _make_lv_dict(
+                verdict="conflicting",
+                mean_overlap=0.8,
+                conflict_dimensions=3,
+            )
+        )
         ctx = EligibilityContext(status_a=None, status_b=None)
         rec = _apply_layer_policy(diag, ctx)
 
@@ -854,10 +883,13 @@ class TestApplyPolicy:
     def test_eligibility_warnings_propagated(self):
         """Warnings from eligibility context flow through to recommendation."""
         layers = [_make_lv_dict(verdict="safe", layer_name="layer.0")]
-        report = _FakeReport(layers, source_qa={
-            "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
-            "adapter_b": {"status": "eligible", "adapter_path": "./b"},
-        })
+        report = _FakeReport(
+            layers,
+            source_qa={
+                "adapter_a": {"status": "flagged_weak", "adapter_path": "./a"},
+                "adapter_b": {"status": "eligible", "adapter_path": "./b"},
+            },
+        )
         diag = diagnose_pair(report)
         rec = _apply_policy(diag)
 

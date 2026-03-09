@@ -28,9 +28,9 @@ from typing import Any, Dict, List, Optional
 
 try:
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    from peft import PeftModel
     from datasets import load_dataset
+    from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 except ImportError as e:
     print(f"\nMissing dependencies: {e}")
     print('Install with: pip install "gradience[bench]"')
@@ -42,7 +42,6 @@ from prompt_templates import (
     parse_nli_response,
     parse_nli_response_numeric,
 )
-
 
 # ---------------------------------------------------------------------------
 # Label maps
@@ -59,7 +58,7 @@ QNLI_LABEL_MAP = {0: "entailment", 1: "not_entailment"}
 
 def load_model_and_tokenizer(
     base_model_name: str,
-    adapter_dir: Optional[str] = None,
+    adapter_dir: str | None = None,
     device: str = "cuda",
     dtype: str = "float16",
 ) -> tuple:
@@ -107,7 +106,7 @@ def load_model_and_tokenizer(
 
 def evaluate_nli(
     base_model_name: str,
-    adapter_dir: Optional[str],
+    adapter_dir: str | None,
     dataset_name: str,
     split: str = "validation",
     max_samples: int = 500,
@@ -115,7 +114,7 @@ def evaluate_nli(
     dtype: str = "float16",
     max_new_tokens: int = 5,
     template_mode: str = "custom",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Evaluate an adapter (or base model) on NLI via prompted generation.
 
     Parameters
@@ -139,9 +138,7 @@ def evaluate_nli(
         max_new_tokens = 3
 
     # Load model
-    model, tokenizer = load_model_and_tokenizer(
-        base_model_name, adapter_dir, device, dtype
-    )
+    model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_dir, device, dtype)
 
     # Load dataset
     if dataset_name == "mnli":
@@ -160,7 +157,7 @@ def evaluate_nli(
     print(f"  Evaluating {len(ds)} examples from {dataset_name}...")
 
     # Run evaluation
-    predictions: List[Dict[str, Any]] = []
+    predictions: list[dict[str, Any]] = []
     correct = 0
     start_time = time.monotonic()
 
@@ -168,13 +165,15 @@ def evaluate_nli(
         # Format prompt (mode-aware)
         if dataset_name == "mnli":
             prompt = format_mnli_prompt(
-                example["premise"], example["hypothesis"],
+                example["premise"],
+                example["hypothesis"],
                 template_mode=template_mode,
             )
             gold_label = label_map[example["label"]]
         else:  # qnli
             prompt = format_qnli_prompt(
-                example["question"], example["sentence"],
+                example["question"],
+                example["sentence"],
                 template_mode=template_mode,
             )
             gold_label = label_map[example["label"]]
@@ -192,7 +191,7 @@ def evaluate_nli(
             )
 
         # Decode only the generated tokens (exclude prompt)
-        generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
+        generated_ids = outputs[0][inputs["input_ids"].shape[1] :]
         response = tokenizer.decode(generated_ids, skip_special_tokens=True)
 
         # Parse label (mode-aware)
@@ -204,22 +203,20 @@ def evaluate_nli(
         if is_correct:
             correct += 1
 
-        predictions.append({
-            "index": i,
-            "gold": gold_label,
-            "predicted": predicted_label,
-            "correct": is_correct,
-            "raw_response": response.strip()[:100],  # truncate for storage
-        })
+        predictions.append(
+            {
+                "index": i,
+                "gold": gold_label,
+                "predicted": predicted_label,
+                "correct": is_correct,
+                "raw_response": response.strip()[:100],  # truncate for storage
+            }
+        )
 
         if (i + 1) % 50 == 0:
             elapsed = time.monotonic() - start_time
             acc_so_far = correct / (i + 1)
-            print(
-                f"    [{i + 1}/{len(ds)}] "
-                f"acc={acc_so_far:.3f} "
-                f"({elapsed:.0f}s elapsed)"
-            )
+            print(f"    [{i + 1}/{len(ds)}] acc={acc_so_far:.3f} ({elapsed:.0f}s elapsed)")
 
     total_time = time.monotonic() - start_time
     accuracy = correct / len(ds) if len(ds) > 0 else 0.0
@@ -243,10 +240,7 @@ def evaluate_nli(
         "predictions": predictions,
     }
 
-    print(
-        f"  Result: accuracy={accuracy:.4f} "
-        f"({correct}/{len(ds)}) in {total_time:.1f}s"
-    )
+    print(f"  Result: accuracy={accuracy:.4f} ({correct}/{len(ds)}) in {total_time:.1f}s")
 
     # Cleanup
     del model
@@ -304,9 +298,7 @@ def quick_validate(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Evaluate a model (with optional adapter) on MNLI or QNLI"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate a model (with optional adapter) on MNLI or QNLI")
     parser.add_argument(
         "--base-model",
         type=str,

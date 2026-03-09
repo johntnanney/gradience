@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
 from gradience.bench.constants import CONFIG_HASH_LENGTH
 
@@ -26,7 +26,7 @@ def round_to_allowed_ranks(suggested_r: int | float, allowed_ranks: list[int]) -
     return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
 
 
-def get_primary_metric_key(config: Dict[str, Any]) -> str:
+def get_primary_metric_key(config: dict[str, Any]) -> str:
     """Determine the primary evaluation metric based on the task configuration."""
     task_config = config.get("task", {})
     dataset_name = task_config.get("dataset", "").lower()
@@ -41,9 +41,8 @@ def get_primary_metric_key(config: Dict[str, Any]) -> str:
         return "eval_accuracy"
 
 
-
-def create_config_hash(config: Dict[str, Any]) -> str:
+def create_config_hash(config: dict[str, Any]) -> str:
     """Create a stable hash of the configuration for reference."""
     # Create a stable string representation
-    config_str = json.dumps(config, sort_keys=True, separators=(',', ':'))
+    config_str = json.dumps(config, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(config_str.encode()).hexdigest()[:CONFIG_HASH_LENGTH]

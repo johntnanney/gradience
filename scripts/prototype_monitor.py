@@ -22,17 +22,18 @@ from gradience.vnext.monitor_replay import replay_telemetry
 def main():
     # Study 7 telemetry
     telemetry_path = Path(__file__).resolve().parent.parent.parent / (
-        "Gradience II/archive/signals_telemetry_validation_v1/"
-        "results/grok_modadd_study7a_gpu/telemetry.jsonl"
+        "Gradience II/archive/signals_telemetry_validation_v1/results/grok_modadd_study7a_gpu/telemetry.jsonl"
     )
 
     if not telemetry_path.exists():
         print(f"Telemetry file not found: {telemetry_path}")
         print("Trying alternative path...")
         # Try relative to mnt
-        alt = Path("/sessions/trusting-magical-allen/mnt/Gradience II/archive/"
-                    "signals_telemetry_validation_v1/results/"
-                    "grok_modadd_study7a_gpu/telemetry.jsonl")
+        alt = Path(
+            "/sessions/trusting-magical-allen/mnt/Gradience II/archive/"
+            "signals_telemetry_validation_v1/results/"
+            "grok_modadd_study7a_gpu/telemetry.jsonl"
+        )
         if alt.exists():
             telemetry_path = alt
         else:

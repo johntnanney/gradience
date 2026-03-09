@@ -62,7 +62,6 @@ import yaml
 
 from gradience.vnext.merge import merge_audit, recommend_merge
 
-
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -85,21 +84,22 @@ def load_config(config_path: str, smoke: bool = False) -> dict:
 @dataclass
 class PairAuditResult:
     """Compact record of one audit for summary reporting."""
+
     pair_name: str
-    pair_type: str                     # "cross_task" or "calibration"
-    seed_label: str                    # "seed_42" or "seeds_42_123"
+    pair_type: str  # "cross_task" or "calibration"
+    seed_label: str  # "seed_42" or "seeds_42_123"
     overall_verdict: str
     compatibility_score: float
     n_layers: int
-    verdict_counts: Dict[str, int]     # per-layer verdict distribution
-    recommendation_strategy: Optional[str] = None
-    recommendation_risk: Optional[str] = None
+    verdict_counts: dict[str, int]  # per-layer verdict distribution
+    recommendation_strategy: str | None = None
+    recommendation_risk: str | None = None
     n_compress: int = 0
     audit_time_s: float = 0.0
     # For diff mode: what the old verdict was
-    old_verdict: Optional[str] = None
+    old_verdict: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = {
             "pair_name": self.pair_name,
             "pair_type": self.pair_type,
@@ -134,8 +134,8 @@ def _run_audit_and_recommend(
     label: str,
     counter: str,
     do_recommend: bool = True,
-    old_audits_dir: Optional[Path] = None,
-) -> Optional[PairAuditResult]:
+    old_audits_dir: Path | None = None,
+) -> PairAuditResult | None:
     """Run audit, optionally generate recommendation, return summary record."""
 
     if not adapter_a.exists():
@@ -160,7 +160,7 @@ def _run_audit_and_recommend(
     score = report.aggregate.get("compatibility_score", 0.0)
 
     # Per-layer verdict counts
-    verdict_counts: Dict[str, int] = Counter()
+    verdict_counts: dict[str, int] = Counter()
     for lv in report.layer_verdicts:
         verdict_counts[lv["verdict"]] += 1
 
@@ -226,7 +226,7 @@ def _run_audit_and_recommend(
 
 
 def _write_summary(
-    results: List[PairAuditResult],
+    results: list[PairAuditResult],
     summary_dir: Path,
     has_diff: bool,
 ) -> None:
@@ -240,14 +240,8 @@ def _write_summary(
         layer_verdicts_total.update(r.verdict_counts)
 
     # --- Recommendation distribution ---
-    rec_strategies = Counter(
-        r.recommendation_strategy for r in results
-        if r.recommendation_strategy is not None
-    )
-    rec_risks = Counter(
-        r.recommendation_risk for r in results
-        if r.recommendation_risk is not None
-    )
+    rec_strategies = Counter(r.recommendation_strategy for r in results if r.recommendation_strategy is not None)
+    rec_risks = Counter(r.recommendation_risk for r in results if r.recommendation_risk is not None)
 
     # --- Summary JSON ---
     summary = {
@@ -259,12 +253,8 @@ def _write_summary(
         "layer_verdict_distribution": dict(layer_verdicts_total),
         "recommendation_strategy_distribution": dict(rec_strategies),
         "recommendation_risk_distribution": dict(rec_risks),
-        "n_needing_compression": sum(
-            1 for r in results if r.n_compress > 0
-        ),
-        "mean_audit_time_s": round(
-            sum(r.audit_time_s for r in results) / max(len(results), 1), 2
-        ),
+        "n_needing_compression": sum(1 for r in results if r.n_compress > 0),
+        "mean_audit_time_s": round(sum(r.audit_time_s for r in results) / max(len(results), 1), 2),
         "per_pair": [r.to_dict() for r in results],
     }
 
@@ -273,16 +263,18 @@ def _write_summary(
 
     # --- Verdict migration (diff) ---
     if has_diff:
-        migrations: List[Dict[str, Any]] = []
+        migrations: list[dict[str, Any]] = []
         for r in results:
             if r.old_verdict is not None:
-                migrations.append({
-                    "pair": r.pair_name,
-                    "seed": r.seed_label,
-                    "old_verdict": r.old_verdict,
-                    "new_verdict": r.overall_verdict,
-                    "changed": r.old_verdict != r.overall_verdict,
-                })
+                migrations.append(
+                    {
+                        "pair": r.pair_name,
+                        "seed": r.seed_label,
+                        "old_verdict": r.old_verdict,
+                        "new_verdict": r.overall_verdict,
+                        "changed": r.old_verdict != r.overall_verdict,
+                    }
+                )
 
         migration_summary = {
             "n_compared": len(migrations),
@@ -316,13 +308,15 @@ def _write_summary(
         pct = 100 * count / max(len(results), 1)
         lines.append(f"| {v.upper()} | {count} | {pct:.0f}% |")
 
-    lines.extend([
-        "",
-        "## Per-Layer Verdict Distribution",
-        "",
-        "| Verdict | Layers | % |",
-        "|---------|-------:|--:|",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Per-Layer Verdict Distribution",
+            "",
+            "| Verdict | Layers | % |",
+            "|---------|-------:|--:|",
+        ]
+    )
 
     total_layers = sum(layer_verdicts_total.values())
     for v in ["safe", "redundant", "imbalanced", "conflicting"]:
@@ -331,64 +325,71 @@ def _write_summary(
         lines.append(f"| {v.upper()} | {count} | {pct:.0f}% |")
 
     if rec_strategies:
-        lines.extend([
-            "",
-            "## Recommendation Distribution",
-            "",
-            "| Strategy | Count |",
-            "|----------|------:|",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Recommendation Distribution",
+                "",
+                "| Strategy | Count |",
+                "|----------|------:|",
+            ]
+        )
         for strat, count in rec_strategies.most_common():
             lines.append(f"| {strat} | {count} |")
 
-        lines.extend([
-            "",
-            "| Risk Level | Count |",
-            "|------------|------:|",
-        ])
+        lines.extend(
+            [
+                "",
+                "| Risk Level | Count |",
+                "|------------|------:|",
+            ]
+        )
         for risk, count in rec_risks.most_common():
             lines.append(f"| {risk} | {count} |")
 
         compress_count = sum(1 for r in results if r.n_compress > 0)
-        lines.extend([
-            "",
-            f"Pairs needing pre-compression: **{compress_count}** / {len(results)}",
-        ])
+        lines.extend(
+            [
+                "",
+                f"Pairs needing pre-compression: **{compress_count}** / {len(results)}",
+            ]
+        )
 
     if has_diff:
         changed = [r for r in results if r.old_verdict is not None and r.old_verdict != r.overall_verdict]
         unchanged = [r for r in results if r.old_verdict is not None and r.old_verdict == r.overall_verdict]
         compared = [r for r in results if r.old_verdict is not None]
 
-        lines.extend([
-            "",
-            "## Verdict Changes (vs. Phase 2)",
-            "",
-            f"Compared: {len(compared)} pairs | "
-            f"Changed: **{len(changed)}** | "
-            f"Unchanged: {len(unchanged)}",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Verdict Changes (vs. Phase 2)",
+                "",
+                f"Compared: {len(compared)} pairs | Changed: **{len(changed)}** | Unchanged: {len(unchanged)}",
+            ]
+        )
 
         if changed:
-            lines.extend([
-                "",
-                "| Pair | Seed | Old | New |",
-                "|------|------|-----|-----|",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "| Pair | Seed | Old | New |",
+                    "|------|------|-----|-----|",
+                ]
+            )
             for r in changed:
-                lines.append(
-                    f"| {r.pair_name} | {r.seed_label} | "
-                    f"{r.old_verdict} | **{r.overall_verdict}** |"
-                )
+                lines.append(f"| {r.pair_name} | {r.seed_label} | {r.old_verdict} | **{r.overall_verdict}** |")
 
     # Per-pair detail table
-    lines.extend([
-        "",
-        "## Per-Pair Results",
-        "",
-        "| Pair | Seed | Verdict | Score | Layers | Rec. Strategy | Risk |",
-        "|------|------|---------|------:|-------:|---------------|------|",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Per-Pair Results",
+            "",
+            "| Pair | Seed | Verdict | Score | Layers | Rec. Strategy | Risk |",
+            "|------|------|---------|------:|-------:|---------------|------|",
+        ]
+    )
     for r in results:
         rec_s = r.recommendation_strategy or "—"
         rec_r = r.recommendation_risk or "—"
@@ -412,27 +413,30 @@ def _write_summary(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="M1 Phase 2b: Re-audit with updated verdict engine"
-    )
+    parser = argparse.ArgumentParser(description="M1 Phase 2b: Re-audit with updated verdict engine")
     parser.add_argument(
-        "--config", required=True,
+        "--config",
+        required=True,
         help="Path to m1_config.yaml",
     )
     parser.add_argument(
-        "--smoke", action="store_true",
+        "--smoke",
+        action="store_true",
         help="Smoke test (single seed)",
     )
     parser.add_argument(
-        "--no-recommend", action="store_true",
+        "--no-recommend",
+        action="store_true",
         help="Skip recommendation generation (audit only)",
     )
     parser.add_argument(
-        "--diff", action="store_true",
+        "--diff",
+        action="store_true",
         help="Compare against original Phase 2 audits and report changes",
     )
     parser.add_argument(
-        "--output-suffix", default="v2",
+        "--output-suffix",
+        default="v2",
         help="Suffix for output directory (default: 'v2' → audits_v2/)",
     )
     args = parser.parse_args()
@@ -468,7 +472,7 @@ def main():
     print()
 
     total_start = time.monotonic()
-    results: List[PairAuditResult] = []
+    results: list[PairAuditResult] = []
     n_done = 0
     n_missing = 0
 
@@ -487,7 +491,9 @@ def main():
                 old_dir = old_audits_dir / pair_name / f"seed_{seed}"
 
             result = _run_audit_and_recommend(
-                adapter_a, adapter_b, audit_dir,
+                adapter_a,
+                adapter_b,
+                audit_dir,
                 label=label,
                 counter=f"{n_done}/{n_total}",
                 do_recommend=do_recommend,
@@ -514,7 +520,9 @@ def main():
                     old_dir = old_audits_dir / "calibration" / cal_name
 
                 result = _run_audit_and_recommend(
-                    adapter_a, adapter_b, audit_dir,
+                    adapter_a,
+                    adapter_b,
+                    audit_dir,
                     label=label,
                     counter=f"{n_done}/{n_total}",
                     do_recommend=do_recommend,
@@ -528,7 +536,7 @@ def main():
     # --- Summary ---
     elapsed = time.monotonic() - total_start
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Phase 2b complete: {len(results)} audits in {elapsed:.1f}s")
     if n_missing:
         print(f"  Skipped (missing adapters): {n_missing}")
@@ -536,17 +544,14 @@ def main():
     if results:
         # Quick verdict summary
         verdict_counts = Counter(r.overall_verdict for r in results)
-        print(f"\n  Verdict distribution:")
+        print("\n  Verdict distribution:")
         for v in ["safe", "redundant", "imbalanced", "conflicting"]:
             count = verdict_counts.get(v, 0)
             pct = 100 * count / len(results)
             print(f"    {v.upper():>12s}: {count:3d} ({pct:.0f}%)")
 
         if args.diff:
-            changed = [
-                r for r in results
-                if r.old_verdict is not None and r.old_verdict != r.overall_verdict
-            ]
+            changed = [r for r in results if r.old_verdict is not None and r.old_verdict != r.overall_verdict]
             compared = [r for r in results if r.old_verdict is not None]
             print(f"\n  Verdict changes: {len(changed)} / {len(compared)} pairs changed")
             for r in changed:

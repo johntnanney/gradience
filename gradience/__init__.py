@@ -49,10 +49,10 @@ For current usage, see: README.md, docs/QUICK_REFERENCE.md, docs/USER_MANUAL.md,
 """
 
 try:
-    from importlib.metadata import version, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError, version
 except ImportError:
     # Should not happen on Python 3.10+, but be safe
-    from importlib_metadata import version, PackageNotFoundError  # type: ignore[no-redef]
+    from importlib_metadata import PackageNotFoundError, version  # type: ignore[no-redef]
 
 try:
     __version__ = version("gradience")
@@ -60,47 +60,48 @@ except PackageNotFoundError:
     __version__ = "0.11.0"
 
 # Current API: vNext components re-exported for convenience
-from gradience.vnext.telemetry import TelemetryWriter, TelemetryReader
-
-# Exception hierarchy
-from gradience.exceptions import GradienceError
+# Deprecated Guard functionality
+import warnings
 
 # Stable public API (thin wrappers around CLI/module entrypoints)
 from gradience import api
 
-# Deprecated Guard functionality
-import warnings
+# Exception hierarchy
+from gradience.exceptions import GradienceError
+from gradience.vnext.telemetry import TelemetryReader, TelemetryWriter
+
 
 def _deprecated_guard_import():
     warnings.warn(
         "Guard functionality has been moved to docs/legacy/ and is no longer supported. "
         "Use gradience.vnext.integrations for framework integration instead.",
         DeprecationWarning,
-        stacklevel=3
+        stacklevel=3,
     )
     raise ImportError("Guard functionality is deprecated. See docs/legacy/ for archived code.")
+
 
 # Create placeholder functions that raise deprecation warnings
 def Guard(*args, **kwargs):
     _deprecated_guard_import()
 
+
 def GuardConfig(*args, **kwargs):
     _deprecated_guard_import()
+
 
 def create_guard(*args, **kwargs):
     _deprecated_guard_import()
 
+
 __all__ = [
     # Stable public API
     "api",
-
     # Exception hierarchy
     "GradienceError",
-
     # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",
-
     # Deprecated (will raise ImportError with helpful message)
     "Guard",
     "GuardConfig",

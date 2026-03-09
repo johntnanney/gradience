@@ -11,6 +11,7 @@ Usage:
 """
 
 import json
+
 from huggingface_hub import HfApi
 
 
@@ -79,14 +80,14 @@ def discover_specific_candidates():
         "Pair 2 — Summarization variants (MODERATE overlap)": [
             "predibase/tldr",
             "predibase/dialogsum",
-            "predibase/samsum",         # fallback: dialogue summarization
-            "predibase/xsum",           # fallback: news summarization
+            "predibase/samsum",  # fallback: dialogue summarization
+            "predibase/xsum",  # fallback: news summarization
         ],
         "Pair 3 — NLU/Classification (HIGH overlap)": [
             "predibase/glue_mnli",
             "predibase/glue_qnli",
-            "predibase/glue_sst2",      # fallback: sentiment
-            "predibase/glue_qqp",       # fallback: paraphrase detection
+            "predibase/glue_sst2",  # fallback: sentiment
+            "predibase/glue_qqp",  # fallback: paraphrase detection
         ],
         "Pair 4 — Non-Predibase (ROBUSTNESS)": [
             "alignment-handbook/zephyr-7b-sft-lora",
@@ -103,11 +104,12 @@ def discover_specific_candidates():
                 info = api.model_info(repo_id)
                 print(f"    {repo_id}")
                 print(f"      Downloads: {info.downloads}")
-                print(f"      Status: AVAILABLE")
+                print("      Status: AVAILABLE")
 
                 # Try to peek at adapter config for key details
                 try:
                     from huggingface_hub import hf_hub_download
+
                     config_path = hf_hub_download(
                         repo_id=repo_id,
                         filename="adapter_config.json",
@@ -128,7 +130,7 @@ def discover_specific_candidates():
                 err_msg = str(e)
                 if "404" in err_msg or "not found" in err_msg.lower():
                     print(f"    {repo_id}")
-                    print(f"      Status: NOT FOUND")
+                    print("      Status: NOT FOUND")
                 else:
                     print(f"    {repo_id}")
                     print(f"      Status: ERROR — {err_msg[:80]}")
@@ -197,7 +199,7 @@ if __name__ == "__main__":
         print("\n  Update download_adapters.py ADAPTERS dict to use available repos.")
         print("  Substitute missing adapters with alternatives from the broad search.")
 
-    print(f"""
+    print("""
   NEXT STEPS:
   1. Update ADAPTERS dict in download_adapters.py with available repos
   2. Ensure at least 3 pairs covering LOW/MODERATE/HIGH overlap hypotheses

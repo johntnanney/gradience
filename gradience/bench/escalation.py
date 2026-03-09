@@ -13,24 +13,24 @@ Training is handled by the caller via the existing
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, Optional, List
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, Optional
 
 from gradience.bench.constants import (
+    DEFAULT_ACCURACY_TOLERANCE,
     DEFAULT_CATASTROPHIC_MARGIN_MIN,
     DEFAULT_CATASTROPHIC_MARGIN_RATIO,
-    DEFAULT_ACCURACY_TOLERANCE,
 )
-
 
 # ---------------------------------------------------------------------------
 # Failure classification
 # ---------------------------------------------------------------------------
 
+
 def classify_failure(
     worst_delta: float,
     acc_tolerance: float,
-    catastrophic_margin: Optional[float] = None,
+    catastrophic_margin: float | None = None,
 ) -> str:
     """Classify a variant's failure severity.
 
@@ -65,13 +65,14 @@ def classify_failure(
 # Escalation candidate computation
 # ---------------------------------------------------------------------------
 
+
 def compute_escalation_candidate(
     failed_variant: str,
     failed_rank: int,
     probe_rank: int,
-    allowed_ranks: List[int],
+    allowed_ranks: list[int],
     already_tested_ranks: set,
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Return the next-higher-rank escalation candidate, or *None*.
 
     Walks *allowed_ranks* upward from *failed_rank*, skipping ranks that have
@@ -108,18 +109,19 @@ def compute_escalation_candidate(
 # Trace data structures
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class EscalationTraceEntry:
     """Record of a single escalation attempt."""
 
     original_variant: str
     original_rank: int
-    failure_mode: str          # "catastrophic"
+    failure_mode: str  # "catastrophic"
     worst_delta: float
     catastrophic_threshold: float
-    escalated_to: Optional[str] = None       # e.g. "energy_p90_esc_r12"
-    escalation_rank: Optional[int] = None
-    escalation_result: Optional[str] = None  # "PASS" | "FAIL" | None
+    escalated_to: str | None = None  # e.g. "energy_p90_esc_r12"
+    escalation_rank: int | None = None
+    escalation_result: str | None = None  # "PASS" | "FAIL" | None
 
 
 @dataclass
@@ -127,12 +129,12 @@ class EscalationTrace:
     """Top-level escalation trace for the bench report."""
 
     triggered: bool = False
-    candidates_tested: List[str] = field(default_factory=list)
-    escalation_trace: List[EscalationTraceEntry] = field(default_factory=list)
-    final_recommendation: Optional[str] = None
-    recommendation_rationale: List[str] = field(default_factory=list)
+    candidates_tested: list[str] = field(default_factory=list)
+    escalation_trace: list[EscalationTraceEntry] = field(default_factory=list)
+    final_recommendation: str | None = None
+    recommendation_rationale: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """JSON-serialisable representation."""
         return {
             "triggered": self.triggered,
@@ -147,15 +149,16 @@ class EscalationTrace:
 # Orchestration helper (does NOT train — returns configs for the caller)
 # ---------------------------------------------------------------------------
 
+
 def run_escalation_round(
-    variant_results: Dict[str, Dict[str, Any]],
-    verdicts: Dict[str, Any],
-    compression_configs: Dict[str, Dict[str, Any]],
-    config: Dict[str, Any],
+    variant_results: dict[str, dict[str, Any]],
+    verdicts: dict[str, Any],
+    compression_configs: dict[str, dict[str, Any]],
+    config: dict[str, Any],
     probe_rank: int,
     acc_tolerance: float,
-    escalation_config: Dict[str, Any],
-) -> tuple[Dict[str, Dict[str, Any]], EscalationTrace]:
+    escalation_config: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], EscalationTrace]:
     """Analyse verdicts for catastrophic failures and produce escalation candidates.
 
     This function does **not** train anything.  It returns escalation
@@ -171,7 +174,7 @@ def run_escalation_round(
     lora_config = config.get("lora", {})
 
     trace = EscalationTrace()
-    escalation_configs: Dict[str, Dict[str, Any]] = {}
+    escalation_configs: dict[str, dict[str, Any]] = {}
 
     if not enabled:
         return escalation_configs, trace
@@ -259,10 +262,11 @@ def run_escalation_round(
 # Post-training trace update
 # ---------------------------------------------------------------------------
 
+
 def update_escalation_trace_with_results(
     trace: EscalationTrace,
-    escalation_verdicts: Dict[str, Any],
-    original_best_compression: Optional[Dict[str, Any]],
+    escalation_verdicts: dict[str, Any],
+    original_best_compression: dict[str, Any] | None,
 ) -> EscalationTrace:
     """Fill in escalation results and derive the final recommendation.
 
@@ -274,18 +278,14 @@ def update_escalation_trace_with_results(
             entry.escalation_result = v.get("verdict", "UNKNOWN")
 
     # Derive final recommendation
-    passing_escalations = [
-        e for e in trace.escalation_trace
-        if e.escalation_result == "PASS"
-    ]
+    passing_escalations = [e for e in trace.escalation_trace if e.escalation_result == "PASS"]
 
     if passing_escalations:
         # Pick the one with the highest compression (lowest rank)
         best = min(passing_escalations, key=lambda e: e.escalation_rank or float("inf"))
         trace.final_recommendation = best.escalated_to
         trace.recommendation_rationale.append(
-            f"Escalated from {best.original_variant} (r={best.original_rank}) "
-            f"to r={best.escalation_rank}: passed."
+            f"Escalated from {best.original_variant} (r={best.original_rank}) to r={best.escalation_rank}: passed."
         )
     elif original_best_compression:
         trace.final_recommendation = original_best_compression.get("variant")
@@ -294,9 +294,7 @@ def update_escalation_trace_with_results(
         )
     else:
         trace.final_recommendation = None
-        trace.recommendation_rationale.append(
-            "No passing variants found, including escalation attempts."
-        )
+        trace.recommendation_rationale.append("No passing variants found, including escalation attempts.")
 
     return trace
 
@@ -305,12 +303,13 @@ def update_escalation_trace_with_results(
 # Verdict enrichment
 # ---------------------------------------------------------------------------
 
+
 def enrich_verdicts_with_stability(
-    verdicts: Dict[str, Any],
+    verdicts: dict[str, Any],
     acc_tolerance: float,
     escalation_trace: EscalationTrace,
-    catastrophic_margin: Optional[float] = None,
-) -> Dict[str, Any]:
+    catastrophic_margin: float | None = None,
+) -> dict[str, Any]:
     """Add stability metadata to each verdict dict (mutates in place).
 
     Fields added per verdict:
@@ -320,7 +319,7 @@ def enrich_verdicts_with_stability(
         ``escalation_reason``: human-readable explanation or *None*
     """
     # Build lookup: original_variant → trace entry
-    escalation_map: Dict[str, EscalationTraceEntry] = {}
+    escalation_map: dict[str, EscalationTraceEntry] = {}
     for entry in escalation_trace.escalation_trace:
         escalation_map[entry.original_variant] = entry
 

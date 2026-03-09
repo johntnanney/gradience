@@ -12,18 +12,16 @@ This prevents version regression and makes tags + versions truthful.
 
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 
 def get_git_tag() -> str | None:
     """Get the current git tag if HEAD is tagged."""
     try:
         result = subprocess.run(
-            ["git", "describe", "--tags", "--exact-match", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["git", "describe", "--tags", "--exact-match", "HEAD"], capture_output=True, text=True, check=True
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError:
@@ -33,13 +31,13 @@ def get_git_tag() -> str | None:
 def get_pyproject_version() -> str:
     """Get version from pyproject.toml."""
     pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    
+
     if not pyproject_path.exists():
         raise FileNotFoundError(f"pyproject.toml not found at {pyproject_path}")
-    
+
     with open(pyproject_path, "rb") as f:
         data = tomllib.load(f)
-    
+
     return data["project"]["version"]
 
 
@@ -47,10 +45,12 @@ def get_installed_version() -> str | None:
     """Get version from installed package metadata."""
     try:
         from importlib.metadata import version
+
         return version("gradience")
     except ImportError:
         try:
             from importlib_metadata import version
+
             return version("gradience")
         except ImportError:
             return None
@@ -64,8 +64,9 @@ def get_module_version() -> str | None:
         # Add parent directory to path to import gradience
         gradience_dir = Path(__file__).parent.parent
         sys.path.insert(0, str(gradience_dir))
-        
+
         import gradience
+
         return gradience.__version__
     except ImportError as e:
         print(f"Warning: Could not import gradience module: {e}")
@@ -86,10 +87,10 @@ def main():
     """Run version verification checks."""
     print("🔍 Gradience Version Verification")
     print("=" * 50)
-    
+
     errors = []
     warnings = []
-    
+
     # Get all versions
     try:
         pyproject_version = get_pyproject_version()
@@ -97,33 +98,33 @@ def main():
     except Exception as e:
         errors.append(f"Could not read pyproject.toml version: {e}")
         return 1
-    
+
     git_tag = get_git_tag()
     if git_tag:
         git_version = normalize_version(git_tag)
         print(f"🏷️  Git tag: {git_tag} (normalized: {git_version})")
     else:
         git_version = None
-        print(f"🏷️  Git tag: None (HEAD not tagged)")
-    
+        print("🏷️  Git tag: None (HEAD not tagged)")
+
     installed_version = get_installed_version()
     if installed_version:
         print(f"📚 Installed version: {installed_version}")
     else:
         warnings.append("Could not get installed package version (package may not be installed)")
-    
+
     module_version = get_module_version()
     if module_version:
         print(f"🐍 Module __version__: {module_version}")
     else:
         warnings.append("Could not get gradience.__version__")
-    
+
     print()
-    
+
     # Verification checks
     print("🧪 Verification Checks")
     print("-" * 30)
-    
+
     # Check 1: Git tag vs pyproject.toml
     if git_tag is not None:
         if git_version == pyproject_version:
@@ -133,7 +134,7 @@ def main():
             print(f"❌ Git tag mismatch: {git_version} != {pyproject_version}")
     else:
         print("⏭️  Git tag check skipped (HEAD not tagged)")
-    
+
     # Check 2: Installed version vs pyproject.toml
     if installed_version is not None:
         if installed_version == pyproject_version:
@@ -143,7 +144,7 @@ def main():
             print(f"❌ Installed version mismatch: {installed_version} != {pyproject_version}")
     else:
         print("⏭️  Installed version check skipped")
-    
+
     # Check 3: Module version vs pyproject.toml
     if module_version is not None:
         if module_version == pyproject_version:
@@ -153,16 +154,16 @@ def main():
             print(f"❌ Module __version__ mismatch: {module_version} != {pyproject_version}")
     else:
         print("⏭️  Module __version__ check skipped")
-    
+
     print()
-    
+
     # Summary
     if warnings:
         print("⚠️  Warnings:")
         for warning in warnings:
             print(f"   • {warning}")
         print()
-    
+
     if errors:
         print("❌ Errors Found:")
         for error in errors:

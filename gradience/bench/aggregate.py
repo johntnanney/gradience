@@ -4,30 +4,33 @@ Multi-seed aggregation for Gradience Bench results.
 
 Consolidates multiple seed runs into a single aggregate report with:
 - Mean/std statistics across seeds
-- Pass rate computation  
+- Pass rate computation
 - Worst-case delta tracking
 - Policy compliance checking
 """
 
+import argparse
 import json
 import re
-import argparse
-import numpy as np
-from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 from gradience.bench.stats_utils import (
-    confidence_interval_95, cohens_d_one_sample,
+    cohens_d_one_sample,
+    confidence_interval_95,
 )
 
 
-def _read_json(path: Path) -> Optional[Dict[str, Any]]:
+def _read_json(path: Path) -> dict[str, Any] | None:
     try:
-        data: Optional[Dict[str, Any]] = json.loads(path.read_text(encoding="utf-8"))
+        data: dict[str, Any] | None = json.loads(path.read_text(encoding="utf-8"))
         return data
     except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return None
+
 
 def _extract_seed_id(run_path: Path) -> Any:
     """Extract seed ID from a seed run directory.
@@ -56,38 +59,41 @@ def _extract_seed_id(run_path: Path) -> Any:
             text = cfg_path.read_text(encoding="utf-8")
             # 2a. Look for seed nested under a 'train:' block (indented)
             m = re.search(
-                r'^train:\s*\n(?:[ \t]+\S[^\n]*\n)*?[ \t]+seed:\s*(\d+)',
+                r"^train:\s*\n(?:[ \t]+\S[^\n]*\n)*?[ \t]+seed:\s*(\d+)",
                 text,
                 re.MULTILINE,
             )
             if m:
                 return int(m.group(1))
             # 2b. Any top-level or indented seed: line (first match wins)
-            m = re.search(r'^\s*seed:\s*(\d+)', text, re.MULTILINE)
+            m = re.search(r"^\s*seed:\s*(\d+)", text, re.MULTILINE)
             if m:
                 return int(m.group(1))
         except OSError:
             pass
 
     # 3. Directory name (original behaviour)
-    m = re.search(r'seed_(\d+)', run_path.name)
+    m = re.search(r"seed_(\d+)", run_path.name)
     return int(m.group(1)) if m else run_path.name
 
-def _find_probe_dir(seed_dir: Path) -> Optional[Path]:
+
+def _find_probe_dir(seed_dir: Path) -> Path | None:
     # Prefer probe_r* directories
     probes = sorted(seed_dir.glob("probe_r*"), key=lambda p: p.name)
     return probes[0] if probes else None
 
-def _find_any(seed_dir: Path, pattern: str) -> Optional[Path]:
+
+def _find_any(seed_dir: Path, pattern: str) -> Path | None:
     matches = sorted(seed_dir.rglob(pattern))
     return matches[0] if matches else None
 
-def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
+
+def _get_probe_accuracy(seed_dir: Path) -> tuple[float | None, str]:
     """Get probe accuracy and metric key used.
-    
+
     Automatic fallback hierarchy:
     1. Try bench.json probe.accuracy (canonical format)
-    2. Try probe_r*/eval.json (direct eval results) 
+    2. Try probe_r*/eval.json (direct eval results)
     3. Try any eval.json in probe_r* subdirectories (backup search)
     """
     # Prefer canonical bench.json
@@ -110,7 +116,7 @@ def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
                 v = e.get(k)
                 if isinstance(v, (int, float)):
                     return float(v), k
-        
+
         # Additional fallback: try to find any eval.json in subdirectories
         eval_files = list(pdir.rglob("eval.json"))
         for eval_file in eval_files:
@@ -120,8 +126,9 @@ def _get_probe_accuracy(seed_dir: Path) -> Tuple[Optional[float], str]:
                     v = e.get(k)
                     if isinstance(v, (int, float)):
                         return float(v), k
-    
+
     return None, "unknown"
+
 
 def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float:
     """Get probe quality threshold based on task and metric."""
@@ -132,34 +139,36 @@ def _probe_gate_threshold(seed_dir: Path, metric_key: str = "accuracy") -> float
         # New machine-readable format
         if "probe_quality_gate" in j:
             return float(j["probe_quality_gate"].get("min_value", 0.1))
-        
+
         # Legacy format
         thr = (j.get("probe") or {}).get("quality_threshold")
         if isinstance(thr, (int, float)):
             return float(thr)
-        
+
         # Task-based defaults - handle both dict and string formats
         task = j.get("task", {})
         if isinstance(task, dict):
             task_name = task.get("dataset", "").lower()
         else:
             task_name = str(task).lower()
-        
+
         if "gsm8k" in task_name and "exact_match" in metric_key:
             return 0.10  # GSM8K screening threshold
         elif "sst2" in task_name or "sst-2" in task_name:
             return 0.75  # SST-2 threshold
-    
+
     # Fallback defaults
     if "exact_match" in metric_key:
         return 0.10  # Default for exact match tasks
     return 0.75  # Default for accuracy tasks
+
 
 def _telemetry_present(seed_dir: Path) -> bool:
     pdir = _find_probe_dir(seed_dir)
     if pdir is not None and (pdir / "run.jsonl").exists():
         return True
     return _find_any(seed_dir, "run.jsonl") is not None
+
 
 def _audit_present(seed_dir: Path) -> bool:
     pdir = _find_probe_dir(seed_dir)
@@ -174,6 +183,7 @@ def _audit_present(seed_dir: Path) -> bool:
         return True
     return ("total_lora_params" in j) or True
 
+
 def _per_layer_weights_present(seed_dir: Path) -> bool:
     p = seed_dir / "per_layer"
     if not p.exists():
@@ -182,51 +192,51 @@ def _per_layer_weights_present(seed_dir: Path) -> bool:
     return _find_any(p, "adapter_model.safetensors") is not None
 
 
-def load_bench_results(run_dirs: List[Path], skip_smoke: bool = True) -> List[Dict[str, Any]]:
+def load_bench_results(run_dirs: list[Path], skip_smoke: bool = True) -> list[dict[str, Any]]:
     """Load bench.json from each run directory.
-    
+
     Args:
         run_dirs: List of run directories to process
         skip_smoke: If True, skip UNDERTRAINED_SMOKE runs (default for certification)
     """
     results = []
     skipped_smoke = []
-    
+
     for run_dir in run_dirs:
         bench_json = run_dir / "bench.json"
         verdicts_json = run_dir / "verdicts.json"
-        
+
         if not bench_json.exists():
             print(f"Warning: {bench_json} not found, skipping...")
             continue
-            
+
         with open(bench_json) as f:
             bench_data = json.load(f)
-            
+
         # Check if this is a smoke run
         status = bench_data.get("status", "")
         if skip_smoke and status == "UNDERTRAINED_SMOKE":
             skipped_smoke.append(run_dir.name)
             continue
-            
+
         # Also load verdicts for more detailed info
         if verdicts_json.exists():
             with open(verdicts_json) as f:
                 verdicts_data = json.load(f)
                 bench_data["verdicts"] = verdicts_data.get("verdicts", {})
-                
+
         results.append(bench_data)
-    
+
     if skipped_smoke:
         print(f"Info: Skipped {len(skipped_smoke)} smoke runs for certification analysis: {skipped_smoke}")
-    
+
     return results
 
 
-def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
+def aggregate_invariants(results: list[dict]) -> dict[str, Any]:
     """Aggregate invariant checks across seed runs."""
-    invariant_data: Dict[str, List[Dict[str, Any]]] = {}
-    
+    invariant_data: dict[str, list[dict[str, Any]]] = {}
+
     # Collect all invariant data from seeds
     for result in results:
         if "protocol_invariants" in result:
@@ -234,15 +244,15 @@ def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
                 if inv_name not in invariant_data:
                     invariant_data[inv_name] = []
                 invariant_data[inv_name].append(inv_data)
-    
+
     if not invariant_data:
         return {"status": "no_invariant_data", "message": "No invariant checks found in seed runs"}
-    
+
     # Aggregate status across seeds
     aggregated = {}
     for inv_name, inv_list in invariant_data.items():
         statuses = [inv.get("status", "UNKNOWN") for inv in inv_list]
-        
+
         # Determine overall status
         if all(s == "PASSED" for s in statuses):
             overall_status = "PASSED"
@@ -254,7 +264,7 @@ def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
             overall_status = "SKIPPED"
         else:
             overall_status = "UNKNOWN"
-        
+
         aggregated[inv_name] = {
             "overall_status": overall_status,
             "seed_statuses": statuses,
@@ -262,9 +272,9 @@ def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
             "passed": sum(1 for s in statuses if s == "PASSED"),
             "failed": sum(1 for s in statuses if s == "FAILED"),
             "warnings": sum(1 for s in statuses if s == "WARNING"),
-            "message": inv_list[0].get("message", "")  # Use first seed's message
+            "message": inv_list[0].get("message", ""),  # Use first seed's message
         }
-    
+
     # Summary
     all_statuses = [agg["overall_status"] for agg in aggregated.values()]
     summary = {
@@ -272,18 +282,19 @@ def aggregate_invariants(results: List[Dict]) -> Dict[str, Any]:
         "all_passed": all(s == "PASSED" for s in all_statuses),
         "any_failed": any(s == "FAILED" for s in all_statuses),
         "any_warnings": any(s == "WARNING" for s in all_statuses),
-        "overall_status": "FAILED" if any(s == "FAILED" for s in all_statuses) else 
-                         "WARNING" if any(s == "WARNING" for s in all_statuses) else
-                         "PASSED" if all(s == "PASSED" for s in all_statuses) else "UNKNOWN"
-    }
-    
-    return {
-        "invariants": aggregated,
-        "summary": summary
+        "overall_status": "FAILED"
+        if any(s == "FAILED" for s in all_statuses)
+        else "WARNING"
+        if any(s == "WARNING" for s in all_statuses)
+        else "PASSED"
+        if all(s == "PASSED" for s in all_statuses)
+        else "UNKNOWN",
     }
 
+    return {"invariants": aggregated, "summary": summary}
 
-def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
+
+def compute_invariants(seed_dirs: list[Path]) -> dict[str, dict[str, Any]]:
     """Compute invariants by directly checking seed directories."""
     total = len(seed_dirs)
 
@@ -300,7 +311,7 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
         bj = d / "bench.json"
         probe_gate_passed = False
         bench_data = _read_json(bj)
-        
+
         if isinstance(bench_data, dict) and "probe_quality_gate" in bench_data:
             # Use new machine-readable format
             probe_gate_passed = bench_data["probe_quality_gate"].get("passed", False)
@@ -317,7 +328,7 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
                     # Directory exists but no usable eval data - mark as NOT_FOUND
                     pass  # probe_gate_passed remains False
                 # If no probe directory at all, also mark as NOT_FOUND
-        
+
         if probe_gate_passed:
             gate_ok += 1
 
@@ -327,7 +338,7 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
         if _per_layer_weights_present(d):
             perlayer_ok += 1
 
-    def status(ok: int) -> Tuple[str, str]:
+    def status(ok: int) -> tuple[str, str]:
         if ok == 0:
             return ("❓ NOT_FOUND", f"(0/{total} seeds)")
         if ok == total:
@@ -347,60 +358,64 @@ def compute_invariants(seed_dirs: List[Path]) -> Dict[str, Dict[str, Any]]:
     }
 
 
-def aggregate_variant_stats(results: List[Dict], variant: str) -> Dict[str, Any]:
+def aggregate_variant_stats(results: list[dict], variant: str) -> dict[str, Any]:
     """Aggregate statistics for a specific variant across seeds."""
     variant_data = []
-    
+
     for result in results:
         # Try to find variant in compression results or verdicts
         found = False
-        
+
         # Check compression_results first
         if "compression_results" in result:
             for comp in result["compression_results"]:
                 if comp.get("variant") == variant:
-                    variant_data.append({
-                        "accuracy": comp.get("accuracy"),
-                        "delta": comp.get("delta_vs_probe"),
-                        "params": comp.get("params"),
-                        "param_reduction": comp.get("param_reduction"),
-                        "verdict": comp.get("verdict", "UNKNOWN")
-                    })
+                    variant_data.append(
+                        {
+                            "accuracy": comp.get("accuracy"),
+                            "delta": comp.get("delta_vs_probe"),
+                            "params": comp.get("params"),
+                            "param_reduction": comp.get("param_reduction"),
+                            "verdict": comp.get("verdict", "UNKNOWN"),
+                        }
+                    )
                     found = True
                     break
-        
+
         # Check verdicts as fallback
         if not found and "verdicts" in result and variant in result["verdicts"]:
             verdict = result["verdicts"][variant]
             if verdict.get("status") == "evaluated":
-                variant_data.append({
-                    "accuracy": verdict.get("compressed_accuracy"),
-                    "delta": verdict.get("delta_vs_probe"),
-                    "params": verdict.get("compressed_params"),
-                    "param_reduction": verdict.get("param_reduction"),
-                    "verdict": verdict.get("verdict", "UNKNOWN")
-                })
-    
+                variant_data.append(
+                    {
+                        "accuracy": verdict.get("compressed_accuracy"),
+                        "delta": verdict.get("delta_vs_probe"),
+                        "params": verdict.get("compressed_params"),
+                        "param_reduction": verdict.get("param_reduction"),
+                        "verdict": verdict.get("verdict", "UNKNOWN"),
+                    }
+                )
+
     if not variant_data:
         return {"status": "no_data", "n_seeds": 0}
-    
+
     # Calculate statistics
     accuracies = [d["accuracy"] for d in variant_data if d["accuracy"] is not None]
     deltas = [d["delta"] for d in variant_data if d["delta"] is not None]
     param_reductions = [d["param_reduction"] for d in variant_data if d["param_reduction"] is not None]
     verdicts = [d["verdict"] for d in variant_data]
-    
+
     pass_count = sum(1 for v in verdicts if v == "PASS")
     fail_count = sum(1 for v in verdicts if v == "FAIL")
-    
+
     stats = {
         "n_seeds": len(variant_data),
         "pass_count": pass_count,
         "fail_count": fail_count,
         "pass_rate": pass_count / len(variant_data) if variant_data else 0,
-        "verdict": "PASS" if pass_count / len(variant_data) >= 0.67 else "FAIL" if fail_count > 0 else "UNKNOWN"
+        "verdict": "PASS" if pass_count / len(variant_data) >= 0.67 else "FAIL" if fail_count > 0 else "UNKNOWN",
     }
-    
+
     if accuracies:
         stats["accuracy_mean"] = np.mean(accuracies)
         stats["accuracy_std"] = np.std(accuracies, ddof=1) if len(accuracies) > 1 else 0
@@ -431,44 +446,44 @@ def aggregate_variant_stats(results: List[Dict], variant: str) -> Dict[str, Any]
     return stats
 
 
-def check_policy_compliance(variant_stats: Dict[str, Any], policy: Dict[str, Any]) -> Dict[str, Any]:
+def check_policy_compliance(variant_stats: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
     """Check if variant meets policy criteria."""
     pass_rate = variant_stats.get("pass_rate", 0)
     worst_delta = variant_stats.get("delta_worst", -1.0)
-    
+
     meets_pass_rate = pass_rate >= policy["pass_rate_min"]
     meets_worst_delta = worst_delta >= policy["worst_delta_min"]
-    
+
     return {
         "policy_compliant": meets_pass_rate and meets_worst_delta,
         "meets_pass_rate": meets_pass_rate,
         "meets_worst_delta": meets_worst_delta,
         "pass_rate": pass_rate,
         "worst_delta": worst_delta,
-        "policy": policy
+        "policy": policy,
     }
 
 
-def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool = False) -> None:
+def aggregate_results(run_dirs: list[str], output_dir: str, include_smoke: bool = False) -> None:
     """Main aggregation function."""
     # Convert to Path objects
     run_paths = [Path(run_dir) for run_dir in run_dirs]
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Load all results (skip smoke runs by default for certification)
     results = load_bench_results(run_paths, skip_smoke=not include_smoke)
-    
+
     if not results:
         print("Error: No valid results found!")
         return
-    
+
     # Extract basic info from first result
     first = results[0]
     model = first.get("model", "unknown")
     task = first.get("task", "unknown")
     n_seeds = len(results)
-    
+
     # Aggregate probe stats
     probe_accuracies = []
     for result in results:
@@ -476,16 +491,20 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
             probe_accuracies.append(result["probe"].get("accuracy"))
         elif "probe_baseline" in result:
             probe_accuracies.append(result["probe_baseline"].get("accuracy"))
-    
+
     probe_acc_ci = confidence_interval_95(probe_accuracies) if probe_accuracies else None
     probe_stats = {
         "accuracy_mean": np.mean(probe_accuracies) if probe_accuracies else None,
         "accuracy_std": np.std(probe_accuracies, ddof=1) if len(probe_accuracies) > 1 else 0,
         "accuracy_min": min(probe_accuracies) if probe_accuracies else None,
         "accuracy_max": max(probe_accuracies) if probe_accuracies else None,
-        **({"accuracy_ci_lower": probe_acc_ci["ci_lower"], "accuracy_ci_upper": probe_acc_ci["ci_upper"]} if probe_acc_ci else {}),
+        **(
+            {"accuracy_ci_lower": probe_acc_ci["ci_lower"], "accuracy_ci_upper": probe_acc_ci["ci_upper"]}
+            if probe_acc_ci
+            else {}
+        ),
     }
-    
+
     # Find all unique variants
     all_variants = set()
     for result in results:
@@ -494,32 +513,32 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
                 all_variants.add(comp.get("variant"))
         if "verdicts" in result:
             all_variants.update(result["verdicts"].keys())
-    
+
     # Remove control/skipped variants
     all_variants.discard("uniform_p90_control")
     all_variants.discard(None)
-    
+
     # Aggregate each variant
     variant_aggregates = {}
     for variant in sorted(all_variants):
         variant_aggregates[variant] = aggregate_variant_stats(results, variant)
-    
+
     # Define safety policy
     safety_policy = {
         "name": "Safe Uniform Baseline Policy",
         "pass_rate_min": 0.67,  # ≥67% seeds must pass
-        "worst_delta_min": -0.025  # Worst seed Δ ≥ -2.5%
+        "worst_delta_min": -0.025,  # Worst seed Δ ≥ -2.5%
     }
-    
+
     # Check policy compliance
     policy_results = {}
     for variant, stats in variant_aggregates.items():
         if stats.get("status") != "no_data":
             policy_results[variant] = check_policy_compliance(stats, safety_policy)
-    
+
     # Compute invariants directly from seed directories
     invariant_summary = compute_invariants(run_paths)
-    
+
     # Build aggregate JSON
     aggregate_data = {
         "bench_version": "0.1",
@@ -539,48 +558,49 @@ def aggregate_results(run_dirs: List[str], output_dir: str, include_smoke: bool 
             "total_variants": len(variant_aggregates),
             "policy_compliant_variants": sum(1 for v in policy_results.values() if v["policy_compliant"]),
             "best_compression": None,
-            "recommendations": []
-        }
+            "recommendations": [],
+        },
     }
-    
+
     # Find best policy-compliant compression
     compliant_variants = [
-        (name, stats) for name, stats in variant_aggregates.items()
+        (name, stats)
+        for name, stats in variant_aggregates.items()
         if name in policy_results and policy_results[name]["policy_compliant"] and stats.get("param_reduction_mean")
     ]
-    
+
     if compliant_variants:
         best_variant = max(compliant_variants, key=lambda x: x[1]["param_reduction_mean"])
         aggregate_data["summary"]["best_compression"] = {
             "variant": best_variant[0],
             "param_reduction": best_variant[1]["param_reduction_mean"],
             "delta_worst": best_variant[1]["delta_worst"],
-            "pass_rate": best_variant[1]["pass_rate"]
+            "pass_rate": best_variant[1]["pass_rate"],
         }
         aggregate_data["summary"]["recommendations"].append(
             f"Use {best_variant[0]} for {best_variant[1]['param_reduction_mean']:.1%} compression (policy-compliant)"
         )
-    
+
     # Save JSON
     json_path = output_path / "bench_aggregate.json"
     with open(json_path, "w") as f:
         json.dump(aggregate_data, f, indent=2)
-    
+
     # Generate Markdown report
     md_content = generate_markdown_report(aggregate_data)
     md_path = output_path / "bench_aggregate.md"
     with open(md_path, "w") as f:
         f.write(md_content)
-    
-    print(f"✅ Aggregate results saved to:")
+
+    print("✅ Aggregate results saved to:")
     print(f"   {json_path}")
     print(f"   {md_path}")
 
 
-def generate_markdown_report(data: Dict[str, Any]) -> str:
+def generate_markdown_report(data: dict[str, Any]) -> str:
     """Generate markdown report from aggregate data."""
     lines = []
-    
+
     lines.append("# Gradience Bench v0.1 - Aggregate Report")
     lines.append("")
     lines.append(f"- **Model:** {data['model']}")
@@ -592,7 +612,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         seed_str += f" ({', '.join(str(s) for s in seed_ids)})"
     lines.append(f"- **Seeds:** {seed_str}")
     lines.append("")
-    
+
     # Probe baseline
     probe = data["probe_baseline"]
     lines.append("## Probe Baseline")
@@ -601,7 +621,7 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         lines.append(f"- **Accuracy:** {probe['accuracy_mean']:.3f} ± {probe['accuracy_std']:.3f}")
         lines.append(f"- **Range:** [{probe['accuracy_min']:.3f}, {probe['accuracy_max']:.3f}]")
     lines.append("")
-    
+
     # Compression results table
     lines.append("## Compression Results")
     lines.append("")
@@ -616,24 +636,38 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         policy = data["policy_compliance"].get(variant, {})
 
         # Extract policy_origin from compression metadata if available
-        policy_origin = stats.get("compression", {}).get("policy_origin", "—") if isinstance(stats.get("compression"), dict) else "—"
+        policy_origin = (
+            stats.get("compression", {}).get("policy_origin", "—")
+            if isinstance(stats.get("compression"), dict)
+            else "—"
+        )
 
         pass_rate = f"{stats.get('pass_rate', 0):.0%}"
-        worst_delta = f"{stats.get('delta_worst', 0):.3f}" if stats.get('delta_worst') is not None else "N/A"
-        mean_acc = f"{stats.get('accuracy_mean', 0):.3f}" if stats.get('accuracy_mean') is not None else "N/A"
-        param_red = f"{stats.get('param_reduction_mean', 0):.1%}" if stats.get('param_reduction_mean') else "N/A"
+        worst_delta = f"{stats.get('delta_worst', 0):.3f}" if stats.get("delta_worst") is not None else "N/A"
+        mean_acc = f"{stats.get('accuracy_mean', 0):.3f}" if stats.get("accuracy_mean") is not None else "N/A"
+        param_red = f"{stats.get('param_reduction_mean', 0):.1%}" if stats.get("param_reduction_mean") else "N/A"
         policy_status = "✅ COMPLIANT" if policy.get("policy_compliant") else "❌ FAIL"
 
-        lines.append(f"| {variant} | {policy_origin} | {pass_rate} | {worst_delta} | {mean_acc} | {param_red} | {policy_status} |")
-    
+        lines.append(
+            f"| {variant} | {policy_origin} | {pass_rate} | {worst_delta} | {mean_acc} | {param_red} | {policy_status} |"
+        )
+
     lines.append("")
-    
+
     # Candidate selection section (if available from protocol-driven path)
-    selection = data.get("config_metadata", {}).get("candidate_selection") if isinstance(data.get("config_metadata"), dict) else None
+    selection = (
+        data.get("config_metadata", {}).get("candidate_selection")
+        if isinstance(data.get("config_metadata"), dict)
+        else None
+    )
     if selection:
         lines.append("## Candidate Selection")
         lines.append("")
-        mode_label = "Fast (energy, knee, erank policies)" if selection.get("mode") == "fast" else f"Full (capped at {selection.get('max_candidates', '?')})"
+        mode_label = (
+            "Fast (energy, knee, erank policies)"
+            if selection.get("mode") == "fast"
+            else f"Full (capped at {selection.get('max_candidates', '?')})"
+        )
         lines.append(f"- **Mode:** {mode_label}")
         lines.append(f"- **Policies evaluated:** {selection.get('total_policies_evaluated', '?')}")
         lines.append(f"- **After de-duplication:** {selection.get('after_dedup', '?')} unique ranks")
@@ -652,24 +686,24 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
     lines.append(f"- Pass rate ≥ {policy['pass_rate_min']:.0%}")
     lines.append(f"- Worst-case Δ ≥ {policy['worst_delta_min']:.3f}")
     lines.append("")
-    
+
     # Enhanced Protocol Invariants section
     lines.append("## Protocol Invariants")
     lines.append("")
     lines.append("Validation of critical assumptions across all seeds:")
     lines.append("")
-    
+
     if "invariants" in data and data["invariants"]:
         invariants = data["invariants"]
-        
+
         # Display invariants using the new simple format
         # 1. Telemetry presence check
         if "telemetry_present" in invariants:
             tele = invariants["telemetry_present"]
             lines.append(f"**📊 Telemetry Present:** {tele['status']} {tele['count']}")
-            lines.append(f"  *All seeds have required telemetry data*")
+            lines.append("  *All seeds have required telemetry data*")
             lines.append("")
-        
+
         # 2. Probe gate check
         if "probe_quality_gate" in invariants:
             probe = invariants["probe_quality_gate"]
@@ -678,31 +712,31 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
             if probe_acc:
                 lines.append(f"  *Probe accuracy {probe_acc:.3f} meets quality threshold*")
             else:
-                lines.append(f"  *Probe quality validation*")
+                lines.append("  *Probe quality validation*")
             lines.append("")
-        
+
         # 3. Parameter counting source
         if "parameter_counting" in invariants:
             param = invariants["parameter_counting"]
             lines.append(f"**🔢 Parameter Counting:** {param['status']} {param['count']}")
-            lines.append(f"  *Parameter counts from audit.json*")
+            lines.append("  *Parameter counts from audit.json*")
             lines.append("")
-        
+
         # 4. Per-layer rank heterogeneity check
         if "per_layer_rank_check" in invariants:
             rank = invariants["per_layer_rank_check"]
             lines.append(f"**🏗️ Per-Layer Rank Check:** {rank['status']} {rank['count']}")
-            
-            if "NOT_FOUND" in rank['status']:
-                lines.append(f"  *Per-layer compression excluded from this validation run*")
-            elif "✅ PASSED" in rank['status']:
-                lines.append(f"  *Per-layer configurations show sufficient rank heterogeneity*")
-            elif "⚠️ PARTIAL" in rank['status']:
-                lines.append(f"  *Per-layer rank heterogeneity partially present*")
+
+            if "NOT_FOUND" in rank["status"]:
+                lines.append("  *Per-layer compression excluded from this validation run*")
+            elif "✅ PASSED" in rank["status"]:
+                lines.append("  *Per-layer configurations show sufficient rank heterogeneity*")
+            elif "⚠️ PARTIAL" in rank["status"]:
+                lines.append("  *Per-layer rank heterogeneity partially present*")
             else:
-                lines.append(f"  *Per-layer rank validation*")
+                lines.append("  *Per-layer rank validation*")
             lines.append("")
-            
+
     else:
         lines.append("⚠️ **No invariant data available** - Protocol validation could not be performed.")
         lines.append("")
@@ -711,29 +745,30 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         lines.append("- Older bench output format")
         lines.append("- Incomplete benchmark execution")
         lines.append("")
-    
+
     # Summary
     lines.append("## Summary")
     lines.append("")
     summary = data["summary"]
     lines.append(f"- **Total variants tested:** {summary['total_variants']}")
     lines.append(f"- **Policy-compliant variants:** {summary['policy_compliant_variants']}")
-    
+
     if summary["best_compression"]:
         best = summary["best_compression"]
         lines.append(f"- **Best compression:** {best['variant']} ({best['param_reduction']:.1%} reduction)")
-    
+
     if summary["recommendations"]:
         lines.append("")
         lines.append("### Recommendations")
         for rec in summary["recommendations"]:
             lines.append(f"- {rec}")
-    
+
     # Policy scoreboard (if available)
     try:
         from gradience.vnext.policy_scoreboard import PolicyScoreboard
+
         scoreboard = PolicyScoreboard()
-        
+
         # Only add scoreboard if we have meaningful data
         if scoreboard.data.get("total_benchmarks", 0) > 0:
             lines.append("")
@@ -743,10 +778,10 @@ def generate_markdown_report(data: Dict[str, Any]) -> str:
         pass  # Scoreboard not available
     except (AttributeError, TypeError, ValueError):
         pass  # Scoreboard failed, continue without it
-    
+
     lines.append("")
     lines.append(f"*Generated on {data['aggregation_timestamp']}*")
-    
+
     return "\n".join(lines)
 
 
@@ -757,17 +792,20 @@ def _get_invariant_status(invariants: dict, inv_name: str) -> dict:
         status = inv["overall_status"]
         return {
             "status": status,
-            "icon": "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️" if status == "WARNING" else "⏭️" if status == "SKIPPED" else "❓",
+            "icon": "✅"
+            if status == "PASSED"
+            else "❌"
+            if status == "FAILED"
+            else "⚠️"
+            if status == "WARNING"
+            else "⏭️"
+            if status == "SKIPPED"
+            else "❓",
             "passed": inv.get("passed", 0),
-            "total": inv.get("n_seeds", 0)
+            "total": inv.get("n_seeds", 0),
         }
     else:
-        return {
-            "status": "NOT_FOUND",
-            "icon": "❓",
-            "passed": 0,
-            "total": 0
-        }
+        return {"status": "NOT_FOUND", "icon": "❓", "passed": 0, "total": 0}
 
 
 def _get_invariant_message(invariants: dict, inv_name: str) -> str:
@@ -781,9 +819,10 @@ def main():
     parser = argparse.ArgumentParser(description="Aggregate multi-seed bench results")
     parser.add_argument("runs", nargs="+", help="Paths to run directories")
     parser.add_argument("--output", "-o", required=True, help="Output directory for aggregate results")
-    parser.add_argument("--include-smoke", action="store_true", 
-                       help="Include UNDERTRAINED_SMOKE runs (default: skip for certification)")
-    
+    parser.add_argument(
+        "--include-smoke", action="store_true", help="Include UNDERTRAINED_SMOKE runs (default: skip for certification)"
+    )
+
     args = parser.parse_args()
     aggregate_results(args.runs, args.output, include_smoke=args.include_smoke)
 

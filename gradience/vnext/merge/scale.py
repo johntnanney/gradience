@@ -10,8 +10,9 @@ related (not identical) values: bounded_ratio is invariant, log_ratio flips sign
 """
 
 from __future__ import annotations
-from typing import Dict, Any
+
 import math
+from typing import Any, Dict
 
 
 def _bounded_and_log(
@@ -45,7 +46,7 @@ def symmetric_scale_metrics(
     sigma_max_B: float,
     *,
     eps: float = 1e-12,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Compute symmetric scale comparison metrics.
 
     Parameters
@@ -72,7 +73,7 @@ def symmetric_frobenius_metrics(
     frob_B: float,
     *,
     eps: float = 1e-12,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Same as symmetric_scale_metrics but for Frobenius norms.
 
     Parameters

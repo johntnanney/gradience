@@ -39,12 +39,13 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import numpy as np
 
+import numpy as np
 
 # ---------------------------------------------------------------------------
 # verify
 # ---------------------------------------------------------------------------
+
 
 def cmd_verify(args: argparse.Namespace) -> None:
     """Run installation verification."""
@@ -57,6 +58,7 @@ def cmd_verify(args: argparse.Namespace) -> None:
 # report
 # ---------------------------------------------------------------------------
 
+
 def cmd_report(args: argparse.Namespace) -> None:
     """Generate report from telemetry file."""
     import statistics
@@ -67,7 +69,7 @@ def cmd_report(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     # Load telemetry
-    events: List[Dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
     with open(telemetry_path) as f:
         for line in f:
             try:
@@ -88,7 +90,7 @@ def cmd_report(args: argparse.Namespace) -> None:
     print(f"Total events: {len(events)}")
 
     # Event breakdown
-    event_types: Dict[str, int] = {}
+    event_types: dict[str, int] = {}
     for e in events:
         t = e.get("event", "unknown")
         event_types[t] = event_types.get(t, 0) + 1
@@ -100,7 +102,7 @@ def cmd_report(args: argparse.Namespace) -> None:
     # Spectral summary
     spectral = [e for e in events if e.get("event") == "spectral"]
     if spectral:
-        kappas: List[float] = []
+        kappas: list[float] = []
         for e in spectral:
             # Support both per-matrix and aggregate spectral events.
             k = e.get("kappa_mean")
@@ -118,7 +120,7 @@ def cmd_report(args: argparse.Namespace) -> None:
     # Eval summary
     evals = [e for e in events if e.get("event") == "eval"]
     if evals:
-        accs: List[float] = []
+        accs: list[float] = []
         for e in evals:
             a = e.get("accuracy")
             if a is None:
@@ -135,8 +137,7 @@ def cmd_report(args: argparse.Namespace) -> None:
     guard_events = [
         e
         for e in events
-        if e.get("event")
-        in ("corruption_detected", "rollback_started", "rollback_succeeded", "would_rollback")
+        if e.get("event") in ("corruption_detected", "rollback_started", "rollback_succeeded", "would_rollback")
     ]
     if guard_events:
         print("\nGuard events:")
@@ -151,7 +152,7 @@ def cmd_report(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _load_config_file(path: str) -> Dict[str, Any]:
+def _load_config_file(path: str) -> dict[str, Any]:
     """Load a JSON/YAML config file into a dict."""
 
     p = Path(path)
@@ -186,7 +187,7 @@ def _load_config_file(path: str) -> Dict[str, Any]:
 def _autodetect_file_in_dir(
     dir_path: str,
     *,
-    candidates: List[str],
+    candidates: list[str],
     label: str,
 ) -> str:
     """Auto-detect a config file inside a directory.
@@ -222,7 +223,7 @@ def _autodetect_file_in_dir(
             return str(f)
 
     # Fallback: recursive search (in case caller points at a run folder).
-    matches: List[Path] = []
+    matches: list[Path] = []
     for name in candidates:
         matches.extend(list(p.rglob(name)))
 
@@ -251,18 +252,18 @@ def _autodetect_file_in_dir(
     return str(matches[0])
 
 
-def _first(d: Dict[str, Any], keys: List[str]) -> Any:
+def _first(d: dict[str, Any], keys: list[str]) -> Any:
     for k in keys:
         if k in d and d[k] is not None:
             return d[k]
     return None
 
 
-def _parse_targets(v: Any) -> List[str]:
+def _parse_targets(v: Any) -> list[str]:
     if v is None:
         return []
     if isinstance(v, list):
-        out: List[str] = []
+        out: list[str] = []
         for item in v:
             if item is None:
                 continue
@@ -288,7 +289,7 @@ def _parse_targets(v: Any) -> List[str]:
     return []
 
 
-def _normalize_to_vnext_dict(raw: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_to_vnext_dict(raw: dict[str, Any]) -> dict[str, Any]:
     """Best-effort normalization of common config formats to vNext ConfigSnapshot dict."""
 
     # If it already looks like canonical vNext, just ensure nested dicts exist.
@@ -300,7 +301,7 @@ def _normalize_to_vnext_dict(raw: Dict[str, Any]) -> Dict[str, Any]:
         return out
 
     # Otherwise treat as "flat" or PEFT-like.
-    d: Dict[str, Any] = {
+    d: dict[str, Any] = {
         "model_name": _first(raw, ["model_name", "model", "base_model", "base_model_name_or_path"]),
         "dataset_name": _first(raw, ["dataset_name", "dataset", "task", "data"]),
         "task_profile": _first(raw, ["task_profile", "taskProfile", "profile"]),
@@ -339,7 +340,7 @@ def _normalize_to_vnext_dict(raw: Dict[str, Any]) -> Dict[str, Any]:
     return d
 
 
-def _blank_vnext_dict() -> Dict[str, Any]:
+def _blank_vnext_dict() -> dict[str, Any]:
     """Return an empty (canonical-ish) vNext config dict.
 
     We keep this as a plain dict so we can merge multiple source files
@@ -359,7 +360,7 @@ def _blank_vnext_dict() -> Dict[str, Any]:
     }
 
 
-def _merge_fill_missing(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[str, Any]:
+def _merge_fill_missing(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
     """Merge `overlay` into `base`, filling only missing/empty values.
 
     Precedence rule:
@@ -410,7 +411,7 @@ def _merge_fill_missing(base: Dict[str, Any], overlay: Dict[str, Any]) -> Dict[s
     return base
 
 
-def _apply_overrides(d: Dict[str, Any], args: argparse.Namespace) -> None:
+def _apply_overrides(d: dict[str, Any], args: argparse.Namespace) -> None:
     """Apply CLI overrides onto the normalized vNext dict."""
 
     if args.model is not None:
@@ -437,7 +438,7 @@ def _apply_overrides(d: Dict[str, Any], args: argparse.Namespace) -> None:
         lora["alpha"] = args.alpha
     if args.targets:
         # Allow comma-separated inside args.targets too.
-        merged: List[str] = []
+        merged: list[str] = []
         for t in args.targets:
             merged.extend(_parse_targets(t))
         lora["target_modules"] = merged
@@ -448,7 +449,7 @@ def _severity_rank(sev: str) -> int:
     return order.get(sev.lower(), 99)
 
 
-def _print_recommendations(config: Any, recs: List[Any], *, verbose: bool = False) -> None:
+def _print_recommendations(config: Any, recs: list[Any], *, verbose: bool = False) -> None:
     print("=" * 72)
     print("GRADIENCE CHECK")
     print("=" * 72)
@@ -456,7 +457,9 @@ def _print_recommendations(config: Any, recs: List[Any], *, verbose: bool = Fals
     # Config summary
     model_name = getattr(config, "model_name", None)
     dataset_name = getattr(config, "dataset_name", None)
-    task_profile = getattr(getattr(config, "task_profile", None), "value", None) or str(getattr(config, "task_profile", "unknown"))
+    task_profile = getattr(getattr(config, "task_profile", None), "value", None) or str(
+        getattr(config, "task_profile", "unknown")
+    )
 
     opt = getattr(config, "optimizer", None)
     lora = getattr(config, "lora", None)
@@ -567,9 +570,9 @@ def cmd_check(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     merged = _blank_vnext_dict()
-    sources: List[Dict[str, str]] = []
+    sources: list[dict[str, str]] = []
 
-    def _load_and_norm(path: str) -> Dict[str, Any]:
+    def _load_and_norm(path: str) -> dict[str, Any]:
         raw = _load_config_file(path)
         return _normalize_to_vnext_dict(raw)
 
@@ -676,17 +679,17 @@ def _fmt_params(n) -> str:
         return str(n)
     ax = abs(x)
     if ax >= 1e9:
-        return f"{x/1e9:.1f}B"
+        return f"{x / 1e9:.1f}B"
     if ax >= 1e6:
-        return f"{x/1e6:.1f}M"
+        return f"{x / 1e6:.1f}M"
     if ax >= 1e3:
-        return f"{x/1e3:.1f}K"
+        return f"{x / 1e3:.1f}K"
     if x.is_integer():
         return str(int(x))
     return f"{x:.3g}"
 
 
-def _extract_guard_activity(reader: Any) -> Dict[str, Any]:
+def _extract_guard_activity(reader: Any) -> dict[str, Any]:
     """Extract Guard activity summary from telemetry."""
     guard_info = {
         "present": False,
@@ -698,64 +701,62 @@ def _extract_guard_activity(reader: Any) -> Dict[str, Any]:
         "aborted": False,
         "rollback_occurred": False,
     }
-    
+
     try:
         # Check for Guard alerts
         for event in reader.iter_events(event_type="alert"):
             code = event.get("code", "")
             if code.startswith("GUARD_"):
                 guard_info["present"] = True
-                
+
                 if code == "GUARD_TRIGGERED":
                     guard_info["last_trigger_code"] = code
                 elif code == "GUARD_ROLLBACK":
                     guard_info["rollback_occurred"] = True
                 elif code in ("GUARD_ABORT", "GUARD_ABORT_NO_SNAPSHOT"):
                     guard_info["aborted"] = True
-        
+
         # Check Guard metrics for latest state and rollback count
         for event in reader.iter_events(event_type="metrics"):
             if event.get("kind") == "guard":
                 guard_info["present"] = True
                 metrics = event.get("metrics", {})
                 action = metrics.get("action")
-                
+
                 if action:
                     guard_info["last_action"] = action
-                
+
                 # Track rollback count from any metrics (rollback or abort can have n_rollbacks)
                 if "n_rollbacks" in metrics:
-                    guard_info["rollback_count"] = max(
-                        guard_info["rollback_count"],
-                        metrics.get("n_rollbacks", 0)
-                    )
-                
+                    guard_info["rollback_count"] = max(guard_info["rollback_count"], metrics.get("n_rollbacks", 0))
+
                 # Latest snapshot info
                 if "snapshot_count" in metrics:
                     guard_info["snapshot_count"] = metrics["snapshot_count"]
                 if "memory_mb" in metrics:
                     guard_info["memory_mb"] = metrics["memory_mb"]
-        
+
         # If we found any rollback count > 0, mark rollback as occurred
         if guard_info["rollback_count"] is not None and guard_info["rollback_count"] > 0:
             guard_info["rollback_occurred"] = True
-    
+
     except Exception:  # Intentionally broad: guard info is best-effort diagnostic
         # If anything fails, return minimal guard_info
         pass
-    
+
     return guard_info
+
 
 def _print_monitor_result(
     *,
     telemetry_path: Path,
     config: Any,
     signals: Any,
-    alerts: List[Dict[str, Any]],
-    recs: List[Any],
-    issues: List[str],
+    alerts: list[dict[str, Any]],
+    recs: list[Any],
+    issues: list[str],
     verbose: bool = False,
-    guard_activity: Optional[Dict[str, Any]] = None,
+    guard_activity: dict[str, Any] | None = None,
 ) -> None:
     print("=" * 72)
     print("GRADIENCE MONITOR")
@@ -767,7 +768,9 @@ def _print_monitor_result(
     dataset_name = getattr(config, "dataset_name", None) if config is not None else None
     task_profile = None
     if config is not None:
-        task_profile = getattr(getattr(config, "task_profile", None), "value", None) or str(getattr(config, "task_profile", "unknown"))
+        task_profile = getattr(getattr(config, "task_profile", None), "value", None) or str(
+            getattr(config, "task_profile", "unknown")
+        )
     else:
         # Fall back to summarize() extras
         try:
@@ -812,19 +815,19 @@ def _print_monitor_result(
             print(f"  Utilization (mean): {_fmt(util, pct=True)}")
             # Dominance ingredients (scaled) — verbose only
             if verbose:
-                _la = (getattr(signals, 'extras', None) or {}).get('lora_audit') or {}
-                _s50 = _la.get('delta_sigma_max_scaled_p50')
-                _s90 = _la.get('delta_sigma_max_scaled_p90')
-                _f50 = _la.get('delta_frob_norm_scaled_p50')
-                _f90 = _la.get('delta_frob_norm_scaled_p90')
+                _la = (getattr(signals, "extras", None) or {}).get("lora_audit") or {}
+                _s50 = _la.get("delta_sigma_max_scaled_p50")
+                _s90 = _la.get("delta_sigma_max_scaled_p90")
+                _f50 = _la.get("delta_frob_norm_scaled_p50")
+                _f90 = _la.get("delta_frob_norm_scaled_p90")
                 if any(v is not None for v in (_s50, _s90, _f50, _f90)):
-                    _s50s = 'n/a' if _s50 is None else '{:.4g}'.format(float(_s50))
-                    _s90s = 'n/a' if _s90 is None else '{:.4g}'.format(float(_s90))
-                    _f50s = 'n/a' if _f50 is None else '{:.4g}'.format(float(_f50))
-                    _f90s = 'n/a' if _f90 is None else '{:.4g}'.format(float(_f90))
-                    print('  Dominance (scaled):')
-                    print(f'    sigma_max_scaled (p50/p90): {_s50s}/{_s90s}')
-                    print(f'    frob_norm_scaled (p50/p90): {_f50s}/{_f90s}')
+                    _s50s = "n/a" if _s50 is None else f"{float(_s50):.4g}"
+                    _s90s = "n/a" if _s90 is None else f"{float(_s90):.4g}"
+                    _f50s = "n/a" if _f50 is None else f"{float(_f50):.4g}"
+                    _f90s = "n/a" if _f90 is None else f"{float(_f90):.4g}"
+                    print("  Dominance (scaled):")
+                    print(f"    sigma_max_scaled (p50/p90): {_s50s}/{_s90s}")
+                    print(f"    frob_norm_scaled (p50/p90): {_f50s}/{_f90s}")
 
         if dom is not None:
             print(f"  Activation dominance (mean): {_fmt(dom)}")
@@ -850,9 +853,9 @@ def _print_monitor_result(
             except (ValueError, TypeError):
                 return "-"
             if pf >= 1e6:
-                return f"{pf/1e6:.1f}M"
+                return f"{pf / 1e6:.1f}M"
             if pf >= 1e3:
-                return f"{pf/1e3:.1f}K"
+                return f"{pf / 1e3:.1f}K"
             return f"{pf:.0f}"
 
         print("\nLoRA audit:")
@@ -873,7 +876,9 @@ def _print_monitor_result(
             if s_med:
                 print(f"  Suggested rank (median): r={int(s_med)} likely sufficient for most layers (p50 k@90%={p50})")
             if s_p90:
-                print(f"  Suggested rank (p90):    r={int(s_p90)} covers worst-case layers at 90% energy (p90 k@90%={p90})")
+                print(
+                    f"  Suggested rank (p90):    r={int(s_p90)} covers worst-case layers at 90% energy (p90 k@90%={p90})"
+                )
 
         by_type = audit.get("by_type")
         if isinstance(by_type, dict) and by_type:
@@ -885,9 +890,7 @@ def _print_monitor_result(
                 t_params = row.get("params")
                 t_util = row.get("utilization_mean")
                 t_sr = row.get("stable_rank_mean")
-                print(
-                    f"  {t:>5}: params={_fmt_params(t_params)}  util={_fmt(t_util, pct=True)}  sr={_fmt(t_sr)}"
-                )
+                print(f"  {t:>5}: params={_fmt_params(t_params)}  util={_fmt(t_util, pct=True)}  sr={_fmt(t_sr)}")
 
     # Guard activity
     if guard_activity and guard_activity.get("present"):
@@ -900,7 +903,7 @@ def _print_monitor_result(
                 print(f"  Last trigger:   {guard_activity['last_trigger_code']}")
             print(f"  Snapshots:      {guard_activity.get('snapshot_count', 0)}")
             print(f"  Memory usage:   {_fmt(guard_activity.get('memory_mb', 0))} MB")
-        
+
         # In non-verbose mode, only show if rollback occurred or training aborted
         elif guard_activity.get("rollback_occurred") or guard_activity.get("aborted"):
             if guard_activity.get("rollback_occurred"):
@@ -1004,7 +1007,7 @@ def cmd_monitor(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     # Emit alerts (simple, gap-first)
-    alerts: List[Dict[str, Any]] = []
+    alerts: list[dict[str, Any]] = []
     gap = getattr(signals, "gap", None)
     if gap is not None:
         try:
@@ -1029,7 +1032,6 @@ def cmd_monitor(args: argparse.Namespace) -> None:
                 "context": {},
             }
         )
-
 
     # Policy-driven recommendations (config + signals)
     try:
@@ -1101,8 +1103,9 @@ def cmd_monitor(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
-# audit  
+# audit
 # ---------------------------------------------------------------------------
+
 
 def _get_version_info():
     """Extract Gradience version and git SHA if available."""
@@ -1111,28 +1114,32 @@ def _get_version_info():
     try:
         # Try to get package version (prefer importlib.metadata over deprecated pkg_resources)
         try:
-            from importlib.metadata import version, PackageNotFoundError
+            from importlib.metadata import PackageNotFoundError, version
+
             version_info["gradience_version"] = version("gradience")
         except (ImportError, PackageNotFoundError):
             try:
                 import pkg_resources
+
                 version_info["gradience_version"] = pkg_resources.get_distribution("gradience").version
             except Exception:  # Intentionally broad: pkg_resources exceptions vary by platform
                 version_info["gradience_version"] = "development"
     except Exception:  # Intentionally broad: outermost fallback for version detection
         version_info["gradience_version"] = "unknown"
 
-
     # Try to get git SHA
     try:
-        import subprocess
         import os
+        import subprocess
+
         # Look for git in the current directory
-        git_sha = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            cwd=os.path.dirname(__file__),
-            stderr=subprocess.DEVNULL
-        ).decode().strip()
+        git_sha = (
+            subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=os.path.dirname(__file__), stderr=subprocess.DEVNULL
+            )
+            .decode()
+            .strip()
+        )
         version_info["git_sha"] = git_sha[:12]  # Short SHA
     except (FileNotFoundError, subprocess.CalledProcessError, OSError):
         version_info["git_sha"] = "unknown"
@@ -1141,11 +1148,11 @@ def _get_version_info():
 
 
 def _analyze_policy_disagreements(
-    layers: List[Any],
-    name_mapping: Dict[str, str],
-    importance_config: Optional[Dict[str, Any]] = None,
-    rationale_verbosity: str = "flagged_only"
-) -> Dict[str, Any]:
+    layers: list[Any],
+    name_mapping: dict[str, str],
+    importance_config: dict[str, Any] | None = None,
+    rationale_verbosity: str = "flagged_only",
+) -> dict[str, Any]:
     """Analyze policy disagreements and return structured data for JSON output.
 
     Args:
@@ -1157,8 +1164,8 @@ def _analyze_policy_disagreements(
     Returns detailed flagging rationale for each layer, suitable for machine consumption.
     """
     from gradience.policy_analysis import (
-        compute_layer_importance_scores,
         compute_energy_distribution,
+        compute_layer_importance_scores,
         filter_disagreement_layers,
     )
 
@@ -1166,9 +1173,9 @@ def _analyze_policy_disagreements(
     if importance_config is None:
         importance_config = {}
 
-    quantile_threshold = importance_config.get('quantile_threshold', 0.75)
-    min_uniform_mult = importance_config.get('uniform_mult_gate', 1.5)
-    importance_metric = importance_config.get('metric', 'energy_share')
+    quantile_threshold = importance_config.get("quantile_threshold", 0.75)
+    min_uniform_mult = importance_config.get("uniform_mult_gate", 1.5)
+    importance_metric = importance_config.get("metric", "energy_share")
 
     if not layers:
         return {
@@ -1176,13 +1183,11 @@ def _analyze_policy_disagreements(
             "computed_with": _get_version_info(),
             "analysis_performed": False,
             "reason": "no_layers",
-            "layers": []
+            "layers": [],
         }
 
     # Shared computation steps 1-3
-    layer_analysis, importance_scores = compute_layer_importance_scores(
-        layers, name_mapping, importance_config
-    )
+    layer_analysis, importance_scores = compute_layer_importance_scores(layers, name_mapping, importance_config)
 
     if not layer_analysis:
         return {
@@ -1190,11 +1195,12 @@ def _analyze_policy_disagreements(
             "computed_with": _get_version_info(),
             "analysis_performed": False,
             "reason": "no_disagreements",
-            "layers": []
+            "layers": [],
         }
 
-    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = \
-        compute_energy_distribution(layer_analysis, min_uniform_mult)
+    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = compute_energy_distribution(
+        layer_analysis, min_uniform_mult
+    )
 
     n_layers = len(layer_analysis)
     quantile_pct = quantile_threshold * 100
@@ -1206,11 +1212,11 @@ def _analyze_policy_disagreements(
     all_layers = []
 
     for analysis in layer_analysis:
-        layer_name = analysis['layer_name']
-        energy_share = analysis['energy_share']
-        uniform_mult = analysis['uniform_mult']
-        policy_spread = analysis['policy_spread']
-        max_k = analysis['max_k']
+        layer_name = analysis["layer_name"]
+        energy_share = analysis["energy_share"]
+        uniform_mult = analysis["uniform_mult"]
+        policy_spread = analysis["policy_spread"]
+        max_k = analysis["max_k"]
 
         # Check spread filter
         spread_threshold = max(3, 0.5 * max_k)
@@ -1235,19 +1241,16 @@ def _analyze_policy_disagreements(
             "meets_quantile_threshold": False,
             "passed_gate": False,
             "flagged_as_high_impact": False,
-            "k_values": [int(k) for k in analysis['k_values']],
-            "policies": analysis['policies']
+            "k_values": [int(k) for k in analysis["k_values"]],
+            "policies": analysis["policies"],
         }
 
-        layer_data = {
-            "layer_name": layer_name,
-            "flagging_rationale": flagging_rationale
-        }
+        layer_data = {"layer_name": layer_name, "flagging_rationale": flagging_rationale}
 
         # Only consider layers with significant disagreement
         if meets_spread_threshold:
             if not distribution_is_flat:
-                energy_shares = [a['energy_share'] for a in layer_analysis]
+                energy_shares = [a["energy_share"] for a in layer_analysis]
                 energy_quantile = np.percentile(energy_shares, quantile_pct)
                 meets_quantile_threshold = energy_share >= energy_quantile
                 flagging_rationale["meets_quantile_threshold"] = bool(meets_quantile_threshold)
@@ -1281,7 +1284,7 @@ def _analyze_policy_disagreements(
                 "importance_share": float(energy_share),
                 "uniform_mult": float(uniform_mult),
                 "priority_score": float(priority_score),
-                "failed_reasons": failed_reasons
+                "failed_reasons": failed_reasons,
             }
             layer_data["flagging_rationale"] = flagging_rationale
 
@@ -1291,6 +1294,7 @@ def _analyze_policy_disagreements(
     version_info = _get_version_info()
 
     import time
+
     timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     # Return structured analysis with complete schema
@@ -1311,13 +1315,13 @@ def _analyze_policy_disagreements(
             "spread_filter_enabled": True,
             "quantile_filter_enabled": True,
             "config_capture_version": "1.0",
-            "algorithm_name": "energy_share_uniform_multiplier_gate"
+            "algorithm_name": "energy_share_uniform_multiplier_gate",
         },
         # Backward compatibility alias for older test expectations
         "config": {
             "quantile_threshold": float(quantile_threshold),
             "uniform_mult_gate": float(min_uniform_mult),
-            "importance_metric": importance_metric
+            "importance_metric": importance_metric,
         },
         "analysis_performed": True,
         "distribution": {
@@ -1330,53 +1334,56 @@ def _analyze_policy_disagreements(
                 "threshold": float(min_uniform_mult),
                 "max_observed": float(max_uniform_mult),
                 "is_below_threshold": bool(max_uniform_mult < min_uniform_mult),
-                "mathematical_proof": f"max_uniform_mult={max_uniform_mult:.3f} {'<' if max_uniform_mult < min_uniform_mult else '≥'} {min_uniform_mult:.3f}=threshold → {'flat' if max_uniform_mult < min_uniform_mult else 'hierarchical'}"
-            }
+                "mathematical_proof": f"max_uniform_mult={max_uniform_mult:.3f} {'<' if max_uniform_mult < min_uniform_mult else '≥'} {min_uniform_mult:.3f}=threshold → {'flat' if max_uniform_mult < min_uniform_mult else 'hierarchical'}",
+            },
         },
-        "summary": {
-            "layers_with_disagreement": len(all_layers),
-            "layers_flagged_as_high_impact": len(flagged_layers)
-        },
-        "disagreement_focus_set": _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_uniform_mult, max_uniform_mult, uniform_share),
-        "flagged_layers": sorted(flagged_layers, key=lambda x: x['flagging_rationale']['priority_score'], reverse=True),
-        "all_layers_with_disagreement": sorted(all_layers, key=lambda x: x['flagging_rationale']['priority_score'], reverse=True)
+        "summary": {"layers_with_disagreement": len(all_layers), "layers_flagged_as_high_impact": len(flagged_layers)},
+        "disagreement_focus_set": _build_focus_set(
+            flagged_layers, all_layers, distribution_is_flat, min_uniform_mult, max_uniform_mult, uniform_share
+        ),
+        "flagged_layers": sorted(flagged_layers, key=lambda x: x["flagging_rationale"]["priority_score"], reverse=True),
+        "all_layers_with_disagreement": sorted(
+            all_layers, key=lambda x: x["flagging_rationale"]["priority_score"], reverse=True
+        ),
     }
 
 
-def _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_uniform_mult, max_uniform_mult, uniform_share):
+def _build_focus_set(
+    flagged_layers, all_layers, distribution_is_flat, min_uniform_mult, max_uniform_mult, uniform_share
+):
     """Build disagreement focus set for Bench consumption.
-    
+
     Returns a structured focus set that Bench can use directly to restrict
     per-layer validation to only the most critical layers.
     """
     # Sort flagged layers by priority_score (highest first)
-    sorted_flagged = sorted(flagged_layers, key=lambda x: x['flagging_rationale']['priority_score'], reverse=True)
-    
+    sorted_flagged = sorted(flagged_layers, key=lambda x: x["flagging_rationale"]["priority_score"], reverse=True)
+
     # Extract layer names for Bench consumption
-    high_impact_layer_names = [layer['layer_name'] for layer in sorted_flagged]
-    
+    high_impact_layer_names = [layer["layer_name"] for layer in sorted_flagged]
+
     # Determine recommended focus count
     if distribution_is_flat:
         # For flat distributions, no clear high-impact layers
         # Recommend focusing on top disagreement layers by spread
-        sorted_all = sorted(all_layers, key=lambda x: x['flagging_rationale']['priority_score'], reverse=True)
-        top_disagreement_names = [layer['layer_name'] for layer in sorted_all[:3]]  # Top 3 by priority
-        
+        sorted_all = sorted(all_layers, key=lambda x: x["flagging_rationale"]["priority_score"], reverse=True)
+        top_disagreement_names = [layer["layer_name"] for layer in sorted_all[:3]]  # Top 3 by priority
+
         recommended_focus_n = min(3, len(all_layers))
         message = f"Energy distribution is flat (max={max_uniform_mult:.1f}× < {min_uniform_mult:.1f}× threshold, uniform_share={uniform_share:.3f}). Consider Bench validation on top {recommended_focus_n} disagreement layers by priority_score."
-        
+
         return {
             "high_impact_layers": top_disagreement_names,
             "recommended_focus_n": recommended_focus_n,
             "focus_strategy": "top_disagreement_priority",
             "message": message,
-            "distribution_type": "flat"
+            "distribution_type": "flat",
         }
     else:
         # Clear importance hierarchy - focus on flagged layers
         recommended_focus_n = len(high_impact_layer_names)
         total_disagreement_layers = len(all_layers)
-        
+
         if recommended_focus_n == 0:
             # No high-impact layers (e.g., all below thresholds)
             message = f"No layers meet high-impact criteria. All {total_disagreement_layers} disagreement layers are below importance thresholds."
@@ -1385,7 +1392,7 @@ def _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_unifo
                 "recommended_focus_n": 0,
                 "focus_strategy": "none",
                 "message": message,
-                "distribution_type": "hierarchical"
+                "distribution_type": "hierarchical",
             }
         elif recommended_focus_n == 1:
             # Single high-impact layer
@@ -1396,7 +1403,7 @@ def _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_unifo
                 "recommended_focus_n": recommended_focus_n,
                 "focus_strategy": "single_layer",
                 "message": message,
-                "distribution_type": "hierarchical"
+                "distribution_type": "hierarchical",
             }
         else:
             # Multiple high-impact layers
@@ -1406,15 +1413,15 @@ def _build_focus_set(flagged_layers, all_layers, distribution_is_flat, min_unifo
                 "recommended_focus_n": recommended_focus_n,
                 "focus_strategy": "multiple_layers",
                 "message": message,
-                "distribution_type": "hierarchical"
+                "distribution_type": "hierarchical",
             }
 
 
 def _print_policy_disagreement_summary(
-    layers: List[Any],
-    name_mapping: Dict[str, str],
-    importance_config: Optional[Dict[str, Any]] = None,
-    rationale_verbosity: str = "flagged_only"
+    layers: list[Any],
+    name_mapping: dict[str, str],
+    importance_config: dict[str, Any] | None = None,
+    rationale_verbosity: str = "flagged_only",
 ) -> None:
     """Print smart policy disagreement analysis weighted by layer importance.
 
@@ -1427,145 +1434,154 @@ def _print_policy_disagreement_summary(
             - metric: Energy importance metric to use (default: 'energy_share')
     """
     from gradience.policy_analysis import (
-        compute_layer_importance_scores,
         compute_energy_distribution,
+        compute_layer_importance_scores,
         filter_disagreement_layers,
     )
 
     if importance_config is None:
         importance_config = {}
 
-    quantile_threshold = importance_config.get('quantile_threshold', 0.75)
-    min_uniform_mult = importance_config.get('uniform_mult_gate', 1.5)
+    quantile_threshold = importance_config.get("quantile_threshold", 0.75)
+    min_uniform_mult = importance_config.get("uniform_mult_gate", 1.5)
 
     if not layers:
         return
 
     # Shared computation steps 1-3
-    layer_analysis, importance_scores = compute_layer_importance_scores(
-        layers, name_mapping, importance_config
-    )
+    layer_analysis, importance_scores = compute_layer_importance_scores(layers, name_mapping, importance_config)
 
     if not importance_scores:
         return
 
-    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = \
-        compute_energy_distribution(layer_analysis, min_uniform_mult)
+    total_energy, uniform_share, max_uniform_mult, distribution_is_flat = compute_energy_distribution(
+        layer_analysis, min_uniform_mult
+    )
 
     smart_disagreement_layers, all_disagreement_layers = filter_disagreement_layers(
-        layer_analysis, importance_scores, quantile_threshold,
-        min_uniform_mult, distribution_is_flat
+        layer_analysis, importance_scores, quantile_threshold, min_uniform_mult, distribution_is_flat
     )
 
     # Step 4: Smart output - handle flat vs concentrated distributions differently
     if all_disagreement_layers:
-        
         if distribution_is_flat:
             # FLAT DISTRIBUTION: No meaningfully high-impact layers
             print(f"\n🔍 Policy disagreement detected ({len(all_disagreement_layers)} layers):")
             print(f"  Energy distribution is flat (no layer captures ≥ {min_uniform_mult:.1f}× its uniform share)")
             print("  Treating all disagreement layers as medium impact; prioritize by spread.")
             print()
-            print("  Layer                                   Spread  Range   Uniform×   Policies suggest")  
+            print("  Layer                                   Spread  Range   Uniform×   Policies suggest")
             print("  -------------------------------------  ------  ------  --------   ----------------")
-            
-            # Sort by priority_score (incorporates both spread and uniform_mult) 
-            sorted_layers = sorted(all_disagreement_layers, key=lambda x: x['priority_score'], reverse=True)
-            
+
+            # Sort by priority_score (incorporates both spread and uniform_mult)
+            sorted_layers = sorted(all_disagreement_layers, key=lambda x: x["priority_score"], reverse=True)
+
             for layer_info in sorted_layers[:8]:  # Show top 8 by spread
-                layer_name = layer_info['layer_name']
+                layer_name = layer_info["layer_name"]
                 if len(layer_name) > 35:
                     layer_name = layer_name[:32] + "..."
-                
-                spread = layer_info['spread']
-                min_k = layer_info['min_k']
-                max_k = layer_info['max_k']
-                uniform_mult = layer_info['uniform_mult']
-                
+
+                spread = layer_info["spread"]
+                min_k = layer_info["min_k"]
+                max_k = layer_info["max_k"]
+                uniform_mult = layer_info["uniform_mult"]
+
                 # Create a compact representation of policy suggestions
                 policy_strs = []
-                for policy, k in zip(layer_info['policies'], layer_info['k_values']):
+                for policy, k in zip(layer_info["policies"], layer_info["k_values"]):
                     policy_strs.append(f"{policy}={k}")
-                
+
                 policies_summary = ", ".join(policy_strs[:2])  # Show first 2 policies
                 if len(policy_strs) > 2:
-                    policies_summary += f", +{len(policy_strs)-2}"
-                
-                print(f"  {layer_name:<35}  {spread:>6}  {min_k}-{max_k:<4}   {uniform_mult:>6.1f}×   {policies_summary}")
-            
+                    policies_summary += f", +{len(policy_strs) - 2}"
+
+                print(
+                    f"  {layer_name:<35}  {spread:>6}  {min_k}-{max_k:<4}   {uniform_mult:>6.1f}×   {policies_summary}"
+                )
+
             if len(all_disagreement_layers) > 8:
                 print(f"  ... and {len(all_disagreement_layers) - 8} more layers")
-            
+
             print(f"\n💡 Recommendation: Energy distribution is flat (max={max_uniform_mult:.1f}× uniform share)")
-            print(f"  No layer captures a meaningful fraction of adapter's update energy.")
-            print(f"  Consider Bench validation on highest spread layers or policy consensus.")
-            
+            print("  No layer captures a meaningful fraction of adapter's update energy.")
+            print("  Consider Bench validation on highest spread layers or policy consensus.")
+
         elif smart_disagreement_layers:
             # CONCENTRATED DISTRIBUTION: Clear high-impact layers
             # Sort by combined importance and disagreement (importance * spread)
             # Sort by priority_score (spread_norm * uniform_mult) for Bench ordering
-            smart_disagreement_layers.sort(key=lambda x: x['priority_score'], reverse=True)
-            
+            smart_disagreement_layers.sort(key=lambda x: x["priority_score"], reverse=True)
+
             print(f"\n🔍 Critical policy disagreement detected ({len(smart_disagreement_layers)} high-impact layers):")
             print("  These layers capture meaningful fractions of adapter energy AND show policy ambiguity!")
             print("  Layer                                   Spread  Range   Uniform×   Policies suggest")
             print("  -------------------------------------  ------  ------  --------   ----------------")
-            
+
             for layer_info in smart_disagreement_layers[:8]:  # Show top 8 critical layers
-                layer_name = layer_info['layer_name']
+                layer_name = layer_info["layer_name"]
                 if len(layer_name) > 35:
                     layer_name = layer_name[:32] + "..."
-                
-                spread = layer_info['spread']
-                min_k = layer_info['min_k']
-                max_k = layer_info['max_k']
-                uniform_mult = layer_info['uniform_mult']
-                
+
+                spread = layer_info["spread"]
+                min_k = layer_info["min_k"]
+                max_k = layer_info["max_k"]
+                uniform_mult = layer_info["uniform_mult"]
+
                 # Create a compact representation of policy suggestions
                 policy_strs = []
-                for policy, k in zip(layer_info['policies'], layer_info['k_values']):
+                for policy, k in zip(layer_info["policies"], layer_info["k_values"]):
                     policy_strs.append(f"{policy}={k}")
-                
+
                 policies_summary = ", ".join(policy_strs[:2])  # Show first 2 policies
                 if len(policy_strs) > 2:
-                    policies_summary += f", +{len(policy_strs)-2}"
-                
-                print(f"  {layer_name:<35}  {spread:>6}  {min_k}-{max_k:<4}   {uniform_mult:>6.1f}×   {policies_summary}")
-            
+                    policies_summary += f", +{len(policy_strs) - 2}"
+
+                print(
+                    f"  {layer_name:<35}  {spread:>6}  {min_k}-{max_k:<4}   {uniform_mult:>6.1f}×   {policies_summary}"
+                )
+
             if len(smart_disagreement_layers) > 8:
                 print(f"  ... and {len(smart_disagreement_layers) - 8} more critical layers")
-            
-            print(f"\n🎯 Priority: Focus Bench validation on these {len(smart_disagreement_layers)} energy-significant layers")
-            
+
+            print(
+                f"\n🎯 Priority: Focus Bench validation on these {len(smart_disagreement_layers)} energy-significant layers"
+            )
+
             # Show top focus layer with priority score for Bench ordering
             if smart_disagreement_layers:
                 top_layer = smart_disagreement_layers[0]
-                layer_name = top_layer['layer_name']
-                priority_score = top_layer['priority_score']
+                layer_name = top_layer["layer_name"]
+                priority_score = top_layer["priority_score"]
                 print(f"💡 Top focus layer: {layer_name} (priority_score={priority_score:.1f})")
-            
-            # Show summary of less important disagreements  
+
+            # Show summary of less important disagreements
             low_importance_count = len(all_disagreement_layers) - len(smart_disagreement_layers)
             if low_importance_count > 0:
                 print(f"\n📊 Additional info: {low_importance_count} lower-importance layers also show disagreement")
                 print(f"  (uniform mult < {min_uniform_mult:.1f}× or insufficient energy share; deprioritized)")
-            
+
             # Overall recommendation for concentrated distribution
             total_disagreements = len(all_disagreement_layers)
             critical_disagreements = len(smart_disagreement_layers)
-            print(f"\n💡 Smart recommendation: Prioritize Bench validation on {critical_disagreements}/{total_disagreements} energy-significant layers")
-            
+            print(
+                f"\n💡 Smart recommendation: Prioritize Bench validation on {critical_disagreements}/{total_disagreements} energy-significant layers"
+            )
+
         else:
             # CONCENTRATED but no high-impact disagreements (shouldn't happen but handle gracefully)
-            print(f"\n💡 Note: {len(all_disagreement_layers)} layers show disagreement but don't meet high-impact criteria")
+            print(
+                f"\n💡 Note: {len(all_disagreement_layers)} layers show disagreement but don't meet high-impact criteria"
+            )
             print(f"  (requires: meaningful energy share AND ≥ {min_uniform_mult:.1f}× uniform)")
             print("  Consider bulk validation or accept policy consensus")
-    
+
     else:
         print(f"\n✅ Policy consensus: No significant disagreements detected across {len(layer_analysis)} layers")
 
 
-def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_config: Optional[Dict[str, Any]] = None) -> None:
+def _print_audit_summary(
+    result: Any, *, top_wasteful: int = 0, importance_config: dict[str, Any] | None = None
+) -> None:
     """Pretty-print a compact LoRA audit summary."""
 
     def _fmt_params(p: Any) -> str:
@@ -1574,9 +1590,9 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
         except (ValueError, TypeError):
             return "-"
         if pf >= 1e6:
-            return f"{pf/1e6:.1f}M"
+            return f"{pf / 1e6:.1f}M"
         if pf >= 1e3:
-            return f"{pf/1e3:.1f}K"
+            return f"{pf / 1e3:.1f}K"
         return f"{pf:.0f}"
 
     print("=" * 72)
@@ -1607,6 +1623,7 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
     e90_p90 = getattr(result, "energy_rank_90_p90", None)
     if e90_p50 is not None or e90_p90 is not None:
         print(f"  Energy rank k@90% (p50/p90): {_fmt(e90_p50)}/{_fmt(e90_p90)}")
+
         # Suggested rank printout (audit)
         def _snap_rank(_k):
             if _k is None:
@@ -1627,7 +1644,9 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
         if _s_med is not None:
             print(f"  Suggested rank (median): r={int(_s_med)} likely sufficient for most layers (p50 k@90%={_p50})")
         if _s_p90 is not None:
-            print(f"  Suggested rank (p90):    r={int(_s_p90)} covers worst-case layers at 90% energy (p90 k@90%={_p90})")
+            print(
+                f"  Suggested rank (p90):    r={int(_s_p90)} covers worst-case layers at 90% energy (p90 k@90%={_p90})"
+            )
 
     # Policy-based rank suggestions table (Step 6)
     policy_suggestions = getattr(result, "policy_global_suggestions", None)
@@ -1635,53 +1654,57 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
         print("\nRank policy suggestions:")
         print("  Policy            Median   P90   Max   Don't Compress")
         print("  ----------------  ------  ----  ----  --------------")
-        
+
         # Map internal names back to user-friendly names
         name_mapping = {
-            'energy_threshold': 'energy@0.90',
-            'knee_elbow': 'knee', 
-            'entropy_effective': 'erank',
-            'optimal_hard_threshold': 'oht (exp.)'  # Mark as experimental
+            "energy_threshold": "energy@0.90",
+            "knee_elbow": "knee",
+            "entropy_effective": "erank",
+            "optimal_hard_threshold": "oht (exp.)",  # Mark as experimental
         }
-        
+
         # Track experimental policies for footnotes
-        experimental_policies = {'optimal_hard_threshold'}
-        
+        experimental_policies = {"optimal_hard_threshold"}
+
         # Get layers for "don't compress" analysis
         layers = getattr(result, "layers", [])
         r_alloc_values = [layer.r for layer in layers] if layers else []
         typical_r = max(r_alloc_values) if r_alloc_values else 8
-        
+
         for policy_internal, stats in policy_suggestions.items():
             # Map to user-friendly name
             policy_name = name_mapping.get(policy_internal, policy_internal)
-            
-            median = int(stats['uniform_median'])
-            p90 = int(stats['uniform_p90']) 
-            max_val = int(stats['uniform_max'])
-            n_layers = int(stats.get('n_layers', 0))
-            
+
+            median = int(stats["uniform_median"])
+            p90 = int(stats["uniform_p90"])
+            max_val = int(stats["uniform_max"])
+            n_layers = int(stats.get("n_layers", 0))
+
             # Calculate "don't compress" percentage
             dont_compress_count = 0
             if layers:
                 for layer in layers:
-                    if (layer.rank_suggestions and 
-                        policy_internal in layer.rank_suggestions and
-                        'k' in layer.rank_suggestions[policy_internal]):
-                        k = layer.rank_suggestions[policy_internal]['k']
+                    if (
+                        layer.rank_suggestions
+                        and policy_internal in layer.rank_suggestions
+                        and "k" in layer.rank_suggestions[policy_internal]
+                    ):
+                        k = layer.rank_suggestions[policy_internal]["k"]
                         # Consider "don't compress" if suggested rank is >= 80% of allocated rank
                         if k >= 0.8 * layer.r:
                             dont_compress_count += 1
-            
+
             dont_compress_pct = (dont_compress_count / n_layers * 100) if n_layers > 0 else 0
-            
+
             print(f"  {policy_name:<16}  {median:>6}  {p90:>4}  {max_val:>4}       {dont_compress_pct:>4.0f}%")
-        
+
         # Add footnote for experimental policies
-        has_experimental = any(policy_internal in experimental_policies for policy_internal in policy_suggestions.keys())
+        has_experimental = any(
+            policy_internal in experimental_policies for policy_internal in policy_suggestions.keys()
+        )
         if has_experimental:
             print("  (exp.) = Experimental policy based on theoretical assumptions")
-        
+
         # Policy disagreement analysis (Step 10)
         _print_policy_disagreement_summary(layers, name_mapping, importance_config)
 
@@ -1726,114 +1749,121 @@ def _print_audit_summary(result: Any, *, top_wasteful: int = 0, importance_confi
 def cmd_truncate(args: argparse.Namespace) -> None:
     """SVD truncate a PEFT LoRA adapter to a smaller rank."""
     from pathlib import Path
-    
+
     peft_dir = Path(args.peft_dir)
     out_dir = Path(args.out_dir)
     target_rank = args.rank
-    
+
     if not peft_dir.exists():
         print(f"Error: Input PEFT directory not found: {peft_dir}")
         sys.exit(1)
-    
+
     if target_rank <= 0:
         print(f"Error: Target rank must be positive, got: {target_rank}")
         sys.exit(1)
-    
+
     try:
-        from gradience.vnext.svd_truncate import svd_truncate_peft_dir, save_truncation_report
+        from gradience.vnext.svd_truncate import save_truncation_report, svd_truncate_peft_dir
     except ImportError as e:
         print(f"Error: Failed to import SVD truncate module: {e}")
         sys.exit(1)
-    
+
     try:
         report = svd_truncate_peft_dir(
             peft_dir=peft_dir,
             out_dir=out_dir,
             target_rank=target_rank,
             alpha_mode=args.alpha_mode,
-            save_dtype=args.dtype
+            save_dtype=args.dtype,
         )
-        
+
         if args.json:
             import json
+
             print(json.dumps(report.__dict__, indent=2))
         else:
-            print(f"✅ SVD truncation completed successfully!")
+            print("✅ SVD truncation completed successfully!")
             print(f"📁 Input:  {peft_dir}")
             print(f"📁 Output: {out_dir}")
             print()
-            
+
             # Core metrics (as specified)
             print(f"Input rank: {report.original_rank}")
             print(f"Output rank: {report.target_rank}")
             print(f"Mean retained energy: {report.energy_retained:.1%}")
-            
+
             # Calculate total LoRA parameter reduction
             total_original_lora_params = sum(int(m["original_params"]) for m in report.per_module_energy)
             total_new_lora_params = sum(int(m["new_params"]) for m in report.per_module_energy)
-            lora_reduction_ratio = total_original_lora_params / total_new_lora_params if total_new_lora_params > 0 else 1.0
-            
-            print(f"LoRA parameter reduction: {total_original_lora_params:,} → {total_new_lora_params:,} ({lora_reduction_ratio:.1f}x)")
+            lora_reduction_ratio = (
+                total_original_lora_params / total_new_lora_params if total_new_lora_params > 0 else 1.0
+            )
+
+            print(
+                f"LoRA parameter reduction: {total_original_lora_params:,} → {total_new_lora_params:,} ({lora_reduction_ratio:.1f}x)"
+            )
             print(f"Alpha mode: {report.alpha_mode}")
             print(f"Modules processed: {report.total_modules}")
-            
+
             if args.verbose:
-                print(f"\nPer-module energy retention:")
+                print("\nPer-module energy retention:")
                 for module in report.per_module_energy:
                     name = module["module_name"]
                     energy = module["energy_retained"]
                     orig_params = module["original_params"]
-                    new_params = module["new_params"] 
+                    new_params = module["new_params"]
                     print(f"  {name}: {energy:.1%} ({orig_params:,} → {new_params:,} params)")
-        
+
         # Save report if requested
         if args.report:
             report_path = Path(args.report)
             save_truncation_report(report, report_path)
             if not args.json:
                 print(f"📄 Report saved: {report_path}")
-        
+
     except (RuntimeError, ValueError, OSError) as e:
         print(f"Error: SVD truncation failed: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
 
-def _parse_rank_policies(policies_arg: Optional[str]) -> Optional[List[str]]:
+def _parse_rank_policies(policies_arg: str | None) -> list[str] | None:
     """Parse user-friendly rank policy names to internal policy names."""
     if not policies_arg:
         return None
-    
+
     # Handle both comma-separated and space-separated
-    if ',' in policies_arg:
-        policies = [p.strip() for p in policies_arg.split(',')]
+    if "," in policies_arg:
+        policies = [p.strip() for p in policies_arg.split(",")]
     else:
         policies = policies_arg.split()
-    
+
     # Map user-friendly names to internal policy names
     parsed_policies = []
     for policy in policies:
-        if policy in ['energy@0.90', 'energy@0.95']:
-            parsed_policies.append('energy_threshold')
-        elif policy == 'knee':
-            parsed_policies.append('knee_elbow')
-        elif policy == 'erank':
-            parsed_policies.append('entropy_effective')
-        elif policy == 'oht':
-            parsed_policies.append('optimal_hard_threshold')
-        elif policy in ['energy_threshold', 'knee_elbow', 'entropy_effective', 'optimal_hard_threshold']:
+        if policy in ["energy@0.90", "energy@0.95"]:
+            parsed_policies.append("energy_threshold")
+        elif policy == "knee":
+            parsed_policies.append("knee_elbow")
+        elif policy == "erank":
+            parsed_policies.append("entropy_effective")
+        elif policy == "oht":
+            parsed_policies.append("optimal_hard_threshold")
+        elif policy in ["energy_threshold", "knee_elbow", "entropy_effective", "optimal_hard_threshold"]:
             # Support internal names directly
             parsed_policies.append(policy)
         else:
             print(f"Warning: Unknown policy '{policy}'. Available: energy@0.90, energy@0.95, knee, erank, oht")
-    
+
     return parsed_policies if parsed_policies else None
 
 
 def cmd_audit(args: argparse.Namespace) -> None:
     import json as jsonlib
+
     """Audit a PEFT LoRA adapter directory and print a compact efficiency summary."""
 
     peft_dir = getattr(args, "peft_dir", None)
@@ -1850,14 +1880,14 @@ def cmd_audit(args: argparse.Namespace) -> None:
     try:
         # Parse rank policies
         rank_policies = _parse_rank_policies(getattr(args, "rank_policies", None))
-        
+
         # Extract importance configuration
         importance_config = {
-            'quantile_threshold': getattr(args, "importance_quantile", 0.75),
-            'uniform_mult_gate': getattr(args, "importance_uniform_mult_gate", 1.5),
-            'metric': getattr(args, "importance_metric", "energy_share"),
+            "quantile_threshold": getattr(args, "importance_quantile", 0.75),
+            "uniform_mult_gate": getattr(args, "importance_uniform_mult_gate", 1.5),
+            "metric": getattr(args, "importance_metric", "energy_share"),
         }
-        
+
         result = audit_lora_peft_dir(
             peft_dir,
             adapter_config_path=getattr(args, "adapter_config", None),
@@ -1871,8 +1901,10 @@ def cmd_audit(args: argparse.Namespace) -> None:
         )
         # --- audit --append support ---
         if getattr(args, "append", None):
-            import json, time
+            import json
+            import time
             from pathlib import Path
+
             append_path = Path(args.append)
             run_id = None
             last_step = None
@@ -1928,56 +1960,63 @@ def cmd_audit(args: argparse.Namespace) -> None:
             if getattr(args, "layers", False):
                 payload = result.to_summary_dict(include_layers=True, topk_layers=None)
             else:
-                payload = result.to_summary_dict(include_layers=include_layers, topk_layers=top_wasteful if include_layers else None)
-            
+                payload = result.to_summary_dict(
+                    include_layers=include_layers, topk_layers=top_wasteful if include_layers else None
+                )
+
             # Ensure n_layers_with_udr is present when UDR is enabled via CLI args
             # Only add this if UDR computation was actually enabled AND attempted
             # Note: --no-udr explicitly disables UDR, so respect that flag strictly
-            if (not getattr(args, "no_udr", False) and 
-                getattr(args, "base_model", None) and  # Only when base_model provided (not just cache)
-                "n_layers_with_udr" not in payload):
+            if (
+                not getattr(args, "no_udr", False)
+                and getattr(args, "base_model", None)  # Only when base_model provided (not just cache)
+                and "n_layers_with_udr" not in payload
+            ):
                 # Check if any UDR-related data exists to determine if UDR was attempted
                 layers = getattr(result, "layers", [])
                 has_udr_data = any(
-                    getattr(l, 'udr', None) is not None or 
-                    getattr(l, 'base_sigma_max', None) is not None or
-                    getattr(l, 'base_fro_norm', None) is not None
+                    getattr(l, "udr", None) is not None
+                    or getattr(l, "base_sigma_max", None) is not None
+                    or getattr(l, "base_fro_norm", None) is not None
                     for l in layers
                 )
                 if has_udr_data:
-                    udr_count = sum(1 for l in layers if getattr(l, 'udr', None) is not None)
+                    udr_count = sum(1 for l in layers if getattr(l, "udr", None) is not None)
                     payload["n_layers_with_udr"] = udr_count
-            
+
             # Add per-layer rank suggestions if requested
             suggest_per_layer = getattr(args, "suggest_per_layer", False)
             if suggest_per_layer:
                 if not include_layers and not getattr(args, "layers", False):
                     print("Error: --suggest-per-layer requires --layers flag", file=sys.stderr)
                     sys.exit(1)
-                
+
                 try:
                     from gradience.vnext.rank_suggestion import suggest_per_layer_ranks
+
                     rank_suggestions = suggest_per_layer_ranks(payload)
                     payload["rank_suggestions"] = rank_suggestions.to_dict()
                 except (ImportError, ValueError, TypeError, RuntimeError) as e:
                     payload["rank_suggestions_error"] = str(e)
-            
+
             # Add policy disagreement analysis to JSON output
             try:
                 layers = getattr(result, "layers", [])
                 if layers:
                     name_mapping = {
-                        'energy_threshold': 'energy@0.90',
-                        'knee_elbow': 'knee', 
-                        'entropy_effective': 'erank',
-                        'optimal_hard_threshold': 'oht'
+                        "energy_threshold": "energy@0.90",
+                        "knee_elbow": "knee",
+                        "entropy_effective": "erank",
+                        "optimal_hard_threshold": "oht",
                     }
                     rationale_verbosity = getattr(args, "disagreement_rationale", "flagged_only")
-                    disagreement_analysis = _analyze_policy_disagreements(layers, name_mapping, importance_config, rationale_verbosity)
+                    disagreement_analysis = _analyze_policy_disagreements(
+                        layers, name_mapping, importance_config, rationale_verbosity
+                    )
                     payload["policy_disagreement_analysis"] = disagreement_analysis
             except (ValueError, RuntimeError) as e:
                 payload["policy_disagreement_analysis_error"] = str(e)
-                    
+
         except (AttributeError, KeyError, TypeError):
             # Fallback if result isn't the expected dataclass
             payload = {"error": "unexpected_audit_result_type", "type": str(type(result))}
@@ -2007,7 +2046,7 @@ def _print_qa_summary(artifact: Any) -> None:
     print(f"  Layers:        {artifact.n_layers}")
 
     # --- Structural ---
-    print(f"\nSTRUCTURAL SUMMARY")
+    print("\nSTRUCTURAL SUMMARY")
     print(sep)
     print(f"  Utilization (mean):    {artifact.utilization_mean:.3f}")
     print(f"  Utilization (median):  {artifact.utilization_median:.3f}")
@@ -2018,14 +2057,14 @@ def _print_qa_summary(artifact: Any) -> None:
     if artifact.structural_flags:
         print(f"  Flags:                 {', '.join(artifact.structural_flags)}")
     else:
-        print(f"  Flags:                 (none)")
+        print("  Flags:                 (none)")
 
     # --- Behavioral ---
-    print(f"\nBEHAVIORAL SUMMARY")
+    print("\nBEHAVIORAL SUMMARY")
     print(sep)
     if not artifact.eval_available:
-        print(f"  Eval available: no")
-        print(f"  Eligibility determined from structural evidence only")
+        print("  Eval available: no")
+        print("  Eligibility determined from structural evidence only")
     else:
         if artifact.eval_dataset:
             print(f"  Eval dataset:  {artifact.eval_dataset}")
@@ -2037,12 +2076,12 @@ def _print_qa_summary(artifact: Any) -> None:
         print(f"  Beats base:    {'yes' if artifact.beats_base else 'no'}")
 
     # --- Eligibility ---
-    print(f"\nELIGIBILITY")
+    print("\nELIGIBILITY")
     print(sep)
     print(f"  Status:      {artifact.status.value.upper()}")
     print(f"  Confidence:  {artifact.confidence}")
     if artifact.reasons:
-        print(f"  Reasons:")
+        print("  Reasons:")
         for reason in artifact.reasons:
             print(f"    - {reason}")
 
@@ -2109,7 +2148,7 @@ def cmd_audit_adapter(args: argparse.Namespace) -> None:
         with open(p, "w", encoding="utf-8") as f:
             jsonlib.dump(artifact.to_dict(), f, indent=2)
             f.write("\n")
-        print(f"\nOUTPUT")
+        print("\nOUTPUT")
         print("\u2500" * 50)
         print(f"  Wrote QA artifact to: {p}")
 
@@ -2129,6 +2168,7 @@ def _load_source_qa(path_str: str | None) -> Any:
     if path_str is None:
         return None
     import json as jsonlib
+
     p = Path(path_str)
     if not p.is_file():
         print(f"Error: --source-*-qa path does not exist: {p}")
@@ -2139,9 +2179,11 @@ def _load_source_qa(path_str: str | None) -> Any:
         # Auto-detect v1 artifact format
         if isinstance(data, dict) and data.get("schema", "").startswith("gradience.adapter_qa/"):
             from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+
             return AdapterQAArtifact.from_dict(data).to_qa_result()
         # Legacy flat format
         from gradience.vnext.merge.eligibility import AdapterQAResult
+
         return AdapterQAResult.from_dict(data)
     except Exception as e:
         print(f"Error: Failed to load QA file {p}: {e}")
@@ -2167,7 +2209,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             sys.exit(1)
 
     try:
-        from gradience.vnext.merge import merge_audit, VerdictThresholds
+        from gradience.vnext.merge import VerdictThresholds, merge_audit
     except ImportError as e:
         print(f"Error: Failed to import merge audit module: {e}")
         sys.exit(1)
@@ -2204,6 +2246,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         print(f"Error: Merge audit failed: {e}")
         if getattr(args, "verbose", False):
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
@@ -2211,6 +2254,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     strict_qa = getattr(args, "strict_qa", False)
     if strict_qa:
         from gradience.vnext.merge.recommend import diagnose_pair
+
         diag = diagnose_pair(report)
         if not diag.eligibility.has_data:
             print("\nError: --strict-qa requires source QA data for both adapters.")
@@ -2222,14 +2266,14 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
                 weak_labels.append("A")
             if diag.eligibility.status_b and diag.eligibility.status_b.value == "flagged_weak":
                 weak_labels.append("B")
-            print(f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(weak_labels)} "
-                  f"flagged as weak.")
+            print(f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(weak_labels)} flagged as weak.")
             print("  Recommendations withheld. Review source adapter quality before merging.")
             sys.exit(1)
 
     # --- Output ---
     if getattr(args, "json", False):
         from gradience.vnext.merge import to_json
+
         print(jsonlib.dumps(to_json(report), indent=2))
         return
 
@@ -2259,7 +2303,8 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     # --- Strategy Recommendations ---
     user_strategy = getattr(args, "strategy", None)
     try:
-        from gradience.vnext.merge.recommend import recommend_merge, format_recommendation
+        from gradience.vnext.merge.recommend import format_recommendation, recommend_merge
+
         merge_rec = recommend_merge(report)
         rec_output = format_recommendation(
             merge_rec,
@@ -2291,6 +2336,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     if getattr(args, "qa_report", False):
         try:
             from gradience.vnext.merge.qa_report import build_qa_report, format_qa_report
+
             qa = build_qa_report(report)
             print(format_qa_report(qa))
             out_dir_qa = getattr(args, "output_dir", None)
@@ -2300,6 +2346,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         except Exception as exc:
             if getattr(args, "verbose", False):
                 import traceback
+
                 traceback.print_exc()
             else:
                 print(f"\n  (QA report generation failed: {exc})")
@@ -2308,6 +2355,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     emit_path = getattr(args, "emit_report", None)
     if emit_path:
         from gradience.vnext.merge import to_json
+
         emit_p = Path(emit_path)
         emit_p.parent.mkdir(parents=True, exist_ok=True)
         with open(emit_p, "w") as f:
@@ -2327,6 +2375,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 # merge-plan
 # ---------------------------------------------------------------------------
+
 
 def cmd_merge_plan(args: argparse.Namespace) -> None:
     """Generate a merge plan from two PEFT LoRA adapters."""
@@ -2353,7 +2402,7 @@ def cmd_merge_plan(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     try:
-        from gradience.vnext.merge import merge_audit, plan_from_audit, PLAN_STRATEGIES
+        from gradience.vnext.merge import PLAN_STRATEGIES, merge_audit, plan_from_audit
     except ImportError as e:
         print(f"Error: Failed to import merge modules: {e}")
         sys.exit(1)
@@ -2379,7 +2428,7 @@ def cmd_merge_plan(args: argparse.Namespace) -> None:
     if verbose:
         print(f"\nGenerating merge plan (strategy={strategy})...")
 
-    kwargs: Dict[str, Any] = {
+    kwargs: dict[str, Any] = {
         "output_rank": output_rank,
         "output_alpha": output_alpha,
     }
@@ -2391,7 +2440,7 @@ def cmd_merge_plan(args: argparse.Namespace) -> None:
     plan_path = out / "merge_plan.json"
     plan.to_json(plan_path)
 
-    print(f"\nMerge plan generated:")
+    print("\nMerge plan generated:")
     print(f"  Strategy: {plan.strategy_name}")
     print(f"  Layers: {len(plan.layer_configs)}")
     print(f"  Output rank: {plan.output_rank}")
@@ -2403,6 +2452,7 @@ def cmd_merge_plan(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 # merge
 # ---------------------------------------------------------------------------
+
 
 def cmd_merge(args: argparse.Namespace) -> None:
     """Execute a merge plan to produce a PEFT-compatible adapter."""
@@ -2459,15 +2509,16 @@ def cmd_merge(args: argparse.Namespace) -> None:
         print(f"Error: Merge failed: {e}")
         if verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
-    print(f"\nMerge complete:")
+    print("\nMerge complete:")
     print(f"  Output: {result.output_dir}")
     print(f"  Mean reconstruction error: {result.mean_reconstruction_error:.4f}")
     print(f"  Max reconstruction error: {result.max_reconstruction_error:.4f}")
     print(f"  Time: {result.total_time_seconds:.1f}s")
-    print(f"\nOutput files:")
+    print("\nOutput files:")
     print(f"  {result.output_dir / 'adapter_config.json'}")
     print(f"  {result.output_dir / 'adapter_model.safetensors'}")
     print(f"  {result.output_dir / 'merge_result.json'}")
@@ -2477,41 +2528,42 @@ def cmd_merge(args: argparse.Namespace) -> None:
 # explain
 # ---------------------------------------------------------------------------
 
+
 def cmd_explain(args: argparse.Namespace) -> None:
     """Explain disagreement analysis for a specific layer from audit JSON."""
     import json as jsonlib
-    
+
     audit_json_path = getattr(args, "audit_json", None)
     layer_name = getattr(args, "layer", None)
     verbose = getattr(args, "verbose", False)
-    
+
     if not audit_json_path:
         print("Error: --audit-json is required")
         sys.exit(1)
-    
+
     if not layer_name:
         print("Error: --layer is required")
         sys.exit(1)
-    
+
     # Load audit JSON
     try:
-        with open(audit_json_path, 'r') as f:
+        with open(audit_json_path) as f:
             audit_data = jsonlib.load(f)
     except (OSError, ValueError, json.JSONDecodeError) as e:
         print(f"Error loading audit JSON: {e}")
         sys.exit(1)
-    
+
     # Extract policy disagreement analysis
     disagreement_analysis = audit_data.get("policy_disagreement_analysis")
     if not disagreement_analysis:
         print("Error: No 'policy_disagreement_analysis' found in audit JSON")
         print("Make sure the audit was run with policy disagreement analysis enabled")
         sys.exit(1)
-    
+
     # Look for the layer in both flagged and all layers
     layer_data = None
     is_flagged = False
-    
+
     # Check flagged layers first
     flagged_layers = disagreement_analysis.get("flagged_layers", [])
     for layer in flagged_layers:
@@ -2519,7 +2571,7 @@ def cmd_explain(args: argparse.Namespace) -> None:
             layer_data = layer
             is_flagged = True
             break
-    
+
     # If not found, check all layers with disagreement
     if not layer_data:
         all_layers = disagreement_analysis.get("all_layers_with_disagreement", [])
@@ -2528,55 +2580,59 @@ def cmd_explain(args: argparse.Namespace) -> None:
                 layer_data = layer
                 is_flagged = False
                 break
-    
+
     if not layer_data:
         print(f"Error: Layer '{layer_name}' not found in disagreement analysis")
         print("\nAvailable layers:")
-        
+
         all_layers = disagreement_analysis.get("all_layers_with_disagreement", [])
         if all_layers:
             for layer in all_layers:
-                status = "🔥 FLAGGED" if layer.get("layer_name") in [l.get("layer_name") for l in flagged_layers] else "○ not flagged"
+                status = (
+                    "🔥 FLAGGED"
+                    if layer.get("layer_name") in [l.get("layer_name") for l in flagged_layers]
+                    else "○ not flagged"
+                )
                 print(f"  {layer.get('layer_name')} {status}")
         else:
             print("  (No layers with disagreement found)")
         sys.exit(1)
-    
+
     # Extract rationale
     rationale = layer_data.get("flagging_rationale", {})
     if not rationale:
         print(f"Error: No flagging rationale found for layer '{layer_name}'")
         sys.exit(1)
-    
+
     # Display explanation
     _display_layer_explanation(layer_name, rationale, is_flagged, disagreement_analysis, verbose)
 
 
 def _display_layer_explanation(layer_name: str, rationale: dict, is_flagged: bool, analysis: dict, verbose: bool):
     """Display detailed explanation for a specific layer."""
-    
+
     print(f"🔍 LAYER ANALYSIS: {layer_name}")
     print("=" * 80)
-    
+
     # Flagging status
     status_emoji = "🔥" if is_flagged else "○"
     status_text = "HIGH-IMPACT (flagged)" if is_flagged else "not flagged"
     print(f"Status: {status_emoji} {status_text}")
-    
+
     if is_flagged:
         focus_set = analysis.get("disagreement_focus_set", {})
         high_impact_layers = focus_set.get("high_impact_layers", [])
         if layer_name in high_impact_layers:
             priority_rank = high_impact_layers.index(layer_name) + 1
             print(f"Focus Priority: #{priority_rank} of {len(high_impact_layers)} high-impact layers")
-    
+
     print()
-    
+
     # Policy disagreement summary
     k_values = rationale.get("k_values", [])
     policies = rationale.get("policies", [])
     spread = rationale.get("spread", 0)
-    
+
     if k_values and policies:
         print("📊 POLICY DISAGREEMENT:")
         print(f"  Spread: {spread} (max - min rank suggestions)")
@@ -2584,100 +2640,102 @@ def _display_layer_explanation(layer_name: str, rationale: dict, is_flagged: boo
         for policy, k in zip(policies, k_values):
             print(f"    • {policy}: rank {k}")
         print(f"  Range: {min(k_values)} - {max(k_values)}")
-    
+
     print()
-    
+
     # Threshold analysis
     print("🎯 THRESHOLD ANALYSIS:")
     _display_threshold_checks(rationale, verbose)
-    
+
     print()
-    
+
     # Importance metrics
     print("⚡ IMPORTANCE METRICS:")
     _display_importance_metrics(rationale, analysis, verbose)
-    
+
     # Priority score
     priority_score = rationale.get("priority_score")
     if priority_score is not None:
         print(f"\n🎯 PRIORITY SCORE: {priority_score:.2f}")
         print("  (Higher = more urgent for Bench validation)")
         print(f"  Formula: spread_norm × uniform_mult = {priority_score:.2f}")
-    
+
     # Recommendations
-    print(f"\n💡 RECOMMENDATIONS:")
+    print("\n💡 RECOMMENDATIONS:")
     _display_recommendations(layer_name, rationale, is_flagged, analysis)
 
 
 def _display_threshold_checks(rationale: dict, verbose: bool):
     """Display threshold check results."""
-    
+
     checks = [
         {
             "name": "Spread Threshold",
             "value": rationale.get("spread"),
             "threshold": rationale.get("spread_threshold"),
             "meets": rationale.get("meets_spread_threshold"),
-            "description": "Policy disagreement magnitude"
+            "description": "Policy disagreement magnitude",
         },
         {
-            "name": "Uniform Mult Threshold", 
+            "name": "Uniform Mult Threshold",
             "value": rationale.get("uniform_mult"),
             "threshold": rationale.get("uniform_mult_threshold"),
             "meets": rationale.get("meets_uniform_mult_threshold"),
-            "description": "Energy significance vs uniform distribution"
-        }
+            "description": "Energy significance vs uniform distribution",
+        },
     ]
-    
+
     if rationale.get("meets_quantile_threshold") is not None:
-        checks.append({
-            "name": "Quantile Threshold",
-            "value": rationale.get("importance_share"),
-            "threshold": rationale.get("energy_quantile_threshold"),
-            "meets": rationale.get("meets_quantile_threshold"),
-            "description": "Energy share percentile ranking"
-        })
-    
+        checks.append(
+            {
+                "name": "Quantile Threshold",
+                "value": rationale.get("importance_share"),
+                "threshold": rationale.get("energy_quantile_threshold"),
+                "meets": rationale.get("meets_quantile_threshold"),
+                "description": "Energy share percentile ranking",
+            }
+        )
+
     for check in checks:
         if check["value"] is None or check["threshold"] is None:
             continue
-            
+
         status = "✅ PASS" if check["meets"] else "❌ FAIL"
         value = check["value"]
         threshold = check["threshold"]
-        
+
         if isinstance(value, float):
             value_str = f"{value:.3f}"
         else:
             value_str = str(value)
-            
+
         if isinstance(threshold, float):
             threshold_str = f"{threshold:.3f}"
         else:
             threshold_str = str(threshold)
-        
+
         print(f"  {check['name']}: {status}")
         print(f"    Value: {value_str}, Threshold: ≥{threshold_str}")
-        
+
         if verbose:
             print(f"    Description: {check['description']}")
-    
+
     # Additional context for flat distributions
     is_flat = rationale.get("is_flat_distribution", False)
     if is_flat:
-        print(f"  📊 Distribution: FLAT (no clear importance hierarchy)")
-        print(f"    → Quantile thresholds not applicable")
+        print("  📊 Distribution: FLAT (no clear importance hierarchy)")
+        print("    → Quantile thresholds not applicable")
 
 
 def _display_importance_metrics(rationale: dict, analysis: dict, verbose: bool):
     """Display importance and energy metrics."""
-    
+
     importance_share = rationale.get("importance_share")
     uniform_mult = rationale.get("uniform_mult")
-    
+
     if importance_share is not None:
         print(f"  Energy Share: {importance_share:.1%} of total adapter energy")
-        
+
     if uniform_mult is not None:
         uniform_share = analysis.get("distribution", {}).get("uniform_share")
         if uniform_share:
@@ -2686,13 +2744,13 @@ def _display_importance_metrics(rationale: dict, analysis: dict, verbose: bool):
             print(f"  Uniform Multiplier: {uniform_mult:.2f}×")
             print(f"    Expected share: {expected_share:.1f}% (uniform)")
             print(f"    Actual share: {actual_share:.1f}%")
-    
+
     if verbose:
         distribution = analysis.get("distribution", {})
         total_energy = distribution.get("total_energy")
         max_uniform_mult = distribution.get("max_uniform_mult")
         is_flat = distribution.get("is_flat")
-        
+
         print(f"  Total Adapter Energy: {total_energy:.1f}")
         print(f"  Max Uniform Mult: {max_uniform_mult:.2f}×")
         print(f"  Distribution Type: {'FLAT' if is_flat else 'HIERARCHICAL'}")
@@ -2700,11 +2758,11 @@ def _display_importance_metrics(rationale: dict, analysis: dict, verbose: bool):
 
 def _display_recommendations(layer_name: str, rationale: dict, is_flagged: bool, analysis: dict):
     """Display specific recommendations for this layer."""
-    
+
     if is_flagged:
-        print(f"  🔥 HIGH PRIORITY: Include in focused Bench validation")
-        print(f"     This layer shows both high disagreement AND high importance")
-        
+        print("  🔥 HIGH PRIORITY: Include in focused Bench validation")
+        print("     This layer shows both high disagreement AND high importance")
+
         # Get suggested rank
         k_values = rationale.get("k_values", [])
         if k_values:
@@ -2713,19 +2771,19 @@ def _display_recommendations(layer_name: str, rationale: dict, is_flagged: bool,
     else:
         failed_reasons = rationale.get("failed_reasons", [])
         if failed_reasons:
-            print(f"  ○ NOT FLAGGED: Layer did not meet high-impact criteria")
+            print("  ○ NOT FLAGGED: Layer did not meet high-impact criteria")
             print(f"     Failure reasons: {', '.join(failed_reasons)}")
         else:
             # Full rationale available
-            print(f"  ○ NOT FLAGGED: Layer did not pass all thresholds")
-            
-        print(f"     Consider uniform rank suggestion instead of per-layer optimization")
-    
+            print("  ○ NOT FLAGGED: Layer did not pass all thresholds")
+
+        print("     Consider uniform rank suggestion instead of per-layer optimization")
+
     # Focus set context
     focus_set = analysis.get("disagreement_focus_set", {})
     strategy = focus_set.get("focus_strategy")
     message = focus_set.get("message")
-    
+
     if strategy and message:
         print(f"  📋 Focus Strategy: {strategy}")
         print(f"     {message}")
@@ -2775,7 +2833,9 @@ def _setup_check_command(subparsers):
     )
 
     # `--task` is a convenience alias for `--dataset` (matches internal naming)
-    check_parser.add_argument("--task", type=str, default=None, help="Convenience alias for --dataset (e.g., gsm8k, sst2)")
+    check_parser.add_argument(
+        "--task", type=str, default=None, help="Convenience alias for --dataset (e.g., gsm8k, sst2)"
+    )
 
     # Optional overrides
     check_parser.add_argument("--model", type=str, default=None, help="Override model name")
@@ -2883,7 +2943,7 @@ def _setup_audit_command(subparsers):
         type=str,
         default="energy@0.90,knee,erank",
         help="Rank selection policies to apply. Can be comma-separated (e.g., energy@0.90,knee,erank) or space-separated. "
-             "Available: energy@0.90, energy@0.95, knee, erank, oht. Default: %(default)s",
+        "Available: energy@0.90, energy@0.95, knee, erank, oht. Default: %(default)s",
     )
     # Importance threshold configuration
     audit_parser.add_argument(
@@ -2891,32 +2951,32 @@ def _setup_audit_command(subparsers):
         type=float,
         default=0.75,
         help="Quantile threshold for energy share filtering (default: 0.75 = top quartile). "
-             "Layers must capture above this quantile of adapter's energy to be flagged as important.",
+        "Layers must capture above this quantile of adapter's energy to be flagged as important.",
     )
     audit_parser.add_argument(
         "--importance-uniform-mult-gate",
         type=float,
         default=1.5,
         help="Uniform multiplier gate threshold (default: 1.5). "
-             "Layers must have uniform_mult >= this value to be flagged as high-impact. "
-             "Prevents false positives when importance distributions are flat.",
+        "Layers must have uniform_mult >= this value to be flagged as high-impact. "
+        "Prevents false positives when importance distributions are flat.",
     )
     audit_parser.add_argument(
         "--importance-metric",
         choices=["energy_share", "frobenius_norm", "param_weighted"],
         default="energy_share",
         help="Metric used for energy importance calculation (default: energy_share). "
-             "energy_share: Fraction of adapter's update energy (recommended). "
-             "frobenius_norm: Raw ||ΔW||_F values. "
-             "param_weighted: Weighted by parameter count and utilization.",
+        "energy_share: Fraction of adapter's update energy (recommended). "
+        "frobenius_norm: Raw ||ΔW||_F values. "
+        "param_weighted: Weighted by parameter count and utilization.",
     )
     audit_parser.add_argument(
         "--disagreement-rationale",
         choices=["full", "flagged_only"],
         default="flagged_only",
         help="Detail level for JSON rationale output (default: flagged_only). "
-             "flagged_only: Full rationale for flagged layers, condensed for non-flagged (reduces JSON size). "
-             "full: Complete rationale for all layers (verbose, good for debugging).",
+        "flagged_only: Full rationale for flagged layers, condensed for non-flagged (reduces JSON size). "
+        "full: Complete rationale for all layers (verbose, good for debugging).",
     )
     audit_parser.set_defaults(func=cmd_audit)
 
@@ -3016,11 +3076,13 @@ def _setup_audit_adapter_command(subparsers):
         action="store_true",
         help="Print QA artifact JSON to stdout instead of terminal summary",
     )
+
     # Handle --higher-is-better overriding --lower-is-better
     def _resolve_and_run(args):
         if getattr(args, "higher_is_better", False):
             args.lower_is_better = False
         cmd_audit_adapter(args)
+
     p.set_defaults(func=_resolve_and_run)
 
 
@@ -3195,79 +3257,39 @@ def _setup_merge_command(subparsers):
 
 def _setup_explain_command(subparsers):
     explain_parser = subparsers.add_parser(
-        "explain",
-        help="Explain disagreement analysis for a specific layer from audit JSON"
+        "explain", help="Explain disagreement analysis for a specific layer from audit JSON"
     )
     explain_parser.add_argument(
-        "--audit-json",
-        type=str,
-        required=True,
-        help="Path to audit JSON file containing policy_disagreement_analysis"
+        "--audit-json", type=str, required=True, help="Path to audit JSON file containing policy_disagreement_analysis"
     )
     explain_parser.add_argument(
-        "--layer",
-        type=str,
-        required=True,
-        help="Layer name to explain (e.g., 'model.layers.0.self_attn.q_proj')"
+        "--layer", type=str, required=True, help="Layer name to explain (e.g., 'model.layers.0.self_attn.q_proj')"
     )
-    explain_parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed thresholds and calculations"
-    )
+    explain_parser.add_argument("--verbose", action="store_true", help="Show detailed thresholds and calculations")
     explain_parser.set_defaults(func=cmd_explain)
 
 
 def _setup_truncate_command(subparsers):
-    truncate_parser = subparsers.add_parser(
-        "truncate",
-        help="SVD truncate a PEFT LoRA adapter to a smaller rank"
+    truncate_parser = subparsers.add_parser("truncate", help="SVD truncate a PEFT LoRA adapter to a smaller rank")
+    truncate_parser.add_argument("--peft-dir", type=str, required=True, help="Path to input PEFT adapter directory")
+    truncate_parser.add_argument(
+        "--out-dir", type=str, required=True, help="Path to output directory for truncated adapter"
     )
     truncate_parser.add_argument(
-        "--peft-dir",
-        type=str,
-        required=True,
-        help="Path to input PEFT adapter directory"
-    )
-    truncate_parser.add_argument(
-        "--out-dir",
-        type=str,
-        required=True,
-        help="Path to output directory for truncated adapter"
-    )
-    truncate_parser.add_argument(
-        "--rank",
-        type=int,
-        required=True,
-        help="Target rank for truncation (must be smaller than original)"
+        "--rank", type=int, required=True, help="Target rank for truncation (must be smaller than original)"
     )
     truncate_parser.add_argument(
         "--alpha-mode",
         choices=["keep_ratio", "keep_alpha"],
         default="keep_ratio",
-        help="How to handle lora_alpha scaling (default: keep_ratio)"
+        help="How to handle lora_alpha scaling (default: keep_ratio)",
     )
     truncate_parser.add_argument(
-        "--dtype",
-        choices=["fp16", "bf16", "fp32"],
-        default="fp16",
-        help="Data type for saved weights (default: fp16)"
+        "--dtype", choices=["fp16", "bf16", "fp32"], default="fp16", help="Data type for saved weights (default: fp16)"
     )
-    truncate_parser.add_argument(
-        "--report",
-        type=str,
-        help="Path to save detailed truncation report (JSON)"
-    )
-    truncate_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Output results as JSON"
-    )
-    truncate_parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed per-module statistics"
-    )
+    truncate_parser.add_argument("--report", type=str, help="Path to save detailed truncation report (JSON)")
+    truncate_parser.add_argument("--json", action="store_true", help="Output results as JSON")
+    truncate_parser.add_argument("--verbose", action="store_true", help="Show detailed per-module statistics")
     truncate_parser.set_defaults(func=cmd_truncate)
 
 

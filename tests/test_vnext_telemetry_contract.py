@@ -10,9 +10,7 @@ class TestVNextTelemetryContract(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.fixture_path = (
-            Path(__file__).resolve().parent / "fixtures" / "vnext_minimal.jsonl"
-        )
+        self.fixture_path = Path(__file__).resolve().parent / "fixtures" / "vnext_minimal.jsonl"
 
     def test_validate_passes_on_golden_fixture(self) -> None:
         from gradience.vnext.telemetry_reader import TelemetryReader

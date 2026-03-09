@@ -13,14 +13,13 @@ following the pattern in gradience.vnext.svd_truncate._compute_svd_truncation.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, Optional, Tuple
 
 import torch
 
 from gradience.exceptions import MergeError
 from gradience.vnext.merge.scale import symmetric_frobenius_metrics, symmetric_scale_metrics
-
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -36,24 +35,24 @@ class SubspaceMetrics:
     """
 
     # Subspace geometry
-    principal_angle_cosines: Tuple[float, ...]  # cos(theta_i), descending
-    mean_overlap: float          # mean of principal angle cosines [0, 1]
-    max_overlap: float           # maximum single-direction overlap [0, 1]
+    principal_angle_cosines: tuple[float, ...]  # cos(theta_i), descending
+    mean_overlap: float  # mean of principal angle cosines [0, 1]
+    max_overlap: float  # maximum single-direction overlap [0, 1]
 
     # Directional analysis
     directional_agreement: float  # projection cosine similarity [-1, 1]
 
     # Scale analysis (asymmetric, kept for backward compatibility)
-    magnitude_ratio: float       # sigma_1(larger) / sigma_1(smaller), >= 1
-    frobenius_ratio: float       # ||larger||_F / ||smaller||_F, >= 1
-    frobenius_norm_a: float      # ||ΔW_a||_F (scaled)
-    frobenius_norm_b: float      # ||ΔW_b||_F (scaled)
+    magnitude_ratio: float  # sigma_1(larger) / sigma_1(smaller), >= 1
+    frobenius_ratio: float  # ||larger||_F / ||smaller||_F, >= 1
+    frobenius_norm_a: float  # ||ΔW_a||_F (scaled)
+    frobenius_norm_b: float  # ||ΔW_b||_F (scaled)
 
     # Symmetric scale analysis (Section 3)
-    scale_bounded_ratio: float   # min(sigma1_A, sigma1_B) / max(sigma1_A, sigma1_B), [0,1]
-    scale_log_ratio: float       # log(sigma1_A) - log(sigma1_B)
-    frob_bounded_ratio: float    # min(||A||_F, ||B||_F) / max(||A||_F, ||B||_F), [0,1]
-    frob_log_ratio: float        # log(||A||_F) - log(||B||_F)
+    scale_bounded_ratio: float  # min(sigma1_A, sigma1_B) / max(sigma1_A, sigma1_B), [0,1]
+    scale_log_ratio: float  # log(sigma1_A) - log(sigma1_B)
+    frob_bounded_ratio: float  # min(||A||_F, ||B||_F) / max(||A||_F, ||B||_F), [0,1]
+    frob_log_ratio: float  # log(||A||_F) - log(||B||_F)
 
     # Rank structure
     effective_rank_a: int
@@ -63,7 +62,7 @@ class SubspaceMetrics:
     stable_rank_a: float
     stable_rank_b: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         # Convert tuple to list for JSON serialization
         d["principal_angle_cosines"] = list(d["principal_angle_cosines"])
@@ -81,7 +80,7 @@ def compute_layer_svd(
     scaling: float = 1.0,
     *,
     compute_dtype: torch.dtype = torch.float32,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """QR-based full SVD of scaled ΔW = scaling * B @ A.
 
     Returns (U, S, Vt) without materializing the full ΔW matrix.
@@ -117,8 +116,8 @@ def compute_layer_svd(
     U_small, S, Vt_small = torch.linalg.svd(M, full_matrices=False)
 
     # Step 4: Recover full singular vectors
-    U = Qb @ U_small       # (d_out, r)
-    Vt = Vt_small @ Qa.T   # (r, d_in)
+    U = Qb @ U_small  # (d_out, r)
+    Vt = Vt_small @ Qa.T  # (r, d_in)
 
     # Sort descending (should already be, but ensure)
     order = torch.argsort(S, descending=True)
@@ -139,9 +138,7 @@ def _energy_rank(s: torch.Tensor, threshold: float = 0.90, eps: float = 1e-12) -
     if total <= eps:
         return 1
     c = torch.cumsum(e, dim=0) / total
-    idx = torch.searchsorted(
-        c, torch.tensor([threshold], device=c.device, dtype=c.dtype), right=False
-    )
+    idx = torch.searchsorted(c, torch.tensor([threshold], device=c.device, dtype=c.dtype), right=False)
     k = int(idx.item()) + 1
     return min(k, int(s.numel()))
 
@@ -161,11 +158,11 @@ def _stable_rank(s: torch.Tensor, eps: float = 1e-12) -> float:
 def compute_subspace_metrics(
     A_a: torch.Tensor,
     B_a: torch.Tensor,
-    alpha_a: Optional[float],
+    alpha_a: float | None,
     r_a: int,
     A_b: torch.Tensor,
     B_b: torch.Tensor,
-    alpha_b: Optional[float],
+    alpha_b: float | None,
     r_b: int,
     *,
     energy_threshold: float = 0.90,
@@ -215,10 +212,10 @@ def compute_subspace_metrics(
     #   projection = U_a_eff^T @ (scaling_b * B_b @ A_b) @ V_a_eff
     #             = scaling_b * (U_a_eff^T @ B_b) @ (A_b @ V_a_eff)
     # Max intermediate shape: (eff_rank_a, r_b), never (d_out, d_in).
-    Vt_a_eff = Vt_a[:eff_rank_a, :]                       # (eff_rank_a, d_in)
-    Ut_B = U_a_eff.T @ B_b.to(compute_dtype)              # (eff_rank_a, r_b)
-    A_V = A_b.to(compute_dtype) @ Vt_a_eff.T              # (r_b, eff_rank_a)
-    projection = scaling_b * (Ut_B @ A_V)                  # (eff_rank_a, eff_rank_a)
+    Vt_a_eff = Vt_a[:eff_rank_a, :]  # (eff_rank_a, d_in)
+    Ut_B = U_a_eff.T @ B_b.to(compute_dtype)  # (eff_rank_a, r_b)
+    A_V = A_b.to(compute_dtype) @ Vt_a_eff.T  # (r_b, eff_rank_a)
+    projection = scaling_b * (Ut_B @ A_V)  # (eff_rank_a, eff_rank_a)
     diag_proj = torch.diag(projection)
     s_a_trunc = S_a[:eff_rank_a]
 

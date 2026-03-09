@@ -9,7 +9,7 @@ This is a minimal M2 stub -- full implementation and testing deferred to M2.
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import torch
 
@@ -20,7 +20,7 @@ def norm_equalized_merge(
     weight_A: float = 0.5,
     *,
     eps: float = 1e-12,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Merge two delta-weight matrices after equalizing their Frobenius norms.
 
     Steps:

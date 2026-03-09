@@ -119,7 +119,9 @@ def main():
             adapter_b = adapters_dir / task_b / f"seed_{seed}"
 
             _run_audit(
-                adapter_a, adapter_b, audit_dir,
+                adapter_a,
+                adapter_b,
+                audit_dir,
                 label=f"{pair_name}/seed_{seed}",
                 counter=f"{n_done}/{n_total}",
             )
@@ -135,7 +137,9 @@ def main():
                 adapter_b = adapters_dir / task / f"seed_{seed_b}"
 
                 _run_audit(
-                    adapter_a, adapter_b, audit_dir,
+                    adapter_a,
+                    adapter_b,
+                    audit_dir,
                     label=f"calibration/{cal_dir_name}",
                     counter=f"{n_done}/{n_total}",
                 )

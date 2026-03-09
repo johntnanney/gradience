@@ -15,32 +15,30 @@ Only the exports in __all__ are considered public API with stability guarantees.
 Everything else is internal and may change without notice.
 """
 
-from .types import (
-    TELEMETRY_SCHEMA_VERSION,
-    TaskFamily,
-    TaskProfile,
-    Severity,
-    LoRAConfigSnapshot,
-    OptimizerConfigSnapshot,
-    TrainingConfigSnapshot,
-    ConfigSnapshot,
-    EvalMetrics,
-    SignalSnapshot,
-    Recommendation,
-)
-
-from .telemetry import TelemetryWriter, TelemetryReader
-
-# Policies (interpretation)
-from .policy import check_config, check_run
-
 # Audits (measurement -> summarized metrics)
 from .audit import (
     LoRAAdapterConfig,
-    LoRALayerAudit,
     LoRAAuditResult,
+    LoRALayerAudit,
     audit_lora_peft_dir,
     audit_lora_state_dict,
+)
+
+# Policies (interpretation)
+from .policy import check_config, check_run
+from .telemetry import TelemetryReader, TelemetryWriter
+from .types import (
+    TELEMETRY_SCHEMA_VERSION,
+    ConfigSnapshot,
+    EvalMetrics,
+    LoRAConfigSnapshot,
+    OptimizerConfigSnapshot,
+    Recommendation,
+    Severity,
+    SignalSnapshot,
+    TaskFamily,
+    TaskProfile,
+    TrainingConfigSnapshot,
 )
 
 # Framework integrations (optional dependencies)
@@ -65,7 +63,6 @@ __all__ = [
     "TelemetryReader",
     "check_config",
     "check_run",
-
     # Audit
     "LoRAAdapterConfig",
     "LoRALayerAudit",

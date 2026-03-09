@@ -86,9 +86,11 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
     print(f"    rank={a['rank']}, alpha={a['alpha']}, base={a['base_model']}, layers={a['n_layers']}")
     print(f"  Adapter B: {b['path']}")
     print(f"    rank={b['rank']}, alpha={b['alpha']}, base={b['base_model']}, layers={b['n_layers']}")
-    print(f"  Shared: {audit['matching']['n_shared']}, "
-          f"Only-A: {audit['matching']['n_only_a']}, "
-          f"Only-B: {audit['matching']['n_only_b']}")
+    print(
+        f"  Shared: {audit['matching']['n_shared']}, "
+        f"Only-A: {audit['matching']['n_only_a']}, "
+        f"Only-B: {audit['matching']['n_only_b']}"
+    )
 
     print(f"\n  Overall verdict: {agg['overall_verdict'].upper()}")
     print(f"  Score:           {agg['compatibility_score']:.4f}")
@@ -98,10 +100,11 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
     print(f"  Mean agreement:  {agg['mean_agreement']:.4f}")
 
     # Per-layer table
-    print(f"\n  {'Layer':<40s} {'r_a':>4s} {'r_b':>4s} {'eff_a':>5s} {'eff_b':>5s} "
-          f"{'Overlap':>8s} {'Agree':>8s} {'MagR':>6s} {'Verdict':<12s} {'Strategy':<8s}")
-    print(f"  {'-'*40} {'-'*4} {'-'*4} {'-'*5} {'-'*5} "
-          f"{'-'*8} {'-'*8} {'-'*6} {'-'*12} {'-'*8}")
+    print(
+        f"\n  {'Layer':<40s} {'r_a':>4s} {'r_b':>4s} {'eff_a':>5s} {'eff_b':>5s} "
+        f"{'Overlap':>8s} {'Agree':>8s} {'MagR':>6s} {'Verdict':<12s} {'Strategy':<8s}"
+    )
+    print(f"  {'-' * 40} {'-' * 4} {'-' * 4} {'-' * 5} {'-' * 5} {'-' * 8} {'-' * 8} {'-' * 6} {'-' * 12} {'-' * 8}")
 
     overlaps = []
     agreements = []
@@ -118,7 +121,7 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
         for i, p in enumerate(parts):
             if p.isdigit():
                 short = ".".join(parts[i:])
-                short = f"L{parts[i]}.{'.'.join(parts[i+1:])}"
+                short = f"L{parts[i]}.{'.'.join(parts[i + 1 :])}"
                 break
         if len(short) > 40:
             short = "..." + short[-37:]
@@ -127,10 +130,12 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
         agreement = m["directional_agreement"]
         mag_ratio = m["magnitude_ratio"]
 
-        print(f"  {short:<40s} {m['nominal_rank_a']:>4d} {m['nominal_rank_b']:>4d} "
-              f"{m['effective_rank_a']:>5d} {m['effective_rank_b']:>5d} "
-              f"{overlap:>8.3f} {agreement:>+8.3f} {mag_ratio:>6.1f} "
-              f"{lv['verdict']:<12s} {lv['suggested_strategy']:<8s}")
+        print(
+            f"  {short:<40s} {m['nominal_rank_a']:>4d} {m['nominal_rank_b']:>4d} "
+            f"{m['effective_rank_a']:>5d} {m['effective_rank_b']:>5d} "
+            f"{overlap:>8.3f} {agreement:>+8.3f} {mag_ratio:>6.1f} "
+            f"{lv['verdict']:<12s} {lv['suggested_strategy']:<8s}"
+        )
 
         overlaps.append(overlap)
         agreements.append(agreement)
@@ -139,31 +144,36 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
         by_module_type[lv["module_type"]].append(m)
 
     # Statistics
-    print(f"\n  --- Statistics ---")
-    print(f"  Overlap:   mean={statistics.mean(overlaps):.4f}, "
-          f"stdev={statistics.stdev(overlaps):.4f}, "
-          f"min={min(overlaps):.4f}, max={max(overlaps):.4f}")
-    print(f"  Agreement: mean={statistics.mean(agreements):.4f}, "
-          f"stdev={statistics.stdev(agreements):.4f}, "
-          f"min={min(agreements):.4f}, max={max(agreements):.4f}")
-    print(f"  Mag ratio: mean={statistics.mean(mag_ratios):.2f}, "
-          f"min={min(mag_ratios):.2f}, max={max(mag_ratios):.2f}")
+    print("\n  --- Statistics ---")
+    print(
+        f"  Overlap:   mean={statistics.mean(overlaps):.4f}, "
+        f"stdev={statistics.stdev(overlaps):.4f}, "
+        f"min={min(overlaps):.4f}, max={max(overlaps):.4f}"
+    )
+    print(
+        f"  Agreement: mean={statistics.mean(agreements):.4f}, "
+        f"stdev={statistics.stdev(agreements):.4f}, "
+        f"min={min(agreements):.4f}, max={max(agreements):.4f}"
+    )
+    print(f"  Mag ratio: mean={statistics.mean(mag_ratios):.2f}, min={min(mag_ratios):.2f}, max={max(mag_ratios):.2f}")
 
-    print(f"\n  Verdict distribution:")
+    print("\n  Verdict distribution:")
     for v, count in sorted(verdicts_count.items()):
         print(f"    {v}: {count}")
 
     # Module type breakdown
-    print(f"\n  By module type:")
+    print("\n  By module type:")
     for mtype, metrics_list in sorted(by_module_type.items()):
         type_overlaps = [m["mean_overlap"] for m in metrics_list]
         type_agreements = [m["directional_agreement"] for m in metrics_list]
-        print(f"    {mtype} ({len(metrics_list)} layers): "
-              f"overlap={statistics.mean(type_overlaps):.3f}, "
-              f"agreement={statistics.mean(type_agreements):+.3f}")
+        print(
+            f"    {mtype} ({len(metrics_list)} layers): "
+            f"overlap={statistics.mean(type_overlaps):.3f}, "
+            f"agreement={statistics.mean(type_agreements):+.3f}"
+        )
 
     # Flag noteworthy layers
-    print(f"\n  Noteworthy layers:")
+    print("\n  Noteworthy layers:")
     found_any = False
     for lv in layers:
         m = lv["metrics"]
@@ -171,14 +181,16 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
             print(f"    HIGH OVERLAP:  {lv['layer_name']} (overlap={m['mean_overlap']:.3f})")
             found_any = True
         if m["directional_agreement"] < -0.3 and m["mean_overlap"] > 0.3:
-            print(f"    CONFLICT:      {lv['layer_name']} "
-                  f"(agree={m['directional_agreement']:.3f}, overlap={m['mean_overlap']:.3f})")
+            print(
+                f"    CONFLICT:      {lv['layer_name']} "
+                f"(agree={m['directional_agreement']:.3f}, overlap={m['mean_overlap']:.3f})"
+            )
             found_any = True
         if m["magnitude_ratio"] > 5.0:
             print(f"    IMBALANCED:    {lv['layer_name']} (mag_ratio={m['magnitude_ratio']:.1f}x)")
             found_any = True
     if not found_any:
-        print(f"    (none)")
+        print("    (none)")
 
     return {
         "pair": pair_dir,
@@ -197,23 +209,24 @@ def analyze_pair(pair_dir: str, audit: dict) -> dict:
 def cross_pair_comparison(summaries: list):
     """Compare metrics across all tested pairs."""
     print(f"\n\n{'=' * 70}")
-    print(f"  CROSS-PAIR COMPARISON")
+    print("  CROSS-PAIR COMPARISON")
     print(f"{'=' * 70}")
 
-    print(f"\n  {'Pair':<35s} {'Layers':>6s} {'Overlap':>10s} {'Agree':>10s} "
-          f"{'MagR':>6s} {'Verdict':>12s}")
-    print(f"  {'-'*35} {'-'*6} {'-'*10} {'-'*10} {'-'*6} {'-'*12}")
+    print(f"\n  {'Pair':<35s} {'Layers':>6s} {'Overlap':>10s} {'Agree':>10s} {'MagR':>6s} {'Verdict':>12s}")
+    print(f"  {'-' * 35} {'-' * 6} {'-' * 10} {'-' * 10} {'-' * 6} {'-' * 12}")
 
     for s in summaries:
-        print(f"  {s['pair']:<35s} {s['n_layers']:>6d} "
-              f"{s['mean_overlap']:>5.3f}+{s['stdev_overlap']:.3f} "
-              f"{s['mean_agreement']:>+5.3f}+{s['stdev_agreement']:.3f} "
-              f"{s['mean_mag_ratio']:>6.1f} "
-              f"{s['verdict']:>12s}")
+        print(
+            f"  {s['pair']:<35s} {s['n_layers']:>6d} "
+            f"{s['mean_overlap']:>5.3f}+{s['stdev_overlap']:.3f} "
+            f"{s['mean_agreement']:>+5.3f}+{s['stdev_agreement']:.3f} "
+            f"{s['mean_mag_ratio']:>6.1f} "
+            f"{s['verdict']:>12s}"
+        )
 
     # Sort by overlap to validate hypotheses
     sorted_by_overlap = sorted(summaries, key=lambda s: s["mean_overlap"])
-    print(f"\n  Pairs ranked by overlap (low -> high):")
+    print("\n  Pairs ranked by overlap (low -> high):")
     for i, s in enumerate(sorted_by_overlap, 1):
         print(f"    {i}. {s['pair']}: mean_overlap={s['mean_overlap']:.4f}")
 
@@ -221,7 +234,7 @@ def cross_pair_comparison(summaries: list):
 def sanity_checks(summaries: list):
     """Validate metrics are in expected ranges."""
     print(f"\n\n{'=' * 70}")
-    print(f"  SANITY CHECKS")
+    print("  SANITY CHECKS")
     print(f"{'=' * 70}")
 
     checks_passed = 0
@@ -260,8 +273,9 @@ def sanity_checks(summaries: list):
             print(f"  [PASS] {pair}: overlap varies across layers (stdev={s['stdev_overlap']:.4f})")
             checks_passed += 1
         else:
-            print(f"  [WARN] {pair}: all layers nearly identical overlap "
-                  f"(stdev={s['stdev_overlap']:.6f}) — possible bug")
+            print(
+                f"  [WARN] {pair}: all layers nearly identical overlap (stdev={s['stdev_overlap']:.6f}) — possible bug"
+            )
 
         # Check 5: At least 2 different verdict types across all layers
         checks_total += 1
@@ -287,12 +301,13 @@ def sanity_checks(summaries: list):
         overlaps = [s["mean_overlap"] for s in summaries]
         overlap_range = max(overlaps) - min(overlaps)
         if overlap_range > 0.02:
-            print(f"\n  [PASS] Cross-pair: overlap varies meaningfully across pairs "
-                  f"(range={overlap_range:.4f})")
+            print(f"\n  [PASS] Cross-pair: overlap varies meaningfully across pairs (range={overlap_range:.4f})")
             checks_passed += 1
         else:
-            print(f"\n  [WARN] Cross-pair: all pairs have nearly the same overlap "
-                  f"(range={overlap_range:.4f}) — metrics may not be discriminative")
+            print(
+                f"\n  [WARN] Cross-pair: all pairs have nearly the same overlap "
+                f"(range={overlap_range:.4f}) — metrics may not be discriminative"
+            )
 
     print(f"\n  {checks_passed}/{checks_total} checks passed")
 
@@ -310,10 +325,7 @@ if __name__ == "__main__":
         print("Run run_merge_audits.py first.")
         sys.exit(1)
 
-    pair_dirs = sorted([
-        d.name for d in RESULTS_DIR.iterdir()
-        if d.is_dir() and (d / "merge_audit.json").exists()
-    ])
+    pair_dirs = sorted([d.name for d in RESULTS_DIR.iterdir() if d.is_dir() and (d / "merge_audit.json").exists()])
 
     if not pair_dirs:
         print("No merge_audit.json files found in any subdirectory.")
@@ -340,10 +352,14 @@ if __name__ == "__main__":
     # Write analysis summary
     analysis_path = RESULTS_DIR / "analysis_summary.json"
     with open(analysis_path, "w") as f:
-        json.dump({
-            "pair_summaries": summaries,
-            "sanity_checks": {"passed": passed, "total": total},
-        }, f, indent=2)
+        json.dump(
+            {
+                "pair_summaries": summaries,
+                "sanity_checks": {"passed": passed, "total": total},
+            },
+            f,
+            indent=2,
+        )
     print(f"\n  Analysis saved to {analysis_path}")
 
-    print(f"\nNext: python scripts/merge_audit_test/gpu_verification.py")
+    print("\nNext: python scripts/merge_audit_test/gpu_verification.py")

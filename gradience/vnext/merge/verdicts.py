@@ -18,12 +18,11 @@ VerdictThresholds instance.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from gradience.vnext.merge.spectral_compat import SubspaceMetrics
-
 
 # ---------------------------------------------------------------------------
 # Enums and thresholds
@@ -82,7 +81,7 @@ class VerdictThresholds:
             imbalanced_frob=10.0,
         )
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
         return asdict(self)
 
 
@@ -99,15 +98,15 @@ class LayerVerdict:
     module_type: str
     metrics: SubspaceMetrics
     verdict: CompatibilityVerdict
-    confidence: float               # [0, 1] — how clearly metrics match verdict
-    recommendation: str             # human-readable
-    conflict_dimensions: int        # number of conflicting singular directions
-    safe_merge_rank: int            # suggested merged adapter rank
-    suggested_strategy: str         # "linear" | "ties" | "dare" | "exclude"
-    suggested_coefficients: Optional[Tuple[float, float]]  # (coeff_a, coeff_b)
+    confidence: float  # [0, 1] — how clearly metrics match verdict
+    recommendation: str  # human-readable
+    conflict_dimensions: int  # number of conflicting singular directions
+    safe_merge_rank: int  # suggested merged adapter rank
+    suggested_strategy: str  # "linear" | "ties" | "dare" | "exclude"
+    suggested_coefficients: tuple[float, float] | None  # (coeff_a, coeff_b)
 
-    def to_dict(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        d: dict[str, Any] = {
             "layer_name": self.layer_name,
             "module_type": self.module_type,
             "metrics": self.metrics.to_dict(),
@@ -117,11 +116,7 @@ class LayerVerdict:
             "conflict_dimensions": self.conflict_dimensions,
             "safe_merge_rank": self.safe_merge_rank,
             "suggested_strategy": self.suggested_strategy,
-            "suggested_coefficients": (
-                list(self.suggested_coefficients)
-                if self.suggested_coefficients
-                else None
-            ),
+            "suggested_coefficients": (list(self.suggested_coefficients) if self.suggested_coefficients else None),
         }
         return d
 
@@ -142,7 +137,7 @@ def assess_layer(
     layer_name: str,
     module_type: str,
     metrics: SubspaceMetrics,
-    thresholds: Optional[VerdictThresholds] = None,
+    thresholds: VerdictThresholds | None = None,
 ) -> LayerVerdict:
     """Six-branch decision tree for layer-level verdict.
 
@@ -157,10 +152,7 @@ def assess_layer(
         thresholds = VerdictThresholds()
 
     # --- Branch 0 (NEW): Frobenius imbalanced + low-to-moderate overlap ---
-    if (
-        metrics.frobenius_ratio > thresholds.imbalanced_frob
-        and metrics.mean_overlap < thresholds.high_overlap
-    ):
+    if metrics.frobenius_ratio > thresholds.imbalanced_frob and metrics.mean_overlap < thresholds.high_overlap:
         ratio = metrics.frobenius_ratio
         coeff_strong = 1.0 / (1.0 + ratio)
         coeff_weak = ratio / (1.0 + ratio)
@@ -175,9 +167,7 @@ def assess_layer(
             module_type=module_type,
             metrics=metrics,
             verdict=CompatibilityVerdict.IMBALANCED,
-            confidence=_overlap_confidence(
-                metrics.frobenius_ratio, thresholds.imbalanced_frob
-            ),
+            confidence=_overlap_confidence(metrics.frobenius_ratio, thresholds.imbalanced_frob),
             recommendation=(
                 f"Frobenius imbalance ({ratio:.1f}x, "
                 f"norms: {metrics.frobenius_norm_a:.1f} vs "
@@ -199,9 +189,7 @@ def assess_layer(
             module_type=module_type,
             metrics=metrics,
             verdict=CompatibilityVerdict.SAFE,
-            confidence=_overlap_confidence(
-                metrics.mean_overlap, thresholds.low_overlap
-            ),
+            confidence=_overlap_confidence(metrics.mean_overlap, thresholds.low_overlap),
             recommendation=(
                 f"Orthogonal subspaces (overlap={metrics.mean_overlap:.3f}). "
                 f"Safe to merge with any method. Combined effective rank: "
@@ -214,10 +202,7 @@ def assess_layer(
         )
 
     # --- Branch 2: Redundant (high overlap, aligned) ---
-    if (
-        metrics.mean_overlap > thresholds.high_overlap
-        and metrics.directional_agreement > thresholds.aligned
-    ):
+    if metrics.mean_overlap > thresholds.high_overlap and metrics.directional_agreement > thresholds.aligned:
         return LayerVerdict(
             layer_name=layer_name,
             module_type=module_type,
@@ -241,15 +226,8 @@ def assess_layer(
         )
 
     # --- Branch 3: Conflicting (high overlap, opposing) ---
-    if (
-        metrics.mean_overlap > thresholds.high_overlap
-        and metrics.directional_agreement < thresholds.conflicting
-    ):
-        n_conflict = sum(
-            1
-            for cos_a in metrics.principal_angle_cosines
-            if cos_a > thresholds.high_overlap
-        )
+    if metrics.mean_overlap > thresholds.high_overlap and metrics.directional_agreement < thresholds.conflicting:
+        n_conflict = sum(1 for cos_a in metrics.principal_angle_cosines if cos_a > thresholds.high_overlap)
 
         return LayerVerdict(
             layer_name=layer_name,
@@ -291,9 +269,7 @@ def assess_layer(
             module_type=module_type,
             metrics=metrics,
             verdict=CompatibilityVerdict.IMBALANCED,
-            confidence=_overlap_confidence(
-                metrics.frobenius_ratio, thresholds.imbalanced_frob
-            ),
+            confidence=_overlap_confidence(metrics.frobenius_ratio, thresholds.imbalanced_frob),
             recommendation=(
                 f"Frobenius imbalance ({ratio:.1f}x, "
                 f"norms: {metrics.frobenius_norm_a:.1f} vs "
@@ -333,8 +309,8 @@ def assess_layer(
 
 
 def assess_overall(
-    layer_verdicts: List[LayerVerdict],
-) -> Tuple[CompatibilityVerdict, float, List[str]]:
+    layer_verdicts: list[LayerVerdict],
+) -> tuple[CompatibilityVerdict, float, list[str]]:
     """Compute aggregate compatibility verdict, score, and recommendations.
 
     Parameters
@@ -377,7 +353,7 @@ def assess_overall(
     score = weighted_overlap / total_energy if total_energy > 0 else 0.0
 
     # Build recommendations
-    recommendations: List[str] = []
+    recommendations: list[str] = []
 
     conflicting = [lv for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING]
     redundant = [lv for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT]
@@ -392,8 +368,7 @@ def assess_overall(
 
     if redundant:
         recommendations.append(
-            f"{len(redundant)} layer(s) show high redundancy. "
-            f"TIES merge recommended to deduplicate shared features."
+            f"{len(redundant)} layer(s) show high redundancy. TIES merge recommended to deduplicate shared features."
         )
 
     if imbalanced:
@@ -404,8 +379,7 @@ def assess_overall(
 
     if not conflicting and not redundant and not imbalanced:
         recommendations.append(
-            "Adapters are spectrally compatible. "
-            "Linear merge (equal coefficients) should preserve both signals."
+            "Adapters are spectrally compatible. Linear merge (equal coefficients) should preserve both signals."
         )
 
     return overall, score, recommendations

@@ -25,7 +25,7 @@ import json
 import logging
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -39,9 +39,11 @@ logger = logging.getLogger("study16")
 # Pair definitions
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class AdapterPairDef:
     """Definition of an adapter pair for the ablation."""
+
     pair_id: str
     repo_a: str
     repo_b: str
@@ -52,7 +54,7 @@ class AdapterPairDef:
     expected_verdict: str  # Hypothesis about dominant verdict
 
 
-PAIRS: List[AdapterPairDef] = [
+PAIRS: list[AdapterPairDef] = [
     AdapterPairDef(
         pair_id="pair_01_metamath_x_openwebmath16",
         repo_a="LoRA-TMLR-2024/metamath-lora-rank-16-alpha-32",
@@ -120,6 +122,7 @@ PAIRS: List[AdapterPairDef] = [
 # Download
 # ---------------------------------------------------------------------------
 
+
 def download_adapter(repo_id: str, cache_dir: Path) -> Path:
     """Download a PEFT adapter from HuggingFace Hub. Returns local path."""
     from huggingface_hub import snapshot_download
@@ -143,8 +146,12 @@ def download_adapter(repo_id: str, cache_dir: Path) -> Path:
             "pytorch_model.bin",
         ],
         ignore_patterns=[
-            "*.md", "*.txt", ".gitattributes",
-            "tokenizer*", "special_tokens*", "training_args*",
+            "*.md",
+            "*.txt",
+            ".gitattributes",
+            "tokenizer*",
+            "special_tokens*",
+            "training_args*",
         ],
     )
     return local_dir
@@ -154,7 +161,8 @@ def download_adapter(repo_id: str, cache_dir: Path) -> Path:
 # Spectral evaluation of a merged adapter
 # ---------------------------------------------------------------------------
 
-def audit_merged_adapter(merged_dir: Path) -> Dict[str, Any]:
+
+def audit_merged_adapter(merged_dir: Path) -> dict[str, Any]:
     """Run spectral audit on a merged adapter and return summary metrics."""
     from gradience.vnext.audit.lora_audit import audit_lora_peft_dir
 
@@ -200,11 +208,12 @@ def audit_merged_adapter(merged_dir: Path) -> Dict[str, Any]:
 # Spectral-only merge outcome metrics
 # ---------------------------------------------------------------------------
 
+
 def compute_spectral_outcomes(
     adapter_a_dir: Path,
     adapter_b_dir: Path,
     merged_dir: Path,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute spectral retention and dominance metrics.
 
     Uses Frobenius norms as proxy scores: the 'score' of each adapter
@@ -212,7 +221,7 @@ def compute_spectral_outcomes(
     the merged adapter relative to each source is how much of each
     source's spectral energy is preserved.
     """
-    from gradience.vnext.merge.io import load_adapter, match_layers, extract_factors
+    from gradience.vnext.merge.io import extract_factors, load_adapter, match_layers
 
     info_a = load_adapter(adapter_a_dir)
     info_b = load_adapter(adapter_b_dir)
@@ -249,9 +258,9 @@ def compute_spectral_outcomes(
         except (KeyError, RuntimeError):
             continue
 
-    frob_a = frob_a_total ** 0.5
-    frob_b = frob_b_total ** 0.5
-    frob_m = frob_m_total ** 0.5
+    frob_a = frob_a_total**0.5
+    frob_b = frob_b_total**0.5
+    frob_m = frob_m_total**0.5
 
     # Compute per-layer cosine similarity between merged and each source
     # to measure directional retention
@@ -322,9 +331,11 @@ def compute_spectral_outcomes(
 # Single pair pipeline
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PairResult:
     """Result for one adapter pair across all merge conditions."""
+
     pair_id: str
     label_a: str
     label_b: str
@@ -333,10 +344,10 @@ class PairResult:
     expected_verdict: str
     actual_overall_verdict: str = ""
     actual_compatibility_score: float = 0.0
-    audit_verdict_counts: Dict[str, int] = field(default_factory=dict)
-    recommendation_summary: Dict[str, Any] = field(default_factory=dict)
-    conditions: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    error: Optional[str] = None
+    audit_verdict_counts: dict[str, int] = field(default_factory=dict)
+    recommendation_summary: dict[str, Any] = field(default_factory=dict)
+    conditions: dict[str, dict[str, Any]] = field(default_factory=dict)
+    error: str | None = None
 
 
 def run_pair(
@@ -347,9 +358,9 @@ def run_pair(
 ) -> PairResult:
     """Run the full ablation pipeline for one adapter pair."""
     from gradience.vnext.merge import (
+        execute_merge,
         merge_audit,
         plan_from_audit,
-        execute_merge,
         recommend_merge,
     )
 
@@ -367,10 +378,10 @@ def run_pair(
 
     # --- Step 1: Download adapters ---
     if verbose:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  Pair: {pair_def.label_a}  x  {pair_def.label_b}")
         print(f"  Expected: {pair_def.expected_verdict}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
     try:
         dir_a = download_adapter(pair_def.repo_a, cache_dir)
@@ -387,7 +398,8 @@ def run_pair(
     try:
         audit_dir = pair_dir / "audit"
         report = merge_audit(
-            str(dir_a), str(dir_b),
+            str(dir_a),
+            str(dir_b),
             output_dir=str(audit_dir),
             verbose=verbose,
         )
@@ -400,7 +412,7 @@ def run_pair(
     result.actual_compatibility_score = report.aggregate.get("compatibility_score", 0.0)
 
     # Count per-layer verdicts
-    verdict_counts: Dict[str, int] = {}
+    verdict_counts: dict[str, int] = {}
     for lv in report.layer_verdicts:
         v = lv.get("verdict", "unknown")
         verdict_counts[v] = verdict_counts.get(v, 0) + 1
@@ -447,14 +459,17 @@ def run_pair(
             t0 = time.time()
 
             plan = plan_from_audit(
-                strategy_name, report,
-                str(dir_a), str(dir_b),
+                strategy_name,
+                report,
+                str(dir_a),
+                str(dir_b),
                 output_rank=output_rank,
                 output_alpha=output_alpha,
             )
 
             merge_result = execute_merge(
-                plan, str(cond_dir),
+                plan,
+                str(cond_dir),
                 verbose=verbose,
             )
 
@@ -470,12 +485,12 @@ def run_pair(
 
             # --- Step 4: Evaluate merged adapter ---
             if verbose:
-                print(f"  Auditing merged adapter...")
+                print("  Auditing merged adapter...")
 
             merged_audit = audit_merged_adapter(cond_dir)
 
             if verbose:
-                print(f"  Computing spectral outcomes...")
+                print("  Computing spectral outcomes...")
 
             spectral_outcomes = compute_spectral_outcomes(dir_a, dir_b, cond_dir)
 
@@ -490,7 +505,9 @@ def run_pair(
                 "merged_audit": merged_audit,
                 "spectral_outcomes": spectral_outcomes,
                 "recon_error_p50": round(sorted(recon_errors)[len(recon_errors) // 2], 6) if recon_errors else 0.0,
-                "recon_error_p90": round(sorted(recon_errors)[int(len(recon_errors) * 0.9)], 6) if recon_errors else 0.0,
+                "recon_error_p90": round(sorted(recon_errors)[int(len(recon_errors) * 0.9)], 6)
+                if recon_errors
+                else 0.0,
             }
 
             if verbose:
@@ -518,28 +535,33 @@ def run_pair(
 # Summary and comparison
 # ---------------------------------------------------------------------------
 
-def compute_comparison_table(results: List[PairResult]) -> List[Dict[str, Any]]:
+
+def compute_comparison_table(results: list[PairResult]) -> list[dict[str, Any]]:
     """Build a comparison table: naive vs. recommended for each pair."""
     rows = []
 
     for r in results:
         if r.error:
-            rows.append({
-                "pair_id": r.pair_id,
-                "label": f"{r.label_a} x {r.label_b}",
-                "error": r.error,
-            })
+            rows.append(
+                {
+                    "pair_id": r.pair_id,
+                    "label": f"{r.label_a} x {r.label_b}",
+                    "error": r.error,
+                }
+            )
             continue
 
         naive = r.conditions.get("naive", {})
         rec = r.conditions.get("recommended", {})
 
         if "error" in naive or "error" in rec:
-            rows.append({
-                "pair_id": r.pair_id,
-                "label": f"{r.label_a} x {r.label_b}",
-                "error": naive.get("error") or rec.get("error"),
-            })
+            rows.append(
+                {
+                    "pair_id": r.pair_id,
+                    "label": f"{r.label_a} x {r.label_b}",
+                    "error": naive.get("error") or rec.get("error"),
+                }
+            )
             continue
 
         naive_so = naive.get("spectral_outcomes", {})
@@ -568,12 +590,8 @@ def compute_comparison_table(results: List[PairResult]) -> List[Dict[str, Any]]:
             "rec_utilisation": rec_audit.get("mean_utilisation", 0.0),
             "rec_recon_error": rec.get("mean_reconstruction_error", 0.0),
             # Deltas (positive = recommended is better)
-            "delta_Q_min": round(
-                rec_so.get("Q_min_cosine", 0.0) - naive_so.get("Q_min_cosine", 0.0), 6
-            ),
-            "delta_D": round(
-                naive_so.get("D_cosine", 0.0) - rec_so.get("D_cosine", 0.0), 6
-            ),
+            "delta_Q_min": round(rec_so.get("Q_min_cosine", 0.0) - naive_so.get("Q_min_cosine", 0.0), 6),
+            "delta_D": round(naive_so.get("D_cosine", 0.0) - rec_so.get("D_cosine", 0.0), 6),
             "delta_utilisation": round(
                 rec_audit.get("mean_utilisation", 0.0) - naive_audit.get("mean_utilisation", 0.0), 6
             ),
@@ -583,7 +601,7 @@ def compute_comparison_table(results: List[PairResult]) -> List[Dict[str, Any]]:
     return rows
 
 
-def print_comparison_table(rows: List[Dict[str, Any]]) -> None:
+def print_comparison_table(rows: list[dict[str, Any]]) -> None:
     """Pretty-print the comparison table."""
     print("\n" + "=" * 100)
     print("  STUDY 16 — MERGE ABLATION COMPARISON TABLE")
@@ -623,20 +641,26 @@ def print_comparison_table(rows: List[Dict[str, Any]]) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Study 16: Merge Ablation")
     parser.add_argument(
-        "--output-dir", type=Path,
+        "--output-dir",
+        type=Path,
         default=Path("results/study16_merge_ablation"),
         help="Directory for all output files",
     )
     parser.add_argument(
-        "--cache-dir", type=Path,
+        "--cache-dir",
+        type=Path,
         default=Path.home() / ".cache" / "gradience" / "adapters",
         help="Cache directory for downloaded adapters",
     )
     parser.add_argument(
-        "--pairs", type=str, nargs="*", default=None,
+        "--pairs",
+        type=str,
+        nargs="*",
+        default=None,
         help="Specific pair IDs to run (default: all)",
     )
     parser.add_argument("--verbose", action="store_true")
@@ -663,10 +687,10 @@ def main() -> None:
     print(f"Cache:  {args.cache_dir}")
 
     t_start = time.time()
-    all_results: List[PairResult] = []
+    all_results: list[PairResult] = []
 
     for i, pair_def in enumerate(pairs_to_run):
-        print(f"\n[{i+1}/{len(pairs_to_run)}] Processing {pair_def.pair_id}...")
+        print(f"\n[{i + 1}/{len(pairs_to_run)}] Processing {pair_def.pair_id}...")
         pair_result = run_pair(pair_def, args.cache_dir, args.output_dir, args.verbose)
         all_results.append(pair_result)
 

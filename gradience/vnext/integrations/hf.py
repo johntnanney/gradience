@@ -19,7 +19,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from ..telemetry import TelemetryWriter
 from ..types import (
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from ..experimental.guard import LoRAGuard
 
 # Optional import so the base package doesn't require transformers unless used.
-_TRANSFORMERS_IMPORT_ERROR: Optional[ImportError] = None
+_TRANSFORMERS_IMPORT_ERROR: ImportError | None = None
 try:
     from transformers import TrainerCallback
     from transformers.trainer_callback import TrainerControl, TrainerState
@@ -55,19 +55,20 @@ class GradienceCallbackConfig:
     - Output defaults to: training_args.output_dir/run.jsonl
     - dataset_name / task_profile are optional and not required.
     """
-    output_dir: Optional[Union[str, Path]] = None
+
+    output_dir: str | Path | None = None
     filename: str = "run.jsonl"
 
     # Optional metadata (NOT required)
-    dataset_name: Optional[str] = None
-    task_profile: Optional[Union[str, TaskFamily]] = None
-    notes: Optional[str] = None
+    dataset_name: str | None = None
+    task_profile: str | TaskFamily | None = None
+    notes: str | None = None
 
     # Telemetry privacy knobs (if your TelemetryWriter supports them)
     # Defaults match your current stance: redact long strings unless opted in.
     telemetry_allow_text: bool = False
     telemetry_max_str_len: int = 256
-    
+
     # Experimental LoRAGuard settings (OFF by default)
     # ⚠️ WARNING: Guard is EXPERIMENTAL and can:
     #   - STOP training (abort on repeated failures)
@@ -87,10 +88,10 @@ class GradienceCallbackConfig:
     # Training monitor settings (ON by default)
     # Lightweight heuristic rules for plateau/saturation detection
     enable_monitor: bool = True
-    monitor_config: Optional[Any] = None  # MonitorConfig instance or None for defaults
+    monitor_config: Any | None = None  # MonitorConfig instance or None for defaults
 
 
-def _coerce_task_profile(tp: Optional[Union[str, TaskFamily]]) -> TaskFamily:
+def _coerce_task_profile(tp: str | TaskFamily | None) -> TaskFamily:
     if tp is None:
         return TaskFamily.UNKNOWN
     if isinstance(tp, TaskFamily):
@@ -192,9 +193,9 @@ def build_conservative_config_snapshot(
     args: Any,
     model: Any,
     *,
-    dataset_name: Optional[str] = None,
-    task_profile: Optional[Union[str, TaskFamily]] = None,
-    notes: Optional[str] = None,
+    dataset_name: str | None = None,
+    task_profile: str | TaskFamily | None = None,
+    notes: str | None = None,
 ) -> ConfigSnapshot:
     """
     Build a conservative ConfigSnapshot.
@@ -269,10 +270,10 @@ class GradienceCallback(TrainerCallback):
     """
 
     config: GradienceCallbackConfig
-    writer: Optional[TelemetryWriter]
-    guard: Optional[LoRAGuard]
+    writer: TelemetryWriter | None
+    guard: LoRAGuard | None
 
-    def __init__(self, config: Optional[GradienceCallbackConfig] = None):
+    def __init__(self, config: GradienceCallbackConfig | None = None):
         if _TRANSFORMERS_IMPORT_ERROR is not None:  # pragma: no cover
             raise ImportError(
                 "Gradience HF integration requires transformers. "
@@ -280,8 +281,8 @@ class GradienceCallback(TrainerCallback):
             ) from _TRANSFORMERS_IMPORT_ERROR
 
         self.config = config or GradienceCallbackConfig()
-        self.writer: Optional[TelemetryWriter] = None
-        self._run_id: Optional[str] = None
+        self.writer: TelemetryWriter | None = None
+        self._run_id: str | None = None
 
         # Guard state - only initialize if Guard will be enabled
         self.guard = None  # type: Optional[LoRAGuard]
@@ -292,15 +293,15 @@ class GradienceCallback(TrainerCallback):
         self._monitor = None  # type: Optional[Any]  # TrainingMonitor
 
     def on_train_begin(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        model = kwargs.get("model", None)
+        model = kwargs.get("model")
 
-        _out: Union[str, Path] = self.config.output_dir or str(getattr(args, "output_dir", "."))
+        _out: str | Path = self.config.output_dir or str(getattr(args, "output_dir", "."))
         out_dir = Path(_out)
         out_dir.mkdir(parents=True, exist_ok=True)
         path = out_dir / self.config.filename  # default: run.jsonl
 
         # Build writer kwargs defensively (works across TelemetryWriter versions)
-        writer_kwargs: Dict[str, Any] = {}
+        writer_kwargs: dict[str, Any] = {}
         sig = inspect.signature(TelemetryWriter.__init__)
         if "allow_text" in sig.parameters:
             writer_kwargs["allow_text"] = self.config.telemetry_allow_text
@@ -322,7 +323,8 @@ class GradienceCallback(TrainerCallback):
         # Initialize training monitor if enabled
         if self.config.enable_monitor:
             try:
-                from ..monitor import TrainingMonitor, MonitorConfig
+                from ..monitor import MonitorConfig, TrainingMonitor
+
                 monitor_cfg = self.config.monitor_config
                 if monitor_cfg is None:
                     monitor_cfg = MonitorConfig()
@@ -334,6 +336,7 @@ class GradienceCallback(TrainerCallback):
         if self.config.enable_guard and model is not None:
             try:
                 from ..experimental.guard import LoRAGuard
+
                 self.guard = LoRAGuard(
                     ring_size=self.config.guard_ring_size,
                     grad_threshold=self.config.guard_grad_threshold,
@@ -347,12 +350,13 @@ class GradienceCallback(TrainerCallback):
                 self._last_loss = None
                 self._last_grad_norm = None
                 self._last_guard_snapshot_step = 0
-                
+
                 # optional: take an initial snapshot at step 0
                 self.guard.snapshot(0, model, loss=None)
-                
+
                 if self.writer:
                     from ..types import Severity
+
                     # Build comprehensive context for debugging
                     context = {
                         "step": 0,
@@ -365,13 +369,10 @@ class GradienceCallback(TrainerCallback):
                         "max_rollbacks": self.config.guard_max_rollbacks,
                         "snapshot_count": self.guard.snapshot_count(),
                     }
-                    
+
                     # Canonical GUARD_INIT alert
                     self.writer.alert(
-                        severity=Severity.INFO,
-                        code="GUARD_INIT",
-                        message="LoRA Guard initialized",
-                        metadata=context
+                        severity=Severity.INFO, code="GUARD_INIT", message="LoRA Guard initialized", metadata=context
                     )
                     # Canonical guard metrics - include full context
                     init_metrics = {
@@ -385,23 +386,31 @@ class GradienceCallback(TrainerCallback):
                         "max_rollbacks": self.config.guard_max_rollbacks,
                         "grad_threshold": self.config.guard_grad_threshold,
                     }
-                    
+
                     self.writer.metrics(0, kind="guard", metrics=init_metrics)
             except ImportError:
                 import warnings
+
                 warnings.warn(
                     "LoRAGuard enabled but could not import experimental.guard module. "
                     "Guard will be disabled for this run.",
-                    UserWarning
+                    UserWarning,
                 )
                 self.guard = None
 
-    def on_log(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, logs: Optional[Dict[str, Any]] = None, **kwargs):
+    def on_log(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        logs: dict[str, Any] | None = None,
+        **kwargs,
+    ):
         # Cheap logging only: whatever HF already computed (loss, lr, grad_norm, etc.)
         if self.writer is None or logs is None:
             return
         step = int(getattr(state, "global_step", 0))
-        model = kwargs.get("model", None)
+        model = kwargs.get("model")
 
         # Update stored state from HF signals (only if Guard is enabled)
         if self.guard is not None:
@@ -428,6 +437,7 @@ class GradienceCallback(TrainerCallback):
             monitor_alerts = self._monitor.update(step, payload)
             if self.writer:
                 from ..types import Severity
+
                 for ma in monitor_alerts:
                     sev = {"info": Severity.INFO, "warning": Severity.WARNING, "critical": Severity.ERROR}.get(
                         ma.severity, Severity.INFO
@@ -446,6 +456,7 @@ class GradienceCallback(TrainerCallback):
                 # Canonical GUARD_TRIGGERED alert
                 if self.writer:
                     from ..types import Severity
+
                     # Build comprehensive context for debugging
                     context = {
                         "trigger": trigger,
@@ -461,19 +472,20 @@ class GradienceCallback(TrainerCallback):
                         context["grad_norm"] = self._last_grad_norm
                     if self._last_loss is not None:
                         context["loss"] = self._last_loss  # Can be NaN, that's fine
-                    
+
                     self.writer.alert(
                         severity=Severity.INFO,
                         code="GUARD_TRIGGERED",
                         message=f"Guard trigger detected: {trigger} at step {step}",
-                        metadata=context
+                        metadata=context,
                     )
-                
+
                 # Rollback policy (anti-thrash)
                 if not self.guard.can_attempt_rollback(step):
                     # Cannot attempt rollback (cooldown or max rollbacks reached)
                     if self.writer:
                         from ..types import Severity
+
                         # Build comprehensive context for debugging
                         context = {
                             "trigger": trigger,
@@ -489,13 +501,13 @@ class GradienceCallback(TrainerCallback):
                             context["grad_norm"] = self._last_grad_norm
                         if self._last_loss is not None:
                             context["loss"] = self._last_loss  # Can be NaN, that's fine
-                        
+
                         # Canonical GUARD_ABORT alert and metrics
                         self.writer.alert(
                             severity=Severity.ERROR,
                             code="GUARD_ABORT",
                             message=f"Guard triggered but cannot rollback: {trigger} at step {step} (cooldown or max rollbacks)",
-                            metadata=context
+                            metadata=context,
                         )
                         # Canonical guard metrics for abort - include full context
                         abort_metrics = {
@@ -514,18 +526,19 @@ class GradienceCallback(TrainerCallback):
                             abort_metrics["grad_norm"] = self._last_grad_norm
                         if self._last_loss is not None:
                             abort_metrics["loss"] = self._last_loss  # Can be NaN, that's fine
-                        
+
                         self.writer.metrics(step, kind="guard", metrics=abort_metrics)
                     control.should_training_stop = True
                     return
-                
+
                 # Attempt rollback
                 restored_step = self.guard.rollback(model, steps_back=self.config.guard_steps_back)
-                
+
                 if restored_step is None:
                     # No snapshots available to restore
                     if self.writer:
                         from ..types import Severity
+
                         # Build comprehensive context for debugging
                         context = {
                             "trigger": trigger,
@@ -542,13 +555,13 @@ class GradienceCallback(TrainerCallback):
                             context["grad_norm"] = self._last_grad_norm
                         if self._last_loss is not None:
                             context["loss"] = self._last_loss  # Can be NaN, that's fine
-                        
+
                         # Canonical GUARD_ABORT_NO_SNAPSHOT alert and metrics
                         self.writer.alert(
                             severity=Severity.ERROR,
                             code="GUARD_ABORT_NO_SNAPSHOT",
                             message=f"Guard triggered but no snapshot available: {trigger} at step {step}",
-                            metadata=context
+                            metadata=context,
                         )
                         # Canonical guard metrics for abort (no snapshot) - include full context
                         abort_metrics = {
@@ -568,14 +581,15 @@ class GradienceCallback(TrainerCallback):
                             abort_metrics["grad_norm"] = self._last_grad_norm
                         if self._last_loss is not None:
                             abort_metrics["loss"] = self._last_loss  # Can be NaN, that's fine
-                        
+
                         self.writer.metrics(step, kind="guard", metrics=abort_metrics)
                     control.should_training_stop = True
                     return
-                
+
                 # Successful rollback - emit telemetry
                 if self.writer:
                     from ..types import Severity
+
                     # Build comprehensive context for debugging
                     context = {
                         "step": step,
@@ -592,13 +606,13 @@ class GradienceCallback(TrainerCallback):
                         context["grad_norm"] = self._last_grad_norm
                     if self._last_loss is not None:
                         context["loss"] = self._last_loss  # Can be NaN, that's fine
-                    
+
                     # Canonical GUARD_ROLLBACK alert
                     self.writer.alert(
                         severity=Severity.WARNING,
                         code="GUARD_ROLLBACK",
                         message=f"Guard rolled back to step {restored_step} (trigger={trigger})",
-                        metadata=context
+                        metadata=context,
                     )
                     # Canonical guard metrics - include full context
                     rollback_metrics = {
@@ -618,14 +632,14 @@ class GradienceCallback(TrainerCallback):
                         rollback_metrics["grad_norm"] = self._last_grad_norm
                     if self._last_loss is not None:
                         rollback_metrics["loss"] = self._last_loss  # Can be NaN, that's fine
-                    
+
                     self.writer.metrics(step, kind="guard", metrics=rollback_metrics)
-                
+
                 # Note: HF Trainer doesn't have a clean way to reset optimizer state
                 # The rollback only affects model weights, not optimizer momentum
                 # Skip taking a new snapshot this step since we just rolled back
                 return
-            
+
             # Periodic snapshots (only if not rolled back)
             # Snapshot cadence: respects logging_steps (less frequent)
             if step > 0 and step % self.config.guard_snapshot_every == 0:
@@ -646,14 +660,15 @@ class GradienceCallback(TrainerCallback):
                         context["grad_norm"] = self._last_grad_norm
                     if self._last_loss is not None:
                         context["loss"] = self._last_loss  # Can be NaN, that's fine
-                    
+
                     # Optional GUARD_SNAPSHOT alert
                     from ..types import Severity
+
                     self.writer.alert(
                         severity=Severity.INFO,
                         code="GUARD_SNAPSHOT",
                         message=f"Guard snapshot taken at step {step}",
-                        metadata=context
+                        metadata=context,
                     )
                     # Canonical guard metrics - include full context
                     snapshot_metrics = {
@@ -671,10 +686,17 @@ class GradienceCallback(TrainerCallback):
                         snapshot_metrics["grad_norm"] = self._last_grad_norm
                     if self._last_loss is not None:
                         snapshot_metrics["loss"] = self._last_loss  # Can be NaN, that's fine
-                    
+
                     self.writer.metrics(step, kind="guard", metrics=snapshot_metrics)
 
-    def on_evaluate(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, metrics: Optional[Dict[str, Any]] = None, **kwargs):
+    def on_evaluate(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        metrics: dict[str, Any] | None = None,
+        **kwargs,
+    ):
         if self.writer is None or metrics is None:
             return
         step = int(getattr(state, "global_step", 0))
@@ -694,6 +716,7 @@ class GradienceCallback(TrainerCallback):
             monitor_alerts = self._monitor.update_eval(step, clean)
             if self.writer:
                 from ..types import Severity
+
                 for ma in monitor_alerts:
                     sev = {"info": Severity.INFO, "warning": Severity.WARNING, "critical": Severity.ERROR}.get(
                         ma.severity, Severity.INFO
@@ -708,19 +731,23 @@ class GradienceCallback(TrainerCallback):
     def on_train_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         if self.writer is None:
             return
-        
+
         # Log final guard stats if enabled
         final_step = int(getattr(state, "global_step", 0))
         if self.guard is not None:
             # Final summary metrics (not an alert code)
-            self.writer.metrics(final_step, kind="guard", metrics={
-                "action": "summary",
-                "ring_size": self.config.guard_ring_size,
-                "snapshot_count": self.guard.snapshot_count(),
-                "memory_mb": self.guard.memory_usage_mb(),
-                "n_rollbacks": self.guard.n_rollbacks,
-            })
-        
+            self.writer.metrics(
+                final_step,
+                kind="guard",
+                metrics={
+                    "action": "summary",
+                    "ring_size": self.config.guard_ring_size,
+                    "snapshot_count": self.guard.snapshot_count(),
+                    "memory_mb": self.guard.memory_usage_mb(),
+                    "n_rollbacks": self.guard.n_rollbacks,
+                },
+            )
+
         self.writer.run_end(status="ok")
         self.writer.close()
         self.writer = None

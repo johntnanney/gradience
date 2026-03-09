@@ -114,7 +114,7 @@ def train_single_adapter(
 
     # Load dataset
     ds_name = task_config["dataset"]
-    ds_subset = task_config.get("subset", None)
+    ds_subset = task_config.get("subset")
     if ds_subset:
         ds = load_dataset(ds_name, ds_subset, split="train")
     else:

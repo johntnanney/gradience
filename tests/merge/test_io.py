@@ -16,7 +16,6 @@ from gradience.vnext.merge.io import (
     match_layers,
 )
 
-
 # ---------------------------------------------------------------------------
 # load_adapter
 # ---------------------------------------------------------------------------
@@ -115,9 +114,12 @@ class TestMatchLayers:
     def test_no_overlap(self, tmp_path):
         """Adapters with completely different modules -> no shared."""
         from tests.merge.conftest import (
+            ALPHA,
+            D_IN,
+            D_OUT,
+            RANK,
             _make_adapter_dir,
             _make_lora_weights_from_svd,
-            D_OUT, D_IN, RANK, ALPHA,
         )
 
         torch.manual_seed(303)
@@ -127,12 +129,8 @@ class TestMatchLayers:
         prefixes_a = ["base_model.model.layers.0.self_attn.q_proj"]
         prefixes_b = ["base_model.model.layers.0.self_attn.o_proj"]
 
-        weights_a = _make_lora_weights_from_svd(
-            prefixes_a, U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA
-        )
-        weights_b = _make_lora_weights_from_svd(
-            prefixes_b, U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA
-        )
+        weights_a = _make_lora_weights_from_svd(prefixes_a, U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA)
+        weights_b = _make_lora_weights_from_svd(prefixes_b, U[:, :RANK], S, Vt[:RANK, :], RANK, ALPHA)
 
         dir_a = _make_adapter_dir(tmp_path, "a", RANK, ALPHA, ["q_proj"], weights_a)
         dir_b = _make_adapter_dir(tmp_path, "b", RANK, ALPHA, ["o_proj"], weights_b)

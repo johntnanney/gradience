@@ -10,7 +10,7 @@ import warnings
 from typing import Any, Dict
 
 
-def _normalize_train_config(raw: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_train_config(raw: dict[str, Any]) -> dict[str, Any]:
     """Normalize train config: lr -> learning_rate with deprecation warning."""
     result = dict(raw)
     if "lr" in result:
@@ -34,7 +34,7 @@ def _normalize_train_config(raw: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
 
-def validate_config(raw: Dict[str, Any]) -> Dict[str, Any]:
+def validate_config(raw: dict[str, Any]) -> dict[str, Any]:
     """Validate and normalize a raw YAML config dict.
 
     Checks required top-level keys exist and normalizes deprecated field names.
@@ -59,9 +59,7 @@ def validate_config(raw: Dict[str, Any]) -> Dict[str, Any]:
         errors.append("Missing required top-level key: 'lora'")
 
     if errors:
-        raise ValueError(
-            "Config validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
-        )
+        raise ValueError("Config validation failed:\n" + "\n".join(f"  - {e}" for e in errors))
 
     result = dict(raw)
     if "train" in result:

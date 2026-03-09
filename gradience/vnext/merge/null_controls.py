@@ -10,13 +10,12 @@ that observed overlap/alignment is meaningful (above chance).
 
 from __future__ import annotations
 
-import torch
 from typing import Any, Dict, List
 
+import torch
 
-def _principal_angle_cosines(
-    U_A: torch.Tensor, U_B: torch.Tensor
-) -> torch.Tensor:
+
+def _principal_angle_cosines(U_A: torch.Tensor, U_B: torch.Tensor) -> torch.Tensor:
     """Compute principal angle cosines between two orthonormal bases.
 
     Parameters
@@ -33,9 +32,7 @@ def _principal_angle_cosines(
     return cosines.clamp(0.0, 1.0)
 
 
-def _random_orthonormal(
-    d: int, k: int, generator: torch.Generator
-) -> torch.Tensor:
+def _random_orthonormal(d: int, k: int, generator: torch.Generator) -> torch.Tensor:
     """Generate a random (d, k) orthonormal matrix via QR decomposition.
 
     All computation in float64 for stability.
@@ -51,7 +48,7 @@ def randomized_subspace_control(
     U_B: torch.Tensor,
     n_random: int = 10,
     seed: int = 42,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute principal angles between U_B and random orthonormal bases.
 
     For each trial:
@@ -82,8 +79,8 @@ def randomized_subspace_control(
     d_out, k_a = U_A.shape
     generator = torch.Generator().manual_seed(seed)
 
-    null_mean_overlaps: List[float] = []
-    null_max_overlaps: List[float] = []
+    null_mean_overlaps: list[float] = []
+    null_max_overlaps: list[float] = []
 
     for _ in range(n_random):
         Q_rand = _random_orthonormal(d_out, k_a, generator)
@@ -103,9 +100,7 @@ def randomized_subspace_control(
     }
 
 
-def _attempt_derangement(
-    n: int, generator: torch.Generator, max_attempts: int = 100
-) -> List[int]:
+def _attempt_derangement(n: int, generator: torch.Generator, max_attempts: int = 100) -> list[int]:
     """Try to produce a derangement (permutation with no fixed points).
 
     Falls back to a random permutation if a derangement is not found
@@ -120,11 +115,11 @@ def _attempt_derangement(
 
 
 def layer_shuffle_control(
-    layer_bases_A: List[torch.Tensor],
-    layer_bases_B: List[torch.Tensor],
+    layer_bases_A: list[torch.Tensor],
+    layer_bases_B: list[torch.Tensor],
     n_shuffles: int = 10,
     seed: int = 42,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute principal angles between shuffled (cross-layer) pairs.
 
     For each trial:
@@ -170,7 +165,7 @@ def layer_shuffle_control(
     bases_B = [t.detach().to(dtype=torch.float64, device="cpu") for t in layer_bases_B]
 
     generator = torch.Generator().manual_seed(seed)
-    shuffle_mean_overlaps: List[float] = []
+    shuffle_mean_overlaps: list[float] = []
 
     for _ in range(n_shuffles):
         if n_layers == 1:
@@ -183,7 +178,7 @@ def layer_shuffle_control(
         else:
             perm = _attempt_derangement(n_layers, generator)
 
-        trial_overlaps: List[float] = []
+        trial_overlaps: list[float] = []
         for i in range(n_layers):
             j = perm[i]
             U_A_i = bases_A[i]
@@ -197,11 +192,13 @@ def layer_shuffle_control(
             trial_overlaps.append(cosines.mean().item())
 
         if trial_overlaps:
-            shuffle_mean_overlaps.append(
-                sum(trial_overlaps) / len(trial_overlaps)
-            )
+            shuffle_mean_overlaps.append(sum(trial_overlaps) / len(trial_overlaps))
 
-    means_t = torch.tensor(shuffle_mean_overlaps, dtype=torch.float64) if shuffle_mean_overlaps else torch.zeros(0, dtype=torch.float64)
+    means_t = (
+        torch.tensor(shuffle_mean_overlaps, dtype=torch.float64)
+        if shuffle_mean_overlaps
+        else torch.zeros(0, dtype=torch.float64)
+    )
 
     return {
         "shuffle_mean_overlaps": shuffle_mean_overlaps,

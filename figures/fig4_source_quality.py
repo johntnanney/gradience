@@ -22,12 +22,12 @@ import numpy as np
 # ---------------------------------------------------------------------------
 
 adapters = [
-    ("metamath-r16",      -1.38, "GSM8K"),
-    ("openwebmath-r16",   -0.12, "GSM8K"),
-    ("openwebmath-r64",    0.09, "GSM8K"),
-    ("magicoder-r16",      0.24, "MBPP"),
-    ("btgenbot-r8",        0.58, "oasst2"),
-    ("catsubcat-r16",      0.92, "oasst2"),
+    ("metamath-r16", -1.38, "GSM8K"),
+    ("openwebmath-r16", -0.12, "GSM8K"),
+    ("openwebmath-r64", 0.09, "GSM8K"),
+    ("magicoder-r16", 0.24, "MBPP"),
+    ("btgenbot-r8", 0.58, "oasst2"),
+    ("catsubcat-r16", 0.92, "oasst2"),
 ]
 
 labels = [a[0] for a in adapters]
@@ -41,8 +41,9 @@ y_pos = np.arange(len(adapters))
 # ---------------------------------------------------------------------------
 
 COL_BETTER = "#2a7b9b"
-COL_WORSE  = "#c44e52"
-COL_NEAR   = "#b0b0b0"
+COL_WORSE = "#c44e52"
+COL_NEAR = "#b0b0b0"
+
 
 def bar_color(d: float) -> str:
     if d < -0.3:
@@ -50,6 +51,7 @@ def bar_color(d: float) -> str:
     if d > 0.3:
         return COL_WORSE
     return COL_NEAR
+
 
 bar_colors = [bar_color(d) for d in deltas]
 
@@ -60,8 +62,13 @@ bar_colors = [bar_color(d) for d in deltas]
 fig, ax = plt.subplots(figsize=(8, 4))
 
 bars = ax.barh(
-    y_pos, deltas, height=0.55,
-    color=bar_colors, edgecolor="white", linewidth=0.5, zorder=3,
+    y_pos,
+    deltas,
+    height=0.55,
+    color=bar_colors,
+    edgecolor="white",
+    linewidth=0.5,
+    zorder=3,
 )
 
 # Zero reference line
@@ -76,17 +83,26 @@ for i, (yi, d, bench) in enumerate(zip(y_pos, deltas, benchmarks)):
     offset = -0.04 if d < 0 else 0.04
     ha = "right" if d < 0 else "left"
     ax.text(
-        d + offset, yi, f"{d:+.2f}",
-        ha=ha, va="center", fontsize=9,
+        d + offset,
+        yi,
+        f"{d:+.2f}",
+        ha=ha,
+        va="center",
+        fontsize=9,
         fontweight="bold" if abs(d) > 0.3 else "normal",
         color=bar_colors[i],
     )
     # Benchmark tag (small, right-aligned after the label)
     tag_x = max(deltas) + 0.28
     ax.text(
-        tag_x, yi, bench,
-        ha="left", va="center", fontsize=7.5,
-        color="#999", fontstyle="italic",
+        tag_x,
+        yi,
+        bench,
+        ha="left",
+        va="center",
+        fontsize=7.5,
+        color="#999",
+        fontstyle="italic",
     )
 
 # ---------------------------------------------------------------------------
@@ -94,23 +110,39 @@ for i, (yi, d, bench) in enumerate(zip(y_pos, deltas, benchmarks)):
 # ---------------------------------------------------------------------------
 
 ax.text(
-    -0.75, -0.65, "better than base",
-    ha="center", va="center", fontsize=8,
-    color=COL_BETTER, fontweight="bold", alpha=0.7,
+    -0.75,
+    -0.65,
+    "better than base",
+    ha="center",
+    va="center",
+    fontsize=8,
+    color=COL_BETTER,
+    fontweight="bold",
+    alpha=0.7,
 )
 ax.text(
-    0.75, -0.65, "worse than base",
-    ha="center", va="center", fontsize=8,
-    color=COL_WORSE, fontweight="bold", alpha=0.7,
+    0.75,
+    -0.65,
+    "worse than base",
+    ha="center",
+    va="center",
+    fontsize=8,
+    color=COL_WORSE,
+    fontweight="bold",
+    alpha=0.7,
 )
 
 # Small arrows
 ax.annotate(
-    "", xy=(-1.2, -0.65), xytext=(-0.38, -0.65),
+    "",
+    xy=(-1.2, -0.65),
+    xytext=(-0.38, -0.65),
     arrowprops=dict(arrowstyle="-|>", color=COL_BETTER, lw=1.0, alpha=0.4),
 )
 ax.annotate(
-    "", xy=(1.2, -0.65), xytext=(0.38, -0.65),
+    "",
+    xy=(1.2, -0.65),
+    xytext=(0.38, -0.65),
     arrowprops=dict(arrowstyle="-|>", color=COL_WORSE, lw=1.0, alpha=0.4),
 )
 
@@ -136,7 +168,9 @@ ax.xaxis.grid(True, color="#eee", linewidth=0.5)
 # Title
 fig.suptitle(
     "Figure 4.  Source-adapter quality is a gating condition, not a footnote",
-    fontsize=11, fontweight="bold", y=1.0,
+    fontsize=11,
+    fontweight="bold",
+    y=1.0,
 )
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])

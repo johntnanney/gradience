@@ -32,13 +32,13 @@ from gradience.vnext.monitor import MonitorAlert, MonitorConfig, TrainingMonitor
 class ReplayResult:
     """Result of replaying telemetry through the monitor."""
 
-    alerts: List[MonitorAlert]
+    alerts: list[MonitorAlert]
     n_steps_processed: int
     n_evals_processed: int
     would_have_stopped: bool
-    would_have_stopped_step: Optional[int]
-    first_step: Optional[int]
-    last_step: Optional[int]
+    would_have_stopped_step: int | None
+    first_step: int | None
+    last_step: int | None
 
     def summary(self) -> str:
         """Human-readable summary."""
@@ -50,7 +50,7 @@ class ReplayResult:
 
         if self.alerts:
             # Group by code
-            by_code: Dict[str, int] = {}
+            by_code: dict[str, int] = {}
             for a in self.alerts:
                 by_code[a.code] = by_code.get(a.code, 0) + 1
             for code, count in sorted(by_code.items()):
@@ -71,8 +71,8 @@ class ReplayResult:
 
 
 def replay_telemetry(
-    telemetry_path: Union[str, Path],
-    config: Optional[MonitorConfig] = None,
+    telemetry_path: str | Path,
+    config: MonitorConfig | None = None,
 ) -> ReplayResult:
     """Replay a JSONL telemetry file through the training monitor.
 
@@ -96,7 +96,7 @@ def replay_telemetry(
     path = Path(telemetry_path)
     monitor = TrainingMonitor(config)
 
-    all_alerts: List[MonitorAlert] = []
+    all_alerts: list[MonitorAlert] = []
     n_train = 0
     n_eval = 0
     first_step = None

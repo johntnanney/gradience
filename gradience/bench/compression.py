@@ -11,18 +11,22 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
-from gradience.peft_utils import normalize_rank_pattern, normalize_alpha_pattern
 from gradience.bench._util import round_to_allowed_ranks
-from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
 from gradience.bench.constants import (
-    CONSERVATISM_SCORES, DEFAULT_MAX_CANDIDATES, DEFAULT_SEED,
-    SHUFFLE_SEED_OFFSET, DEFAULT_POST_TUNE_STEPS, DEFAULT_POST_TUNE_LR_SCALE,
+    CONSERVATISM_SCORES,
+    DEFAULT_MAX_CANDIDATES,
+    DEFAULT_POST_TUNE_LR_SCALE,
+    DEFAULT_POST_TUNE_STEPS,
+    DEFAULT_SEED,
+    SHUFFLE_SEED_OFFSET,
 )
+from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates
+from gradience.peft_utils import normalize_alpha_pattern, normalize_rank_pattern
 
 
-def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) -> Optional[float]:
+def _resolve_policy_rank_source(audit_data: dict[str, Any], rank_source: str) -> float | None:
     """
     Resolve policy-based rank sources like 'audit.rank_suggestions.knee.uniform_p90'.
 
@@ -40,7 +44,7 @@ def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) ->
             return None
 
         policy_name = parts[2]  # e.g., "knee", "erank", "oht", "energy_90"
-        statistic = parts[3]    # e.g., "uniform_median", "uniform_p90", "uniform_max"
+        statistic = parts[3]  # e.g., "uniform_median", "uniform_p90", "uniform_max"
 
         # Check if we have policy global suggestions
         policy_suggestions = audit_data.get("policy_global_suggestions")
@@ -62,7 +66,7 @@ def _resolve_policy_rank_source(audit_data: Dict[str, Any], rank_source: str) ->
         return None
 
 
-def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: int) -> Dict[str, int]:
+def _create_shuffled_rank_pattern(original_rank_pattern: dict[str, int], seed: int) -> dict[str, int]:
     """
     Create a shuffled control by redistributing ranks across different modules.
 
@@ -97,12 +101,12 @@ def _create_shuffled_rank_pattern(original_rank_pattern: Dict[str, int], seed: i
 
 
 def generate_svd_variant_config(
-    variant_def: Dict[str, Any],
-    audit_data: Dict[str, Any],
+    variant_def: dict[str, Any],
+    audit_data: dict[str, Any],
     probe_rank: int,
-    lora_config: Dict[str, Any],
-    allowed_ranks: list[int]
-) -> Dict[str, Any]:
+    lora_config: dict[str, Any],
+    allowed_ranks: list[int],
+) -> dict[str, Any]:
     """
     Generate a compression config for a single SVD truncation variant.
 
@@ -137,7 +141,7 @@ def generate_svd_variant_config(
                 "alpha_pattern": {},
                 "config": None,
                 "status": "skipped",
-                "reason": f"Failed to resolve policy rank_source: {rank_source}"
+                "reason": f"Failed to resolve policy rank_source: {rank_source}",
             }
     elif isinstance(rank_source, (int, float)):
         # Direct rank specification
@@ -151,7 +155,7 @@ def generate_svd_variant_config(
             "alpha_pattern": {},
             "config": None,
             "status": "skipped",
-            "reason": f"Unsupported rank_source: {rank_source}"
+            "reason": f"Unsupported rank_source: {rank_source}",
         }
 
     # Round to allowed ranks
@@ -171,7 +175,7 @@ def generate_svd_variant_config(
             "alpha_pattern": {},
             "config": None,
             "status": "skipped",
-            "reason": f"SVD truncation rank r={actual_rank} >= probe rank r={probe_rank} (no compression)"
+            "reason": f"SVD truncation rank r={actual_rank} >= probe rank r={probe_rank} (no compression)",
         }
 
     # Build variant configuration
@@ -184,13 +188,13 @@ def generate_svd_variant_config(
         "config": {
             **lora_config,
             "probe_r": actual_rank,  # Use truncated rank
-            "alpha": actual_rank,    # Preserve alpha=r scaling
+            "alpha": actual_rank,  # Preserve alpha=r scaling
         },
         "status": "ready",
         "reason": f"SVD truncation from r={probe_rank} to r={actual_rank}",
         "compression_method": "svd_truncation",
         "source_rank": probe_rank,
-        "rank_source": rank_source  # Store original rank_source for artifact capture
+        "rank_source": rank_source,  # Store original rank_source for artifact capture
     }
 
     # Add post-tuning configuration if specified
@@ -198,13 +202,13 @@ def generate_svd_variant_config(
         variant_config["post_tune"] = {
             "enabled": True,
             "steps": post_tune_config.get("steps", DEFAULT_POST_TUNE_STEPS),
-            "lr_scale": post_tune_config.get("lr_scale", DEFAULT_POST_TUNE_LR_SCALE)
+            "lr_scale": post_tune_config.get("lr_scale", DEFAULT_POST_TUNE_LR_SCALE),
         }
 
     return variant_config
 
 
-def get_rank_source_from_config(compression_config: Dict[str, Any]) -> str:
+def get_rank_source_from_config(compression_config: dict[str, Any]) -> str:
     """
     Extract the rank_source from a compression config for SVD variants.
 
@@ -232,11 +236,8 @@ def get_rank_source_from_config(compression_config: Dict[str, Any]) -> str:
 
 
 def generate_compression_configs(
-    probe_dir: Path,
-    config: Dict[str, Any],
-    fast_mode: bool = True,
-    max_candidates: int = DEFAULT_MAX_CANDIDATES
-) -> Tuple[Dict[str, Dict[str, Any]], DecisionTrace]:
+    probe_dir: Path, config: dict[str, Any], fast_mode: bool = True, max_candidates: int = DEFAULT_MAX_CANDIDATES
+) -> tuple[dict[str, dict[str, Any]], DecisionTrace]:
     """
     Step 3.4: Generate compression configs from probe audit with candidate control.
 
@@ -268,7 +269,7 @@ def generate_compression_configs(
     if config_max_candidates is not None:
         max_candidates = config_max_candidates
 
-    print(f"\U0001f3af Candidate Control Settings:")
+    print("\U0001f3af Candidate Control Settings:")
     print(f"   Fast mode: {fast_mode}")
     print(f"   Max candidates: {max_candidates}")
     if config_candidate_policies:
@@ -277,7 +278,7 @@ def generate_compression_configs(
     # Load audit results
     audit_path = probe_dir / "audit.json"
     print(f"\U0001f4cb Loading audit results from: {audit_path}")
-    with open(audit_path, 'r') as f:
+    with open(audit_path) as f:
         audit_data = json.load(f)
 
     # Get compression configuration (already loaded above, just reference it)
@@ -299,19 +300,21 @@ def generate_compression_configs(
         if actual_r == probe_rank:
             return
 
-        candidates.append({
-            "name": name,
-            "policy_type": policy_type,
-            "suggested_r": suggested_r,
-            "actual_r": actual_r,
-            "conservatism_score": conservatism_score,  # Higher = more conservative
-            "priority": priority,  # 1=fast_mode, 2=full_mode_only
-            "config": {
-                **lora_config,
-                "probe_r": actual_r,
-                "alpha": actual_r,
+        candidates.append(
+            {
+                "name": name,
+                "policy_type": policy_type,
+                "suggested_r": suggested_r,
+                "actual_r": actual_r,
+                "conservatism_score": conservatism_score,  # Higher = more conservative
+                "priority": priority,  # 1=fast_mode, 2=full_mode_only
+                "config": {
+                    **lora_config,
+                    "probe_r": actual_r,
+                    "alpha": actual_r,
+                },
             }
-        })
+        )
 
     # Gather policy-based candidates (robust handling of various schema versions)
     print("\U0001f3af Analyzing policy-based rank suggestions...")
@@ -339,50 +342,37 @@ def generate_compression_configs(
 
     # Energy-based rank suggestions (handles multiple possible key names)
     if "energy_p90" in requested_policies:
-        energy90 = (
-            policy_suggestions.get("energy_90")
-            or policy_suggestions.get("energy@0.90")
-            or {}
-        )
+        energy90 = policy_suggestions.get("energy_90") or policy_suggestions.get("energy@0.90") or {}
         if isinstance(energy90, dict) and "uniform_p90" in energy90:
             print(f"   energy_p90: suggested_r={energy90['uniform_p90']}")
             add_candidate(
-                "energy_p90", "energy",
+                "energy_p90",
+                "energy",
                 energy90["uniform_p90"],
                 conservatism_score=CONSERVATISM_SCORES["energy_p90"],
-                priority=1
+                priority=1,
             )
 
     # Knee-based rank suggestions
     if "knee_p90" in requested_policies:
-        knee = (
-            policy_suggestions.get("knee")
-            or policy_suggestions.get("knee_detection")
-            or {}
-        )
+        knee = policy_suggestions.get("knee") or policy_suggestions.get("knee_detection") or {}
         if isinstance(knee, dict) and "uniform_p90" in knee:
             print(f"   knee_p90: suggested_r={knee['uniform_p90']}")
             add_candidate(
-                "knee_p90", "knee",
-                knee["uniform_p90"],
-                conservatism_score=CONSERVATISM_SCORES["knee_p90"],
-                priority=1
+                "knee_p90", "knee", knee["uniform_p90"], conservatism_score=CONSERVATISM_SCORES["knee_p90"], priority=1
             )
 
     # Effective rank suggestions
     if "erank_p90" in requested_policies:
-        erank = (
-            policy_suggestions.get("erank")
-            or policy_suggestions.get("effective_rank")
-            or {}
-        )
+        erank = policy_suggestions.get("erank") or policy_suggestions.get("effective_rank") or {}
         if isinstance(erank, dict) and "uniform_p90" in erank:
             print(f"   erank_p90: suggested_r={erank['uniform_p90']}")
             add_candidate(
-                "erank_p90", "erank",
+                "erank_p90",
+                "erank",
                 erank["uniform_p90"],
                 conservatism_score=CONSERVATISM_SCORES["erank_p90"],
-                priority=1
+                priority=1,
             )
 
     # Full mode additional candidates (priority=2)
@@ -391,41 +381,45 @@ def generate_compression_configs(
         # Legacy median/p90 from audit
         if "suggested_r_global_median" in audit_data:
             add_candidate(
-                "uniform_median", "legacy",
+                "uniform_median",
+                "legacy",
                 audit_data["suggested_r_global_median"],
                 conservatism_score=CONSERVATISM_SCORES["uniform_median"],
-                priority=2
+                priority=2,
             )
 
         if "suggested_r_global_90" in audit_data:
             add_candidate(
-                "uniform_p90", "legacy",
+                "uniform_p90",
+                "legacy",
                 audit_data["suggested_r_global_90"],
                 conservatism_score=CONSERVATISM_SCORES["uniform_p90"],
-                priority=2
+                priority=2,
             )
 
         # OHT policy
         if "oht" in policy_suggestions and "uniform_p90" in policy_suggestions["oht"]:
             add_candidate(
-                "oht_p90", "oht",
+                "oht_p90",
+                "oht",
                 policy_suggestions["oht"]["uniform_p90"],
                 conservatism_score=CONSERVATISM_SCORES["oht_p90"],
-                priority=2
+                priority=2,
             )
 
         # Energy with median aggregation
         if "energy_90" in policy_suggestions and "uniform_median" in policy_suggestions["energy_90"]:
             add_candidate(
-                "energy_median", "energy",
+                "energy_median",
+                "energy",
                 policy_suggestions["energy_90"]["uniform_median"],
                 conservatism_score=CONSERVATISM_SCORES["energy_median"],
-                priority=2
+                priority=2,
             )
 
     # Step 1: De-duplicate by actual_r (if multiple policies suggest same rank, pick best)
     print(f"\U0001f504 Processing {len(candidates)} initial candidates...")
-    rank_to_candidates: Dict[int, list[Dict[str, Any]]] = {}
+    rank_to_candidates: dict[int, list[dict[str, Any]]] = {}
     for candidate in candidates:
         rank = candidate["actual_r"]
         if rank not in rank_to_candidates:
@@ -460,7 +454,9 @@ def generate_compression_configs(
             # Keep the best candidate at original rank
             best_candidate = sorted_candidates[0]
             policies = [c["policy_type"] for c in rank_candidates]
-            best_candidate["name"] = f"{best_candidate['name']}_r{rank}" if len(set(policies)) > 1 else best_candidate["name"]
+            best_candidate["name"] = (
+                f"{best_candidate['name']}_r{rank}" if len(set(policies)) > 1 else best_candidate["name"]
+            )
             best_candidate["dedup_note"] = f"Preferred choice from: {', '.join(set(policies))}"
             deduplicated_candidates.append(best_candidate)
             used_ranks.add(rank)
@@ -469,7 +465,9 @@ def generate_compression_configs(
             for i, displaced_candidate in enumerate(sorted_candidates[1:], 1):
                 next_rank = find_next_aggressive_rank(rank, used_ranks, allowed_ranks)
                 if next_rank is not None:
-                    print(f"     \U0001f4cd Remapping {displaced_candidate['policy_type']} from r={rank} \u2192 r={next_rank} (second rung)")
+                    print(
+                        f"     \U0001f4cd Remapping {displaced_candidate['policy_type']} from r={rank} \u2192 r={next_rank} (second rung)"
+                    )
                     displaced_candidate["actual_r"] = next_rank
                     displaced_candidate["name"] = f"{displaced_candidate['policy_type']}_r{next_rank}"
                     displaced_candidate["dedup_note"] = f"Remapped from r={rank} to avoid collision (second rung)"
@@ -520,7 +518,7 @@ def generate_compression_configs(
             "status": "ready",
             "reason": candidate.get("dedup_note"),
             "policy_type": candidate["policy_type"],
-            "conservatism_score": candidate["conservatism_score"]
+            "conservatism_score": candidate["conservatism_score"],
         }
 
     # Add per-layer candidate if available and different from uniform candidates
@@ -562,7 +560,7 @@ def generate_compression_configs(
                 "status": "ready",
                 "reason": None,
                 "policy_type": "per_layer",
-                "conservatism_score": CONSERVATISM_SCORES["per_layer"]
+                "conservatism_score": CONSERVATISM_SCORES["per_layer"],
             }
 
     # Skip legacy SVD and per_layer_shuffled logic - handled by policy system above
@@ -572,15 +570,12 @@ def generate_compression_configs(
     # (All legacy logic removed - policy system handles everything)
     pass  # No additional processing needed - policy system handles everything
 
-# D) per_layer_shuffled (control for mechanism testing)
+    # D) per_layer_shuffled (control for mechanism testing)
     # Create shuffled control only if we have a successful per_layer variant
-    if ("per_layer" in compression_configs and
-        compression_configs["per_layer"]["status"] == "ready"):
-
+    if "per_layer" in compression_configs and compression_configs["per_layer"]["status"] == "ready":
         original_rank_pattern = compression_configs["per_layer"]["rank_pattern"]
         shuffled_rank_pattern = _create_shuffled_rank_pattern(
-            original_rank_pattern,
-            seed=config.get("train", {}).get("seed", DEFAULT_SEED)
+            original_rank_pattern, seed=config.get("train", {}).get("seed", DEFAULT_SEED)
         )
 
         # Create alpha pattern matching the shuffled ranks
@@ -611,7 +606,7 @@ def generate_compression_configs(
                 "alpha": None,
             },
             "status": "ready",
-            "reason": "Shuffled control for audit-guided per-layer variant"
+            "reason": "Shuffled control for audit-guided per-layer variant",
         }
     else:
         # No per_layer to shuffle
@@ -623,7 +618,7 @@ def generate_compression_configs(
             "alpha_pattern": {},
             "config": None,
             "status": "SKIPPED",
-            "reason": "No per-layer variant to create shuffled control from"
+            "reason": "No per-layer variant to create shuffled control from",
         }
 
     # D) SVD truncation variants (both legacy and new format)
@@ -642,7 +637,7 @@ def generate_compression_configs(
                     "alpha_pattern": {},
                     "config": None,
                     "status": "skipped",
-                    "reason": f"SVD truncation rank r={rank} >= probe rank r={probe_rank} (no compression)"
+                    "reason": f"SVD truncation rank r={rank} >= probe rank r={probe_rank} (no compression)",
                 }
             else:
                 compression_configs[f"svd_trunc_r{rank}"] = {
@@ -654,12 +649,12 @@ def generate_compression_configs(
                     "config": {
                         **lora_config,
                         "probe_r": rank,  # Use truncated rank
-                        "alpha": rank,    # Preserve alpha=r scaling
+                        "alpha": rank,  # Preserve alpha=r scaling
                     },
                     "status": "ready",
                     "reason": f"SVD truncation from r={probe_rank} to r={rank}",
                     "compression_method": "svd_truncation",
-                    "source_rank": probe_rank
+                    "source_rank": probe_rank,
                 }
 
     # New format: compression.variants array (Step 3.1 enhancement)
@@ -691,7 +686,7 @@ def generate_compression_configs(
         audit_metrics=decision_trace.audit_metrics,
         allowed_ranks=allowed_ranks,
         existing_candidates=existing_candidates_with_ranks,
-        decision_trace=decision_trace
+        decision_trace=decision_trace,
     )
 
     # Add second rung candidates to compression configs
@@ -709,19 +704,28 @@ def generate_compression_configs(
             "conservatism_score": candidate["conservatism_score"],
             "priority": candidate["priority"],
             "config": lora_config_copy,
-            "status": "ready"
+            "status": "ready",
         }
         print(f"   Added {candidate['name']}: r={candidate['actual_r']} ({candidate['policy_type']})")
 
     # Store decision trace for reporting
-    globals()['_last_decision_trace'] = decision_trace
+    globals()["_last_decision_trace"] = decision_trace
 
     # Apply final candidate control (remove old logic artifacts and enforce caps)
     final_configs = {}
 
     # First, collect configs from my new system only
     for name, config in compression_configs.items():
-        if config.get("policy_type") in ["energy", "knee", "erank", "oht", "legacy", "per_layer", "second_rung_tier_a", "second_rung_tier_b"]:
+        if config.get("policy_type") in [
+            "energy",
+            "knee",
+            "erank",
+            "oht",
+            "legacy",
+            "per_layer",
+            "second_rung_tier_a",
+            "second_rung_tier_b",
+        ]:
             final_configs[name] = config
 
     # Apply capping if we have too many
@@ -746,7 +750,7 @@ def generate_compression_configs(
         else:
             print(f"   Mode: FULL (capped at {max_candidates})")
 
-        rank_summary: Dict[Optional[int], list[str]] = {}
+        rank_summary: dict[int | None, list[str]] = {}
         for name, config in final_configs.items():
             r = config["actual_r"]
             if r not in rank_summary:

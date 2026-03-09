@@ -21,10 +21,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # Dataset (from gradience/research/experiments.py)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class ModularArithmeticDataset:
     """Dataset for modular addition (a + b) mod p."""
@@ -36,6 +36,7 @@ class ModularArithmeticDataset:
 
         # Deterministic shuffle for reproducible train/test split
         import random
+
         rng = random.Random(seed)
         rng.shuffle(all_pairs)
 
@@ -60,6 +61,7 @@ class ModularArithmeticDataset:
 # ═══════════════════════════════════════════════════════════════════════════
 # Hessian utilities
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def _get_params(model):
     """Flatten model parameters into a single vector."""
@@ -206,6 +208,7 @@ def compute_gHg(model, criterion, data_batches):
 # Evaluation
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @torch.no_grad()
 def evaluate(model, loader, criterion, device):
     """Compute loss, accuracy on a data loader."""
@@ -230,26 +233,22 @@ def evaluate(model, loader, criterion, device):
 # Main training loop
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def main():
     parser = argparse.ArgumentParser(description="Study 13: Grokking + DFA telemetry")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out_dir", type=str, default="results/study13/seed_42")
     parser.add_argument("--max_steps", type=int, default=80000)
-    parser.add_argument("--hessian_every", type=int, default=50,
-                        help="Compute Hessian metrics every N steps")
-    parser.add_argument("--eval_every", type=int, default=50,
-                        help="Evaluate val metrics every N steps")
+    parser.add_argument("--hessian_every", type=int, default=50, help="Compute Hessian metrics every N steps")
+    parser.add_argument("--eval_every", type=int, default=50, help="Evaluate val metrics every N steps")
     parser.add_argument("--p", type=int, default=97, help="Modulus for arithmetic")
     parser.add_argument("--train_frac", type=float, default=0.3)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--wd", type=float, default=0.1)
     parser.add_argument("--batch_size", type=int, default=64)
-    parser.add_argument("--M_batches", type=int, default=4,
-                        help="Number of batches for Hessian estimation")
-    parser.add_argument("--hutch_R", type=int, default=4,
-                        help="Hutchinson trace estimator rank")
-    parser.add_argument("--power_iters", type=int, default=40,
-                        help="Max power iterations for lambda_1")
+    parser.add_argument("--M_batches", type=int, default=4, help="Number of batches for Hessian estimation")
+    parser.add_argument("--hutch_R", type=int, default=4, help="Hutchinson trace estimator rank")
+    parser.add_argument("--power_iters", type=int, default=40, help="Max power iterations for lambda_1")
     args = parser.parse_args()
 
     # ── Setup ──────────────────────────────────────────────────────────
@@ -269,12 +268,8 @@ def main():
     print()
 
     # ── Data ───────────────────────────────────────────────────────────
-    train_dataset = ModularArithmeticDataset(
-        p=args.p, split="train", train_frac=args.train_frac, seed=0
-    )
-    test_dataset = ModularArithmeticDataset(
-        p=args.p, split="test", train_frac=args.train_frac, seed=0
-    )
+    train_dataset = ModularArithmeticDataset(p=args.p, split="train", train_frac=args.train_frac, seed=0)
+    test_dataset = ModularArithmeticDataset(p=args.p, split="test", train_frac=args.train_frac, seed=0)
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
@@ -344,11 +339,8 @@ def main():
 
             # Weight and gradient norms
             with torch.no_grad():
-                weight_norm = sum(p.norm().item() ** 2
-                                  for p in model.parameters()) ** 0.5
-                grad_norm = sum(p.grad.norm().item() ** 2
-                                for p in model.parameters()
-                                if p.grad is not None) ** 0.5
+                weight_norm = sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
+                grad_norm = sum(p.grad.norm().item() ** 2 for p in model.parameters() if p.grad is not None) ** 0.5
 
             record = {
                 "step": step,
@@ -371,25 +363,16 @@ def main():
                     except StopIteration:
                         hess_iter = iter(train_loader)
                         hb = next(hess_iter)
-                    hess_batches.append((
-                        hb["input_ids"].to(device),
-                        hb["labels"].to(device)
-                    ))
+                    hess_batches.append((hb["input_ids"].to(device), hb["labels"].to(device)))
 
                 model.train()  # ensure train mode for gradients
 
                 # λ₁ via power iteration
-                lambda1 = top_eigenvalue(
-                    model, criterion, hess_batches,
-                    max_iters=args.power_iters
-                )
+                lambda1 = top_eigenvalue(model, criterion, hess_batches, max_iters=args.power_iters)
                 record["lambda1"] = lambda1
 
                 # trace(H) via Hutchinson
-                trace_H = hutchinson_trace(
-                    model, criterion, hess_batches,
-                    R=args.hutch_R
-                )
+                trace_H = hutchinson_trace(model, criterion, hess_batches, R=args.hutch_R)
                 record["trace_H"] = trace_H
 
                 # gᵀHg
@@ -414,9 +397,11 @@ def main():
             if step % 1000 == 0:
                 elapsed = time.time() - t_start
                 status = f"GROKKED@{grok_step}" if grokked else "pre-grok"
-                print(f"  step {step:6d} | loss={loss.item():.6f} | "
-                      f"train_acc={train_acc:.3f} | val_acc={val_acc:.3f} | "
-                      f"‖W‖={weight_norm:.1f} | {status} | {elapsed:.0f}s")
+                print(
+                    f"  step {step:6d} | loss={loss.item():.6f} | "
+                    f"train_acc={train_acc:.3f} | val_acc={val_acc:.3f} | "
+                    f"‖W‖={weight_norm:.1f} | {status} | {elapsed:.0f}s"
+                )
 
     telemetry_file.close()
 
@@ -436,9 +421,8 @@ def main():
         json.dump(summary, f, indent=2)
 
     print(f"\n{'=' * 65}")
-    print(f"  Done. Grokked: {grokked}" +
-          (f" at step {grok_step}" if grokked else ""))
-    print(f"  Elapsed: {elapsed:.0f}s ({elapsed/60:.1f} min)")
+    print(f"  Done. Grokked: {grokked}" + (f" at step {grok_step}" if grokked else ""))
+    print(f"  Elapsed: {elapsed:.0f}s ({elapsed / 60:.1f} min)")
     print(f"  Telemetry: {telemetry_path}")
     print(f"{'=' * 65}")
 

@@ -47,12 +47,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-
 # ═══════════════════════════════════════════════════════════════════════════
 # Data loading
 # ═══════════════════════════════════════════════════════════════════════════
 
-def load_perplexity_results(path: Path) -> Tuple[dict, List[dict]]:
+
+def load_perplexity_results(path: Path) -> tuple[dict, list[dict]]:
     """Load perplexity_results.json.  Returns (metadata, results)."""
     with open(path) as f:
         data = json.load(f)
@@ -65,7 +65,7 @@ def load_spectral_results(path: Path) -> dict:
         return json.load(f)
 
 
-def get_spectral_for_pair(spectral_data: dict, pair_id: str) -> Optional[dict]:
+def get_spectral_for_pair(spectral_data: dict, pair_id: str) -> dict | None:
     """Look up spectral comparison-table entry for a pair."""
     for row in spectral_data.get("comparison_table", []):
         if pair_id in row.get("pair_id", ""):
@@ -79,33 +79,48 @@ def get_spectral_for_pair(spectral_data: dict, pair_id: str) -> Optional[dict]:
 
 PAIR_INFO = {
     "pair_01": {
-        "label_a": "metamath-r16",   "label_b": "openwebmath-r16",
-        "task_a": "math",            "task_b": "math",
-        "eval_set_a": "gsm8k_math",  "eval_set_b": "gsm8k_math",
+        "label_a": "metamath-r16",
+        "label_b": "openwebmath-r16",
+        "task_a": "math",
+        "task_b": "math",
+        "eval_set_a": "gsm8k_math",
+        "eval_set_b": "gsm8k_math",
         "same_domain": True,
     },
     "pair_02": {
-        "label_a": "metamath-r16",   "label_b": "magicoder-r16",
-        "task_a": "math",            "task_b": "code",
-        "eval_set_a": "gsm8k_math",  "eval_set_b": "mbpp_code",
+        "label_a": "metamath-r16",
+        "label_b": "magicoder-r16",
+        "task_a": "math",
+        "task_b": "code",
+        "eval_set_a": "gsm8k_math",
+        "eval_set_b": "mbpp_code",
         "same_domain": False,
     },
     "pair_03": {
-        "label_a": "magicoder-r16",  "label_b": "btgenbot-r8",
-        "task_a": "code",            "task_b": "chat",
-        "eval_set_a": "mbpp_code",   "eval_set_b": "oasst2_chat",
+        "label_a": "magicoder-r16",
+        "label_b": "btgenbot-r8",
+        "task_a": "code",
+        "task_b": "chat",
+        "eval_set_a": "mbpp_code",
+        "eval_set_b": "oasst2_chat",
         "same_domain": False,
     },
     "pair_04": {
-        "label_a": "openwebmath-r64","label_b": "btgenbot-r8",
-        "task_a": "math",            "task_b": "chat",
-        "eval_set_a": "gsm8k_math",  "eval_set_b": "oasst2_chat",
+        "label_a": "openwebmath-r64",
+        "label_b": "btgenbot-r8",
+        "task_a": "math",
+        "task_b": "chat",
+        "eval_set_a": "gsm8k_math",
+        "eval_set_b": "oasst2_chat",
         "same_domain": False,
     },
     "pair_06": {
-        "label_a": "catsubcat-r16",  "label_b": "btgenbot-r8",
-        "task_a": "chat",            "task_b": "chat",
-        "eval_set_a": "oasst2_chat", "eval_set_b": "oasst2_chat",
+        "label_a": "catsubcat-r16",
+        "label_b": "btgenbot-r8",
+        "task_a": "chat",
+        "task_b": "chat",
+        "eval_set_a": "oasst2_chat",
+        "eval_set_b": "oasst2_chat",
         "same_domain": True,
     },
 }
@@ -115,8 +130,8 @@ PAIR_INFO = {
 # Metric computation
 # ═══════════════════════════════════════════════════════════════════════════
 
-def lookup_result(results: List[dict], adapter_label: str,
-                  eval_set_id: str) -> Optional[dict]:
+
+def lookup_result(results: list[dict], adapter_label: str, eval_set_id: str) -> dict | None:
     """Find the result for a given adapter and eval set."""
     for r in results:
         if r["adapter_label"] == adapter_label and r["eval_set_id"] == eval_set_id:
@@ -126,8 +141,7 @@ def lookup_result(results: List[dict], adapter_label: str,
     return None
 
 
-def lookup_loss(results: List[dict], adapter_label: str,
-                eval_set_id: str) -> Optional[float]:
+def lookup_loss(results: list[dict], adapter_label: str, eval_set_id: str) -> float | None:
     """Get token_mean_loss for an adapter on an eval set."""
     r = lookup_result(results, adapter_label, eval_set_id)
     if r is None:
@@ -135,8 +149,7 @@ def lookup_loss(results: List[dict], adapter_label: str,
     return r.get("token_mean_loss", r.get("mean_loss"))
 
 
-def lookup_ppl(results: List[dict], adapter_label: str,
-               eval_set_id: str) -> Optional[float]:
+def lookup_ppl(results: list[dict], adapter_label: str, eval_set_id: str) -> float | None:
     """Get perplexity for an adapter on an eval set."""
     r = lookup_result(results, adapter_label, eval_set_id)
     if r is None:
@@ -163,7 +176,9 @@ def compute_ppl_ratio(source_ppl: float, merged_ppl: float) -> float:
 
 
 def compute_normalized_retention(
-    base_loss: float, source_loss: float, merged_loss: float,
+    base_loss: float,
+    source_loss: float,
+    merged_loss: float,
 ) -> float:
     """Normalized retention: how much of source-adapter-over-base gain is kept.
 
@@ -192,22 +207,24 @@ def compute_ppl_dominance(loss_task_a: float, loss_task_b: float) -> float:
     return abs(np.log(ppl_a) - np.log(ppl_b))
 
 
-def spearman_rho(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
+def spearman_rho(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     """Spearman rank correlation and p-value."""
     from scipy import stats
+
     if len(x) < 3:
         return (float("nan"), float("nan"))
     rho, p = stats.spearmanr(x, y)
     return (float(rho), float(p))
 
 
-def bootstrap_ci(x: np.ndarray, y: np.ndarray,
-                 func=None, n_boot: int = 5000,
-                 ci: float = 0.95) -> Tuple[float, float, float]:
+def bootstrap_ci(
+    x: np.ndarray, y: np.ndarray, func=None, n_boot: int = 5000, ci: float = 0.95
+) -> tuple[float, float, float]:
     """Bootstrap confidence interval for a correlation.
     Returns (estimate, lower, upper).
     """
     from scipy import stats
+
     if func is None:
         func = lambda a, b: stats.spearmanr(a, b)[0]
 
@@ -236,12 +253,13 @@ def bootstrap_ci(x: np.ndarray, y: np.ndarray,
 # Analysis
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def build_analysis(
-    ppl_results: List[dict],
+    ppl_results: list[dict],
     spectral_data: dict,
 ) -> dict:
     """Build the full validation analysis."""
-    analysis: Dict[str, Any] = {}
+    analysis: dict[str, Any] = {}
 
     # ── 1. Baselines ──────────────────────────────────────────────────
     base_losses = {}
@@ -260,8 +278,7 @@ def build_analysis(
             source_losses[key] = loss
             source_ppls[key] = ppl
 
-    analysis["base_model"] = {es: {"loss": l, "ppl": float(np.exp(l)) if l else None}
-                              for es, l in base_losses.items()}
+    analysis["base_model"] = {es: {"loss": l, "ppl": float(np.exp(l)) if l else None} for es, l in base_losses.items()}
     analysis["source_adapters"] = {
         f"{label}@{es}": {"loss": loss, "ppl": source_ppls.get((label, es))}
         for (label, es), loss in source_losses.items()
@@ -316,7 +333,7 @@ def build_analysis(
             s_Q_min = spectral.get(f"{prefix}_Q_min") if prefix else None
             s_D = spectral.get(f"{prefix}_D") if prefix else None
 
-            cond_entry: Dict[str, Any] = {
+            cond_entry: dict[str, Any] = {
                 "spectral_Q_min": s_Q_min,
                 "spectral_D": s_D,
             }
@@ -329,20 +346,25 @@ def build_analysis(
                 if m_loss is not None and s_loss is not None:
                     cond_entry[f"merged_loss_{side}"] = m_loss
                     cond_entry[f"merged_ppl_{side}"] = m_ppl
-                    cond_entry[f"loss_delta_{side}"] = round(
-                        compute_loss_delta(s_loss, m_loss), 6)
-                    cond_entry[f"ppl_ratio_{side}"] = round(
-                        compute_ppl_ratio(s_ppl, m_ppl), 4) if (s_ppl and m_ppl) else None
+                    cond_entry[f"loss_delta_{side}"] = round(compute_loss_delta(s_loss, m_loss), 6)
+                    cond_entry[f"ppl_ratio_{side}"] = (
+                        round(compute_ppl_ratio(s_ppl, m_ppl), 4) if (s_ppl and m_ppl) else None
+                    )
 
                     if b_loss is not None:
                         cond_entry[f"normalized_retention_{side}"] = round(
-                            compute_normalized_retention(b_loss, s_loss, m_loss), 4)
+                            compute_normalized_retention(b_loss, s_loss, m_loss), 4
+                        )
 
             # Worst-side metrics
-            deltas = [cond_entry.get(f"loss_delta_{s}") for s in ["a", "b"]
-                      if cond_entry.get(f"loss_delta_{s}") is not None]
-            retentions = [cond_entry.get(f"normalized_retention_{s}") for s in ["a", "b"]
-                          if cond_entry.get(f"normalized_retention_{s}") is not None]
+            deltas = [
+                cond_entry.get(f"loss_delta_{s}") for s in ["a", "b"] if cond_entry.get(f"loss_delta_{s}") is not None
+            ]
+            retentions = [
+                cond_entry.get(f"normalized_retention_{s}")
+                for s in ["a", "b"]
+                if cond_entry.get(f"normalized_retention_{s}") is not None
+            ]
 
             if deltas:
                 cond_entry["worst_loss_delta"] = max(deltas)  # worst = largest increase
@@ -366,7 +388,7 @@ def build_analysis(
         if not naive or not rec:
             continue
 
-        comp: Dict[str, Any] = {
+        comp: dict[str, Any] = {
             "pair_id": pa["pair_id"],
             "labels": pa["labels"],
         }
@@ -415,14 +437,16 @@ def build_analysis(
             worst_ret = cond.get("worst_normalized_retention")
             d = cond.get("spectral_D")
             if q_min is not None and worst_ret is not None:
-                corr_points.append({
-                    "pair_id": pa["pair_id"],
-                    "condition": cond_name,
-                    "Q_min": q_min,
-                    "D": d,
-                    "worst_retention": worst_ret,
-                    "worst_loss_delta": cond.get("worst_loss_delta"),
-                })
+                corr_points.append(
+                    {
+                        "pair_id": pa["pair_id"],
+                        "condition": cond_name,
+                        "Q_min": q_min,
+                        "D": d,
+                        "worst_retention": worst_ret,
+                        "worst_loss_delta": cond.get("worst_loss_delta"),
+                    }
+                )
 
     associations = []
 
@@ -432,30 +456,35 @@ def build_analysis(
 
         rho, p = spearman_rho(x_qmin, y_ret)
         est, lo, hi = bootstrap_ci(x_qmin, y_ret)
-        associations.append({
-            "description": "Q_min vs worst normalized retention",
-            "spearman_rho": round(rho, 4) if not np.isnan(rho) else None,
-            "p_value": round(p, 4) if not np.isnan(p) else None,
-            "bootstrap_95_ci": [round(lo, 4), round(hi, 4)],
-            "n": len(corr_points),
-            "note": "small-N; interpret as directional evidence, not inference",
-        })
+        associations.append(
+            {
+                "description": "Q_min vs worst normalized retention",
+                "spearman_rho": round(rho, 4) if not np.isnan(rho) else None,
+                "p_value": round(p, 4) if not np.isnan(p) else None,
+                "bootstrap_95_ci": [round(lo, 4), round(hi, 4)],
+                "n": len(corr_points),
+                "note": "small-N; interpret as directional evidence, not inference",
+            }
+        )
 
         # D vs worst loss delta
         d_vals = np.array([p["D"] for p in corr_points if p["D"] is not None])
-        ld_vals = np.array([p["worst_loss_delta"] for p in corr_points
-                            if p["D"] is not None and p["worst_loss_delta"] is not None])
+        ld_vals = np.array(
+            [p["worst_loss_delta"] for p in corr_points if p["D"] is not None and p["worst_loss_delta"] is not None]
+        )
         if len(d_vals) >= 3 and len(d_vals) == len(ld_vals):
             rho2, p2 = spearman_rho(d_vals, ld_vals)
             est2, lo2, hi2 = bootstrap_ci(d_vals, ld_vals)
-            associations.append({
-                "description": "D vs worst loss delta",
-                "spearman_rho": round(rho2, 4) if not np.isnan(rho2) else None,
-                "p_value": round(p2, 4) if not np.isnan(p2) else None,
-                "bootstrap_95_ci": [round(lo2, 4), round(hi2, 4)],
-                "n": len(d_vals),
-                "note": "positive rho = higher D → larger loss degradation (expected)",
-            })
+            associations.append(
+                {
+                    "description": "D vs worst loss delta",
+                    "spearman_rho": round(rho2, 4) if not np.isnan(rho2) else None,
+                    "p_value": round(p2, 4) if not np.isnan(p2) else None,
+                    "bootstrap_95_ci": [round(lo2, 4), round(hi2, 4)],
+                    "n": len(d_vals),
+                    "note": "positive rho = higher D → larger loss degradation (expected)",
+                }
+            )
 
     analysis["rank_order_associations"] = associations
     analysis["correlation_points"] = corr_points
@@ -485,6 +514,7 @@ def build_analysis(
 # ═══════════════════════════════════════════════════════════════════════════
 # Report generation
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def generate_markdown_report(analysis: dict) -> str:
     """Generate a markdown validation report."""
@@ -524,19 +554,19 @@ def generate_markdown_report(analysis: dict) -> str:
             rr = comp.get(f"rec_retention_{side}")
             dr = comp.get(f"delta_retention_{side}")
             if nl is not None and rl is not None:
-                lines.append(f"**Side {side}:** naive loss = {nl:.4f}, "
-                             f"rec loss = {rl:.4f}, "
-                             f"Δ = {dl:+.4f} (positive = rec better)")
+                lines.append(
+                    f"**Side {side}:** naive loss = {nl:.4f}, "
+                    f"rec loss = {rl:.4f}, "
+                    f"Δ = {dl:+.4f} (positive = rec better)"
+                )
                 if nr is not None:
-                    lines.append(f"  normalized retention: naive = {nr:.4f}, "
-                                 f"rec = {rr:.4f}, Δ = {dr:+.4f}")
+                    lines.append(f"  normalized retention: naive = {nr:.4f}, rec = {rr:.4f}, Δ = {dr:+.4f}")
 
             # Norm-equalized ablation
             nel = comp.get(f"norm_eq_loss_{side}")
             dne = comp.get(f"delta_normeq_vs_rec_{side}")
             if nel is not None:
-                lines.append(f"  norm-equalized loss = {nel:.4f}, "
-                             f"gap vs recommended = {dne:+.4f}")
+                lines.append(f"  norm-equalized loss = {nel:.4f}, gap vs recommended = {dne:+.4f}")
         lines.append("")
 
         sq = comp.get("spectral_delta_Q_min")
@@ -551,8 +581,7 @@ def generate_markdown_report(analysis: dict) -> str:
         ci = assoc.get("bootstrap_95_ci", [None, None])
         lines.append(f"**{assoc['description']}** (n={assoc['n']})")
         if rho is not None:
-            lines.append(f"  Spearman ρ = {rho:.4f}, "
-                         f"95% bootstrap CI = [{ci[0]:.4f}, {ci[1]:.4f}]")
+            lines.append(f"  Spearman ρ = {rho:.4f}, 95% bootstrap CI = [{ci[0]:.4f}, {ci[1]:.4f}]")
         if assoc.get("note"):
             lines.append(f"  *{assoc['note']}*")
         lines.append("")
@@ -573,23 +602,28 @@ def generate_markdown_report(analysis: dict) -> str:
 # Main
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Study 16 — Perplexity Analysis",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--perplexity-dir", type=Path,
+        "--perplexity-dir",
+        type=Path,
         default=Path("results/study16_perplexity"),
         help="Directory containing perplexity_results.json",
     )
     parser.add_argument(
-        "--spectral-dir", type=Path,
+        "--spectral-dir",
+        type=Path,
         default=Path("results/study16b_merge_ablation"),
         help="Directory containing study16_merge_ablation.json",
     )
     parser.add_argument(
-        "--output-dir", type=Path, default=None,
+        "--output-dir",
+        type=Path,
+        default=None,
         help="Output directory (default: same as perplexity-dir)",
     )
     args = parser.parse_args()
@@ -636,9 +670,9 @@ def main() -> None:
     print(f"  Markdown report: {md_path}")
 
     # Print paired comparison summary
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("  PAIRED COMPARISONS (naive vs recommended)")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     for comp in analysis.get("paired_comparisons", []):
         pid = comp["pair_id"]
         sq = comp.get("spectral_delta_Q_min", 0)
@@ -647,22 +681,23 @@ def main() -> None:
             dl = comp.get(f"delta_loss_{side}")
             dr = comp.get(f"delta_retention_{side}")
             if dl is not None:
-                print(f"    Side {side}: Δloss = {dl:+.4f}  "
-                      f"Δretention = {dr:+.4f}" if dr else
-                      f"    Side {side}: Δloss = {dl:+.4f}")
+                print(
+                    f"    Side {side}: Δloss = {dl:+.4f}  Δretention = {dr:+.4f}"
+                    if dr
+                    else f"    Side {side}: Δloss = {dl:+.4f}"
+                )
         if sq:
             print(f"    Spectral δQ_min = {sq:+.4f}")
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
 
     # Associations
-    print(f"\n  RANK-ORDER ASSOCIATIONS")
-    print(f"{'─'*70}")
+    print("\n  RANK-ORDER ASSOCIATIONS")
+    print(f"{'─' * 70}")
     for assoc in analysis.get("rank_order_associations", []):
         rho = assoc.get("spearman_rho")
         ci = assoc.get("bootstrap_95_ci", [None, None])
         if rho is not None:
-            print(f"  {assoc['description']}: ρ={rho:.3f} "
-                  f"[{ci[0]:.3f}, {ci[1]:.3f}] (n={assoc['n']})")
+            print(f"  {assoc['description']}: ρ={rho:.3f} [{ci[0]:.3f}, {ci[1]:.3f}] (n={assoc['n']})")
     print()
 
     print("Done.")

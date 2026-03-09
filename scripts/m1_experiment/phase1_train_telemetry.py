@@ -38,7 +38,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import yaml
 
 
-def _iter_lora_pairs(model) -> List[Tuple[str, Any, Any]]:
+def _iter_lora_pairs(model) -> list[tuple[str, Any, Any]]:
     """Yield (layer_name, A_tensor, B_tensor) for each LoRA pair in a PEFT model.
 
     PEFT stores weights as:
@@ -61,7 +61,7 @@ def _iter_lora_pairs(model) -> List[Tuple[str, Any, Any]]:
     return result
 
 
-def _compute_structural_metrics(model) -> Dict[str, float]:
+def _compute_structural_metrics(model) -> dict[str, float]:
     """Compute aggregated structural metrics across all LoRA pairs.
 
     Returns dict with keys like stable_rank_mean, effective_rank_mean, etc.
@@ -91,11 +91,11 @@ def _compute_structural_metrics(model) -> Dict[str, float]:
         # A: (r, d_in), B: (d_out, r)
         # Do the big matmuls on-device in float32 (bf16 loses too much precision
         # for eigendecomposition, but float32 is fine for the r×r intermediates)
-        A_ = A.detach().float()       # (r, d_in) on GPU, float32
-        B_ = B.detach().float()       # (d_out, r) on GPU, float32
+        A_ = A.detach().float()  # (r, d_in) on GPU, float32
+        B_ = B.detach().float()  # (d_out, r) on GPU, float32
 
-        AAT = A_ @ A_.T              # (r, r) on GPU — fast
-        BTB = B_.T @ B_              # (r, r) on GPU — fast
+        AAT = A_ @ A_.T  # (r, r) on GPU — fast
+        BTB = B_.T @ B_  # (r, r) on GPU — fast
 
         # Move only the small (r, r) matrices to CPU for float64 eigen
         AAT_cpu = AAT.to(dtype=torch.float64, device="cpu")
@@ -103,7 +103,7 @@ def _compute_structural_metrics(model) -> Dict[str, float]:
 
         # Frobenius norm squared of BA = tr(AAT @ BTB)
         frob_sq = torch.sum(AAT_cpu * BTB_cpu).item()
-        frob_norms.append(frob_sq ** 0.5)
+        frob_norms.append(frob_sq**0.5)
 
         # Singular values via eigendecomposition (avoids forming full BA)
         eigA, UA = torch.linalg.eigh(AAT_cpu)
@@ -139,9 +139,7 @@ def _compute_structural_metrics(model) -> Dict[str, float]:
             total = e.sum()
             if total > eps:
                 c = torch.cumsum(e, dim=0) / total
-                idx = torch.searchsorted(
-                    c, torch.tensor([0.90], device=c.device, dtype=c.dtype), right=False
-                )
+                idx = torch.searchsorted(c, torch.tensor([0.90], device=c.device, dtype=c.dtype), right=False)
                 r90s.append(min(int(idx.item()) + 1, int(s_pos.numel())))
             else:
                 r90s.append(0)
@@ -196,7 +194,7 @@ def _make_structural_callback(gradience_callback, structural_every_n: int = 50):
             if step == self._last_computed_step:
                 return  # already computed at this step (double-fire guard)
 
-            model = kwargs.get("model", None)
+            model = kwargs.get("model")
             if model is None:
                 return
 
@@ -212,10 +210,12 @@ def _make_structural_callback(gradience_callback, structural_every_n: int = 50):
             metrics["compute_time_ms"] = round(elapsed_ms, 1)
 
             writer.metrics(step, kind="structural", metrics=metrics)
-            print(f"    [structural@{step}] stable_rank={metrics['stable_rank_mean']:.2f} "
-                  f"eff_rank={metrics['effective_rank_mean']:.2f} "
-                  f"r90={metrics['energy_rank_90_median']} "
-                  f"({elapsed_ms:.0f}ms)")
+            print(
+                f"    [structural@{step}] stable_rank={metrics['stable_rank_mean']:.2f} "
+                f"eff_rank={metrics['effective_rank_mean']:.2f} "
+                f"r90={metrics['energy_rank_90_median']} "
+                f"({elapsed_ms:.0f}ms)"
+            )
 
     return StructuralMetricsCallback()
 
@@ -328,7 +328,7 @@ def train_single_adapter(
 
     # Load dataset
     ds_name = task_config["dataset"]
-    ds_subset = task_config.get("subset", None)
+    ds_subset = task_config.get("subset")
     if ds_subset:
         ds = load_dataset(ds_name, ds_subset, split="train")
     else:
@@ -394,9 +394,9 @@ def train_single_adapter(
         learning_rate=training_config["learning_rate"],
         max_steps=training_config["max_steps"],
         # ---- Telemetry-specific settings ----
-        logging_steps=logging_steps,       # grad_norm every 10 steps (was 50)
-        eval_strategy="steps",             # periodic eval
-        eval_steps=eval_steps,             # eval every 25 steps (~48 evals per 1200 steps)
+        logging_steps=logging_steps,  # grad_norm every 10 steps (was 50)
+        eval_strategy="steps",  # periodic eval
+        eval_steps=eval_steps,  # eval every 25 steps (~48 evals per 1200 steps)
         # ---- Unchanged ----
         save_strategy="no",
         bf16=(training_config.get("torch_dtype") == "bfloat16"),
@@ -439,20 +439,21 @@ def main():
     parser = argparse.ArgumentParser(description="M1 Phase 1 (Telemetry-Enhanced): Train adapters")
     parser.add_argument("--config", required=True, help="Path to m1_config.yaml")
     parser.add_argument("--smoke", action="store_true", help="Smoke test (5 steps, 1 seed)")
-    parser.add_argument("--task", type=str, default=None,
-                        help="Train a single task (e.g. 'math'). Default: all tasks")
-    parser.add_argument("--eval-steps", type=int, default=25,
-                        help="Eval every N steps (default: 25)")
-    parser.add_argument("--logging-steps", type=int, default=10,
-                        help="Log grad_norm every N steps (default: 10)")
-    parser.add_argument("--eval-fraction", type=float, default=0.10,
-                        help="Fraction of data to hold out for eval (default: 0.10)")
-    parser.add_argument("--structural-every-n", type=int, default=50,
-                        help="Compute structural SVD metrics every N steps (default: 50)")
-    parser.add_argument("--lora-rank", type=int, default=None,
-                        help="Override LoRA rank from config (e.g. 8 for constrained runs)")
-    parser.add_argument("--lora-alpha", type=int, default=None,
-                        help="Override LoRA alpha from config (default: same as rank)")
+    parser.add_argument("--task", type=str, default=None, help="Train a single task (e.g. 'math'). Default: all tasks")
+    parser.add_argument("--eval-steps", type=int, default=25, help="Eval every N steps (default: 25)")
+    parser.add_argument("--logging-steps", type=int, default=10, help="Log grad_norm every N steps (default: 10)")
+    parser.add_argument(
+        "--eval-fraction", type=float, default=0.10, help="Fraction of data to hold out for eval (default: 0.10)"
+    )
+    parser.add_argument(
+        "--structural-every-n", type=int, default=50, help="Compute structural SVD metrics every N steps (default: 50)"
+    )
+    parser.add_argument(
+        "--lora-rank", type=int, default=None, help="Override LoRA rank from config (e.g. 8 for constrained runs)"
+    )
+    parser.add_argument(
+        "--lora-alpha", type=int, default=None, help="Override LoRA alpha from config (default: same as rank)"
+    )
     args = parser.parse_args()
 
     # If rank overridden but alpha not, default alpha = rank (standard LoRA scaling)
@@ -490,8 +491,7 @@ def main():
     print(f"  Base model: {base_model}")
     print(f"  Seeds: {seeds}")
     print(f"  Tasks: {list(adapter_configs.keys())}")
-    print(f"  LoRA: r={effective_rank}, alpha={effective_alpha}"
-          f"{' (OVERRIDE)' if args.lora_rank is not None else ''}")
+    print(f"  LoRA: r={effective_rank}, alpha={effective_alpha}{' (OVERRIDE)' if args.lora_rank is not None else ''}")
     print(f"  Max steps: {max_steps}")
     print(f"  Eval every: {args.eval_steps} steps (~{expected_evals} eval events)")
     print(f"  Log every: {args.logging_steps} steps")
@@ -520,7 +520,7 @@ def main():
 
     elapsed = time.monotonic() - total_start
     print(f"\nPhase 1 complete: {n_total} adapters in {elapsed / 3600:.1f} hours")
-    print(f"\nTelemetry files:")
+    print("\nTelemetry files:")
     config_rank = training_config["rank"]
     for task_name in adapter_configs:
         task_dir_name = f"{task_name}_r{effective_rank}" if effective_rank != config_rank else task_name

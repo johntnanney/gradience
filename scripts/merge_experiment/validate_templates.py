@@ -30,9 +30,7 @@ from evaluate import quick_validate  # noqa: E402
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Validate Predibase prompt templates against adapters"
-    )
+    parser = argparse.ArgumentParser(description="Validate Predibase prompt templates against adapters")
     parser.add_argument(
         "--base-model",
         type=str,

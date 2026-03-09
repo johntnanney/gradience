@@ -6,7 +6,6 @@ import pytest
 
 from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
 
-
 # ---------------------------------------------------------------------------
 # compute_merge_outcomes -- basic computation
 # ---------------------------------------------------------------------------
@@ -48,8 +47,8 @@ class TestComputeMergeOutcomes:
         result = compute_merge_outcomes(
             score_A_solo=1.0,
             score_B_solo=1.0,
-            score_A_merged=0.90,   # retention_A = 0.90
-            score_B_merged=0.70,   # retention_B = 0.70  (worse)
+            score_A_merged=0.90,  # retention_A = 0.90
+            score_B_merged=0.70,  # retention_B = 0.70  (worse)
         )
 
         assert result["retention_A"] == pytest.approx(0.90)

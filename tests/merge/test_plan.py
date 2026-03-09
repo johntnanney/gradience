@@ -14,17 +14,16 @@ import pytest
 
 from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult, MatchingSummary
 from gradience.vnext.merge.plan import (
+    PLAN_STRATEGIES,
     MergePlan,
-    plan_from_audit,
-    plan_uniform_linear,
     plan_audit_aware,
+    plan_from_audit,
     plan_norm_equalized,
     plan_overlap_ties,
-    PLAN_STRATEGIES,
+    plan_uniform_linear,
 )
 from gradience.vnext.merge.report import MergeAuditReport
 from gradience.vnext.merge.strategies import LayerMergeConfig
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -38,7 +37,7 @@ def _make_layer_verdict(
     directional_agreement: float = 0.5,
     suggested_strategy: str = "linear",
     suggested_coefficients: list | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build a minimal layer_verdict dict matching MergeAuditReport schema."""
     return {
         "layer_name": layer_name,
@@ -70,7 +69,7 @@ def _make_layer_verdict(
 
 
 def _make_report(
-    layer_verdicts: List[Dict[str, Any]],
+    layer_verdicts: list[dict[str, Any]],
     overall_verdict: str = "safe",
 ) -> MergeAuditReport:
     """Build a minimal MergeAuditReport for testing."""
@@ -110,10 +109,12 @@ def _make_report(
 class TestPlanUniformLinear:
     def test_all_layers_get_linear(self):
         """uniform_linear assigns 'linear' strategy to every layer."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-            _make_layer_verdict("layer.0.v_proj", "redundant"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+                _make_layer_verdict("layer.0.v_proj", "redundant"),
+            ]
+        )
         plan = plan_uniform_linear(report, "/tmp/a", "/tmp/b")
 
         assert plan.strategy_name == "uniform_linear"
@@ -125,11 +126,15 @@ class TestPlanUniformLinear:
 
     def test_custom_coefficients(self):
         """Custom coefficients are applied to all layers."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+            ]
+        )
         plan = plan_uniform_linear(
-            report, "/tmp/a", "/tmp/b",
+            report,
+            "/tmp/a",
+            "/tmp/b",
             coefficients=(0.7, 0.3),
         )
 
@@ -140,8 +145,11 @@ class TestPlanUniformLinear:
         """output_rank and output_alpha are correctly stored."""
         report = _make_report([_make_layer_verdict("layer.0.q_proj", "safe")])
         plan = plan_uniform_linear(
-            report, "/tmp/a", "/tmp/b",
-            output_rank=16, output_alpha=32.0,
+            report,
+            "/tmp/a",
+            "/tmp/b",
+            output_rank=16,
+            output_alpha=32.0,
         )
 
         assert plan.output_rank == 16
@@ -152,9 +160,11 @@ class TestPlanUniformLinear:
 class TestPlanAuditAware:
     def test_safe_layers_get_linear(self):
         """SAFE verdict → linear strategy."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
         assert plan.layer_configs[0].strategy == "linear"
@@ -162,9 +172,11 @@ class TestPlanAuditAware:
 
     def test_redundant_layers_get_ties(self):
         """REDUNDANT verdict → ties strategy."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "redundant"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "redundant"),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
         assert plan.layer_configs[0].strategy == "ties"
@@ -172,9 +184,11 @@ class TestPlanAuditAware:
 
     def test_conflicting_layers_get_dare_ties(self):
         """CONFLICTING verdict → dare_ties with computed drop rate."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "conflicting"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "conflicting"),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
         assert plan.layer_configs[0].strategy == "dare_ties"
@@ -182,12 +196,15 @@ class TestPlanAuditAware:
 
     def test_imbalanced_layers_get_linear_rebalanced(self):
         """IMBALANCED verdict → linear with rebalanced coefficients."""
-        report = _make_report([
-            _make_layer_verdict(
-                "layer.0.q_proj", "imbalanced",
-                suggested_coefficients=[0.2, 0.8],
-            ),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict(
+                    "layer.0.q_proj",
+                    "imbalanced",
+                    suggested_coefficients=[0.2, 0.8],
+                ),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
         assert plan.layer_configs[0].strategy == "linear"
@@ -195,29 +212,33 @@ class TestPlanAuditAware:
 
     def test_mixed_verdicts(self):
         """Mixed verdicts produce appropriate per-layer strategies."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-            _make_layer_verdict("layer.0.v_proj", "redundant"),
-            _make_layer_verdict("layer.1.q_proj", "conflicting"),
-            _make_layer_verdict("layer.1.v_proj", "imbalanced", suggested_coefficients=[0.3, 0.7]),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+                _make_layer_verdict("layer.0.v_proj", "redundant"),
+                _make_layer_verdict("layer.1.q_proj", "conflicting"),
+                _make_layer_verdict("layer.1.v_proj", "imbalanced", suggested_coefficients=[0.3, 0.7]),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
-        assert plan.layer_configs[0].strategy == "linear"      # safe
-        assert plan.layer_configs[1].strategy == "ties"         # redundant
-        assert plan.layer_configs[2].strategy == "dare_ties"    # conflicting → dare_ties
-        assert plan.layer_configs[2].trim_fraction >= 0.15      # DARE drop rate
-        assert plan.layer_configs[3].strategy == "linear"       # imbalanced
+        assert plan.layer_configs[0].strategy == "linear"  # safe
+        assert plan.layer_configs[1].strategy == "ties"  # redundant
+        assert plan.layer_configs[2].strategy == "dare_ties"  # conflicting → dare_ties
+        assert plan.layer_configs[2].trim_fraction >= 0.15  # DARE drop rate
+        assert plan.layer_configs[3].strategy == "linear"  # imbalanced
         assert plan.layer_configs[3].coefficients == (0.3, 0.7)
 
 
 class TestPlanOverlapTies:
     def test_all_layers_get_ties(self):
         """overlap_ties assigns 'ties' strategy to every layer."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe", mean_overlap=0.1),
-            _make_layer_verdict("layer.0.v_proj", "redundant", mean_overlap=0.8),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe", mean_overlap=0.1),
+                _make_layer_verdict("layer.0.v_proj", "redundant", mean_overlap=0.8),
+            ]
+        )
         plan = plan_overlap_ties(report, "/tmp/a", "/tmp/b", trim_fraction=0.3)
 
         for lc in plan.layer_configs:
@@ -225,10 +246,12 @@ class TestPlanOverlapTies:
 
     def test_trim_scales_with_overlap(self):
         """Trim fraction is proportional to mean_overlap."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe", mean_overlap=0.1),
-            _make_layer_verdict("layer.0.v_proj", "redundant", mean_overlap=0.9),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe", mean_overlap=0.1),
+                _make_layer_verdict("layer.0.v_proj", "redundant", mean_overlap=0.9),
+            ]
+        )
         plan = plan_overlap_ties(report, "/tmp/a", "/tmp/b", trim_fraction=0.5)
 
         # Low overlap: 0.5 * 0.1 = 0.05
@@ -240,10 +263,12 @@ class TestPlanOverlapTies:
 class TestPlanJsonRoundtrip:
     def test_serialize_deserialize(self, tmp_path):
         """Plan survives JSON round-trip with all fields preserved."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-            _make_layer_verdict("layer.0.v_proj", "redundant"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+                _make_layer_verdict("layer.0.v_proj", "redundant"),
+            ]
+        )
         plan = plan_uniform_linear(report, "/tmp/a", "/tmp/b", output_rank=16)
 
         # Write to JSON
@@ -266,9 +291,11 @@ class TestPlanJsonRoundtrip:
 
     def test_dict_roundtrip(self):
         """Plan survives dict round-trip."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+            ]
+        )
         plan = plan_audit_aware(report, "/tmp/a", "/tmp/b")
 
         d = plan.to_dict()
@@ -298,8 +325,12 @@ class TestPlanFromAudit:
         """Extra kwargs are forwarded to the strategy function."""
         report = _make_report([_make_layer_verdict("layer.0.q_proj", "safe")])
         plan = plan_from_audit(
-            "uniform_linear", report, "/tmp/a", "/tmp/b",
-            output_rank=32, output_alpha=64.0,
+            "uniform_linear",
+            report,
+            "/tmp/a",
+            "/tmp/b",
+            output_rank=32,
+            output_alpha=64.0,
         )
         assert plan.output_rank == 32
         assert plan.output_alpha == 64.0
@@ -308,10 +339,12 @@ class TestPlanFromAudit:
 class TestPlanNormEqualized:
     def test_all_layers_get_norm_equalized(self):
         """norm_equalized assigns 'norm_equalized' strategy to every layer."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-            _make_layer_verdict("layer.0.v_proj", "imbalanced"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+                _make_layer_verdict("layer.0.v_proj", "imbalanced"),
+            ]
+        )
         plan = plan_norm_equalized(report, "/tmp/a", "/tmp/b")
 
         assert plan.strategy_name == "norm_equalized"
@@ -323,11 +356,15 @@ class TestPlanNormEqualized:
 
     def test_custom_coefficients(self):
         """Custom coefficients are applied to all layers."""
-        report = _make_report([
-            _make_layer_verdict("layer.0.q_proj", "safe"),
-        ])
+        report = _make_report(
+            [
+                _make_layer_verdict("layer.0.q_proj", "safe"),
+            ]
+        )
         plan = plan_norm_equalized(
-            report, "/tmp/a", "/tmp/b",
+            report,
+            "/tmp/a",
+            "/tmp/b",
             coefficients=(0.7, 0.3),
         )
 
@@ -346,6 +383,10 @@ class TestPlanStrategiesRegistry:
     def test_all_strategies_registered(self):
         """All expected strategies are in the PLAN_STRATEGIES registry."""
         assert set(PLAN_STRATEGIES.keys()) == {
-            "uniform_linear", "audit_aware", "norm_equalized", "overlap_ties",
-            "dare_linear", "dare_ties",
+            "uniform_linear",
+            "audit_aware",
+            "norm_equalized",
+            "overlap_ties",
+            "dare_linear",
+            "dare_ties",
         }

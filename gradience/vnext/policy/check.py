@@ -19,10 +19,10 @@ The implementation is deliberately conservative:
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any, Dict, List, Optional
 
 from ..types import ConfigSnapshot, Recommendation, Severity, SignalSnapshot, TaskFamily
-
 
 # ---------------------------------------------------------------------------
 # Target-module classification
@@ -56,12 +56,12 @@ _MLP_NAMES = {
 }
 
 
-def _classify_target_modules(mods: Iterable[str]) -> Dict[str, List[str]]:
+def _classify_target_modules(mods: Iterable[str]) -> dict[str, list[str]]:
     """Return a dict with keys: 'attn', 'mlp', 'other'."""
 
-    attn: List[str] = []
-    mlp: List[str] = []
-    other: List[str] = []
+    attn: list[str] = []
+    mlp: list[str] = []
+    other: list[str] = []
 
     for m in mods:
         m_str = str(m)
@@ -78,7 +78,9 @@ def _classify_target_modules(mods: Iterable[str]) -> Dict[str, List[str]]:
         # Heuristic substring match
         if any(tok in m_low for tok in ("q_proj", "k_proj", "v_proj", "o_proj", "to_q", "to_k", "to_v", "to_out")):
             attn.append(m_str)
-        elif any(tok in m_low for tok in ("gate", "up_proj", "down_proj", "fc1", "fc2", "mlp", "ffn", "w1", "w2", "w3")):
+        elif any(
+            tok in m_low for tok in ("gate", "up_proj", "down_proj", "fc1", "fc2", "mlp", "ffn", "w1", "w2", "w3")
+        ):
             mlp.append(m_str)
         else:
             other.append(m_str)
@@ -86,7 +88,7 @@ def _classify_target_modules(mods: Iterable[str]) -> Dict[str, List[str]]:
     return {"attn": attn, "mlp": mlp, "other": other}
 
 
-def _infer_task_profile_from_dataset_name(dataset_name: Optional[str]) -> Optional[TaskFamily]:
+def _infer_task_profile_from_dataset_name(dataset_name: str | None) -> TaskFamily | None:
     """Best-effort inference when task_profile is UNKNOWN."""
 
     if not dataset_name:
@@ -98,7 +100,9 @@ def _infer_task_profile_from_dataset_name(dataset_name: Optional[str]) -> Option
         return TaskFamily.HARD_REASONING
 
     # Easy-ish classification
-    if any(k in d for k in ("sst", "sst2", "mnli", "qqp", "qnli", "rte", "cola", "mrpc", "sentiment", "classification")):
+    if any(
+        k in d for k in ("sst", "sst2", "mnli", "qqp", "qnli", "rte", "cola", "mrpc", "sentiment", "classification")
+    ):
         return TaskFamily.EASY_CLASSIFICATION
 
     return None
@@ -109,10 +113,10 @@ def _rec(
     severity: Severity,
     action: str,
     message: str,
-    rationale: Optional[str] = None,
-    confidence: Optional[float] = None,
-    scope: Optional[str] = None,
-    evidence: Optional[Dict[str, object]] = None,
+    rationale: str | None = None,
+    confidence: float | None = None,
+    scope: str | None = None,
+    evidence: dict[str, object] | None = None,
 ) -> Recommendation:
     return Recommendation(
         severity=severity,
@@ -130,7 +134,7 @@ def _rec(
 # ---------------------------------------------------------------------------
 
 
-def check_config(config: ConfigSnapshot) -> List[Recommendation]:
+def check_config(config: ConfigSnapshot) -> list[Recommendation]:
     """Validate a config and emit actionable recommendations.
 
     Notes
@@ -142,7 +146,7 @@ def check_config(config: ConfigSnapshot) -> List[Recommendation]:
     * conservative (recommends safe starting points)
     """
 
-    recs: List[Recommendation] = []
+    recs: list[Recommendation] = []
 
     # Resolve task profile (prefer explicit)
     task_profile = config.task_profile
@@ -430,7 +434,7 @@ def check_config(config: ConfigSnapshot) -> List[Recommendation]:
 # ---------------------------------------------------------------------------
 
 
-def _dedup_recommendations(recs: List[Recommendation]) -> List[Recommendation]:
+def _dedup_recommendations(recs: list[Recommendation]) -> list[Recommendation]:
     """De-duplicate recommendations by action, keeping the highest severity.
 
     We keep this simple and stable: if two recs share the same ``action``,
@@ -444,7 +448,7 @@ def _dedup_recommendations(recs: List[Recommendation]) -> List[Recommendation]:
         Severity.INFO: 3,
     }
 
-    best: Dict[str, Recommendation] = {}
+    best: dict[str, Recommendation] = {}
     for r in recs:
         key = str(r.action)
         if key not in best:
@@ -461,11 +465,11 @@ def _dedup_recommendations(recs: List[Recommendation]) -> List[Recommendation]:
 
 
 def check_run(
-    config: Optional[ConfigSnapshot],
+    config: ConfigSnapshot | None,
     signals: SignalSnapshot,
     *,
     gap_threshold: float = 1.5,
-) -> List[Recommendation]:
+) -> list[Recommendation]:
     """Emit recommendations using both config and observed signals.
 
     This is the policy function intended for ``gradience monitor``.
@@ -488,7 +492,7 @@ def check_run(
         memorization.
     """
 
-    recs: List[Recommendation] = []
+    recs: list[Recommendation] = []
 
     # Config-only heuristics still apply.
     if config is not None:
@@ -621,7 +625,7 @@ def check_run(
 
     # If telemetry includes a LoRA audit payload, use it to make more concrete
     # compression suggestions (rather than generic "consider reducing rank").
-    audit: Optional[Dict[str, Any]] = None
+    audit: dict[str, Any] | None = None
     try:
         if isinstance(signals.extras, dict):
             maybe = signals.extras.get("lora_audit")
@@ -660,7 +664,7 @@ def check_run(
                 oversized = True
 
             # Suggest a concrete rank using audit energy ranks when available.
-            suggested_r: Optional[int] = None
+            suggested_r: int | None = None
             if oversized:
                 if e90_f is not None and e90_f > 0:
                     base = int(math.ceil(e90_f))
@@ -670,8 +674,8 @@ def check_run(
                     suggested_r = 8 if cur_r > 8 else None
 
             if suggested_r is not None and suggested_r > 0 and suggested_r < cur_r:
-                est_new_params: Optional[float] = None
-                est_savings: Optional[float] = None
+                est_new_params: float | None = None
+                est_savings: float | None = None
                 try:
                     if isinstance(total_params, (int, float)) and cur_r > 0:
                         est_new_params = float(total_params) * (float(suggested_r) / float(cur_r))
@@ -681,7 +685,9 @@ def check_run(
                     est_savings = None
 
                 msg = (
-                    f"LoRA audit suggests rank is oversized (util≈{util_f:.0%} of r={cur_r})" if util_f is not None else f"LoRA audit suggests rank is oversized (r={cur_r})"
+                    f"LoRA audit suggests rank is oversized (util≈{util_f:.0%} of r={cur_r})"
+                    if util_f is not None
+                    else f"LoRA audit suggests rank is oversized (r={cur_r})"
                 )
                 msg += f". Consider compressing r→{suggested_r} for efficiency."
 
@@ -748,8 +754,8 @@ def check_run(
     # --- audit-driven compression recommendation ---
     # If audit suggests a smaller global rank, recommend compression conservatively.
     try:
-        extras = getattr(signals, 'extras', None) or {}
-        lora_audit = extras.get('lora_audit') if isinstance(extras, dict) else None
+        extras = getattr(signals, "extras", None) or {}
+        lora_audit = extras.get("lora_audit") if isinstance(extras, dict) else None
     except (AttributeError, KeyError, TypeError):
         lora_audit = None
 
@@ -758,25 +764,25 @@ def check_run(
             return None
         # ConfigSnapshot dataclass
         try:
-            l = getattr(cfg, 'lora', None)
-            if l is not None and hasattr(l, 'r'):
+            l = getattr(cfg, "lora", None)
+            if l is not None and hasattr(l, "r"):
                 return int(l.r)
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
         # Dict-like config
         try:
-            l = cfg.get('lora') if hasattr(cfg, 'get') else None
-            if isinstance(l, dict) and 'r' in l:
-                return int(l['r'])
+            l = cfg.get("lora") if hasattr(cfg, "get") else None
+            if isinstance(l, dict) and "r" in l:
+                return int(l["r"])
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
         return None
 
     current_r = _get_current_r(config)
     if isinstance(lora_audit, dict) and current_r is not None:
-        s_med = lora_audit.get('suggested_r_global_median')
-        s_p90 = lora_audit.get('suggested_r_global_90')
-        audit_util_raw = lora_audit.get('utilization_mean')
+        s_med = lora_audit.get("suggested_r_global_median")
+        s_p90 = lora_audit.get("suggested_r_global_90")
+        audit_util_raw = lora_audit.get("utilization_mean")
         try:
             s_med = int(s_med) if s_med is not None else None
         except (ValueError, TypeError):
@@ -792,34 +798,42 @@ def check_run(
             lora_audit_util = None
 
         # Conservative trigger
-        if lora_audit_util is not None and lora_audit_util < 0.25 and current_r >= 8 and s_med is not None and s_med < current_r:
+        if (
+            lora_audit_util is not None
+            and lora_audit_util < 0.25
+            and current_r >= 8
+            and s_med is not None
+            and s_med < current_r
+        ):
             msg = (
                 f"Audit suggests r={s_med} for most layers (median); "
                 f"r={s_p90} covers worst-case layers at 90% energy. "
                 f"Current r={current_r} → consider trying r={s_med}."
             )
-            recs.append(Recommendation(
-                severity=Severity.INFO,
-                action='compress_rank',
-                message=msg,
-                rationale='Low utilization suggests adapter capacity is overprovisioned; compressing rank can reduce params with minimal impact.',
-                confidence=0.7,
-                scope=str(getattr(config, 'task_profile', 'unknown')) if config is not None else 'unknown',
-                evidence={
-                    'utilization_mean': util,
-                    'suggested_r_global_median': s_med,
-                    'suggested_r_global_90': s_p90,
-                    'current_r': current_r,
-                },
-            ))
+            recs.append(
+                Recommendation(
+                    severity=Severity.INFO,
+                    action="compress_rank",
+                    message=msg,
+                    rationale="Low utilization suggests adapter capacity is overprovisioned; compressing rank can reduce params with minimal impact.",
+                    confidence=0.7,
+                    scope=str(getattr(config, "task_profile", "unknown")) if config is not None else "unknown",
+                    evidence={
+                        "utilization_mean": util,
+                        "suggested_r_global_median": s_med,
+                        "suggested_r_global_90": s_p90,
+                        "current_r": current_r,
+                    },
+                )
+            )
 
     # --- suppress config_ok when actionable recs exist ---
     # If we have any actionable recommendation, drop the noise-only config_ok.
     try:
-        has_actionable = any(getattr(r, 'action', None) != 'config_ok' for r in recs)
+        has_actionable = any(getattr(r, "action", None) != "config_ok" for r in recs)
     except (AttributeError, TypeError):
         has_actionable = False
     if has_actionable:
-        recs = [r for r in recs if getattr(r, 'action', None) != 'config_ok']
+        recs = [r for r in recs if getattr(r, "action", None) != "config_ok"]
 
     return _dedup_recommendations(recs)

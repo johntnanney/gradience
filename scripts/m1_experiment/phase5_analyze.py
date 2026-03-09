@@ -47,26 +47,11 @@ def load_audit_metrics(audits_dir: Path, pair_name: str, seed: int) -> dict | No
 
     # Compute mean metrics across layers
     overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts if "metrics" in lv]
-    dir_agreements = [
-        lv["metrics"].get("directional_agreement", 0.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
-    mag_ratios = [
-        lv["metrics"].get("magnitude_ratio", 1.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
-    stable_rank_ratios = [
-        lv["metrics"].get("stable_rank_ratio", 1.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
-    scale_bounded_ratios = [
-        lv["metrics"].get("scale_bounded_ratio", 0.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
-    frob_bounded_ratios = [
-        lv["metrics"].get("frob_bounded_ratio", 0.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
+    dir_agreements = [lv["metrics"].get("directional_agreement", 0.0) for lv in layer_verdicts if "metrics" in lv]
+    mag_ratios = [lv["metrics"].get("magnitude_ratio", 1.0) for lv in layer_verdicts if "metrics" in lv]
+    stable_rank_ratios = [lv["metrics"].get("stable_rank_ratio", 1.0) for lv in layer_verdicts if "metrics" in lv]
+    scale_bounded_ratios = [lv["metrics"].get("scale_bounded_ratio", 0.0) for lv in layer_verdicts if "metrics" in lv]
+    frob_bounded_ratios = [lv["metrics"].get("frob_bounded_ratio", 0.0) for lv in layer_verdicts if "metrics" in lv]
 
     def safe_mean(xs):
         return sum(xs) / len(xs) if xs else 0.0
@@ -87,7 +72,10 @@ def load_audit_metrics(audits_dir: Path, pair_name: str, seed: int) -> dict | No
 
 
 def load_calibration_audit_metrics(
-    audits_dir: Path, task: str, seed_a: int, seed_b: int,
+    audits_dir: Path,
+    task: str,
+    seed_a: int,
+    seed_b: int,
 ) -> dict | None:
     """Load aggregate spectral metrics from a calibration audit."""
     cal_name = f"{task}_seeds_{seed_a}_{seed_b}"
@@ -101,10 +89,7 @@ def load_calibration_audit_metrics(
     layer_verdicts = data.get("per_layer", data.get("layer_verdicts", []))
 
     overlaps = [lv["metrics"]["mean_overlap"] for lv in layer_verdicts if "metrics" in lv]
-    dir_agreements = [
-        lv["metrics"].get("directional_agreement", 0.0)
-        for lv in layer_verdicts if "metrics" in lv
-    ]
+    dir_agreements = [lv["metrics"].get("directional_agreement", 0.0) for lv in layer_verdicts if "metrics" in lv]
 
     def safe_mean(xs):
         return sum(xs) / len(xs) if xs else 0.0
@@ -147,9 +132,13 @@ def extract_accuracy(eval_result: dict | None, task_name: str | None = None) -> 
         return None
 
     _METRIC_KEYS = [
-        "acc,none", "acc_norm,none",
-        "exact_match,strict-match", "exact_match,none",
-        "pass_at_1,none", "pass@1,none", "pass@1",
+        "acc,none",
+        "acc_norm,none",
+        "exact_match,strict-match",
+        "exact_match,none",
+        "pass_at_1,none",
+        "pass@1,none",
+        "pass@1",
     ]
 
     results = eval_result.get("results", {})
@@ -253,6 +242,7 @@ def main():
                 outcomes: dict[str, Any] | None = None
                 if all(x is not None for x in [merged_a_acc, merged_b_acc, baseline_a_acc, baseline_b_acc]):
                     from gradience.vnext.merge.outcomes import compute_merge_outcomes
+
                     outcomes = compute_merge_outcomes(
                         score_A_solo=baseline_a_acc,
                         score_B_solo=baseline_b_acc,
@@ -260,29 +250,31 @@ def main():
                         score_B_merged=merged_b_acc,
                     )
 
-                data_points.append({
-                    "pair": pair_name,
-                    "pair_type": "cross_task",
-                    "seed": seed,
-                    "weights": weights,
-                    "weight_label": wlabel,
-                    "mean_overlap": audit["mean_overlap"],
-                    "mean_directional_agreement": audit["mean_directional_agreement"],
-                    "mean_magnitude_ratio": audit["mean_magnitude_ratio"],
-                    "mean_stable_rank_ratio": audit["mean_stable_rank_ratio"],
-                    "mean_scale_bounded_ratio": audit["mean_scale_bounded_ratio"],
-                    "mean_frob_bounded_ratio": audit["mean_frob_bounded_ratio"],
-                    "compatibility_score": audit["compatibility_score"],
-                    "merged_acc_task_a": merged_a_acc,
-                    "merged_acc_task_b": merged_b_acc,
-                    "baseline_acc_a": baseline_a_acc,
-                    "baseline_acc_b": baseline_b_acc,
-                    "Q_min": outcomes["Q_min"] if outcomes else None,
-                    "D": outcomes["D"] if outcomes else None,
-                    "retention_A": outcomes["retention_A"] if outcomes else None,
-                    "retention_B": outcomes["retention_B"] if outcomes else None,
-                    "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
-                })
+                data_points.append(
+                    {
+                        "pair": pair_name,
+                        "pair_type": "cross_task",
+                        "seed": seed,
+                        "weights": weights,
+                        "weight_label": wlabel,
+                        "mean_overlap": audit["mean_overlap"],
+                        "mean_directional_agreement": audit["mean_directional_agreement"],
+                        "mean_magnitude_ratio": audit["mean_magnitude_ratio"],
+                        "mean_stable_rank_ratio": audit["mean_stable_rank_ratio"],
+                        "mean_scale_bounded_ratio": audit["mean_scale_bounded_ratio"],
+                        "mean_frob_bounded_ratio": audit["mean_frob_bounded_ratio"],
+                        "compatibility_score": audit["compatibility_score"],
+                        "merged_acc_task_a": merged_a_acc,
+                        "merged_acc_task_b": merged_b_acc,
+                        "baseline_acc_a": baseline_a_acc,
+                        "baseline_acc_b": baseline_b_acc,
+                        "Q_min": outcomes["Q_min"] if outcomes else None,
+                        "D": outcomes["D"] if outcomes else None,
+                        "retention_A": outcomes["retention_A"] if outcomes else None,
+                        "retention_B": outcomes["retention_B"] if outcomes else None,
+                        "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
+                    }
+                )
 
     # ------------------------------------------------------------------
     # 2. Collect calibration data points
@@ -322,6 +314,7 @@ def main():
                     outcomes = None
                     if all(x is not None for x in [merged_acc, baseline_a_acc, baseline_b_acc]):
                         from gradience.vnext.merge.outcomes import compute_merge_outcomes
+
                         outcomes = compute_merge_outcomes(
                             score_A_solo=baseline_a_acc,
                             score_B_solo=baseline_b_acc,
@@ -329,24 +322,26 @@ def main():
                             score_B_merged=merged_acc,
                         )
 
-                    calibration_points.append({
-                        "pair": cal_dir_name,
-                        "pair_type": "calibration",
-                        "task": task,
-                        "seed_a": seed_a,
-                        "seed_b": seed_b,
-                        "weights": weights,
-                        "weight_label": wlabel,
-                        "mean_overlap": cal_audit["mean_overlap"],
-                        "mean_directional_agreement": cal_audit["mean_directional_agreement"],
-                        "compatibility_score": cal_audit["compatibility_score"],
-                        "merged_acc": merged_acc,
-                        "baseline_acc_a": baseline_a_acc,
-                        "baseline_acc_b": baseline_b_acc,
-                        "Q_min": outcomes["Q_min"] if outcomes else None,
-                        "D": outcomes["D"] if outcomes else None,
-                        "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
-                    })
+                    calibration_points.append(
+                        {
+                            "pair": cal_dir_name,
+                            "pair_type": "calibration",
+                            "task": task,
+                            "seed_a": seed_a,
+                            "seed_b": seed_b,
+                            "weights": weights,
+                            "weight_label": wlabel,
+                            "mean_overlap": cal_audit["mean_overlap"],
+                            "mean_directional_agreement": cal_audit["mean_directional_agreement"],
+                            "compatibility_score": cal_audit["compatibility_score"],
+                            "merged_acc": merged_acc,
+                            "baseline_acc_a": baseline_a_acc,
+                            "baseline_acc_b": baseline_b_acc,
+                            "Q_min": outcomes["Q_min"] if outcomes else None,
+                            "D": outcomes["D"] if outcomes else None,
+                            "is_bad_merge": outcomes["is_bad_merge"] if outcomes else None,
+                        }
+                    )
 
     print(f"  Collected {len(data_points)} cross-task data points")
     print(f"  Collected {len(calibration_points)} calibration data points")
@@ -366,8 +361,8 @@ def main():
 
     if len(valid) >= 5:
         try:
-            from scipy import stats
             import numpy as np
+            from scipy import stats
 
             # Extract arrays
             overlaps = np.array([p["mean_overlap"] for p in valid])
@@ -518,6 +513,7 @@ def main():
 # Null control analysis
 # ----------------------------------------------------------------------
 
+
 def _run_null_controls(
     audits_dir: Path,
     pairs: list[tuple[str, str]],
@@ -533,8 +529,9 @@ def _run_null_controls(
     Returns None if the necessary per-layer data is not available.
     """
     try:
-        import torch
         import numpy as np
+        import torch
+
         from gradience.vnext.merge.null_controls import randomized_subspace_control
     except ImportError:
         return None
@@ -576,14 +573,16 @@ def _run_null_controls(
                 null_means.append(null_result["null_mean_of_means"])
 
             if real_overlaps:
-                sampled.append({
-                    "pair": pair_name,
-                    "seed": seed,
-                    "n_layers_tested": len(real_overlaps),
-                    "mean_real_overlap": float(np.mean(real_overlaps)),
-                    "mean_null_overlap": float(np.mean(null_means)),
-                    "above_null": float(np.mean(real_overlaps)) > float(np.mean(null_means)),
-                })
+                sampled.append(
+                    {
+                        "pair": pair_name,
+                        "seed": seed,
+                        "n_layers_tested": len(real_overlaps),
+                        "mean_real_overlap": float(np.mean(real_overlaps)),
+                        "mean_null_overlap": float(np.mean(null_means)),
+                        "above_null": float(np.mean(real_overlaps)) > float(np.mean(null_means)),
+                    }
+                )
 
     if not sampled:
         return None
@@ -599,6 +598,7 @@ def _run_null_controls(
 # ----------------------------------------------------------------------
 # Calibration analysis (same-task vs cross-task)
 # ----------------------------------------------------------------------
+
 
 def _calibration_analysis(
     cross_task_points: list[dict[str, Any]],
@@ -637,6 +637,7 @@ def _calibration_analysis(
     # Statistical test: calibration overlap should be significantly higher
     if len(cross_overlaps) >= 2 and len(cal_overlaps) >= 2:
         from scipy import stats
+
         t_stat, p_value = stats.ttest_ind(cal_overlaps, cross_overlaps, alternative="greater")
         result["ttest_t_stat"] = float(t_stat)
         result["ttest_p_value"] = float(p_value)
@@ -648,6 +649,7 @@ def _calibration_analysis(
 # ----------------------------------------------------------------------
 # Markdown report
 # ----------------------------------------------------------------------
+
 
 def _generate_markdown(report: dict, config: dict) -> str:
     """Generate human-readable markdown report."""
@@ -664,12 +666,14 @@ def _generate_markdown(report: dict, config: dict) -> str:
 
     # --- Correlation Analysis ---
     if "correlations" in report:
-        lines.extend([
-            "## Correlation Analysis (Spectral Metrics vs Q_min)",
-            "",
-            "| Metric | Pearson r | p-value | Spearman r | p-value |",
-            "|--------|-----------|---------|------------|---------|",
-        ])
+        lines.extend(
+            [
+                "## Correlation Analysis (Spectral Metrics vs Q_min)",
+                "",
+                "| Metric | Pearson r | p-value | Spearman r | p-value |",
+                "|--------|-----------|---------|------------|---------|",
+            ]
+        )
         for name, corr in report["correlations"].items():
             q = corr["vs_Q_min"]
             lines.append(
@@ -678,12 +682,14 @@ def _generate_markdown(report: dict, config: dict) -> str:
             )
         lines.append("")
 
-        lines.extend([
-            "### Correlation with D (Dominance Index)",
-            "",
-            "| Metric | Pearson r | p-value | Spearman r | p-value |",
-            "|--------|-----------|---------|------------|---------|",
-        ])
+        lines.extend(
+            [
+                "### Correlation with D (Dominance Index)",
+                "",
+                "| Metric | Pearson r | p-value | Spearman r | p-value |",
+                "|--------|-----------|---------|------------|---------|",
+            ]
+        )
         for name, corr in report["correlations"].items():
             d = corr["vs_D"]
             lines.append(
@@ -695,27 +701,42 @@ def _generate_markdown(report: dict, config: dict) -> str:
     # --- Prediction Evaluation ---
     if "prediction_evaluation" in report:
         pe = report["prediction_evaluation"]
-        lines.extend([
-            "## Merge Outcome Prediction",
-            "",
-            f"- **AUC-ROC**: {pe['auc_roc']:.3f}" if pe.get("auc_roc") is not None else "- **AUC-ROC**: N/A (single class)",
-            f"- **Average Precision**: {pe['average_precision']:.3f}" if pe.get("average_precision") is not None else "- **Average Precision**: N/A (single class)",
-            f"- **R-squared (Q_min)**: {pe['r_squared_Q_min']:.3f}" if pe.get("r_squared_Q_min") is not None else "- **R-squared (Q_min)**: N/A",
-            f"- Bad merges: {pe['n_bad']} / {pe['n_samples']}",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Merge Outcome Prediction",
+                "",
+                f"- **AUC-ROC**: {pe['auc_roc']:.3f}"
+                if pe.get("auc_roc") is not None
+                else "- **AUC-ROC**: N/A (single class)",
+                f"- **Average Precision**: {pe['average_precision']:.3f}"
+                if pe.get("average_precision") is not None
+                else "- **Average Precision**: N/A (single class)",
+                f"- **R-squared (Q_min)**: {pe['r_squared_Q_min']:.3f}"
+                if pe.get("r_squared_Q_min") is not None
+                else "- **R-squared (Q_min)**: N/A",
+                f"- Bad merges: {pe['n_bad']} / {pe['n_samples']}",
+                "",
+            ]
+        )
 
         if pe.get("calibration") and pe["calibration"].get("bin_edges"):
             cal = pe["calibration"]
-            lines.extend([
-                "### Calibration (Predicted Risk vs Observed Bad-Merge Rate)",
-                "",
-                "| Bin | Predicted | Observed | Count |",
-                "|----|-----------|----------|-------|",
-            ])
-            for i, (edges, pred, obs, count) in enumerate(zip(
-                cal["bin_edges"], cal["mean_predicted"], cal["mean_observed"], cal["bin_counts"],
-            )):
+            lines.extend(
+                [
+                    "### Calibration (Predicted Risk vs Observed Bad-Merge Rate)",
+                    "",
+                    "| Bin | Predicted | Observed | Count |",
+                    "|----|-----------|----------|-------|",
+                ]
+            )
+            for i, (edges, pred, obs, count) in enumerate(
+                zip(
+                    cal["bin_edges"],
+                    cal["mean_predicted"],
+                    cal["mean_observed"],
+                    cal["bin_counts"],
+                )
+            ):
                 pred_str = f"{pred:.3f}" if pred is not None else "-"
                 obs_str = f"{obs:.3f}" if obs is not None else "-"
                 lines.append(f"| [{edges[0]:.2f}, {edges[1]:.2f}) | {pred_str} | {obs_str} | {count} |")
@@ -723,12 +744,14 @@ def _generate_markdown(report: dict, config: dict) -> str:
 
     # --- Per-Weight Comparison ---
     if "per_weight" in report:
-        lines.extend([
-            "## Per-Weight Comparison",
-            "",
-            "| Weights | Mean Q_min | Std | Min Q_min | Mean D | Bad Merges |",
-            "|---------|-----------|-----|-----------|--------|------------|",
-        ])
+        lines.extend(
+            [
+                "## Per-Weight Comparison",
+                "",
+                "| Weights | Mean Q_min | Std | Min Q_min | Mean D | Bad Merges |",
+                "|---------|-----------|-----|-----------|--------|------------|",
+            ]
+        )
         for wlabel, wstats in report["per_weight"].items():
             lines.append(
                 f"| {wlabel} | {wstats['mean_Q_min']:.3f} "
@@ -742,16 +765,18 @@ def _generate_markdown(report: dict, config: dict) -> str:
     # --- Null Control Analysis ---
     if "null_controls" in report:
         nc = report["null_controls"]
-        lines.extend([
-            "## Null Control Analysis",
-            "",
-            f"- **Method**: {nc['method']}",
-            f"- **Audits tested**: {nc['n_audits_tested']}",
-            f"- **All above null**: {nc['all_above_null']}",
-            "",
-            "| Pair | Seed | Layers | Real Overlap | Null Overlap | Above Null |",
-            "|------|------|--------|-------------|-------------|------------|",
-        ])
+        lines.extend(
+            [
+                "## Null Control Analysis",
+                "",
+                f"- **Method**: {nc['method']}",
+                f"- **Audits tested**: {nc['n_audits_tested']}",
+                f"- **All above null**: {nc['all_above_null']}",
+                "",
+                "| Pair | Seed | Layers | Real Overlap | Null Overlap | Above Null |",
+                "|------|------|--------|-------------|-------------|------------|",
+            ]
+        )
         for r in nc["results"]:
             lines.append(
                 f"| {r['pair']} | {r['seed']} | {r['n_layers_tested']} "
@@ -763,14 +788,18 @@ def _generate_markdown(report: dict, config: dict) -> str:
     # --- Calibration Analysis ---
     if "calibration_analysis" in report:
         ca = report["calibration_analysis"]
-        lines.extend([
-            "## Calibration Analysis (Same-Task vs Cross-Task)",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Calibration Analysis (Same-Task vs Cross-Task)",
+                "",
+            ]
+        )
         if "cross_task_mean_overlap" in ca:
             lines.append(f"- **Cross-task mean overlap**: {ca['cross_task_mean_overlap']:.3f} (n={ca['cross_task_n']})")
         if "calibration_mean_overlap" in ca:
-            lines.append(f"- **Same-task (calibration) mean overlap**: {ca['calibration_mean_overlap']:.3f} (n={ca['calibration_n']})")
+            lines.append(
+                f"- **Same-task (calibration) mean overlap**: {ca['calibration_mean_overlap']:.3f} (n={ca['calibration_n']})"
+            )
         if "calibration_higher" in ca:
             lines.append(f"- **Calibration higher**: {ca['calibration_higher']}")
         if "ttest_p_value" in ca:
@@ -779,15 +808,16 @@ def _generate_markdown(report: dict, config: dict) -> str:
 
     # --- Success Criteria ---
     if report.get("success_criteria"):
-        lines.extend([
-            "## Success Criteria",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Success Criteria",
+                "",
+            ]
+        )
         for name, criterion in report["success_criteria"].items():
             status = "PASS" if criterion["met"] else "FAIL"
             lines.append(
-                f"- **{name}**: {criterion['value']:.3f} "
-                f"(threshold: {criterion['threshold']:.2f}) -- **{status}**"
+                f"- **{name}**: {criterion['value']:.3f} (threshold: {criterion['threshold']:.2f}) -- **{status}**"
             )
         lines.append("")
 

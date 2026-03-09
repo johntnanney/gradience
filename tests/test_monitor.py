@@ -12,7 +12,6 @@ import pytest
 from gradience.vnext.monitor import MonitorAlert, MonitorConfig, TrainingMonitor
 from gradience.vnext.monitor_replay import ReplayResult, replay_telemetry
 
-
 # ---------------------------------------------------------------------------
 # MonitorConfig
 # ---------------------------------------------------------------------------
@@ -39,8 +38,12 @@ class TestMonitorConfig:
 class TestMonitorAlert:
     def test_to_dict_serializable(self):
         a = MonitorAlert(
-            step=100, code="TEST", severity="info",
-            message="test", details={"x": 1}, recommendation="do something",
+            step=100,
+            code="TEST",
+            severity="info",
+            message="test",
+            details={"x": 1},
+            recommendation="do something",
         )
         d = a.to_dict()
         json_str = json.dumps(d)
@@ -48,8 +51,12 @@ class TestMonitorAlert:
 
     def test_frozen(self):
         a = MonitorAlert(
-            step=100, code="TEST", severity="info",
-            message="test", details={}, recommendation="",
+            step=100,
+            code="TEST",
+            severity="info",
+            message="test",
+            details={},
+            recommendation="",
         )
         with pytest.raises(AttributeError):
             a.step = 200
@@ -369,13 +376,17 @@ class TestReplayTelemetry:
         telemetry = tmp_path / "test_run.jsonl"
         records = []
         for i in range(20):
-            records.append(json.dumps({
-                "schema": "gradience.vnext.telemetry/v1",
-                "event": "train_step",
-                "step": i * 10,
-                "loss": 0.5,
-                "grad_norm": 1.0,
-            }))
+            records.append(
+                json.dumps(
+                    {
+                        "schema": "gradience.vnext.telemetry/v1",
+                        "event": "train_step",
+                        "step": i * 10,
+                        "loss": 0.5,
+                        "grad_norm": 1.0,
+                    }
+                )
+            )
         telemetry.write_text("\n".join(records))
 
         result = replay_telemetry(
@@ -390,12 +401,16 @@ class TestReplayTelemetry:
         telemetry = tmp_path / "study7.jsonl"
         records = []
         for i in range(20):
-            records.append(json.dumps({
-                "step": i * 200,
-                "train_loss": 1.0 - i * 0.04,
-                "val_loss": 5.0,
-                "grad_norm": 1.0,
-            }))
+            records.append(
+                json.dumps(
+                    {
+                        "step": i * 200,
+                        "train_loss": 1.0 - i * 0.04,
+                        "val_loss": 5.0,
+                        "grad_norm": 1.0,
+                    }
+                )
+            )
         telemetry.write_text("\n".join(records))
 
         result = replay_telemetry(telemetry)
@@ -428,12 +443,16 @@ class TestReplayTelemetry:
         records = []
         # Flat loss + flat grad + flat eval → should trigger CONSIDER_STOPPING
         for i in range(30):
-            records.append(json.dumps({
-                "step": i,
-                "train_loss": 0.5,
-                "grad_norm": 1.0,
-                "val_loss": 2.0,
-            }))
+            records.append(
+                json.dumps(
+                    {
+                        "step": i,
+                        "train_loss": 0.5,
+                        "grad_norm": 1.0,
+                        "val_loss": 2.0,
+                    }
+                )
+            )
         telemetry.write_text("\n".join(records))
 
         config = MonitorConfig(

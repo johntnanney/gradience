@@ -16,7 +16,6 @@ import numpy as np
 import pytest
 import torch
 
-
 # ---------------------------------------------------------------------------
 # Adapter directory builder
 # ---------------------------------------------------------------------------
@@ -27,8 +26,8 @@ def _make_adapter_dir(
     name: str,
     rank: int,
     alpha: float,
-    target_modules: List[str],
-    weights: Dict[str, torch.Tensor],
+    target_modules: list[str],
+    weights: dict[str, torch.Tensor],
     base_model: str = "test-model/tiny",
 ) -> Path:
     """Create a minimal PEFT adapter directory with config + weights."""
@@ -50,14 +49,14 @@ def _make_adapter_dir(
 
 
 def _make_lora_weights_from_svd(
-    module_prefixes: List[str],
+    module_prefixes: list[str],
     U: torch.Tensor,
     S: torch.Tensor,
     Vt: torch.Tensor,
     rank: int,
     alpha: float,
     scale: float = 1.0,
-) -> Dict[str, torch.Tensor]:
+) -> dict[str, torch.Tensor]:
     """Build LoRA A/B weight tensors from a desired SVD decomposition.
 
     Given ΔW = U @ diag(S) @ Vt, factors into B @ A such that
@@ -79,8 +78,8 @@ def _make_lora_weights_from_svd(
 
     sqrt_S = torch.sqrt(S_r.clamp(min=0)).unsqueeze(1)  # (rank, 1)
 
-    A = (sqrt_S * Vt_r) / (scaling ** 0.5)   # (rank, d_in)
-    B = (U_r * sqrt_S.T) / (scaling ** 0.5)  # (d_out, rank)
+    A = (sqrt_S * Vt_r) / (scaling**0.5)  # (rank, d_in)
+    B = (U_r * sqrt_S.T) / (scaling**0.5)  # (d_out, rank)
 
     weights = {}
     for i, prefix in enumerate(module_prefixes):
@@ -98,8 +97,8 @@ def _make_lora_weights_from_svd(
 # ---------------------------------------------------------------------------
 
 D_OUT = 64  # output dimension for test matrices
-D_IN = 48   # input dimension for test matrices
-RANK = 8    # default rank
+D_IN = 48  # input dimension for test matrices
+RANK = 8  # default rank
 ALPHA = 16.0  # default alpha
 
 MODULE_PREFIXES = [
@@ -114,7 +113,7 @@ MODULE_PREFIXES = [
 
 
 @pytest.fixture
-def orthogonal_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def orthogonal_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters with orthogonal dominant subspaces.
 
     Expected: verdict=SAFE, mean_overlap ≈ 0.0
@@ -145,7 +144,7 @@ def orthogonal_pair(tmp_path: Path) -> Tuple[Path, Path]:
 
 
 @pytest.fixture
-def redundant_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def redundant_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters with identical subspaces, aligned directions.
 
     Expected: verdict=REDUNDANT, mean_overlap ≈ 1.0, agreement ≈ 1.0
@@ -169,7 +168,7 @@ def redundant_pair(tmp_path: Path) -> Tuple[Path, Path]:
 
 
 @pytest.fixture
-def conflicting_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def conflicting_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters with overlapping subspaces, opposing directions.
 
     Expected: verdict=CONFLICTING, mean_overlap ≈ 1.0, agreement < -0.3
@@ -195,7 +194,7 @@ def conflicting_pair(tmp_path: Path) -> Tuple[Path, Path]:
 
 
 @pytest.fixture
-def imbalanced_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def imbalanced_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters where one has ~10x the magnitude.
 
     Expected: verdict=IMBALANCED, magnitude_ratio ≈ 10.0
@@ -219,7 +218,7 @@ def imbalanced_pair(tmp_path: Path) -> Tuple[Path, Path]:
 
 
 @pytest.fixture
-def different_rank_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def different_rank_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters with different ranks (r_a=4, r_b=16).
 
     Expected: analysis completes, metrics reflect rank asymmetry.
@@ -234,12 +233,8 @@ def different_rank_pair(tmp_path: Path) -> Tuple[Path, Path]:
     S_a = torch.linspace(5.0, 1.0, rank_a)
     S_b = torch.linspace(3.0, 0.5, rank_b)
 
-    weights_a = _make_lora_weights_from_svd(
-        MODULE_PREFIXES, U[:, :rank_a], S_a, Vt[:rank_a, :], rank_a, ALPHA
-    )
-    weights_b = _make_lora_weights_from_svd(
-        MODULE_PREFIXES, U[:, :rank_b], S_b, Vt[:rank_b, :], rank_b, ALPHA
-    )
+    weights_a = _make_lora_weights_from_svd(MODULE_PREFIXES, U[:, :rank_a], S_a, Vt[:rank_a, :], rank_a, ALPHA)
+    weights_b = _make_lora_weights_from_svd(MODULE_PREFIXES, U[:, :rank_b], S_b, Vt[:rank_b, :], rank_b, ALPHA)
 
     dir_a = _make_adapter_dir(tmp_path, "adapter_a", rank_a, ALPHA, ["q_proj", "v_proj"], weights_a)
     dir_b = _make_adapter_dir(tmp_path, "adapter_b", rank_b, ALPHA, ["q_proj", "v_proj"], weights_b)
@@ -248,7 +243,7 @@ def different_rank_pair(tmp_path: Path) -> Tuple[Path, Path]:
 
 
 @pytest.fixture
-def partial_overlap_pair(tmp_path: Path) -> Tuple[Path, Path]:
+def partial_overlap_pair(tmp_path: Path) -> tuple[Path, Path]:
     """Two adapters with partially overlapping target modules.
 
     A targets: q_proj, v_proj

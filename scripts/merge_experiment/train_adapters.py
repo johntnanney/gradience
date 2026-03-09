@@ -26,6 +26,7 @@ from pathlib import Path
 try:
     import torch
     from datasets import load_dataset
+    from peft import LoraConfig, TaskType, get_peft_model
     from transformers import (
         AutoModelForCausalLM,
         AutoTokenizer,
@@ -33,7 +34,6 @@ try:
         Trainer,
         TrainingArguments,
     )
-    from peft import LoraConfig, get_peft_model, TaskType
 except ImportError as e:
     print(f"\nMissing dependencies: {e}")
     print('Install with: pip install "gradience[bench]"')
@@ -116,7 +116,7 @@ def train_single_adapter(
     model = get_peft_model(model, lora_config)
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
-    print(f"  Trainable params: {trainable:,} / {total:,} ({100*trainable/total:.2f}%)")
+    print(f"  Trainable params: {trainable:,} / {total:,} ({100 * trainable / total:.2f}%)")
 
     # Load dataset
     print(f"  Loading dataset: glue/{dataset_name}")
@@ -195,9 +195,7 @@ def train_single_adapter(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Train fallback LoRA adapters for MNLI and QNLI"
-    )
+    parser = argparse.ArgumentParser(description="Train fallback LoRA adapters for MNLI and QNLI")
     parser.add_argument(
         "--base-model",
         type=str,

@@ -13,7 +13,6 @@ import torch
 
 from gradience.vnext.merge.norm_equalized import norm_equalized_merge
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

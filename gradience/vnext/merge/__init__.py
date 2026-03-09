@@ -22,79 +22,13 @@ Quick-start::
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Optional, Union
-
-import logging
 
 import torch
 
 from gradience.exceptions import MergeError
-from gradience.vnext.merge.io import (
-    AdapterInfo,
-    extract_factors,
-    get_module_type,
-    load_adapter,
-    match_layers,
-)
-from gradience.vnext.merge.report import (
-    MergeAuditReport,
-    build_report,
-    to_json,
-    to_markdown,
-    write_reports,
-)
-from gradience.vnext.merge.spectral_compat import (
-    SubspaceMetrics,
-    compute_subspace_metrics,
-)
-from gradience.vnext.merge.verdicts import (
-    CompatibilityVerdict,
-    LayerVerdict,
-    VerdictThresholds,
-    assess_layer,
-    assess_overall,
-)
-
-# Phase 2 — merge execution
-from gradience.vnext.merge.strategies import (
-    LayerMergeConfig,
-    MergeStrategy,
-    LinearMerge,
-    TIESMerge,
-    DARELinearMerge,
-    DARETIESMerge,
-    NormEqualizedMerge,
-    get_strategy,
-)
-from gradience.vnext.merge.refactor import refactor_to_lora
-from gradience.vnext.merge.plan import (
-    MergePlan,
-    plan_from_audit,
-    PLAN_STRATEGIES,
-)
-from gradience.vnext.merge.executor import (
-    MergeResult,
-    LayerMergeResult,
-    execute_merge,
-)
-
-# Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
-from gradience.vnext.merge.recommend import (
-    # Stage A — Diagnosis
-    LayerDiagnosis,
-    EligibilityContext,
-    PairDiagnosis,
-    diagnose_layer,
-    diagnose_pair,
-    # Stage B — Policy
-    MergeRecommendation,
-    LayerRecommendation,
-    recommend_merge,
-    format_recommendation,
-    rebalance_coefficients,
-    norm_equalized_coefficients,
-)
 
 # Typed containers
 from gradience.vnext.merge.containers import (
@@ -109,10 +43,33 @@ from gradience.vnext.merge.containers import (
 
 # Source eligibility screening
 from gradience.vnext.merge.eligibility import (
-    EligibilityStatus,
     AdapterQAResult,
+    EligibilityStatus,
     classify_eligibility,
     screen_adapters,
+)
+from gradience.vnext.merge.evaluation import merge_prediction_evaluation
+from gradience.vnext.merge.executor import (
+    LayerMergeResult,
+    MergeResult,
+    execute_merge,
+)
+from gradience.vnext.merge.io import (
+    AdapterInfo,
+    extract_factors,
+    get_module_type,
+    load_adapter,
+    match_layers,
+)
+from gradience.vnext.merge.norm_equalized import norm_equalized_merge
+from gradience.vnext.merge.null_controls import layer_shuffle_control, randomized_subspace_control
+
+# Phase 2 — M1 protocol modules
+from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
+from gradience.vnext.merge.plan import (
+    PLAN_STRATEGIES,
+    MergePlan,
+    plan_from_audit,
 )
 
 # QA Report
@@ -123,12 +80,54 @@ from gradience.vnext.merge.qa_report import (
     format_qa_report,
 )
 
-# Phase 2 — M1 protocol modules
-from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
-from gradience.vnext.merge.scale import symmetric_scale_metrics, symmetric_frobenius_metrics
-from gradience.vnext.merge.evaluation import merge_prediction_evaluation
-from gradience.vnext.merge.null_controls import randomized_subspace_control, layer_shuffle_control
-from gradience.vnext.merge.norm_equalized import norm_equalized_merge
+# Phase 2 — Recommendations (Stage A diagnosis + Stage B policy)
+from gradience.vnext.merge.recommend import (
+    EligibilityContext,
+    # Stage A — Diagnosis
+    LayerDiagnosis,
+    LayerRecommendation,
+    # Stage B — Policy
+    MergeRecommendation,
+    PairDiagnosis,
+    diagnose_layer,
+    diagnose_pair,
+    format_recommendation,
+    norm_equalized_coefficients,
+    rebalance_coefficients,
+    recommend_merge,
+)
+from gradience.vnext.merge.refactor import refactor_to_lora
+from gradience.vnext.merge.report import (
+    MergeAuditReport,
+    build_report,
+    to_json,
+    to_markdown,
+    write_reports,
+)
+from gradience.vnext.merge.scale import symmetric_frobenius_metrics, symmetric_scale_metrics
+from gradience.vnext.merge.spectral_compat import (
+    SubspaceMetrics,
+    compute_subspace_metrics,
+)
+
+# Phase 2 — merge execution
+from gradience.vnext.merge.strategies import (
+    DARELinearMerge,
+    DARETIESMerge,
+    LayerMergeConfig,
+    LinearMerge,
+    MergeStrategy,
+    NormEqualizedMerge,
+    TIESMerge,
+    get_strategy,
+)
+from gradience.vnext.merge.verdicts import (
+    CompatibilityVerdict,
+    LayerVerdict,
+    VerdictThresholds,
+    assess_layer,
+    assess_overall,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -236,16 +235,16 @@ _DTYPE_MAP = {
 
 
 def merge_audit(
-    adapter_a_dir: Union[str, Path],
-    adapter_b_dir: Union[str, Path],
+    adapter_a_dir: str | Path,
+    adapter_b_dir: str | Path,
     *,
-    output_dir: Optional[Union[str, Path]] = None,
+    output_dir: str | Path | None = None,
     energy_threshold: float = 0.90,
-    thresholds: Optional[VerdictThresholds] = None,
+    thresholds: VerdictThresholds | None = None,
     compute_dtype: str = "float32",
     verbose: bool = False,
-    source_qa_a: Optional[AdapterQAResult] = None,
-    source_qa_b: Optional[AdapterQAResult] = None,
+    source_qa_a: AdapterQAResult | None = None,
+    source_qa_b: AdapterQAResult | None = None,
 ) -> MergeAuditReport:
     """Run a merge compatibility audit on two PEFT LoRA adapters.
 
@@ -278,10 +277,7 @@ def merge_audit(
 
     dtype = _DTYPE_MAP.get(compute_dtype)
     if dtype is None:
-        raise MergeError(
-            f"Unsupported compute_dtype '{compute_dtype}'. "
-            f"Choose from: {list(_DTYPE_MAP.keys())}"
-        )
+        raise MergeError(f"Unsupported compute_dtype '{compute_dtype}'. Choose from: {list(_DTYPE_MAP.keys())}")
 
     # --- Step 1: Load adapters ---
     if verbose:
@@ -293,25 +289,24 @@ def merge_audit(
     info_b = load_adapter(adapter_b_dir)
 
     if verbose:
-        print(
-            f"  A: rank={info_a.rank}, alpha={info_a.alpha}, "
-            f"{len(info_a.lora_pairs)} layers"
-        )
-        print(
-            f"  B: rank={info_b.rank}, alpha={info_b.alpha}, "
-            f"{len(info_b.lora_pairs)} layers"
-        )
+        print(f"  A: rank={info_a.rank}, alpha={info_a.alpha}, {len(info_a.lora_pairs)} layers")
+        print(f"  B: rank={info_b.rank}, alpha={info_b.alpha}, {len(info_b.lora_pairs)} layers")
 
-    logger.debug("Loaded adapters: A=%s (rank=%d, %d layers), B=%s (rank=%d, %d layers)", adapter_a_dir, info_a.rank, len(info_a.lora_pairs), adapter_b_dir, info_b.rank, len(info_b.lora_pairs))
+    logger.debug(
+        "Loaded adapters: A=%s (rank=%d, %d layers), B=%s (rank=%d, %d layers)",
+        adapter_a_dir,
+        info_a.rank,
+        len(info_a.lora_pairs),
+        adapter_b_dir,
+        info_b.rank,
+        len(info_b.lora_pairs),
+    )
 
     # --- Step 2: Match layers ---
     shared, only_a, only_b = match_layers(info_a, info_b)
 
     if verbose:
-        print(
-            f"Layer matching: {len(shared)} shared, "
-            f"{len(only_a)} only-A, {len(only_b)} only-B"
-        )
+        print(f"Layer matching: {len(shared)} shared, {len(only_a)} only-A, {len(only_b)} only-B")
 
     logger.debug("Layer matching: %d shared, %d only-A, %d only-B", len(shared), len(only_a), len(only_b))
 
@@ -338,8 +333,14 @@ def merge_audit(
         A_b, B_b, r_b = extract_factors(info_b, module_prefix)
 
         metrics = compute_subspace_metrics(
-            A_a, B_a, info_a.alpha, r_a,
-            A_b, B_b, info_b.alpha, r_b,
+            A_a,
+            B_a,
+            info_a.alpha,
+            r_a,
+            A_b,
+            B_b,
+            info_b.alpha,
+            r_b,
             energy_threshold=energy_threshold,
             compute_dtype=dtype,
         )
@@ -365,10 +366,7 @@ def merge_audit(
     overall_verdict, score, recommendations = assess_overall(layer_verdicts)
 
     if verbose:
-        print(
-            f"\nOverall verdict: {overall_verdict.value.upper()} "
-            f"(score={score:.3f})"
-        )
+        print(f"\nOverall verdict: {overall_verdict.value.upper()} (score={score:.3f})")
 
     logger.debug("Merge audit verdict: %s (score=%.3f)", overall_verdict.value, score)
 

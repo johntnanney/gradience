@@ -20,26 +20,30 @@ This reanalysis asks:
 
 Outputs: JSON results + markdown summary.
 """
+
 from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.feature_selection import mutual_info_classif
 from scipy.stats import entropy
+from sklearn.feature_selection import mutual_info_classif
 
 EPS = 1e-12
 N_PERM = 2000  # More permutations for tighter p-values at n=49
 
 # ── Feature sets ──
 GEOM_6 = [
-    "early_weight_norm_mean", "early_weight_norm_slope",
-    "early_weight_norm_curvature", "early_grad_norm_mean",
-    "early_grad_to_weight_ratio_mean", "early_cos_grad_weight_mean",
+    "early_weight_norm_mean",
+    "early_weight_norm_slope",
+    "early_weight_norm_curvature",
+    "early_grad_norm_mean",
+    "early_grad_to_weight_ratio_mean",
+    "early_cos_grad_weight_mean",
 ]
 GEOM_7 = GEOM_6 + ["early_spectral_complexity_mean"]
 LOSS_ONLY = ["early_mean_train_loss"]
@@ -47,6 +51,7 @@ SPECTRAL_ONLY = ["early_spectral_complexity_mean"]
 
 
 # ── Helpers ──
+
 
 def zscore_fit(X):
     mu = np.mean(X, axis=0)
@@ -221,11 +226,11 @@ def compute_mdl(X, y_int, seeds, n_classes, name=""):
 
 def mcnemar_test(preds_a, preds_b, true_labels):
     """McNemar's test comparing two classifiers."""
-    a_correct = (preds_a == true_labels)
-    b_correct = (preds_b == true_labels)
+    a_correct = preds_a == true_labels
+    b_correct = preds_b == true_labels
     # Discordant pairs
     b_only = int(np.sum(~a_correct & b_correct))  # b right, a wrong
-    a_only = int(np.sum(a_correct & ~b_correct))   # a right, b wrong
+    a_only = int(np.sum(a_correct & ~b_correct))  # a right, b wrong
     n_disc = a_only + b_only
 
     if n_disc == 0:
@@ -234,6 +239,7 @@ def mcnemar_test(preds_a, preds_b, true_labels):
     # McNemar with continuity correction
     chi2 = (abs(a_only - b_only) - 1) ** 2 / n_disc
     from scipy.stats import chi2 as chi2_dist
+
     p_value = float(1.0 - chi2_dist.cdf(chi2, df=1))
 
     return {"chi2": float(chi2), "p_value": p_value, "a_only": a_only, "b_only": b_only}
@@ -243,9 +249,12 @@ def mcnemar_test(preds_a, preds_b, true_labels):
 # Main analysis
 # ===========================================================================
 
+
 def main():
     # ── Load data ──
-    csv_path = Path(__file__).resolve().parent.parent / "Gradience II" / "analysis" / "study12" / "early_features_study12.csv"
+    csv_path = (
+        Path(__file__).resolve().parent.parent / "Gradience II" / "analysis" / "study12" / "early_features_study12.csv"
+    )
 
     # Try alternate paths
     if not csv_path.exists():
@@ -382,8 +391,10 @@ def main():
     for name, (X, feats) in feature_sets.items():
         ce = compute_conditional_entropy(X, y_int, seeds, n_classes)
         ce_results[name] = ce
-        print(f"  {name:>15s}: H(Y|X)={ce['H_conditional']:.4f}, "
-              f"info_gain={ce['info_gain']:.4f} ({ce['info_gain_frac']:.1%} of prior)")
+        print(
+            f"  {name:>15s}: H(Y|X)={ce['H_conditional']:.4f}, "
+            f"info_gain={ce['info_gain']:.4f} ({ce['info_gain_frac']:.1%} of prior)"
+        )
 
     # Ratios
     loss_gain = ce_results["loss_only"]["info_gain"]
@@ -405,8 +416,7 @@ def main():
     for name, (X, feats) in feature_sets.items():
         mdl = compute_mdl(X, y_int, seeds, n_classes, name)
         mdl_results[name] = mdl
-        print(f"  {name:>15s}: BIC={mdl['bic']:.3f}, AIC={mdl['aic']:.3f} "
-              f"(k={mdl['n_params']}, NLL={mdl['nll']:.3f})")
+        print(f"  {name:>15s}: BIC={mdl['bic']:.3f}, AIC={mdl['aic']:.3f} (k={mdl['n_params']}, NLL={mdl['nll']:.3f})")
 
     best_bic = min(mdl_results.items(), key=lambda x: x[1]["bic"])
     best_aic = min(mdl_results.items(), key=lambda x: x[1]["aic"])
@@ -435,29 +445,35 @@ def main():
     mi_loss_val = mi_results["loss_only"]["joint_mi_corrected"]
     mi_spec = mi_results["spectral_only"]["joint_mi_corrected"]
 
-    print(f"\n  Classification accuracy:")
+    print("\n  Classification accuracy:")
     print(f"    Loss only:          {acc_loss:.1%}")
     print(f"    Geometry (6 feat):  {acc_g6:.1%}")
     print(f"    Geometry (7 feat):  {acc_g7:.1%}")
     print(f"    Spectral only:      {acc_spec:.1%}")
 
-    print(f"\n  Mutual information (corrected):")
+    print("\n  Mutual information (corrected):")
     print(f"    Loss only:          {mi_loss_val:.4f}")
-    print(f"    Geometry (6 feat):  {mi_g6:.4f} ({mi_g6/mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
-    print(f"    Geometry (7 feat):  {mi_g7:.4f} ({mi_g7/mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
-    print(f"    Spectral only:      {mi_spec:.4f} ({mi_spec/mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
+    print(f"    Geometry (6 feat):  {mi_g6:.4f} ({mi_g6 / mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
+    print(f"    Geometry (7 feat):  {mi_g7:.4f} ({mi_g7 / mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
+    print(f"    Spectral only:      {mi_spec:.4f} ({mi_spec / mi_loss_val:.1f}× loss)" if mi_loss_val > 0 else "")
 
     spectral_helps_acc = acc_g7 > acc_g6
     spectral_helps_mi = mi_g7 > mi_g6
     spectral_alone_beats_loss = acc_spec > acc_loss
 
-    print(f"\n  Key questions:")
-    print(f"    Does spectral improve classification?   {'YES' if spectral_helps_acc else 'NO'} "
-          f"({acc_g7:.1%} vs {acc_g6:.1%})")
-    print(f"    Does spectral improve MI?               {'YES' if spectral_helps_mi else 'NO'} "
-          f"({mi_g7:.4f} vs {mi_g6:.4f})")
-    print(f"    Spectral alone vs loss?                 {'SPECTRAL WINS' if spectral_alone_beats_loss else 'LOSS WINS'} "
-          f"({acc_spec:.1%} vs {acc_loss:.1%})")
+    print("\n  Key questions:")
+    print(
+        f"    Does spectral improve classification?   {'YES' if spectral_helps_acc else 'NO'} "
+        f"({acc_g7:.1%} vs {acc_g6:.1%})"
+    )
+    print(
+        f"    Does spectral improve MI?               {'YES' if spectral_helps_mi else 'NO'} "
+        f"({mi_g7:.4f} vs {mi_g6:.4f})"
+    )
+    print(
+        f"    Spectral alone vs loss?                 {'SPECTRAL WINS' if spectral_alone_beats_loss else 'LOSS WINS'} "
+        f"({acc_spec:.1%} vs {acc_loss:.1%})"
+    )
 
     results["summary"] = {
         "spectral_improves_classification": spectral_helps_acc,
@@ -498,9 +514,7 @@ def main():
     ]
     for name in ["loss_only", "geometry_6", "geometry_7", "spectral_only"]:
         cr = class_results[name]
-        md_lines.append(
-            f"| {name} | {cr['n_features']} | {cr['accuracy']:.1%} | {cr['p_value']:.4f} |"
-        )
+        md_lines.append(f"| {name} | {cr['n_features']} | {cr['accuracy']:.1%} | {cr['p_value']:.4f} |")
     md_lines += [
         "",
         "## McNemar Tests",
@@ -522,9 +536,7 @@ def main():
     for name in ["loss_only", "geometry_6", "geometry_7", "spectral_only"]:
         mi = mi_results[name]
         ratio = mi.get("mi_ratio_vs_loss", 1.0) if name != "loss_only" else 1.0
-        md_lines.append(
-            f"| {name} | {mi['joint_mi_corrected']:.4f} | {ratio:.2f}× | {mi['p_value']:.4f} |"
-        )
+        md_lines.append(f"| {name} | {mi['joint_mi_corrected']:.4f} | {ratio:.2f}× | {mi['p_value']:.4f} |")
 
     md_lines += [
         "",
@@ -535,9 +547,7 @@ def main():
     ]
     for name in ["loss_only", "geometry_6", "geometry_7", "spectral_only"]:
         ce = ce_results[name]
-        md_lines.append(
-            f"| {name} | {ce['H_conditional']:.4f} | {ce['info_gain']:.4f} | {ce['info_gain_frac']:.1%} |"
-        )
+        md_lines.append(f"| {name} | {ce['H_conditional']:.4f} | {ce['info_gain']:.4f} | {ce['info_gain_frac']:.1%} |")
 
     md_lines += [
         "",
@@ -548,9 +558,7 @@ def main():
     ]
     for name in ["loss_only", "geometry_6", "geometry_7", "spectral_only"]:
         m = mdl_results[name]
-        md_lines.append(
-            f"| {name} | {m['n_params']} | {m['nll']:.3f} | {m['bic']:.3f} | {m['aic']:.3f} |"
-        )
+        md_lines.append(f"| {name} | {m['n_params']} | {m['nll']:.3f} | {m['bic']:.3f} | {m['aic']:.3f} |")
     md_lines.append(f"\nBest BIC: **{best_bic[0]}**")
     md_lines.append(f"Best AIC: **{best_aic[0]}**")
 
@@ -571,7 +579,9 @@ def main():
         "|--------|---------------|-----------------|",
         f"| Geometry accuracy | 66.7% | {acc_g7:.1%} |",
         f"| Loss accuracy | 40.0% | {acc_loss:.1%} |",
-        f"| MI ratio (geom/loss) | 7.4× | {mi_g7/mi_loss_val:.1f}× |" if mi_loss_val > 0 else "| MI ratio | 7.4× | N/A |",
+        f"| MI ratio (geom/loss) | 7.4× | {mi_g7 / mi_loss_val:.1f}× |"
+        if mi_loss_val > 0
+        else "| MI ratio | 7.4× | N/A |",
         f"| McNemar (geom vs loss) | p=0.289 | p={mcnemar_results.get('geometry_7_vs_loss_only', {}).get('p_value', 'N/A')} |",
         "",
     ]

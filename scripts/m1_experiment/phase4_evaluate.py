@@ -94,13 +94,21 @@ def run_lm_eval(
 
     # Build lm_eval command
     cmd = [
-        sys.executable, "-m", "lm_eval",
-        "--model", "hf",
-        "--model_args", f"pretrained={base_model}",
-        "--tasks", task,
-        "--batch_size", "auto",
-        "--device", device,
-        "--output_path", str(lm_eval_out),
+        sys.executable,
+        "-m",
+        "lm_eval",
+        "--model",
+        "hf",
+        "--model_args",
+        f"pretrained={base_model}",
+        "--tasks",
+        task,
+        "--batch_size",
+        "auto",
+        "--device",
+        device,
+        "--output_path",
+        str(lm_eval_out),
         "--log_samples",
         "--confirm_run_unsafe_code",
     ]
@@ -150,7 +158,7 @@ def run_lm_eval(
             print(f"      [WARN] No results_*.json found in {lm_eval_out}")
 
     except subprocess.TimeoutExpired:
-        print(f"      [TIMEOUT] lm_eval timed out")
+        print("      [TIMEOUT] lm_eval timed out")
         return {"error": True, "reason": "timeout"}
     except Exception as e:
         print(f"      [ERROR] {e}")
@@ -164,7 +172,8 @@ def main():
     parser.add_argument("--config", required=True, help="Path to m1_config.yaml")
     parser.add_argument("--smoke", action="store_true", help="Smoke test")
     parser.add_argument(
-        "--recover", action="store_true",
+        "--recover",
+        action="store_true",
         help="Recover results from a previous lm-eval run (scans for results_*.json)",
     )
     args = parser.parse_args()
@@ -261,10 +270,7 @@ def main():
                     continue
 
                 for eval_task in eval_tasks_for_pair:
-                    output_path = (
-                        merged_eval_dir
-                        / f"{pair_name}_seed_{seed}_{wlabel}_{eval_task}.json"
-                    )
+                    output_path = merged_eval_dir / f"{pair_name}_seed_{seed}_{wlabel}_{eval_task}.json"
                     print(f"  Evaluating {pair_name}/seed_{seed}/{wlabel} on {eval_task}...")
                     run_lm_eval(
                         base_model=base_model,
@@ -290,10 +296,7 @@ def main():
                     if not merge_dir.exists():
                         continue
 
-                    output_path = (
-                        merged_eval_dir
-                        / f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json"
-                    )
+                    output_path = merged_eval_dir / f"calibration_{cal_dir_name}_{wlabel}_{eval_task}.json"
                     print(f"  Evaluating calibration/{cal_dir_name}/{wlabel} on {eval_task}...")
                     run_lm_eval(
                         base_model=base_model,

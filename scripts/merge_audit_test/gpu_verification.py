@@ -38,10 +38,7 @@ TASK_PROMPTS = {
         "Customer: I ordered a laptop last week and it still hasn't arrived. "
         "I'm really frustrated. Can you help me?\n\nAgent:"
     ),
-    "zephyr_sft": (
-        "You are a helpful assistant. What are the main benefits of "
-        "regular exercise for mental health?"
-    ),
+    "zephyr_sft": ("You are a helpful assistant. What are the main benefits of regular exercise for mental health?"),
 }
 
 
@@ -49,13 +46,14 @@ TASK_PROMPTS = {
 # Test 1: Adapter loading verification
 # ---------------------------------------------------------------------------
 
+
 def verify_adapter_loading():
     """Verify adapters load correctly with PEFT on GPU."""
-    from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     print(f"\n{'=' * 70}")
-    print(f"  TEST 1: Adapter Loading Verification")
+    print("  TEST 1: Adapter Loading Verification")
     print(f"{'=' * 70}")
 
     print(f"\n  Loading base model: {BASE_MODEL}")
@@ -93,8 +91,7 @@ def verify_adapter_loading():
             mem_delta = (mem_after - mem_before) / 1e6  # MB
 
             print(f"  [{name}] Loaded successfully ({elapsed:.1f}s)")
-            print(f"  [{name}] GPU memory: {mem_after / 1e9:.2f} GB "
-                  f"(+{mem_delta:.1f} MB for adapter)")
+            print(f"  [{name}] GPU memory: {mem_after / 1e9:.2f} GB (+{mem_delta:.1f} MB for adapter)")
 
             # Quick generation test
             prompt = TASK_PROMPTS.get(name, "Tell me about yourself:")
@@ -110,10 +107,9 @@ def verify_adapter_loading():
             mem_post_gen = torch.cuda.memory_allocated()
 
             response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            generated = response[len(prompt):]
+            generated = response[len(prompt) :]
             print(f"  [{name}] Generation OK: {generated[:100].strip()}...")
-            print(f"  [{name}] Inference memory delta: "
-                  f"+{(mem_post_gen - mem_pre_gen) / 1e6:.1f} MB")
+            print(f"  [{name}] Inference memory delta: +{(mem_post_gen - mem_pre_gen) / 1e6:.1f} MB")
 
             results[name] = {
                 "status": "ok",
@@ -137,6 +133,7 @@ def verify_adapter_loading():
 # Test 2: Weight computation verification
 # ---------------------------------------------------------------------------
 
+
 def verify_weight_computation():
     """Verify merge-audit's weight computation matches direct loading.
 
@@ -147,7 +144,7 @@ def verify_weight_computation():
     from safetensors import safe_open
 
     print(f"\n\n{'=' * 70}")
-    print(f"  TEST 2: Weight Computation Verification")
+    print("  TEST 2: Weight Computation Verification")
     print(f"{'=' * 70}")
 
     for name in ADAPTERS_TO_VERIFY:
@@ -197,7 +194,7 @@ def verify_weight_computation():
             U, S, Vt = torch.linalg.svd(delta_w, full_matrices=False)
 
             # Energy analysis
-            energy = (S ** 2).cumsum(0) / (S ** 2).sum()
+            energy = (S**2).cumsum(0) / (S**2).sum()
             eff_rank_90 = int((energy < 0.90).sum().item()) + 1
             eff_rank_95 = int((energy < 0.95).sum().item()) + 1
 
@@ -220,13 +217,14 @@ def verify_weight_computation():
 # Test 3: Task-specific inference comparison
 # ---------------------------------------------------------------------------
 
+
 def verify_task_specific_inference():
     """Run the same prompt through each adapter to confirm different behavior."""
-    from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import PeftModel
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     print(f"\n\n{'=' * 70}")
-    print(f"  TEST 3: Task-Specific Inference Comparison")
+    print("  TEST 3: Task-Specific Inference Comparison")
     print(f"{'=' * 70}")
 
     available = [n for n in ADAPTERS_TO_VERIFY if (ADAPTER_DIR / n).exists()]
@@ -263,14 +261,14 @@ def verify_task_specific_inference():
 
             with torch.no_grad():
                 out_task = model.generate(**inputs_task, max_new_tokens=80, do_sample=False)
-            resp_task = tokenizer.decode(out_task[0], skip_special_tokens=True)[len(task_prompt):]
+            resp_task = tokenizer.decode(out_task[0], skip_special_tokens=True)[len(task_prompt) :]
 
             # Neutral prompt (same for all adapters)
             inputs_neutral = tokenizer(neutral_prompt, return_tensors="pt").to(model.device)
 
             with torch.no_grad():
                 out_neutral = model.generate(**inputs_neutral, max_new_tokens=80, do_sample=False)
-            resp_neutral = tokenizer.decode(out_neutral[0], skip_special_tokens=True)[len(neutral_prompt):]
+            resp_neutral = tokenizer.decode(out_neutral[0], skip_special_tokens=True)[len(neutral_prompt) :]
 
             print(f"  [{name}] Task prompt: {task_prompt[:60]}...")
             print(f"  [{name}] Task output: {resp_task[:120].strip()}")
@@ -289,7 +287,7 @@ def verify_task_specific_inference():
 
     # Compare neutral responses across adapters
     if len(outputs_by_adapter) >= 2:
-        print(f"\n  --- Comparison ---")
+        print("\n  --- Comparison ---")
         names = list(outputs_by_adapter.keys())
         for i in range(len(names)):
             for j in range(i + 1, len(names)):
@@ -298,7 +296,7 @@ def verify_task_specific_inference():
                 same = a_resp == b_resp
                 print(f"  {names[i]} vs {names[j]}: {'IDENTICAL' if same else 'DIFFERENT'} neutral responses")
                 if same:
-                    print(f"    WARNING: identical responses may indicate adapters aren't loading properly")
+                    print("    WARNING: identical responses may indicate adapters aren't loading properly")
 
 
 # ---------------------------------------------------------------------------
@@ -325,16 +323,18 @@ if __name__ == "__main__":
 
     # Summary
     print(f"\n\n{'=' * 70}")
-    print(f"  GPU VERIFICATION COMPLETE")
+    print("  GPU VERIFICATION COMPLETE")
     print(f"{'=' * 70}")
     print(f"  Peak GPU memory: {torch.cuda.max_memory_allocated() / 1e9:.1f} GB")
     print(f"  Adapters tested: {len(load_results)}")
     for name, result in load_results.items():
         status = result["status"].upper()
         if result["status"] == "ok":
-            print(f"    {name}: {status} "
-                  f"(load={result['load_time_s']:.1f}s, "
-                  f"adapter=+{result['adapter_memory_mb']:.0f}MB, "
-                  f"total={result['total_memory_gb']:.2f}GB)")
+            print(
+                f"    {name}: {status} "
+                f"(load={result['load_time_s']:.1f}s, "
+                f"adapter=+{result['adapter_memory_mb']:.0f}MB, "
+                f"total={result['total_memory_gb']:.2f}GB)"
+            )
         else:
             print(f"    {name}: {status} — {result.get('error', 'unknown')}")

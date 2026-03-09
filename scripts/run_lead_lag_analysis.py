@@ -23,6 +23,11 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from gradience.analysis.early_stopping import (
+    aggregate_stopping_results,
+    make_stopping_rules,
+    simulate_early_stopping,
+)
 from gradience.analysis.extract_timeseries import extract_all_runs, save_aligned
 from gradience.analysis.lead_lag import (
     aggregate_ccfs,
@@ -31,11 +36,6 @@ from gradience.analysis.lead_lag import (
     ridge_forecast,
     run_lead_lag_analysis,
     surrogate_null_test,
-)
-from gradience.analysis.early_stopping import (
-    aggregate_stopping_results,
-    make_stopping_rules,
-    simulate_early_stopping,
 )
 
 # M1 telemetry data (chat task, 3 seeds with eval every 25 steps + structural every 50 steps)
@@ -163,18 +163,26 @@ def main():
             if not np.isnan(ccf_r.peak_corr):
                 sig = "*" if ccf_r.significant_lags else ""
                 direction = "LEADS" if ccf_r.peak_lag < 0 else ("LAGS" if ccf_r.peak_lag > 0 else "SYNC")
-                print(f"      {ccf_r.feature_name:<30s} lag={ccf_r.peak_lag:+d} r={ccf_r.peak_corr:+.3f} {direction}{sig}")
+                print(
+                    f"      {ccf_r.feature_name:<30s} lag={ccf_r.peak_lag:+d} r={ccf_r.peak_corr:+.3f} {direction}{sig}"
+                )
 
         print("    Granger (p-value):")
         for gr in results["granger"]:
             if not np.isnan(gr.p_value):
-                sig = "***" if gr.p_value < 0.01 else ("**" if gr.p_value < 0.05 else ("*" if gr.p_value < 0.10 else ""))
-                print(f"      {gr.feature_name:<30s} p={gr.p_value:.4f} F={gr.f_statistic:.2f} dR2={gr.delta_r_squared:.4f} {sig}")
+                sig = (
+                    "***" if gr.p_value < 0.01 else ("**" if gr.p_value < 0.05 else ("*" if gr.p_value < 0.10 else ""))
+                )
+                print(
+                    f"      {gr.feature_name:<30s} p={gr.p_value:.4f} F={gr.f_statistic:.2f} dR2={gr.delta_r_squared:.4f} {sig}"
+                )
 
         print("    Forecast (RMSE reduction vs persistence):")
         for flabel, fr in results["forecast"].items():
             if not np.isnan(fr.rmse_reduction_pct):
-                print(f"      {flabel:<20s} RMSE_red={fr.rmse_reduction_pct:+.1f}% R2_oos={fr.r_squared_oos:.3f} (n={fr.n_predictions})")
+                print(
+                    f"      {flabel:<20s} RMSE_red={fr.rmse_reduction_pct:+.1f}% R2_oos={fr.r_squared_oos:.3f} (n={fr.n_predictions})"
+                )
 
     # --- Aggregate CCFs ---
     print("\n" + "=" * 70)
@@ -280,17 +288,19 @@ def main():
     granger_summary_data = []
     for label, results in all_results.items():
         for gr in results["granger"]:
-            granger_summary_data.append({
-                "run": label,
-                "feature": gr.feature_name,
-                "target": gr.target_name,
-                "lag": gr.selected_lag,
-                "f_stat": gr.f_statistic,
-                "p_value": gr.p_value,
-                "reject": gr.reject_null,
-                "delta_r2": gr.delta_r_squared,
-                "n_obs": gr.n_obs,
-            })
+            granger_summary_data.append(
+                {
+                    "run": label,
+                    "feature": gr.feature_name,
+                    "target": gr.target_name,
+                    "lag": gr.selected_lag,
+                    "f_stat": gr.f_statistic,
+                    "p_value": gr.p_value,
+                    "reject": gr.reject_null,
+                    "delta_r2": gr.delta_r_squared,
+                    "n_obs": gr.n_obs,
+                }
+            )
     with open(granger_dir / "summary.json", "w") as f:
         json.dump(granger_summary_data, f, indent=2)
 
@@ -300,17 +310,19 @@ def main():
     forecast_summary_data = []
     for label, results in all_results.items():
         for flabel, fr in results["forecast"].items():
-            forecast_summary_data.append({
-                "run": label,
-                "variant": flabel,
-                "rmse_model": fr.rmse_model,
-                "rmse_persistence": fr.rmse_persistence,
-                "rmse_reduction_pct": fr.rmse_reduction_pct,
-                "r2_oos": fr.r_squared_oos,
-                "n_predictions": fr.n_predictions,
-                "horizon": fr.horizon,
-                "include_ar": fr.include_ar,
-            })
+            forecast_summary_data.append(
+                {
+                    "run": label,
+                    "variant": flabel,
+                    "rmse_model": fr.rmse_model,
+                    "rmse_persistence": fr.rmse_persistence,
+                    "rmse_reduction_pct": fr.rmse_reduction_pct,
+                    "r2_oos": fr.r_squared_oos,
+                    "n_predictions": fr.n_predictions,
+                    "horizon": fr.horizon,
+                    "include_ar": fr.include_ar,
+                }
+            )
     with open(forecast_dir / "summary.json", "w") as f:
         json.dump(_serializable(forecast_summary_data), f, indent=2)
 
@@ -330,9 +342,7 @@ def main():
 
     # --- Generate report ---
     print("\n[Phase 6] Generating report...")
-    report = _generate_report(
-        runs, all_results, agg_ccfs, surrogate_results, all_stopping, stopping_summary
-    )
+    report = _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stopping, stopping_summary)
     report_path = RESULTS_DIR / "LEAD_LAG_REPORT.md"
     with open(report_path, "w") as f:
         f.write(report)
@@ -349,9 +359,9 @@ def _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stoppin
     lines.append("## 1. Data Inventory")
     lines.append("")
     lines.append(f"**Total runs analyzed:** {len(all_results)}")
-    lines.append(f"**Task:** chat (Alpaca instruction-following)")
-    lines.append(f"**Model:** Mistral-7B + LoRA r=32")
-    lines.append(f"**Training:** 1200 steps, eval every 25 steps, structural SVD every 50 steps")
+    lines.append("**Task:** chat (Alpaca instruction-following)")
+    lines.append("**Model:** Mistral-7B + LoRA r=32")
+    lines.append("**Training:** 1200 steps, eval every 25 steps, structural SVD every 50 steps")
     lines.append("")
     lines.append("| Run | Eval Events | Train Steps | Structural Snapshots | Seed |")
     lines.append("|-----|-------------|-------------|---------------------|------|")
@@ -443,13 +453,17 @@ def _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stoppin
     if surrogate_results:
         lines.append("## 5. Surrogate Null Tests")
         lines.append("")
-        lines.append("Method: circular rotation, 200 surrogates. Tests whether ridge forecast improvement is significant.")
+        lines.append(
+            "Method: circular rotation, 200 surrogates. Tests whether ridge forecast improvement is significant."
+        )
         lines.append("")
         lines.append("| Run | Actual RMSE Red | p-value | z-score | Significant? |")
         lines.append("|-----|-----------------|---------|---------|-------------|")
         for label, surr in surrogate_results.items():
             sig = "Yes" if surr.p_value < 0.05 else "No"
-            lines.append(f"| {label} | {surr.actual_rmse_reduction:+.1f}% | {surr.p_value:.3f} | {surr.z_score:+.2f} | {sig} |")
+            lines.append(
+                f"| {label} | {surr.actual_rmse_reduction:+.1f}% | {surr.p_value:.3f} | {surr.z_score:+.2f} | {sig} |"
+            )
         lines.append("")
 
     # Early stopping
@@ -468,10 +482,18 @@ def _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stoppin
     # Interpretation
     lines.append("## 7. Interpretation Notes")
     lines.append("")
-    lines.append("- **3 seeds** provides limited statistical power for cross-run aggregation; treat as directional evidence.")
-    lines.append("- **48 eval events** per run (every 25 steps over 1200 total) gives much better CCF/Granger resolution than the pilot study (4-10 events).")
-    lines.append("- **Structural metrics** are forward-filled from 50-step snapshots to 25-step eval grid, so they change every other eval step.")
-    lines.append("- **First-differencing** is applied for detrending; monotonic structural features (stable_rank, effective_rank) may lose signal if the trend is the signal.")
+    lines.append(
+        "- **3 seeds** provides limited statistical power for cross-run aggregation; treat as directional evidence."
+    )
+    lines.append(
+        "- **48 eval events** per run (every 25 steps over 1200 total) gives much better CCF/Granger resolution than the pilot study (4-10 events)."
+    )
+    lines.append(
+        "- **Structural metrics** are forward-filled from 50-step snapshots to 25-step eval grid, so they change every other eval step."
+    )
+    lines.append(
+        "- **First-differencing** is applied for detrending; monotonic structural features (stable_rank, effective_rank) may lose signal if the trend is the signal."
+    )
     lines.append("")
 
     return "\n".join(lines)

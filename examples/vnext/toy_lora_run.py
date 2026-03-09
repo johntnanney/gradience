@@ -41,11 +41,13 @@ def _set_seed(seed: int) -> None:
     random.seed(seed)
     try:
         import numpy as np  # type: ignore
+
         np.random.seed(seed)
     except Exception:
         pass
     try:
         import torch
+
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
@@ -53,7 +55,7 @@ def _set_seed(seed: int) -> None:
         pass
 
 
-def _infer_lora_targets(model: Any) -> List[str]:
+def _infer_lora_targets(model: Any) -> list[str]:
     """Best-effort target_modules inference across common architectures."""
     # PEFT matches by *module name suffix*, so we look at leaf module names.
     leaf_names = set()
@@ -100,7 +102,7 @@ def _select_small_split(ds: Any, n: int, seed: int) -> Any:
         return ds
 
 
-def _device_from_arg(device_str: str) -> Tuple[str, bool]:
+def _device_from_arg(device_str: str) -> tuple[str, bool]:
     """Return (device, use_cuda) where device is a torch device string."""
     device_str = (device_str or "auto").lower().strip()
     try:
@@ -132,6 +134,7 @@ def _dtype_from_arg(dtype_str: str, *, device: str) -> str:
 
 def _torch_dtype(dtype_key: str) -> Any:
     import torch
+
     if dtype_key == "bf16":
         return torch.bfloat16
     if dtype_key == "fp16":
@@ -139,7 +142,7 @@ def _torch_dtype(dtype_key: str) -> Any:
     return torch.float32
 
 
-def _evaluate(model: Any, dataloader: Any, device: str) -> Dict[str, Any]:
+def _evaluate(model: Any, dataloader: Any, device: str) -> dict[str, Any]:
     import torch
 
     model.eval()
@@ -175,12 +178,17 @@ def _evaluate(model: Any, dataloader: Any, device: str) -> Dict[str, Any]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Toy LoRA run that emits Gradience vNext telemetry.")
-    parser.add_argument("--out", type=str, default="runs/toy_lora", help="Output directory (telemetry + peft + training args).")
+    parser.add_argument(
+        "--out", type=str, default="runs/toy_lora", help="Output directory (telemetry + peft + training args)."
+    )
 
-    parser.add_argument("--model", type=str, default="hf-internal-testing/tiny-random-distilbert",
-                        help="HF model name (tiny by default for low compute).")
-    parser.add_argument("--dataset", type=str, default="glue/sst2",
-                        help="Dataset identifier. Default: glue/sst2.")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="hf-internal-testing/tiny-random-distilbert",
+        help="HF model name (tiny by default for low compute).",
+    )
+    parser.add_argument("--dataset", type=str, default="glue/sst2", help="Dataset identifier. Default: glue/sst2.")
     parser.add_argument("--max-length", type=int, default=64, help="Max sequence length (lower = faster).")
 
     parser.add_argument("--train-samples", type=int, default=256, help="Train subset size (lower = faster).")
@@ -196,8 +204,12 @@ def main() -> None:
 
     parser.add_argument("--r", type=int, default=8, help="LoRA rank.")
     parser.add_argument("--alpha", type=float, default=8.0, help="LoRA alpha.")
-    parser.add_argument("--targets", type=str, default="",
-                        help="Comma-separated LoRA target module suffixes. If empty, inferred from model.")
+    parser.add_argument(
+        "--targets",
+        type=str,
+        default="",
+        help="Comma-separated LoRA target module suffixes. If empty, inferred from model.",
+    )
     parser.add_argument("--lora-dropout", type=float, default=0.0, help="LoRA dropout.")
 
     parser.add_argument("--device", type=str, default="auto", help="auto|cpu|cuda|cuda:0 ...")
@@ -206,7 +218,11 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0, help="Random seed.")
     parser.add_argument("--no-audit", action="store_true", help="Skip LoRA audit metrics emission (faster).")
 
-    parser.add_argument("--telemetry-allow-text", action="store_true", help="Allow logging long strings (e.g., prompts/examples) into telemetry JSONL. Default redacts >256 chars.")
+    parser.add_argument(
+        "--telemetry-allow-text",
+        action="store_true",
+        help="Allow logging long strings (e.g., prompts/examples) into telemetry JSONL. Default redacts >256 chars.",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out)
@@ -236,7 +252,11 @@ def main() -> None:
         raise SystemExit(f"Missing dependency: datasets. Install with: pip install datasets\nError: {e}")
 
     try:
-        from transformers import AutoModelForSequenceClassification, AutoTokenizer, DataCollatorWithPadding  # type: ignore
+        from transformers import (  # type: ignore
+            AutoModelForSequenceClassification,
+            AutoTokenizer,
+            DataCollatorWithPadding,
+        )
     except Exception as e:
         raise SystemExit(f"Missing dependency: transformers. Install with: pip install transformers\nError: {e}")
 
@@ -251,9 +271,9 @@ def main() -> None:
             ConfigSnapshot,
             LoRAConfigSnapshot,
             OptimizerConfigSnapshot,
-            TrainingConfigSnapshot,
-            TaskProfile,
             Severity,
+            TaskProfile,
+            TrainingConfigSnapshot,
         )
         from gradience.vnext.telemetry import TelemetryWriter
     except Exception as e:
@@ -293,7 +313,7 @@ def main() -> None:
 
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
-    def _tokenize(batch: Dict[str, Any]) -> Dict[str, Any]:
+    def _tokenize(batch: dict[str, Any]) -> dict[str, Any]:
         texts = batch[text_key]
         return tokenizer(texts, truncation=True, max_length=int(args.max_length))
 
@@ -321,7 +341,7 @@ def main() -> None:
     test_loader = DataLoader(test_tok, batch_size=int(args.batch_size), shuffle=False, collate_fn=collator)
 
     # Model
-    load_kwargs: Dict[str, Any] = {}
+    load_kwargs: dict[str, Any] = {}
     if device.startswith("cuda") and dtype_key in ("bf16", "fp16"):
         load_kwargs["torch_dtype"] = _torch_dtype(dtype_key)
 
@@ -466,8 +486,8 @@ def main() -> None:
         # Prefer .bin for portability (no safetensors dependency required).
         model.save_pretrained(peft_dir, safe_serialization=True)
         # Log what adapter file was saved (so logs tell the truth without ls)
-        saved_sft = Path(peft_dir) / 'adapter_model.safetensors'
-        saved_bin = Path(peft_dir) / 'adapter_model.bin'
+        saved_sft = Path(peft_dir) / "adapter_model.safetensors"
+        saved_bin = Path(peft_dir) / "adapter_model.bin"
         if saved_sft.exists():
             print(f"[toy_lora_run] Saved {saved_sft}")
         elif saved_bin.exists():
@@ -479,6 +499,7 @@ def main() -> None:
         if not args.no_audit:
             try:
                 from gradience.vnext.audit import audit_lora_peft_dir
+
                 audit = audit_lora_peft_dir(peft_dir)
                 tw.metrics(global_step, kind="lora_audit", metrics=audit.to_summary_dict(include_layers=False))
             except Exception as e:

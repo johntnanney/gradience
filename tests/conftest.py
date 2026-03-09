@@ -20,10 +20,10 @@ from typing import Any, Dict
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Pytest fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def tmp_dir(tmp_path: Path) -> Path:
@@ -47,8 +47,8 @@ def probe_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def seed_all():
     """Fix torch **and** numpy seeds to 42 for reproducible tests."""
-    import torch
     import numpy as np
+    import torch
 
     torch.manual_seed(42)
     np.random.seed(42)
@@ -58,14 +58,15 @@ def seed_all():
 # Helper functions — plain callables, usable from unittest.TestCase too
 # ---------------------------------------------------------------------------
 
-def make_audit_data(**overrides: Any) -> Dict[str, Any]:
+
+def make_audit_data(**overrides: Any) -> dict[str, Any]:
     """Return a realistic ``audit.json`` dict with sensible defaults.
 
     Callers can override any top-level key::
 
         data = make_audit_data(probe_rank=64)
     """
-    data: Dict[str, Any] = {
+    data: dict[str, Any] = {
         "probe_rank": 32,
         "summary": {
             "utilization_mean": 0.2,
@@ -95,7 +96,7 @@ def make_audit_data(**overrides: Any) -> Dict[str, Any]:
     return data
 
 
-def make_config(**overrides: Any) -> Dict[str, Any]:
+def make_config(**overrides: Any) -> dict[str, Any]:
     """Return a minimal bench config dict.
 
     Nested dict overrides are *shallow-merged* into the matching section::
@@ -103,7 +104,7 @@ def make_config(**overrides: Any) -> Dict[str, Any]:
         cfg = make_config(compression={"fast_mode": False})
         # cfg["compression"]["allowed_ranks"] is preserved
     """
-    cfg: Dict[str, Any] = {
+    cfg: dict[str, Any] = {
         "compression": {
             "allowed_ranks": [1, 2, 4, 8, 16, 32],
             "fast_mode": True,
@@ -125,7 +126,7 @@ def make_config(**overrides: Any) -> Dict[str, Any]:
     return cfg
 
 
-def write_audit_file(probe_dir: Path, audit_data: Dict[str, Any]) -> None:
+def write_audit_file(probe_dir: Path, audit_data: dict[str, Any]) -> None:
     """Write *audit_data* as ``audit.json`` inside *probe_dir*.
 
     Creates *probe_dir* (and parents) if it does not exist.

@@ -222,9 +222,7 @@ class TestRecommendationResult:
             confidence="High spectral compatibility",
             dominant_issue="none",
             caveats=("No source-eligibility data.",),
-            typed_warnings=(
-                MergeWarning(code=WarningCode.NO_ELIGIBILITY_DATA, message="No data"),
-            ),
+            typed_warnings=(MergeWarning(code=WarningCode.NO_ELIGIBILITY_DATA, message="No data"),),
             fallback_strategies=("norm_equalized",),
         )
         assert r.strategy == "audit_aware"

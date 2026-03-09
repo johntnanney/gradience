@@ -14,8 +14,8 @@ Usage:
 
 from __future__ import annotations
 
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 
 # ---------------------------------------------------------------------------
@@ -38,11 +38,11 @@ values = [5.89, 6.47, 6.81, 8.14, 6.48, 6.21]
 # merge conditions use the palette from figs 1–2
 # ---------------------------------------------------------------------------
 
-COL_BASE    = "#555555"
-COL_SOLO    = "#a0a0a0"
-COL_NAIVE   = "#c44e52"
-COL_NORMEQ  = "#e8a838"
-COL_REC     = "#2a7b9b"
+COL_BASE = "#555555"
+COL_SOLO = "#a0a0a0"
+COL_NAIVE = "#c44e52"
+COL_NORMEQ = "#e8a838"
+COL_REC = "#2a7b9b"
 
 colors = [COL_BASE, COL_SOLO, COL_SOLO, COL_NAIVE, COL_NORMEQ, COL_REC]
 
@@ -54,8 +54,13 @@ fig, ax = plt.subplots(figsize=(8, 5))
 
 x = np.arange(len(categories))
 bars = ax.bar(
-    x, values, width=0.58,
-    color=colors, edgecolor="white", linewidth=0.6, zorder=3,
+    x,
+    values,
+    width=0.58,
+    color=colors,
+    edgecolor="white",
+    linewidth=0.6,
+    zorder=3,
 )
 
 # ---------------------------------------------------------------------------
@@ -64,8 +69,12 @@ bars = ax.bar(
 
 for i, (xi, v) in enumerate(zip(x, values)):
     ax.text(
-        xi, v + 0.08, f"{v:.2f}",
-        ha="center", va="bottom", fontsize=9.5,
+        xi,
+        v + 0.08,
+        f"{v:.2f}",
+        ha="center",
+        va="bottom",
+        fontsize=9.5,
         fontweight="bold" if i == 0 or i == 5 else "normal",
         color=colors[i],
     )
@@ -82,14 +91,20 @@ bracket_top = bracket_y + 0.12
 ax.plot(
     [merge_x[0], merge_x[0], merge_x[-1], merge_x[-1]],
     [bracket_y - 0.08, bracket_top, bracket_top, bracket_y - 0.08],
-    color=COL_REC, linewidth=1.2, solid_capstyle="round",
+    color=COL_REC,
+    linewidth=1.2,
+    solid_capstyle="round",
     clip_on=False,
 )
 ax.text(
-    merge_x[1], bracket_top + 0.08,
+    merge_x[1],
+    bracket_top + 0.08,
     "recommended is best merge condition",
-    ha="center", va="bottom", fontsize=8.5,
-    fontweight="bold", color=COL_REC,
+    ha="center",
+    va="bottom",
+    fontsize=8.5,
+    fontweight="bold",
+    color=COL_REC,
 )
 
 # ---------------------------------------------------------------------------
@@ -100,10 +115,15 @@ ax.annotate(
     "but base is still\nbest overall",
     xy=(x[0], values[0] + 0.05),
     xytext=(x[0] + 1.1, values[0] - 0.95),
-    fontsize=8.5, fontweight="bold", color=COL_BASE,
-    ha="center", va="top",
+    fontsize=8.5,
+    fontweight="bold",
+    color=COL_BASE,
+    ha="center",
+    va="top",
     arrowprops=dict(
-        arrowstyle="-|>", color=COL_BASE, lw=1.2,
+        arrowstyle="-|>",
+        color=COL_BASE,
+        lw=1.2,
         connectionstyle="arc3,rad=-0.15",
     ),
 )
@@ -135,9 +155,10 @@ ax.yaxis.grid(True, color="#eee", linewidth=0.5)
 
 # Title
 fig.suptitle(
-    "Figure 3.  Pair 06: the engine improves the merge,\n"
-    "but the candidate set is still bad",
-    fontsize=11, fontweight="bold", y=1.01,
+    "Figure 3.  Pair 06: the engine improves the merge,\nbut the candidate set is still bad",
+    fontsize=11,
+    fontweight="bold",
+    y=1.01,
     linespacing=1.3,
 )
 

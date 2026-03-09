@@ -17,11 +17,11 @@ Usage:
   python analyze_study12.py
 """
 
-import json
 import csv
+import json
 import sys
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 
@@ -38,9 +38,12 @@ SEEDS = list(range(1337, 1347))  # 1337–1346
 
 # Feature column definitions (same as Study 11)
 GEOMETRY_6 = [
-    "early_weight_norm_mean", "early_weight_norm_slope",
-    "early_weight_norm_curvature", "early_grad_norm_mean",
-    "early_grad_to_weight_ratio_mean", "early_cos_grad_weight_mean",
+    "early_weight_norm_mean",
+    "early_weight_norm_slope",
+    "early_weight_norm_curvature",
+    "early_grad_norm_mean",
+    "early_grad_to_weight_ratio_mean",
+    "early_cos_grad_weight_mean",
 ]
 GEOMETRY_7 = GEOMETRY_6 + ["early_spectral_complexity_mean"]
 LOSS_ONLY = ["early_mean_train_loss"]
@@ -48,6 +51,7 @@ SPECTRAL_ONLY = ["early_spectral_complexity_mean"]
 
 
 # ─── Step 1: Extract early features ─────────────────────────────────
+
 
 def load_telemetry(path):
     """Load telemetry.jsonl → list of dicts."""
@@ -90,9 +94,7 @@ def extract_early_features(run_dir, run_id, regime, seed):
     max_iter = max(r.get("iter", r.get("step", 0)) for r in records)
     early_cutoff = max_iter * EARLY_FRAC
 
-    early = [r for r in records
-             if r.get("iter", r.get("step", 0)) <= early_cutoff
-             and "train_loss" in r]
+    early = [r for r in records if r.get("iter", r.get("step", 0)) <= early_cutoff and "train_loss" in r]
 
     if len(early) < 3:
         print(f"  WARNING: {run_id} has only {len(early)} early records")
@@ -107,8 +109,7 @@ def extract_early_features(run_dir, run_id, regime, seed):
     # Weight norm
     wnorms = [r.get("weight_norm", 0) for r in early if "weight_norm" in r]
     if wnorms:
-        wn_mean, wn_slope, wn_curv = polyfit_feature(
-            iters[:len(wnorms)], wnorms)
+        wn_mean, wn_slope, wn_curv = polyfit_feature(iters[: len(wnorms)], wnorms)
     else:
         wn_mean, wn_slope, wn_curv = 0, 0, 0
 
@@ -117,18 +118,15 @@ def extract_early_features(run_dir, run_id, regime, seed):
     gn_mean = np.mean(gnorms) if gnorms else 0
 
     # Grad-to-weight ratio
-    gw_ratios = [r.get("grad_to_weight_ratio", 0) for r in early
-                 if "grad_to_weight_ratio" in r]
+    gw_ratios = [r.get("grad_to_weight_ratio", 0) for r in early if "grad_to_weight_ratio" in r]
     gw_mean = np.mean(gw_ratios) if gw_ratios else 0
 
     # Cosine(grad, weight)
-    cos_gw = [r.get("cos_grad_weight", 0) for r in early
-              if "cos_grad_weight" in r]
+    cos_gw = [r.get("cos_grad_weight", 0) for r in early if "cos_grad_weight" in r]
     cos_mean = np.mean(cos_gw) if cos_gw else 0
 
     # Spectral complexity
-    spec = [r.get("spectral_complexity", None) for r in early
-            if r.get("spectral_complexity") is not None]
+    spec = [r.get("spectral_complexity", None) for r in early if r.get("spectral_complexity") is not None]
     spec_mean = np.mean(spec) if spec else ""
 
     return {
@@ -148,6 +146,7 @@ def extract_early_features(run_dir, run_id, regime, seed):
 
 
 # ─── Step 2: Classification (reuses logic from add_spectral_and_reclassify.py)
+
 
 def zscore(X_train):
     mu = X_train.mean(axis=0)
@@ -176,7 +175,7 @@ def loso_accuracy(X, y, seeds_arr):
             dists = {c: np.linalg.norm(X_te_z[i] - centroids[c]) for c in centroids}
             pred = min(dists, key=dists.get)
             predictions.append((int(y_te[i]), int(pred)))
-            correct += (pred == y_te[i])
+            correct += pred == y_te[i]
             total += 1
     return correct / total, predictions
 
@@ -195,10 +194,9 @@ def permutation_test(X, y, seeds_arr, n_perms=9999):
 
 def mcnemar(preds_a, preds_b):
     from scipy.stats import binom
-    b_right_a_wrong = sum(1 for (ta, pa), (tb, pb) in zip(preds_a, preds_b)
-                          if pb == tb and pa != ta)
-    a_right_b_wrong = sum(1 for (ta, pa), (tb, pb) in zip(preds_a, preds_b)
-                          if pa == ta and pb != tb)
+
+    b_right_a_wrong = sum(1 for (ta, pa), (tb, pb) in zip(preds_a, preds_b) if pb == tb and pa != ta)
+    a_right_b_wrong = sum(1 for (ta, pa), (tb, pb) in zip(preds_a, preds_b) if pa == ta and pb != tb)
     n = b_right_a_wrong + a_right_b_wrong
     if n == 0:
         return 1.0
@@ -207,6 +205,7 @@ def mcnemar(preds_a, preds_b):
 
 
 # ─── Step 3: Per-regime DFA ─────────────────────────────────────────
+
 
 def dfa_exponent(series, min_scale=4, max_scale_frac=0.25):
     """Detrended Fluctuation Analysis → scaling exponent."""
@@ -218,8 +217,7 @@ def dfa_exponent(series, min_scale=4, max_scale_frac=0.25):
     y = np.cumsum(series - np.mean(series))
 
     max_scale = int(N * max_scale_frac)
-    scales = np.unique(np.logspace(
-        np.log10(min_scale), np.log10(max_scale), 20).astype(int))
+    scales = np.unique(np.logspace(np.log10(min_scale), np.log10(max_scale), 20).astype(int))
     scales = scales[scales >= min_scale]
 
     fluctuations = []
@@ -230,7 +228,7 @@ def dfa_exponent(series, min_scale=4, max_scale_frac=0.25):
             continue
         rms_list = []
         for i in range(n_segments):
-            segment = y[i * s:(i + 1) * s]
+            segment = y[i * s : (i + 1) * s]
             t = np.arange(s)
             coeffs = np.polyfit(t, segment, 1)
             trend = np.polyval(coeffs, t)
@@ -274,6 +272,7 @@ def compute_run_dfa(telemetry_path):
 
 # ─── Main ────────────────────────────────────────────────────────────
 
+
 def main():
     print("=" * 70)
     print("Study 12: Replication Analysis")
@@ -287,10 +286,14 @@ def main():
     for regime in REGIMES:
         for seed in SEEDS:
             # Reconstruct run_id from regime table
-            lr_tags = {"baseline": "1em03", "low_wd": "1em03", "high_wd": "1em03",
-                       "low_lr": "1em04", "high_lr": "1em02"}
-            wd_tags = {"baseline": "0p1", "low_wd": "0", "high_wd": "1",
-                       "low_lr": "0p1", "high_lr": "0p1"}
+            lr_tags = {
+                "baseline": "1em03",
+                "low_wd": "1em03",
+                "high_wd": "1em03",
+                "low_lr": "1em04",
+                "high_lr": "1em02",
+            }
+            wd_tags = {"baseline": "0p1", "low_wd": "0", "high_wd": "1", "low_lr": "0p1", "high_lr": "0p1"}
             run_id = f"{regime}_lr{lr_tags[regime]}_wd{wd_tags[regime]}_seed{seed}"
             run_dir = RESULTS_ROOT / run_id
 
@@ -344,8 +347,12 @@ def main():
         "geometry_7": GEOMETRY_7,
     }
 
-    results = {"n_runs": len(rows), "n_regimes": len(unique_regimes),
-               "n_seeds": len(set(seeds_arr)), "regimes": unique_regimes}
+    results = {
+        "n_runs": len(rows),
+        "n_regimes": len(unique_regimes),
+        "n_seeds": len(set(seeds_arr)),
+        "regimes": unique_regimes,
+    }
 
     all_preds = {}
     for name, feats in feature_sets.items():
@@ -354,7 +361,7 @@ def main():
         _, p_val = permutation_test(X, y, seeds_arr, n_perms=4999)
         all_preds[name] = preds
 
-        print(f"  {name:15s}: {acc:.1%} ({int(acc*len(y))}/{len(y)})  p={p_val:.4f}")
+        print(f"  {name:15s}: {acc:.1%} ({int(acc * len(y))}/{len(y)})  p={p_val:.4f}")
         results[name] = {
             "accuracy": acc,
             "n_correct": int(acc * len(y)),
@@ -364,8 +371,12 @@ def main():
     # McNemar comparisons
     print("\n  Pairwise McNemar:")
     mcnemar_results = {}
-    for a, b in [("geometry_7", "loss_only"), ("spectral_only", "loss_only"),
-                 ("geometry_6", "geometry_7"), ("spectral_only", "geometry_6")]:
+    for a, b in [
+        ("geometry_7", "loss_only"),
+        ("spectral_only", "loss_only"),
+        ("geometry_6", "geometry_7"),
+        ("spectral_only", "geometry_6"),
+    ]:
         p = mcnemar(all_preds[a], all_preds[b])
         print(f"    {a} vs {b}: p={p:.4f}")
         mcnemar_results[f"{a}_vs_{b}"] = p
@@ -391,15 +402,16 @@ def main():
             continue
         summary = {}
         for metric in ["train_loss", "weight_norm", "grad_norm", "spectral_complexity"]:
-            alphas = [r[metric]["alpha"] for r in runs
-                      if metric in r and not np.isnan(r[metric]["alpha"])]
+            alphas = [r[metric]["alpha"] for r in runs if metric in r and not np.isnan(r[metric]["alpha"])]
             if alphas:
                 summary[metric] = {
                     "mean_alpha": float(np.mean(alphas)),
                     "std_alpha": float(np.std(alphas)),
                     "n": len(alphas),
                 }
-                print(f"  {regime:12s} {metric:25s}: α = {np.mean(alphas):.3f} ± {np.std(alphas):.3f} (n={len(alphas)})")
+                print(
+                    f"  {regime:12s} {metric:25s}: α = {np.mean(alphas):.3f} ± {np.std(alphas):.3f} (n={len(alphas)})"
+                )
         dfa_summary[regime] = summary
 
     results["dfa_by_regime"] = dfa_summary
@@ -419,11 +431,15 @@ def main():
 
             # ANOVA-like test: are the regime means different?
             from scipy import stats
+
             groups = []
             for regime in unique_regimes:
                 runs = dfa_by_regime[regime]
-                alphas = [r["spectral_complexity"]["alpha"] for r in runs
-                          if "spectral_complexity" in r and not np.isnan(r["spectral_complexity"]["alpha"])]
+                alphas = [
+                    r["spectral_complexity"]["alpha"]
+                    for r in runs
+                    if "spectral_complexity" in r and not np.isnan(r["spectral_complexity"]["alpha"])
+                ]
                 if alphas:
                     groups.append(alphas)
 

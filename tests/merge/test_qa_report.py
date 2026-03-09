@@ -116,8 +116,12 @@ class _FakeReport:
 class TestAdapterSummary:
     def test_to_dict_roundtrip(self):
         s = AdapterSummary(
-            path="/tmp/a", rank=8, alpha=16.0,
-            n_layers=32, base_model="llama", eligibility="eligible",
+            path="/tmp/a",
+            rank=8,
+            alpha=16.0,
+            n_layers=32,
+            base_model="llama",
+            eligibility="eligible",
         )
         d = s.to_dict()
         assert d["path"] == "/tmp/a"
@@ -133,10 +137,12 @@ class TestAdapterSummary:
 class TestBuildQAReport:
     def test_all_safe_layers(self):
         """All-safe pair produces low risk, no dominant issue."""
-        report = _FakeReport([
-            _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
-            _make_lv_dict("safe", layer_name="model.layers.0.self_attn.v_proj"),
-        ])
+        report = _FakeReport(
+            [
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.v_proj"),
+            ]
+        )
         qa = build_qa_report(report)
 
         assert qa.pair_risk == "low"
@@ -148,15 +154,17 @@ class TestBuildQAReport:
 
     def test_conflicting_layers_high_risk(self):
         """Conflicting layers produce high risk."""
-        report = _FakeReport([
-            _make_lv_dict(
-                "conflicting",
-                mean_overlap=0.6,
-                directional_agreement=-0.5,
-                conflict_dimensions=3,
-                layer_name="model.layers.0.self_attn.q_proj",
-            ),
-        ])
+        report = _FakeReport(
+            [
+                _make_lv_dict(
+                    "conflicting",
+                    mean_overlap=0.6,
+                    directional_agreement=-0.5,
+                    conflict_dimensions=3,
+                    layer_name="model.layers.0.self_attn.q_proj",
+                ),
+            ]
+        )
         qa = build_qa_report(report)
 
         assert qa.pair_risk == "high"
@@ -193,12 +201,22 @@ class TestBuildQAReport:
         assert qa.verdict_distribution["imbalanced"] == 1
 
     def test_redundant_layers(self):
-        report = _FakeReport([
-            _make_lv_dict("redundant", mean_overlap=0.8, directional_agreement=0.7,
-                          layer_name="model.layers.0.self_attn.q_proj"),
-            _make_lv_dict("redundant", mean_overlap=0.9, directional_agreement=0.8,
-                          layer_name="model.layers.0.self_attn.v_proj"),
-        ])
+        report = _FakeReport(
+            [
+                _make_lv_dict(
+                    "redundant",
+                    mean_overlap=0.8,
+                    directional_agreement=0.7,
+                    layer_name="model.layers.0.self_attn.q_proj",
+                ),
+                _make_lv_dict(
+                    "redundant",
+                    mean_overlap=0.9,
+                    directional_agreement=0.8,
+                    layer_name="model.layers.0.self_attn.v_proj",
+                ),
+            ]
+        )
         qa = build_qa_report(report)
 
         assert "redundan" in qa.dominant_issue.lower()
@@ -264,11 +282,18 @@ class TestBuildQAReport:
 class TestFormatQAReport:
     def test_contains_all_sections(self):
         """Formatted output contains all key sections."""
-        report = _FakeReport([
-            _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
-            _make_lv_dict("conflicting", mean_overlap=0.6, directional_agreement=-0.5,
-                          conflict_dimensions=2, layer_name="model.layers.1.self_attn.q_proj"),
-        ])
+        report = _FakeReport(
+            [
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
+                _make_lv_dict(
+                    "conflicting",
+                    mean_overlap=0.6,
+                    directional_agreement=-0.5,
+                    conflict_dimensions=2,
+                    layer_name="model.layers.1.self_attn.q_proj",
+                ),
+            ]
+        )
         qa = build_qa_report(report)
         text = format_qa_report(qa)
 
@@ -330,11 +355,12 @@ class TestQAReportSerialization:
         assert "caveats" in d
 
     def test_json_roundtrip(self, tmp_path):
-        report = _FakeReport([
-            _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
-            _make_lv_dict("imbalanced", magnitude_ratio=5.0,
-                          layer_name="model.layers.1.self_attn.q_proj"),
-        ])
+        report = _FakeReport(
+            [
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
+                _make_lv_dict("imbalanced", magnitude_ratio=5.0, layer_name="model.layers.1.self_attn.q_proj"),
+            ]
+        )
         qa = build_qa_report(report)
 
         json_path = tmp_path / "qa_report.json"

@@ -37,6 +37,7 @@ except ImportError:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def run_cli(*args: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
     """Run `python -m gradience <args>` and return the CompletedProcess."""
     return subprocess.run(
@@ -328,8 +329,10 @@ class TestMergeAuditCommand:
         adapter_b = _make_adapter_dir(tmp_path / "b")
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(adapter_a),
-            "--adapter-b", str(adapter_b),
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
         )
         assert p.returncode == 0
 
@@ -339,9 +342,12 @@ class TestMergeAuditCommand:
         out_dir = tmp_path / "output"
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(adapter_a),
-            "--adapter-b", str(adapter_b),
-            "--output-dir", str(out_dir),
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
+            "--output-dir",
+            str(out_dir),
         )
         assert p.returncode == 0
         assert (out_dir / "merge_audit.json").exists()
@@ -352,8 +358,10 @@ class TestMergeAuditCommand:
         adapter_b = _make_adapter_dir(tmp_path / "b")
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(adapter_a),
-            "--adapter-b", str(adapter_b),
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
             "--json",
         )
         assert p.returncode == 0
@@ -365,8 +373,10 @@ class TestMergeAuditCommand:
         adapter_b = _make_adapter_dir(tmp_path / "b")
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(adapter_a),
-            "--adapter-b", str(adapter_b),
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
             "--verbose",
         )
         assert p.returncode == 0
@@ -377,8 +387,10 @@ class TestMergeAuditCommand:
         adapter_b = _make_adapter_dir(tmp_path / "b")
         p = run_cli(
             "merge-audit",
-            "--adapter-a", "/nonexistent/adapter",
-            "--adapter-b", str(adapter_b),
+            "--adapter-a",
+            "/nonexistent/adapter",
+            "--adapter-b",
+            str(adapter_b),
         )
         assert p.returncode != 0
 
@@ -386,8 +398,10 @@ class TestMergeAuditCommand:
         adapter_a = _make_adapter_dir(tmp_path / "a")
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(adapter_a),
-            "--adapter-b", "/nonexistent/adapter",
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            "/nonexistent/adapter",
         )
         assert p.returncode != 0
 
@@ -409,9 +423,12 @@ class TestTruncateCommand:
         out_dir = tmp_path / "truncated"
         p = run_cli(
             "truncate",
-            "--peft-dir", str(adapter_dir),
-            "--out-dir", str(out_dir),
-            "--rank", "4",
+            "--peft-dir",
+            str(adapter_dir),
+            "--out-dir",
+            str(out_dir),
+            "--rank",
+            "4",
         )
         assert p.returncode == 0
         assert (out_dir / "adapter_config.json").exists()
@@ -421,9 +438,12 @@ class TestTruncateCommand:
         out_dir = tmp_path / "truncated"
         p = run_cli(
             "truncate",
-            "--peft-dir", str(adapter_dir),
-            "--out-dir", str(out_dir),
-            "--rank", "4",
+            "--peft-dir",
+            str(adapter_dir),
+            "--out-dir",
+            str(out_dir),
+            "--rank",
+            "4",
         )
         assert p.returncode == 0
         assert "truncation" in p.stdout.lower() or "rank" in p.stdout.lower()
@@ -432,9 +452,12 @@ class TestTruncateCommand:
         out_dir = tmp_path / "truncated"
         p = run_cli(
             "truncate",
-            "--peft-dir", "/nonexistent/adapter",
-            "--out-dir", str(out_dir),
-            "--rank", "4",
+            "--peft-dir",
+            "/nonexistent/adapter",
+            "--out-dir",
+            str(out_dir),
+            "--rank",
+            "4",
         )
         assert p.returncode != 0
 

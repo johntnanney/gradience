@@ -98,11 +98,11 @@ class TestConsoleScriptDeclared(unittest.TestCase):
                 "Add one of:\n"
                 "  pyproject.toml (PEP 621):\n"
                 "    [project.scripts]\n"
-                "    gradience = \"gradience.cli:main\"\n"
+                '    gradience = "gradience.cli:main"\n'
                 "\n"
                 "  pyproject.toml (Poetry):\n"
                 "    [tool.poetry.scripts]\n"
-                "    gradience = \"gradience.cli:main\"\n"
+                '    gradience = "gradience.cli:main"\n'
                 "\n"
                 "  setup.cfg:\n"
                 "    [options.entry_points]\n"

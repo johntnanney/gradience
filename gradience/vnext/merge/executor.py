@@ -27,12 +27,11 @@ Usage::
 from __future__ import annotations
 
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-
-import logging
 
 import torch
 
@@ -74,7 +73,7 @@ class LayerMergeResult:
     output_rank: int
     merged_frobenius: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "module_prefix": self.module_prefix,
             "strategy_used": self.strategy_used,
@@ -92,7 +91,7 @@ class MergeResult:
 
     plan: MergePlan
     output_dir: Path
-    layer_results: List[LayerMergeResult] = field(default_factory=list)
+    layer_results: list[LayerMergeResult] = field(default_factory=list)
     total_time_seconds: float = 0.0
 
     @property
@@ -100,9 +99,7 @@ class MergeResult:
         """Mean reconstruction error across all layers."""
         if not self.layer_results:
             return 0.0
-        return sum(lr.reconstruction_error for lr in self.layer_results) / len(
-            self.layer_results
-        )
+        return sum(lr.reconstruction_error for lr in self.layer_results) / len(self.layer_results)
 
     @property
     def max_reconstruction_error(self) -> float:
@@ -111,7 +108,7 @@ class MergeResult:
             return 0.0
         return max(lr.reconstruction_error for lr in self.layer_results)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": "gradience.merge_result/v1",
             "plan_id": self.plan.plan_id,
@@ -141,12 +138,12 @@ class MergeResult:
 
 def execute_merge(
     plan: MergePlan,
-    output_dir: Union[str, Path],
+    output_dir: str | Path,
     *,
     compute_dtype: str = "float32",
     verbose: bool = False,
-    preloaded_a: Optional[AdapterInfo] = None,
-    preloaded_b: Optional[AdapterInfo] = None,
+    preloaded_a: AdapterInfo | None = None,
+    preloaded_b: AdapterInfo | None = None,
 ) -> MergeResult:
     """Execute a merge plan and write a PEFT-compatible adapter.
 
@@ -173,7 +170,9 @@ def execute_merge(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.debug("Starting merge: strategy=%s, %d layers, output=%s", plan.strategy_name, len(plan.layer_configs), output_dir)
+    logger.debug(
+        "Starting merge: strategy=%s, %d layers, output=%s", plan.strategy_name, len(plan.layer_configs), output_dir
+    )
 
     if not plan.layer_configs:
         raise MergeError("MergePlan has no layer_configs — nothing to merge.")
@@ -200,26 +199,19 @@ def execute_merge(
         info_b = load_adapter(plan.adapter_b_dir)
 
     if verbose:
-        print(
-            f"  A: rank={info_a.rank}, alpha={info_a.alpha}, "
-            f"{len(info_a.lora_pairs)} layers"
-        )
-        print(
-            f"  B: rank={info_b.rank}, alpha={info_b.alpha}, "
-            f"{len(info_b.lora_pairs)} layers"
-        )
+        print(f"  A: rank={info_a.rank}, alpha={info_a.alpha}, {len(info_a.lora_pairs)} layers")
+        print(f"  B: rank={info_b.rank}, alpha={info_b.alpha}, {len(info_b.lora_pairs)} layers")
 
     # --- Process each layer ---
-    output_state_dict: Dict[str, torch.Tensor] = {}
-    layer_results: List[LayerMergeResult] = []
+    output_state_dict: dict[str, torch.Tensor] = {}
+    layer_results: list[LayerMergeResult] = []
 
     for i, layer_config in enumerate(plan.layer_configs):
         prefix = layer_config.module_prefix
 
         if verbose:
             print(
-                f"  [{i + 1}/{len(plan.layer_configs)}] "
-                f"Merging {prefix} ({layer_config.strategy})...",
+                f"  [{i + 1}/{len(plan.layer_configs)}] Merging {prefix} ({layer_config.strategy})...",
                 end="",
                 flush=True,
             )
@@ -294,7 +286,12 @@ def execute_merge(
     )
     result.to_json(output_dir / "merge_result.json")
 
-    logger.debug("Merge completed in %.1fs: mean_recon=%.4f, max_recon=%.4f", total_time, result.mean_reconstruction_error, result.max_reconstruction_error)
+    logger.debug(
+        "Merge completed in %.1fs: mean_recon=%.4f, max_recon=%.4f",
+        total_time,
+        result.mean_reconstruction_error,
+        result.max_reconstruction_error,
+    )
 
     if verbose:
         print(
@@ -314,7 +311,7 @@ def execute_merge(
 
 def _write_peft_adapter(
     output_dir: Path,
-    state_dict: Dict[str, torch.Tensor],
+    state_dict: dict[str, torch.Tensor],
     plan: MergePlan,
     info_a: AdapterInfo,
 ) -> None:
@@ -325,15 +322,10 @@ def _write_peft_adapter(
         adapter_model.safetensors — merged weights
     """
     # Build adapter config from plan + source adapter metadata
-    target_modules = sorted(set(
-        lc.module_prefix.split(".")[-1]
-        for lc in plan.layer_configs
-    ))
+    target_modules = sorted(set(lc.module_prefix.split(".")[-1] for lc in plan.layer_configs))
 
     # Infer base model from source adapter config
-    base_model = getattr(info_a.config, "raw", {}).get(
-        "base_model_name_or_path", "unknown"
-    )
+    base_model = getattr(info_a.config, "raw", {}).get("base_model_name_or_path", "unknown")
 
     adapter_config = {
         "peft_type": "LORA",

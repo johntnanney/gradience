@@ -18,7 +18,6 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
-
 # ---------------------------------------------------------------------------
 # Configuration — update these after running discover_adapters.py
 # ---------------------------------------------------------------------------
@@ -31,17 +30,14 @@ ADAPTERS = {
     # Pair 1: Code × Customer Support (expect LOW overlap)
     "magicoder": "predibase/magicoder",
     "customer_support": "predibase/customer_support",
-
     # Pair 2: Summarization variants (expect MODERATE overlap)
     # NOTE: Uncomment and update after verifying availability.
     #       Run discover_adapters.py to check what Predibase has.
     # "tldr": "predibase/tldr",
     # "dialogsum": "predibase/dialogsum",
-
     # Pair 3: NLU/Classification (expect HIGH overlap / REDUNDANT)
     "glue_mnli": "predibase/glue_mnli",
     "glue_qnli": "predibase/glue_qnli",
-
     # Pair 4: Non-Predibase adapters (robustness test)
     "zephyr_sft": "alignment-handbook/zephyr-7b-sft-lora",
     "gsm8k": "vineetsharma/qlora-adapter-Mistral-7B-Instruct-v0.1-gsm8k",
@@ -61,6 +57,7 @@ ALLOW_PATTERNS = [
 # ---------------------------------------------------------------------------
 # Download
 # ---------------------------------------------------------------------------
+
 
 def download_all():
     ADAPTER_DIR.mkdir(parents=True, exist_ok=True)
@@ -102,6 +99,7 @@ def download_all():
 # Verification
 # ---------------------------------------------------------------------------
 
+
 def verify_all():
     print("\n" + "=" * 60)
     print("Verification")
@@ -132,7 +130,7 @@ def verify_all():
                 print(f"       Weights:        {ext} ({size_mb:.1f} MB)")
                 break
         else:
-            print(f"       Weights:        NOT FOUND")
+            print("       Weights:        NOT FOUND")
 
     # Cross-check: warn if adapters in a pair have different base models
     print("\n" + "-" * 60)
@@ -176,7 +174,7 @@ def verify_all():
             shared = modules_a & modules_b
             only_a = modules_a - modules_b
             only_b = modules_b - modules_a
-            print(f"    WARNING: Different target modules")
+            print("    WARNING: Different target modules")
             print(f"      Shared: {shared}")
             if only_a:
                 print(f"      Only A: {only_a}")

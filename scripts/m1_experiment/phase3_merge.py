@@ -98,10 +98,7 @@ def _run_merge(
     result = execute_merge(plan, merge_dir, verbose=False)
 
     elapsed = time.monotonic() - start
-    print(
-        f"    recon_error={result.mean_reconstruction_error:.4f} "
-        f"[{elapsed:.1f}s]"
-    )
+    print(f"    recon_error={result.mean_reconstruction_error:.4f} [{elapsed:.1f}s]")
 
 
 def main():
@@ -136,7 +133,9 @@ def main():
     print(f"Phase 3: Executing {n_total} merges")
     print(f"  Cross-task: {len(pairs)} pairs x {len(seeds)} seeds x {len(weight_grid)} weights = {n_cross}")
     if calibration_enabled:
-        print(f"  Calibration: {len(task_names)} tasks x {len(seed_pairs)} seed-pairs x {len(weight_grid)} weights = {n_calibration}")
+        print(
+            f"  Calibration: {len(task_names)} tasks x {len(seed_pairs)} seed-pairs x {len(weight_grid)} weights = {n_calibration}"
+        )
     print(f"  Weight grid: {weight_grid}")
 
     n_done = 0
@@ -162,7 +161,11 @@ def main():
                 merge_dir = merges_dir / pair_name / f"seed_{seed}" / wlabel
 
                 _run_merge(
-                    report, adapter_a, adapter_b, weights, merge_dir,
+                    report,
+                    adapter_a,
+                    adapter_b,
+                    weights,
+                    merge_dir,
                     merge_config,
                     label=f"{pair_name}/seed_{seed}/{wlabel}",
                     counter=f"{n_done}/{n_total}",
@@ -190,7 +193,11 @@ def main():
                     merge_dir = merges_dir / "calibration" / cal_dir_name / wlabel
 
                     _run_merge(
-                        report, adapter_a, adapter_b, weights, merge_dir,
+                        report,
+                        adapter_a,
+                        adapter_b,
+                        weights,
+                        merge_dir,
                         merge_config,
                         label=f"calibration/{cal_dir_name}/{wlabel}",
                         counter=f"{n_done}/{n_total}",

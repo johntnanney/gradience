@@ -7,8 +7,9 @@ geometric signals rather than running to completion.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -136,9 +137,7 @@ def make_stopping_rules(
                 rules.append(
                     StoppingRule(
                         name=name,
-                        trigger_fn=lambda df, c=col, d=delta, p=pat: plateau_rule(
-                            df, c, d, p
-                        ),
+                        trigger_fn=lambda df, c=col, d=delta, p=pat: plateau_rule(df, c, d, p),
                         params={"series": col, "delta": delta, "patience": pat},
                     )
                 )

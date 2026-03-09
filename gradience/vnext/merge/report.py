@@ -96,11 +96,11 @@ def build_report(
     agreements = [lv.metrics.directional_agreement for lv in layer_verdicts]
 
     # Symmetric scale metrics (getattr for safety during parallel dev)
-    scale_bounded_ratios = [getattr(lv.metrics, 'scale_bounded_ratio', 0.0) for lv in layer_verdicts]
-    scale_log_ratios = [getattr(lv.metrics, 'scale_log_ratio', 0.0) for lv in layer_verdicts]
-    frob_bounded_ratios = [getattr(lv.metrics, 'frob_bounded_ratio', 0.0) for lv in layer_verdicts]
-    frob_log_ratios = [getattr(lv.metrics, 'frob_log_ratio', 0.0) for lv in layer_verdicts]
-    mag_ratios = [getattr(lv.metrics, 'magnitude_ratio', 0.0) for lv in layer_verdicts]
+    scale_bounded_ratios = [getattr(lv.metrics, "scale_bounded_ratio", 0.0) for lv in layer_verdicts]
+    scale_log_ratios = [getattr(lv.metrics, "scale_log_ratio", 0.0) for lv in layer_verdicts]
+    frob_bounded_ratios = [getattr(lv.metrics, "frob_bounded_ratio", 0.0) for lv in layer_verdicts]
+    frob_log_ratios = [getattr(lv.metrics, "frob_log_ratio", 0.0) for lv in layer_verdicts]
+    mag_ratios = [getattr(lv.metrics, "magnitude_ratio", 0.0) for lv in layer_verdicts]
 
     # Build source QA section if provided
     source_qa: dict[str, Any] | None = None
@@ -119,13 +119,9 @@ def build_report(
     warnings: list[str] = []
     warnings.extend(eligibility_warnings)
     if only_a:
-        warnings.append(
-            f"{len(only_a)} layer(s) only in adapter A: {', '.join(only_a[:5])}"
-        )
+        warnings.append(f"{len(only_a)} layer(s) only in adapter A: {', '.join(only_a[:5])}")
     if only_b:
-        warnings.append(
-            f"{len(only_b)} layer(s) only in adapter B: {', '.join(only_b[:5])}"
-        )
+        warnings.append(f"{len(only_b)} layer(s) only in adapter B: {', '.join(only_b[:5])}")
 
     base_a = getattr(adapter_a_info.config, "raw", {}).get("base_model_name_or_path", "unknown")
     base_b = getattr(adapter_b_info.config, "raw", {}).get("base_model_name_or_path", "unknown")
@@ -158,25 +154,13 @@ def build_report(
             overall_verdict=overall_verdict.value,
             compatibility_score=round(score, 4),
             mean_overlap=round(sum(overlaps) / len(overlaps), 4) if overlaps else 0.0,
-            median_overlap=round(
-                statistics.median(overlaps), 4
-            ) if overlaps else 0.0,
+            median_overlap=round(statistics.median(overlaps), 4) if overlaps else 0.0,
             max_overlap=round(max(overlaps), 4) if overlaps else 0.0,
-            mean_agreement=round(
-                sum(agreements) / len(agreements), 4
-            ) if agreements else 0.0,
-            n_safe=sum(
-                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.SAFE
-            ),
-            n_redundant=sum(
-                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT
-            ),
-            n_conflicting=sum(
-                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING
-            ),
-            n_imbalanced=sum(
-                1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED
-            ),
+            mean_agreement=round(sum(agreements) / len(agreements), 4) if agreements else 0.0,
+            n_safe=sum(1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.SAFE),
+            n_redundant=sum(1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.REDUNDANT),
+            n_conflicting=sum(1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.CONFLICTING),
+            n_imbalanced=sum(1 for lv in layer_verdicts if lv.verdict == CompatibilityVerdict.IMBALANCED),
             mean_scale_bounded_ratio=round(safe_mean(scale_bounded_ratios), 4),
             mean_scale_log_ratio=round(safe_mean(scale_log_ratios), 4),
             mean_frob_bounded_ratio=round(safe_mean(frob_bounded_ratios), 4),
@@ -200,9 +184,10 @@ def build_report(
 
 def to_json(report: MergeAuditReport) -> dict[str, Any]:
     """Convert report to JSON-serializable dict."""
+
     # Use .to_dict() on typed containers; fall back to raw value for dicts
     def _serialize(val: Any) -> Any:
-        if hasattr(val, 'to_dict'):
+        if hasattr(val, "to_dict"):
             return val.to_dict()
         return val
 
@@ -264,7 +249,7 @@ def _shorten_layer_name(name: str) -> str:
 
 
 _VERDICT_EMOJI = {
-    "safe": "\u2705",         # green check
+    "safe": "\u2705",  # green check
     "redundant": "\u26a0\ufe0f",  # warning
     "conflicting": "\u274c",  # red X
     "imbalanced": "\u2696\ufe0f",  # balance scale
@@ -283,21 +268,11 @@ def to_markdown(report: MergeAuditReport) -> str:
     lines.append("## Adapters\n")
     lines.append("| | Adapter A | Adapter B |")
     lines.append("|---|---|---|")
-    lines.append(
-        f"| **Path** | `{report.adapter_a.path}` | `{report.adapter_b.path}` |"
-    )
-    lines.append(
-        f"| **Rank** | {report.adapter_a.rank} | {report.adapter_b.rank} |"
-    )
-    lines.append(
-        f"| **Alpha** | {report.adapter_a.alpha} | {report.adapter_b.alpha} |"
-    )
-    lines.append(
-        f"| **Base model** | {report.adapter_a.base_model} | {report.adapter_b.base_model} |"
-    )
-    lines.append(
-        f"| **Layers** | {report.adapter_a.n_layers} | {report.adapter_b.n_layers} |"
-    )
+    lines.append(f"| **Path** | `{report.adapter_a.path}` | `{report.adapter_b.path}` |")
+    lines.append(f"| **Rank** | {report.adapter_a.rank} | {report.adapter_b.rank} |")
+    lines.append(f"| **Alpha** | {report.adapter_a.alpha} | {report.adapter_b.alpha} |")
+    lines.append(f"| **Base model** | {report.adapter_a.base_model} | {report.adapter_b.base_model} |")
+    lines.append(f"| **Layers** | {report.adapter_a.n_layers} | {report.adapter_b.n_layers} |")
     lines.append("")
 
     # --- Compatibility summary ---
@@ -325,9 +300,7 @@ def to_markdown(report: MergeAuditReport) -> str:
     # --- Per-layer analysis ---
     if report.layer_verdicts:
         lines.append("## Per-Layer Analysis\n")
-        lines.append(
-            "| Layer | r_a | r_b | Overlap | Agreement | Scale | Mag ratio | Verdict | Strategy |"
-        )
+        lines.append("| Layer | r_a | r_b | Overlap | Agreement | Scale | Mag ratio | Verdict | Strategy |")
         lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|")
 
         for lv in report.layer_verdicts:

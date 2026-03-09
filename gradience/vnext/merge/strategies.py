@@ -33,7 +33,6 @@ from torch import Tensor
 
 from gradience.exceptions import ConfigError
 
-
 # ---------------------------------------------------------------------------
 # Per-layer merge configuration
 # ---------------------------------------------------------------------------
@@ -56,8 +55,8 @@ class LayerMergeConfig:
 
     module_prefix: str
     strategy: str
-    coefficients: Tuple[float, float] = (0.5, 0.5)
-    target_rank: Optional[int] = None
+    coefficients: tuple[float, float] = (0.5, 0.5)
+    target_rank: int | None = None
     trim_fraction: float = 0.0
 
     def to_dict(self) -> dict:
@@ -215,7 +214,7 @@ def _disjoint_mean(task_vectors: list[Tensor], elected_sign: Tensor) -> Tensor:
     """
     stacked = torch.stack(task_vectors, dim=0)  # (n_tasks, *shape)
     # Mask: only keep values that agree with elected sign
-    agrees = (stacked.sign() == elected_sign.unsqueeze(0))  # (n_tasks, *shape)
+    agrees = stacked.sign() == elected_sign.unsqueeze(0)  # (n_tasks, *shape)
     # Zero out disagreeing values
     filtered = stacked * agrees.float()
     # Count agreeing values per position
@@ -440,8 +439,5 @@ def get_strategy(name: str) -> MergeStrategy:
     """
     cls = _STRATEGIES.get(name)
     if cls is None:
-        raise ConfigError(
-            f"Unknown merge strategy '{name}'. "
-            f"Available: {sorted(_STRATEGIES.keys())}"
-        )
+        raise ConfigError(f"Unknown merge strategy '{name}'. Available: {sorted(_STRATEGIES.keys())}")
     return cls()

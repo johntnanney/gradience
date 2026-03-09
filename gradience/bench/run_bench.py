@@ -23,17 +23,19 @@ Resume functionality:
 from __future__ import annotations
 
 import argparse
-import sys
-import os
 import json
+import os
+import sys
 import tempfile
-import yaml
 from pathlib import Path
 from typing import Optional
 
+import yaml
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the CLI."""
-    
+
     parser = argparse.ArgumentParser(
         prog="python -m gradience.bench.run_bench",
         description="LoRA compression benchmarking tool",
@@ -51,97 +53,71 @@ Examples:
   
   # Override device
   python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output gpu_run --device cuda
-        """
+        """,
     )
-    
+
     # Required arguments
     parser.add_argument(
-        "--config",
-        type=str,
-        required=True,
-        help="Path to YAML config file (e.g., configs/distilbert_sst2.yaml)"
+        "--config", type=str, required=True, help="Path to YAML config file (e.g., configs/distilbert_sst2.yaml)"
     )
-    
-    parser.add_argument(
-        "--output", 
-        type=str,
-        required=True,
-        help="Output directory for benchmark results"
-    )
-    
+
+    parser.add_argument("--output", type=str, required=True, help="Output directory for benchmark results")
+
     # Optional flags
     parser.add_argument(
-        "--smoke",
-        action="store_true",
-        help="Run in smoke mode (uses smoke_* limits from config for faster testing)"
+        "--smoke", action="store_true", help="Run in smoke mode (uses smoke_* limits from config for faster testing)"
     )
-    
+
     parser.add_argument(
-        "--ci",
-        action="store_true", 
-        help="CI mode: exit non-zero if attempted compression strategies FAIL"
+        "--ci", action="store_true", help="CI mode: exit non-zero if attempted compression strategies FAIL"
     )
-    
+
     parser.add_argument(
-        "--device",
-        choices=["cpu", "mps", "cuda"],
-        help="Override device from config (cpu, mps, or cuda)"
+        "--device", choices=["cpu", "mps", "cuda"], help="Override device from config (cpu, mps, or cuda)"
     )
-    
+
     parser.add_argument(
-        "--keep-artifacts",
-        action="store_true",
-        default=True,
-        help="Keep all artifacts (default: True)"
+        "--keep-artifacts", action="store_true", default=True, help="Keep all artifacts (default: True)"
     )
-    
+
     parser.add_argument(
-        "--clean-on-pass",
-        action="store_true",
-        help="Clean artifacts if all strategies pass (future feature)"
+        "--clean-on-pass", action="store_true", help="Clean artifacts if all strategies pass (future feature)"
     )
-    
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Verbose output"
-    )
-    
+
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
+
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="Resume from completed stages (skips expensive operations like 90-minute probe training)"
+        help="Resume from completed stages (skips expensive operations like 90-minute probe training)",
     )
-    
+
     # Candidate control options
     parser.add_argument(
         "--full-mode",
         action="store_true",
-        help="Full mode: test all policy variants (default: fast mode with energy_p90, knee_p90, erank_p90)"
+        help="Full mode: test all policy variants (default: fast mode with energy_p90, knee_p90, erank_p90)",
     )
-    
+
     parser.add_argument(
-        "--max-candidates",
-        type=int,
-        default=4,
-        help="Maximum number of compression candidates to test (default: 4)"
+        "--max-candidates", type=int, default=4, help="Maximum number of compression candidates to test (default: 4)"
     )
-    
+
     return parser
 
 
 def validate_args(args: argparse.Namespace) -> None:
     """Validate command line arguments."""
-    
+
     # Check config file exists
     config_path = Path(args.config)
     if not config_path.exists():
         print(f"Error: Config file not found: {config_path}")
         sys.exit(1)
-    
-    if not config_path.suffix.lower() in ['.yaml', '.yml']:
+
+    if config_path.suffix.lower() not in [".yaml", ".yml"]:
         print(f"Warning: Config file should be YAML (.yaml/.yml): {config_path}")
-    
+
     # Check output directory can be created
     output_path = Path(args.output)
     try:
@@ -149,14 +125,14 @@ def validate_args(args: argparse.Namespace) -> None:
     except PermissionError:
         print(f"Error: Cannot create output directory: {output_path}")
         sys.exit(1)
-    
+
     if args.clean_on_pass:
         print("Warning: --clean-on-pass is not yet implemented")
 
 
 def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False) -> int:
     """Check exit conditions and return appropriate exit code."""
-    
+
     # Check for probe quality issues first
     probe_quality_status = report.get("status")
     if probe_quality_status == "UNDERTRAINED_SMOKE":
@@ -167,15 +143,15 @@ def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False)
         # Non-smoke mode with undertrained probe - signal undertrained
         print("\nProbe undertrained - results not reliable (exit code 2)")
         return 2
-    
+
     # Smoke mode always exits 0 (wiring check, not performance test)
     if smoke_mode:
         print("\nSmoke test completed - wiring check successful")
         return 0
-        
+
     if not ci_mode:
         return 0
-    
+
     # CI mode: check if strategies passed
     # Handle both old and new report formats
     if "verdicts" in report and isinstance(report["verdicts"], dict):
@@ -188,45 +164,45 @@ def check_exit_conditions(report: dict, ci_mode: bool, smoke_mode: bool = False)
     else:
         # Fallback: look in variants
         verdicts = {}
-    
+
     attempted_strategies = [v for v in verdicts.values() if v.get("status") == "evaluated"]
     passed_strategies = [v for v in attempted_strategies if v.get("verdict") == "PASS"]
-    
+
     total_attempted = len(attempted_strategies)
     total_passed = len(passed_strategies)
-    
-    print(f"\nCI Mode Results:")
+
+    print("\nCI Mode Results:")
     print(f"  Attempted strategies: {total_attempted}")
     print(f"  Passed strategies: {total_passed}")
-    
+
     if total_attempted == 0:
         print("  No strategies were attempted - CI FAIL")
         return 1
-    
+
     # Fail if no strategies passed
     if total_passed == 0:
         print("  No strategies passed - CI FAIL")
         return 1
-    
+
     # Optional: Stricter check - fail if < 2/3 passed
     # success_rate = total_passed / total_attempted
     # if success_rate < 2/3:
     #     print(f"  Success rate {success_rate:.1%} < 67% - CI FAIL")
     #     return 1
-    
+
     print("  CI PASS")
     return 0
 
 
 def main() -> int:
     """Main entry point for the CLI."""
-    
+
     parser = create_parser()
     args = parser.parse_args()
-    
+
     # Validate arguments
     validate_args(args)
-    
+
     print("Gradience Bench CLI")
     print("=" * 40)
     print(f"Config: {args.config}")
@@ -248,24 +224,24 @@ def main() -> int:
         print(f"\nMissing bench dependencies: {e}")
         print('Install with: pip install "gradience[bench]"')
         sys.exit(1)
-    
+
     try:
         # Handle device override by modifying config temporarily
         if args.device:
             # Load original config
-            with open(args.config, 'r') as f:
+            with open(args.config) as f:
                 config_data = yaml.safe_load(f)
-            
+
             # Override device
-            if 'runtime' not in config_data:
-                config_data['runtime'] = {}
-            config_data['runtime']['device'] = args.device
-            
+            if "runtime" not in config_data:
+                config_data["runtime"] = {}
+            config_data["runtime"]["device"] = args.device
+
             # Write temporary config
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
                 yaml.safe_dump(config_data, f)
                 temp_config_path = f.name
-            
+
             try:
                 # Run with temporary config
                 report = run_bench_protocol(
@@ -275,7 +251,7 @@ def main() -> int:
                     ci=args.ci,
                     fast_mode=not args.full_mode,
                     max_candidates=args.max_candidates,
-                    resume=args.resume
+                    resume=args.resume,
                 )
             finally:
                 # Clean up temporary config
@@ -289,22 +265,22 @@ def main() -> int:
                 ci=args.ci,
                 fast_mode=not args.full_mode,
                 max_candidates=args.max_candidates,
-                resume=args.resume
+                resume=args.resume,
             )
-        
+
         # For CI mode, we need access to the internal verdicts
         # The canonical report doesn't include detailed verdict analysis
         internal_report_path = Path(args.output) / "bench_internal.json"
         if args.ci and internal_report_path.exists():
-            with open(internal_report_path, 'r') as f:
+            with open(internal_report_path) as f:
                 internal_report = json.load(f)
             exit_code = check_exit_conditions(internal_report, args.ci, args.smoke)
         else:
             exit_code = check_exit_conditions(report, args.ci, args.smoke)
-        
+
         print(f"\nBenchmark complete! Results in: {args.output}")
         return exit_code
-        
+
     except KeyboardInterrupt:
         print("\nBenchmark interrupted by user")
         return 130
@@ -317,6 +293,7 @@ def main() -> int:
         print(f"\nBenchmark failed: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         return 1
 

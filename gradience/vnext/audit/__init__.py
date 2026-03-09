@@ -10,16 +10,20 @@ Primary entrypoints:
 
 from .lora_audit import (
     LoRAAdapterConfig,
-    LoRALayerAudit,
     LoRAAuditResult,
+    LoRALayerAudit,
     audit_lora_peft_dir,
     audit_lora_state_dict,
     find_peft_files,
-    load_peft_adapter_config,
+    infer_module_type,
     load_adapter_state_dict,
+    load_peft_adapter_config,
+)
+from .lora_audit import (
     # LoRA weight utilities — promoted to public API for merge audit use.
     _iter_lora_pairs as iter_lora_pairs,
+)
+from .lora_audit import (
     _orient_lora_factors as orient_lora_factors,
-    infer_module_type,
 )
 from .qa_artifact import AdapterQAArtifact, build_qa_artifact

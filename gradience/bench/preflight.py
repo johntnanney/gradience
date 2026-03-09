@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import os
 import json
+import os
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 
-def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> None:
+def run_artifact_hygiene_cleanup(output_dir: Path, config: dict[str, Any]) -> None:
     """
     Clean up heavy adapter weights and checkpoints while preserving scientific artifacts.
 
@@ -43,11 +43,7 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> No
             # Clean adapter weights
             if not keep_adapter_weights:
                 # Look for adapter weights in common locations
-                adapter_patterns = [
-                    "adapter_model.safetensors",
-                    "adapter_model.bin",
-                    "pytorch_adapter.bin"
-                ]
+                adapter_patterns = ["adapter_model.safetensors", "adapter_model.bin", "pytorch_adapter.bin"]
 
                 for pattern in adapter_patterns:
                     # Check in variant root
@@ -81,10 +77,11 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> No
                 for checkpoint_dir in variant_dir.glob("checkpoint-*"):
                     if checkpoint_dir.is_dir():
                         # Calculate directory size before deletion
-                        dir_size = sum(f.stat().st_size for f in checkpoint_dir.rglob('*') if f.is_file())
+                        dir_size = sum(f.stat().st_size for f in checkpoint_dir.rglob("*") if f.is_file())
 
                         # Remove the entire checkpoint directory
                         import shutil
+
                         shutil.rmtree(checkpoint_dir)
                         cleaned_files.append(str(checkpoint_dir.relative_to(output_dir)) + "/")
                         saved_space += dir_size
@@ -103,15 +100,15 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: Dict[str, Any]) -> No
                 print(f"   - {item}")
         else:
             # Summarize if many files
-            weight_files = [f for f in cleaned_files if not f.endswith('/')]
-            checkpoint_dirs = [f for f in cleaned_files if f.endswith('/')]
+            weight_files = [f for f in cleaned_files if not f.endswith("/")]
+            checkpoint_dirs = [f for f in cleaned_files if f.endswith("/")]
             if weight_files:
                 print(f"   - {len(weight_files)} adapter weight files")
             if checkpoint_dirs:
                 print(f"   - {len(checkpoint_dirs)} checkpoint directories")
 
 
-def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
+def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
     """
     Preflight checks to catch common failure modes before expensive training.
 
@@ -134,6 +131,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
     # 1. PyTorch device check
     try:
         import torch
+
         print(f"\u2705 PyTorch {torch.__version__} available")
 
         # Check CUDA
@@ -147,7 +145,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
             print("\u26a0\ufe0f  CUDA not available - will run on CPU (much slower)")
 
         # Check MPS (Apple Silicon)
-        if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             print("\u2705 MPS (Apple Silicon) available")
 
         # Determine runtime device from config
@@ -170,14 +168,9 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
         if os.path.exists(path):
             try:
                 # Use df command for reliable disk space info
-                result = subprocess.run(
-                    ["df", "-h", path],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
+                result = subprocess.run(["df", "-h", path], capture_output=True, text=True, timeout=10)
                 if result.returncode == 0:
-                    lines = result.stdout.strip().split('\n')
+                    lines = result.stdout.strip().split("\n")
                     if len(lines) >= 2:
                         # Parse df output: Filesystem Size Used Avail Use% Mounted
                         fields = lines[1].split()
@@ -187,7 +180,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
                             print(f"\u2705 Disk space {path}: {avail} available ({use_pct} used)")
 
                             # Warn if very low space
-                            if use_pct.rstrip('%').isdigit() and int(use_pct.rstrip('%')) > 95:
+                            if use_pct.rstrip("%").isdigit() and int(use_pct.rstrip("%")) > 95:
                                 print(f"\u26a0\ufe0f  WARNING: {path} is {use_pct} full - may cause download failures")
                         else:
                             print(f"\u2705 {path} accessible (could not parse disk usage)")
@@ -202,26 +195,28 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
 
     # 3. HF cache checks
     try:
-        from transformers import AutoTokenizer
         import os
         from pathlib import Path
+
+        from transformers import AutoTokenizer
 
         # Get HF cache directory (try multiple methods for different HF versions)
         try:
             # Try new HuggingFace Hub API
             from huggingface_hub import HF_HOME
+
             cache_dir = Path(HF_HOME) if HF_HOME else None
         except ImportError:
             cache_dir = None
 
         if not cache_dir:
             # Fallback to environment variable or default
-            hf_home = os.environ.get('HF_HOME')
+            hf_home = os.environ.get("HF_HOME")
             if hf_home:
                 cache_dir = Path(hf_home)
             else:
                 # Default HF cache location
-                cache_dir = Path.home() / '.cache' / 'huggingface'
+                cache_dir = Path.home() / ".cache" / "huggingface"
 
         try:
             print(f"\u2705 HuggingFace cache: {cache_dir}")
@@ -232,7 +227,7 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
                 try:
                     test_file.touch()
                     test_file.unlink()
-                    print(f"\u2705 HF cache directory writable")
+                    print("\u2705 HF cache directory writable")
                 except (OSError, PermissionError) as e:
                     print(f"\u274c HF cache directory not writable: {e}")
                     raise RuntimeError(f"HuggingFace cache directory not writable: {cache_dir}")
@@ -247,10 +242,10 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
 
     # 3.5. HF Cache Environment Validation (RunPod survival check)
     hf_env_vars = {
-        'HF_HOME': 'Primary HF cache directory',
-        'HF_HUB_CACHE': 'Model weights cache',
-        'HF_DATASETS_CACHE': 'Dataset cache',
-        'TORCH_HOME': 'PyTorch cache'
+        "HF_HOME": "Primary HF cache directory",
+        "HF_HUB_CACHE": "Model weights cache",
+        "HF_DATASETS_CACHE": "Dataset cache",
+        "TORCH_HOME": "PyTorch cache",
     }
 
     print("\U0001f50d Validating HuggingFace cache environment...")
@@ -263,8 +258,10 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
             cache_path = Path(value)
 
             # Check if path is under /root/ on RunPod (danger zone)
-            if runpod_detected and str(cache_path).startswith('/root/'):
-                env_issues.append(f"{env_var}={value} (\u26a0\ufe0f  points to /root/ - will fill system disk on RunPod)")
+            if runpod_detected and str(cache_path).startswith("/root/"):
+                env_issues.append(
+                    f"{env_var}={value} (\u26a0\ufe0f  points to /root/ - will fill system disk on RunPod)"
+                )
             elif cache_path.exists() and not os.access(cache_path, os.W_OK):
                 env_issues.append(f"{env_var}={value} (\u274c not writable)")
             else:
@@ -321,9 +318,9 @@ def run_bench_preflight_check(config: Dict[str, Any], model_name: str) -> None:
             error_msg = str(e).lower()
             if "incomplete" in error_msg and "metadata" in error_msg:
                 print(f"\u274c Safetensors metadata corruption detected for {model_name}")
-                print(f"\U0001f4a1 SOLUTION: Delete the corrupted cache:")
+                print("\U0001f4a1 SOLUTION: Delete the corrupted cache:")
                 print(f"   rm -rf ~/.cache/huggingface/hub/models--{model_name.replace('/', '--')}")
-                print(f"   Or nuke entire cache: rm -rf ~/.cache/huggingface/")
+                print("   Or nuke entire cache: rm -rf ~/.cache/huggingface/")
                 raise RuntimeError(f"HuggingFace cache corruption: {e}")
             else:
                 print(f"\u26a0\ufe0f  Model loading issue: {e}")

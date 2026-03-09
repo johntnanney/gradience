@@ -7,8 +7,9 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -20,16 +21,18 @@ FIGURES_DIR = RESULTS_DIR / "figures"
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 # Clean style
-plt.rcParams.update({
-    "font.family": "sans-serif",
-    "font.size": 10,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-    "axes.grid": False,
-    "figure.dpi": 150,
-    "savefig.bbox": "tight",
-    "savefig.dpi": 150,
-})
+plt.rcParams.update(
+    {
+        "font.family": "sans-serif",
+        "font.size": 10,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.grid": False,
+        "figure.dpi": 150,
+        "savefig.bbox": "tight",
+        "savefig.dpi": 150,
+    }
+)
 
 COLORS = {
     "primary": "#2C5F7C",
@@ -113,9 +116,16 @@ def fig1_ccf_aggregate():
         # Annotate lead count
         leads = agg["leads_count"]
         total = agg["total_runs"]
-        ax.text(0.95, 0.95, f"leads: {leads}/{total}",
-                transform=ax.transAxes, ha="right", va="top", fontsize=8,
-                color=COLORS["muted"])
+        ax.text(
+            0.95,
+            0.95,
+            f"leads: {leads}/{total}",
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=8,
+            color=COLORS["muted"],
+        )
 
     fig.suptitle("Cross-Correlation: Geometric Features vs Eval Loss\n(negative lag = geometry leads)", fontsize=11)
     plt.tight_layout()
@@ -218,10 +228,10 @@ def fig3_forecast_comparison():
     persist_stds = [np.std(v["rmse_persist"]) for v in variants.values()]
     model_stds = [np.std(v["rmse_model"]) for v in variants.values()]
 
-    ax1.bar(x - width/2, persist_means, width, yerr=persist_stds,
-            color=COLORS["muted"], label="Persistence", capsize=3)
-    ax1.bar(x + width/2, model_means, width, yerr=model_stds,
-            color=COLORS["primary"], label="Ridge (geo)", capsize=3)
+    ax1.bar(
+        x - width / 2, persist_means, width, yerr=persist_stds, color=COLORS["muted"], label="Persistence", capsize=3
+    )
+    ax1.bar(x + width / 2, model_means, width, yerr=model_stds, color=COLORS["primary"], label="Ridge (geo)", capsize=3)
 
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels, fontsize=8)
@@ -232,8 +242,7 @@ def fig3_forecast_comparison():
     # Right: RMSE reduction distribution
     for i, (label, v) in enumerate(variants.items()):
         reds = v["reduction"]
-        ax2.hist(reds, bins=15, alpha=0.6, label=label,
-                 color=[COLORS["primary"], COLORS["secondary"]][i % 2])
+        ax2.hist(reds, bins=15, alpha=0.6, label=label, color=[COLORS["primary"], COLORS["secondary"]][i % 2])
 
     ax2.axvline(0, color="black", linewidth=1)
     ax2.set_xlabel("RMSE Reduction (%)")
@@ -269,9 +278,14 @@ def fig4_early_stopping():
             # Label the interesting ones
             if saved > 5:
                 short = r["rule"].replace("_plateau_", "\n").replace("grad_norm_", "gn_").replace("train_loss_", "tl_")
-                ax.annotate(short, (delta, saved), fontsize=6,
-                           xytext=(5, 5), textcoords="offset points",
-                           color=COLORS["primary"])
+                ax.annotate(
+                    short,
+                    (delta, saved),
+                    fontsize=6,
+                    xytext=(5, 5),
+                    textcoords="offset points",
+                    color=COLORS["primary"],
+                )
 
     # Plot loss-based rules
     for r in loss_rules:
@@ -283,8 +297,15 @@ def fig4_early_stopping():
     ax.axhline(0, color="black", linewidth=0.5, alpha=0.3)
 
     # Label quadrants
-    ax.text(0.02, 0.98, "Ideal: high savings,\nno accuracy cost",
-            transform=ax.transAxes, fontsize=8, va="top", color=COLORS["accent"])
+    ax.text(
+        0.02,
+        0.98,
+        "Ideal: high savings,\nno accuracy cost",
+        transform=ax.transAxes,
+        fontsize=8,
+        va="top",
+        color=COLORS["accent"],
+    )
 
     ax.set_xlabel("Mean Metric Delta (negative = worse)")
     ax.set_ylabel("Mean % Training Saved")
@@ -292,9 +313,14 @@ def fig4_early_stopping():
 
     # Legend
     from matplotlib.lines import Line2D
+
     legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor=COLORS["primary"], markersize=8, label="Geometric rules"),
-        Line2D([0], [0], marker='^', color='w', markerfacecolor=COLORS["secondary"], markersize=8, label="Loss-based rules"),
+        Line2D(
+            [0], [0], marker="o", color="w", markerfacecolor=COLORS["primary"], markersize=8, label="Geometric rules"
+        ),
+        Line2D(
+            [0], [0], marker="^", color="w", markerfacecolor=COLORS["secondary"], markersize=8, label="Loss-based rules"
+        ),
     ]
     ax.legend(handles=legend_elements, fontsize=8)
 

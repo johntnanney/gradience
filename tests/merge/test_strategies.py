@@ -9,15 +9,14 @@ import pytest
 import torch
 
 from gradience.vnext.merge.strategies import (
-    LayerMergeConfig,
-    LinearMerge,
-    TIESMerge,
     DARELinearMerge,
     DARETIESMerge,
+    LayerMergeConfig,
+    LinearMerge,
     NormEqualizedMerge,
+    TIESMerge,
     get_strategy,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -36,6 +35,7 @@ def simple_dW_pair():
 @pytest.fixture
 def make_config():
     """Factory for LayerMergeConfig."""
+
     def _make(
         strategy: str = "linear",
         coefficients=(0.5, 0.5),
@@ -47,6 +47,7 @@ def make_config():
             coefficients=coefficients,
             trim_fraction=trim_fraction,
         )
+
     return _make
 
 

@@ -39,38 +39,40 @@ We can test this by tracking F spectra alongside weight spectra.
 """
 
 from __future__ import annotations
+
 import math
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List, Tuple, Callable
 import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
 class FisherSnapshot:
     """Snapshot of Fisher Information properties."""
-    
+
     step: int
     timestamp: float
     n_samples: int  # Samples used for estimation
-    
+
     # Spectral properties
-    top_eigenvalues: List[float]
+    top_eigenvalues: list[float]
     lambda_max: float
-    lambda_min_approx: Optional[float]
-    fisher_kappa: Optional[float]  # Condition number
-    
+    lambda_min_approx: float | None
+    fisher_kappa: float | None  # Condition number
+
     # Trace and norms
-    trace: float                   # tr(F)
-    frobenius_norm: float          # ||F||_F
-    
+    trace: float  # tr(F)
+    frobenius_norm: float  # ||F||_F
+
     # Effective dimensionality
-    effective_dim: float           # tr(F)² / tr(F²) or similar
-    participation_ratio: float     # Another effective dim measure
-    
+    effective_dim: float  # tr(F)² / tr(F²) or similar
+    participation_ratio: float  # Another effective dim measure
+
     # Natural gradient alignment
-    natural_grad_alignment: Optional[float]  # cos(∇L, F⁻¹∇L)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    natural_grad_alignment: float | None  # cos(∇L, F⁻¹∇L)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "step": self.step,
             "timestamp": self.timestamp,
@@ -91,14 +93,14 @@ def compute_empirical_fisher_diagonal(
     model,
     data_loader,
     n_samples: int = 100,
-) -> List:
+) -> list:
     """
     Compute diagonal of empirical Fisher matrix.
-    
+
     F_ii ≈ (1/n) Σ (∂L/∂θ_i)²
-    
+
     Much cheaper than full Fisher—O(p) vs O(p²) storage.
-    
+
     Parameters
     ----------
     model : torch.nn.Module
@@ -107,56 +109,54 @@ def compute_empirical_fisher_diagonal(
         Data for Fisher estimation
     n_samples : int
         Number of samples to use
-    
+
     Returns
     -------
     fisher_diag : list of Tensor
         Diagonal elements, same structure as parameters
     """
     import torch
-    
+
     # Initialize accumulator
     fisher_diag = [torch.zeros_like(p) for p in model.parameters() if p.requires_grad]
-    
+
     model.eval()
     count = 0
-    
+
     for batch in data_loader:
         if count >= n_samples:
             break
-        
+
         # Move to device
         if isinstance(batch, dict):
-            batch = {k: v.to(next(model.parameters()).device) 
-                    for k, v in batch.items() if hasattr(v, 'to')}
-        
+            batch = {k: v.to(next(model.parameters()).device) for k, v in batch.items() if hasattr(v, "to")}
+
         # Forward pass
         model.zero_grad()
         outputs = model(**batch) if isinstance(batch, dict) else model(batch)
-        
-        if hasattr(outputs, 'loss'):
+
+        if hasattr(outputs, "loss"):
             loss = outputs.loss
         else:
             # Assume classification
             loss = torch.nn.functional.cross_entropy(
-                outputs.logits if hasattr(outputs, 'logits') else outputs,
-                batch['labels']
+                outputs.logits if hasattr(outputs, "logits") else outputs, batch["labels"]
             )
-        
+
         # Backward pass
         loss.backward()
-        
+
         # Accumulate squared gradients
         for i, p in enumerate(model.parameters()):
             if p.requires_grad and p.grad is not None:
-                fisher_diag[i] += p.grad.data ** 2
-        
+                fisher_diag[i] += p.grad.data**2
+
         count += 1
-    
+
     # Average
     for i in range(len(fisher_diag)):
         fisher_diag[i] /= count
-    
+
     model.train()
     return fisher_diag
 
@@ -167,13 +167,13 @@ def compute_fisher_spectral_properties(
     n_samples: int = 50,
     n_eigenvalues: int = 5,
     power_iterations: int = 20,
-) -> Tuple[List[float], float, float]:
+) -> tuple[list[float], float, float]:
     """
     Compute top eigenvalues and trace of empirical Fisher.
-    
+
     Uses power iteration with Fisher-vector products:
     Fv ≈ (1/n) Σ g_i (g_i · v) where g_i = ∂L_i/∂θ
-    
+
     Parameters
     ----------
     model : torch.nn.Module
@@ -186,7 +186,7 @@ def compute_fisher_spectral_properties(
         Number of top eigenvalues
     power_iterations : int
         Iterations per eigenvalue
-    
+
     Returns
     -------
     eigenvalues : list of float
@@ -197,98 +197,96 @@ def compute_fisher_spectral_properties(
         Frobenius norm estimate
     """
     import torch
-    
+
     params = [p for p in model.parameters() if p.requires_grad]
-    
+
     # Collect gradients for Fisher estimation
     gradients = []
-    
+
     model.eval()
     for i, batch in enumerate(data_loader):
         if i >= n_samples:
             break
-        
+
         if isinstance(batch, dict):
-            batch = {k: v.to(next(model.parameters()).device)
-                    for k, v in batch.items() if hasattr(v, 'to')}
-        
+            batch = {k: v.to(next(model.parameters()).device) for k, v in batch.items() if hasattr(v, "to")}
+
         model.zero_grad()
         outputs = model(**batch) if isinstance(batch, dict) else model(batch)
-        
-        if hasattr(outputs, 'loss'):
+
+        if hasattr(outputs, "loss"):
             loss = outputs.loss
         else:
             loss = torch.nn.functional.cross_entropy(
-                outputs.logits if hasattr(outputs, 'logits') else outputs,
-                batch['labels']
+                outputs.logits if hasattr(outputs, "logits") else outputs, batch["labels"]
             )
-        
+
         loss.backward()
-        
+
         grad = [p.grad.data.clone().flatten() for p in params if p.grad is not None]
         gradients.append(torch.cat(grad))
-    
+
     model.train()
-    
+
     if not gradients:
         return [], 0.0, 0.0
-    
+
     # Stack gradients: (n_samples, n_params)
     G = torch.stack(gradients)
     n, d = G.shape
-    
+
     # Trace: tr(F) = E[||g||²] = (1/n) Σ ||g_i||²
-    trace = (G ** 2).sum().item() / n
-    
+    trace = (G**2).sum().item() / n
+
     # Frobenius: ||F||_F² = E[||g||²]² + Var(g·g') ≈ trace² / d (rough)
     frobenius = math.sqrt(trace)  # Approximation
-    
+
     # Power iteration for top eigenvalues
     # F = (1/n) G^T G, so Fv = (1/n) G^T (G v)
     eigenvalues: list[float] = []
     V: list[torch.Tensor] = []  # Eigenvectors for deflation
-    
+
     for k in range(n_eigenvalues):
         v = torch.randn(d, device=G.device)
         v = v / (v.norm() + 1e-8)
-        
+
         # Orthogonalize against previous eigenvectors
         for u in V:
             v = v - (v @ u) * u
         v = v / (v.norm() + 1e-8)
-        
+
         for _ in range(power_iterations):
             # Fv = (1/n) G^T (G v)
             Gv = G @ v
             Fv = G.T @ Gv / n
-            
+
             # Deflation
             for u in V:
                 Fv = Fv - (Fv @ u) * u
-            
+
             eigenvalue = (v @ Fv).item()
             v = Fv / (Fv.norm() + 1e-8)
-        
+
         eigenvalues.append(eigenvalue)
         V.append(v)
-    
+
     return eigenvalues, trace, frobenius
 
 
 def compute_natural_gradient_alignment(
     model,
     batch,
-    fisher_diag: List,
+    fisher_diag: list,
     epsilon: float = 1e-4,
 ) -> float:
     """
     Compute alignment between gradient and approximate natural gradient.
-    
+
     cos(∇L, F̂⁻¹∇L) where F̂ is diagonal Fisher
-    
+
     High alignment → SGD is acting like natural gradient
     Low alignment → geometry is highly distorted
-    
+
     Parameters
     ----------
     model : torch.nn.Module
@@ -299,97 +297,96 @@ def compute_natural_gradient_alignment(
         Diagonal Fisher (from compute_empirical_fisher_diagonal)
     epsilon : float
         Regularization for Fisher inversion
-    
+
     Returns
     -------
     alignment : float
         Cosine similarity in [0, 1]
     """
     import torch
-    
+
     # Compute current gradient
     model.zero_grad()
     outputs = model(**batch) if isinstance(batch, dict) else model(batch)
-    
-    if hasattr(outputs, 'loss'):
+
+    if hasattr(outputs, "loss"):
         loss = outputs.loss
     else:
         loss = torch.nn.functional.cross_entropy(
-            outputs.logits if hasattr(outputs, 'logits') else outputs,
-            batch['labels']
+            outputs.logits if hasattr(outputs, "logits") else outputs, batch["labels"]
         )
-    
+
     loss.backward()
-    
+
     # Extract gradient
     grad = []
     for p in model.parameters():
         if p.requires_grad and p.grad is not None:
             grad.append(p.grad.data.clone())
-    
+
     # Compute natural gradient: F^{-1} g (diagonal approximation)
     natural_grad = []
     for g, f in zip(grad, fisher_diag):
         ng = g / (f + epsilon)
         natural_grad.append(ng)
-    
+
     # Flatten for dot product
     g_flat = torch.cat([g.flatten() for g in grad])
     ng_flat = torch.cat([ng.flatten() for ng in natural_grad])
-    
+
     # Cosine similarity
     dot = (g_flat * ng_flat).sum()
     norm_g = g_flat.norm()
     norm_ng = ng_flat.norm()
-    
+
     if norm_g < 1e-8 or norm_ng < 1e-8:
         return 0.0
-    
+
     alignment: float = (dot / (norm_g * norm_ng)).item()
     return abs(alignment)  # Take absolute value
 
 
-def compute_effective_dimensionality(fisher_diag: List) -> Tuple[float, float]:
+def compute_effective_dimensionality(fisher_diag: list) -> tuple[float, float]:
     """
     Compute effective dimensionality from diagonal Fisher.
-    
+
     Two measures:
     1. Participation ratio: (Σ λ_i)² / Σ λ_i² = tr(F)² / tr(F²)
     2. Entropy-based: exp(entropy of normalized spectrum)
-    
+
     Parameters
     ----------
     fisher_diag : list of Tensor
         Diagonal Fisher elements
-    
+
     Returns
     -------
     participation_ratio : float
     entropy_dim : float
     """
     import torch
-    
+
     # Flatten to single vector
     flat = torch.cat([f.flatten() for f in fisher_diag])
-    
+
     # Ensure non-negative (should be, but numerics)
     flat = torch.clamp(flat, min=0)
-    
+
     trace = flat.sum().item()
-    trace_sq = (flat ** 2).sum().item()
-    
+    trace_sq = (flat**2).sum().item()
+
     if trace_sq < 1e-10:
         return 1.0, 1.0
-    
+
     # Participation ratio
-    pr = trace ** 2 / trace_sq
-    
+    pr = trace**2 / trace_sq
+
     # Entropy-based
     probs = flat / (trace + 1e-10)
     probs = probs[probs > 1e-10]  # Filter zeros
     entropy = -(probs * torch.log(probs)).sum().item()
     entropy_dim = math.exp(entropy)
-    
+
     return pr, entropy_dim
 
 
@@ -397,16 +394,16 @@ def compute_effective_dimensionality(fisher_diag: List) -> Tuple[float, float]:
 class FisherTracker:
     """
     Track Fisher Information properties over training.
-    
+
     Computes and stores Fisher snapshots for analyzing
     information geometry dynamics.
     """
-    
-    _history: List[FisherSnapshot] = field(default_factory=list)
-    
+
+    _history: list[FisherSnapshot] = field(default_factory=list)
+
     def __post_init__(self):
         self._history = []
-    
+
     def compute_and_record(
         self,
         model,
@@ -416,22 +413,20 @@ class FisherTracker:
         n_eigenvalues: int = 5,
     ) -> FisherSnapshot:
         """Compute Fisher snapshot and add to history."""
-        
+
         # Compute spectral properties
-        eigenvalues, trace, frobenius = compute_fisher_spectral_properties(
-            model, data_loader, n_samples, n_eigenvalues
-        )
-        
+        eigenvalues, trace, frobenius = compute_fisher_spectral_properties(model, data_loader, n_samples, n_eigenvalues)
+
         lambda_max = eigenvalues[0] if eigenvalues else 0.0
-        
+
         # Compute diagonal Fisher for effective dim
         fisher_diag = compute_empirical_fisher_diagonal(model, data_loader, n_samples)
         pr, entropy_dim = compute_effective_dimensionality(fisher_diag)
-        
+
         # Condition number estimate (rough, using trace and max)
         lambda_min_approx = trace / len(fisher_diag) if fisher_diag else None
         fisher_kappa = lambda_max / (lambda_min_approx + 1e-8) if lambda_min_approx else None
-        
+
         snapshot = FisherSnapshot(
             step=step,
             timestamp=time.time(),
@@ -446,10 +441,10 @@ class FisherTracker:
             participation_ratio=pr,
             natural_grad_alignment=None,  # Computed separately if needed
         )
-        
+
         self._history.append(snapshot)
         return snapshot
-    
-    def get_trajectory(self, field: str = "fisher_kappa") -> List[Tuple[int, float]]:
+
+    def get_trajectory(self, field: str = "fisher_kappa") -> list[tuple[int, float]]:
         """Get trajectory of a specific field."""
         return [(h.step, getattr(h, field)) for h in self._history]

@@ -1,4 +1,5 @@
 import unittest
+
 import torch
 import torch.nn as nn
 
@@ -75,8 +76,10 @@ class TestLoRAGuard(unittest.TestCase):
         g = LoRAGuard(cooldown_steps=0, max_rollbacks=2, window_steps=50)
 
         # simulate rollbacks at steps 10 and 20
-        g.snapshot(10, m); g.rollback(m)
-        g.snapshot(20, m); g.rollback(m)
+        g.snapshot(10, m)
+        g.rollback(m)
+        g.snapshot(20, m)
+        g.rollback(m)
 
         self.assertFalse(g.can_attempt_rollback(25))  # exceeded max_rollbacks in window
         self.assertTrue(g.can_attempt_rollback(100))  # old rollbacks fall out of window

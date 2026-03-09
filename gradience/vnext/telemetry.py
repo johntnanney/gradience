@@ -58,25 +58,24 @@ from __future__ import annotations
 import json
 import time
 import uuid
+from collections.abc import Iterable, Iterator
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from .types import (
-    TELEMETRY_SCHEMA_VERSION,
-    Severity,
-    ConfigSnapshot,
-    Recommendation,
-)
+from gradience.exceptions import ConfigError, TelemetryError
 
 # NOTE: The reader lives in a separate module so writer-only users don't
 # accidentally pull in heavier summarization logic.
 from .telemetry_reader import TelemetryReader
+from .types import (
+    TELEMETRY_SCHEMA_VERSION,
+    ConfigSnapshot,
+    Recommendation,
+    Severity,
+)
 
-from gradience.exceptions import ConfigError, TelemetryError
-
-
-Jsonable = Union[None, bool, int, float, str, Dict[str, Any], List[Any]]
+Jsonable = Union[None, bool, int, float, str, dict[str, Any], list[Any]]
 
 
 def _to_jsonable(obj: Any) -> Jsonable:
@@ -90,8 +89,8 @@ def _to_jsonable(obj: Any) -> Jsonable:
     if isinstance(obj, (list, tuple)):
         return [_to_jsonable(v) for v in obj]
     # Enums: use `.value` if present
-    if hasattr(obj, "value") and isinstance(getattr(obj, "value"), (str, int, float)):
-        val: Jsonable = getattr(obj, "value")
+    if hasattr(obj, "value") and isinstance(obj.value, (str, int, float)):
+        val: Jsonable = obj.value
         return val
     if is_dataclass(obj) and not isinstance(obj, type):
         # Prefer explicit to_dict() if available to keep schema stable.
@@ -108,8 +107,8 @@ class TelemetryWriter:
 
     def __init__(
         self,
-        path: Union[str, Path],
-        run_id: Optional[str] = None,
+        path: str | Path,
+        run_id: str | None = None,
         *,
         max_str_len: int = 256,
         allow_text: bool = False,
@@ -135,7 +134,7 @@ class TelemetryWriter:
         finally:
             self._closed = True
 
-    def _write(self, record: Dict[str, Any]) -> None:
+    def _write(self, record: dict[str, Any]) -> None:
         if self._closed:
             return
         self._f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -159,14 +158,14 @@ class TelemetryWriter:
                 return f"[REDACTED len={len(obj)}]"
             return obj
         if isinstance(obj, dict):
-            out: Dict[str, Any] = {}
+            out: dict[str, Any] = {}
             for k, v in obj.items():
                 key = str(k)
                 child = f"{_path}.{key}" if _path else key
                 out[key] = self._sanitize(v, _path=child)
             return out
         if isinstance(obj, (list, tuple)):
-            out_list: List[Any] = []
+            out_list: list[Any] = []
             for i, v in enumerate(obj):
                 child = f"{_path}[{i}]"
                 out_list.append(self._sanitize(v, _path=child))
@@ -174,8 +173,8 @@ class TelemetryWriter:
         # Fallback: stringify then sanitize length
         return self._sanitize(str(obj), _path=_path)
 
-    def log(self, event: str, *, step: Optional[int] = None, **payload: Any) -> None:
-        record: Dict[str, Any] = {
+    def log(self, event: str, *, step: int | None = None, **payload: Any) -> None:
+        record: dict[str, Any] = {
             "schema": TELEMETRY_SCHEMA_VERSION,
             "ts": time.time(),
             "run_id": self.run_id,
@@ -189,24 +188,24 @@ class TelemetryWriter:
 
     # ---- convenience helpers ----
 
-    def run_start(self, config: ConfigSnapshot, *, meta: Optional[Dict[str, Any]] = None) -> str:
+    def run_start(self, config: ConfigSnapshot, *, meta: dict[str, Any] | None = None) -> str:
         self.log("run_start", step=None, config=config, meta=meta or {})
         return self.run_id
 
-    def train_step(self, step: int, *, loss: Optional[float] = None, lr: Any = None, **extras: Any) -> None:
-        payload: Dict[str, Any] = {"loss": loss, "lr": lr}
+    def train_step(self, step: int, *, loss: float | None = None, lr: Any = None, **extras: Any) -> None:
+        payload: dict[str, Any] = {"loss": loss, "lr": lr}
         payload.update(extras)
         # Remove explicit None keys to keep logs tidy (optional).
         payload = {k: v for k, v in payload.items() if v is not None}
         self.log("train_step", step=step, **payload)
 
-    def eval(self, step: int, *, split: str, metrics: Dict[str, Any], **extras: Any) -> None:
-        payload: Dict[str, Any] = {"split": split, "metrics": metrics}
+    def eval(self, step: int, *, split: str, metrics: dict[str, Any], **extras: Any) -> None:
+        payload: dict[str, Any] = {"split": split, "metrics": metrics}
         payload.update(extras)
         self.log("eval", step=step, **payload)
 
-    def metrics(self, step: int, *, kind: str, metrics: Dict[str, Any], **extras: Any) -> None:
-        payload: Dict[str, Any] = {"kind": kind, "metrics": metrics}
+    def metrics(self, step: int, *, kind: str, metrics: dict[str, Any], **extras: Any) -> None:
+        payload: dict[str, Any] = {"kind": kind, "metrics": metrics}
         payload.update(extras)
         self.log("metrics", step=step, **payload)
 
@@ -216,11 +215,11 @@ class TelemetryWriter:
         severity: Severity,
         code: str,
         message: str,
-        step: Optional[int] = None,
-        context: Optional[Dict[str, Any]] = None,
+        step: int | None = None,
+        context: dict[str, Any] | None = None,
         **extras: Any,
     ) -> None:
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "severity": severity,
             "code": code,
             "message": message,
@@ -229,19 +228,21 @@ class TelemetryWriter:
         payload.update(extras)
         self.log("alert", step=step, **payload)
 
-    def recommendation(self, recommendations: List[Recommendation], *, step: Optional[int] = None, **extras: Any) -> None:
-        payload: Dict[str, Any] = {"recommendations": recommendations}
+    def recommendation(
+        self, recommendations: list[Recommendation], *, step: int | None = None, **extras: Any
+    ) -> None:
+        payload: dict[str, Any] = {"recommendations": recommendations}
         payload.update(extras)
         self.log("recommendation", step=step, **payload)
 
-    def run_end(self, *, status: str = "ok", reason: Optional[str] = None, **extras: Any) -> None:
-        payload: Dict[str, Any] = {"status": status, "reason": reason}
+    def run_end(self, *, status: str = "ok", reason: str | None = None, **extras: Any) -> None:
+        payload: dict[str, Any] = {"status": status, "reason": reason}
         payload.update(extras)
         # Keep reason only if provided.
         payload = {k: v for k, v in payload.items() if v is not None}
         self.log("run_end", step=None, **payload)
 
-    def __enter__(self) -> "TelemetryWriter":
+    def __enter__(self) -> TelemetryWriter:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
