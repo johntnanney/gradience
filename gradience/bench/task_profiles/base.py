@@ -4,7 +4,7 @@ Base task profile protocol for Bench.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Protocol, Tuple
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from datasets import Dataset

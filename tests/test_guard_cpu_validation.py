@@ -14,14 +14,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Check if dependencies are available
 try:
-    import torch
+    import torch  # noqa: F401
 
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
 
 try:
-    import transformers
+    import transformers  # noqa: F401
 
     HAS_TRANSFORMERS = True
 except ImportError:

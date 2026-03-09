@@ -52,11 +52,11 @@ import argparse
 import itertools
 import json
 import time
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import yaml
 

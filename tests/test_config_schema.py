@@ -6,7 +6,7 @@ import warnings
 
 import pytest
 
-from gradience.bench.config_schema import _normalize_train_config, validate_config
+from gradience.bench.config_schema import validate_config
 
 
 def _minimal_valid_config():

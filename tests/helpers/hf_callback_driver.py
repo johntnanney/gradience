@@ -9,7 +9,7 @@ import json
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from unittest.mock import Mock
 
 # Check if dependencies are available
@@ -36,7 +36,7 @@ except ImportError:
 
 
 try:
-    import transformers
+    import transformers  # noqa: F401
 
     HAS_TRANSFORMERS = True
 except ImportError:

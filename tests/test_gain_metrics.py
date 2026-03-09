@@ -9,7 +9,6 @@ without materializing the full ΔW matrix. It compares the r×r method against e
 """
 
 import math
-from typing import Dict, Tuple
 
 import numpy as np
 import pytest
@@ -494,7 +493,6 @@ class TestIntegrationEndToEnd:
 
 if __name__ == "__main__":
     # Run tests directly if this file is executed
-    import sys
 
     print("Running gain_metrics unit tests...")
 

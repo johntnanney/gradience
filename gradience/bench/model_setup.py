@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
 # Check for optional dependencies
 try:
     import torch
-    from datasets import load_dataset
-    from peft import LoraConfig, TaskType, get_peft_model
-    from transformers import (
+    from datasets import load_dataset  # noqa: F401
+    from peft import LoraConfig, TaskType, get_peft_model  # noqa: F401
+    from transformers import (  # noqa: F401
         AutoModelForSequenceClassification,
         AutoTokenizer,
         DataCollatorWithPadding,
@@ -26,11 +26,8 @@ except ImportError:
 
 from gradience.bench.task_profiles import get_task_profile_from_config
 from gradience.peft_utils import (
-    check_heterogeneous_ranks,
     create_complete_alpha_pattern,
     create_complete_rank_pattern,
-    normalize_alpha_pattern,
-    normalize_rank_pattern,
 )
 
 

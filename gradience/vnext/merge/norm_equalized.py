@@ -9,7 +9,7 @@ This is a minimal M2 stub -- full implementation and testing deferred to M2.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import torch
 

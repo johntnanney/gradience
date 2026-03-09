@@ -9,15 +9,15 @@ from unittest.mock import Mock
 
 # Check if dependencies are available
 try:
-    import torch
-    import torch.nn as nn
+    import torch  # noqa: F401
+    import torch.nn as nn  # noqa: F401
 
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
 
 try:
-    import transformers
+    import transformers  # noqa: F401
 
     HAS_TRANSFORMERS = True
 except ImportError:

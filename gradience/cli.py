@@ -38,7 +38,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -1166,7 +1166,6 @@ def _analyze_policy_disagreements(
     from gradience.policy_analysis import (
         compute_energy_distribution,
         compute_layer_importance_scores,
-        filter_disagreement_layers,
     )
 
     # Extract importance configuration with defaults

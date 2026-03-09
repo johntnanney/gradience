@@ -6,9 +6,7 @@ overlap_ties) correctly map audit verdicts to per-layer merge configurations.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -23,7 +21,6 @@ from gradience.vnext.merge.plan import (
     plan_uniform_linear,
 )
 from gradience.vnext.merge.report import MergeAuditReport
-from gradience.vnext.merge.strategies import LayerMergeConfig
 
 # ---------------------------------------------------------------------------
 # Helpers

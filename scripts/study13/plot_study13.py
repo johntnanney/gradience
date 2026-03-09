@@ -21,7 +21,6 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
 
 warnings.filterwarnings("ignore")
 

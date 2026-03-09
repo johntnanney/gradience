@@ -23,7 +23,6 @@ class TestCpuSmokeComprehensive(unittest.TestCase):
 
     def test_end_to_end_config_to_profile_pipeline(self):
         """Test complete config → profile → tokenization pipeline."""
-        from unittest.mock import Mock
 
         from gradience.bench.task_profiles import get_task_profile_from_config
 

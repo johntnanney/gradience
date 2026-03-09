@@ -10,10 +10,9 @@ Creates synthetic LoRA weights and base model norms to test:
 """
 
 import json
-import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import torch
 

@@ -29,17 +29,16 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
-    import torch
+    import torch  # noqa: F401
 except ImportError:
     print("Error: torch not installed")
     sys.exit(1)
 
 # Gradience imports (core — no bench deps needed)
 from gradience.vnext.merge import (
-    PLAN_STRATEGIES,
     execute_merge,
     merge_audit,
     plan_from_audit,

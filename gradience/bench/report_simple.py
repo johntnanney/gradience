@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 
 def _write_json(path: Path, obj: dict[str, Any]) -> None:

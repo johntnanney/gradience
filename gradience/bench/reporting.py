@@ -10,13 +10,9 @@ Extracted from protocol.py.
 from __future__ import annotations
 
 import datetime
-import hashlib
 import json
-import os
-import subprocess
-import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from gradience.bench._util import (
     create_config_hash,
@@ -47,7 +43,6 @@ from gradience.bench.stats_utils import (
     cohens_d_one_sample,
     confidence_interval_95,
 )
-from gradience.bench.types import EnvironmentInfo
 
 
 def write_probe_eval_json(
@@ -439,7 +434,7 @@ def create_canonical_bench_report(
     report["protocol_invariants"] = {
         "probe_quality_gate": {
             "status": "PASSED" if probe_gate_data["passed"] else "FAILED",
-            "message": f"Probe {probe_gate_data['metric_key']} {probe_gate_data['metric_value']:.4f} {'\u2265' if probe_gate_data['passed'] else '<'} {probe_gate_data['min_value']:.4f}",
+            "message": "Probe {} {:.4f} {} {:.4f}".format(probe_gate_data["metric_key"], probe_gate_data["metric_value"], "\u2265" if probe_gate_data["passed"] else "<", probe_gate_data["min_value"]),
             "metric_key": probe_gate_data["metric_key"],
             "metric_value": probe_gate_data["metric_value"],
             "min_value": probe_gate_data["min_value"],

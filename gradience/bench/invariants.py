@@ -7,7 +7,7 @@ Validates critical assumptions and fails loudly when reality breaks.
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class InvariantChecker:

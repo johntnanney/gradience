@@ -5,18 +5,14 @@ GSM8K causal language modeling task profile.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any, Dict, Tuple, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    import torch
     from datasets import Dataset
     from transformers import (
-        AutoModelForCausalLM,
-        DataCollatorForLanguageModeling,
         PreTrainedModel,
         PreTrainedTokenizerBase,
         Trainer,
-        TrainingArguments,
     )
 
 

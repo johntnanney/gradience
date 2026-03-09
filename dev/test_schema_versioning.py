@@ -8,7 +8,6 @@ and timestamp information for reproducibility and debugging.
 
 import json
 import sys
-import time
 
 sys.path.insert(0, ".")
 

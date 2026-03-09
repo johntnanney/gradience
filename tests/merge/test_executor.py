@@ -8,10 +8,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Tuple
 
-import pytest
-import torch
 
 from gradience.vnext.merge import merge_audit
 from gradience.vnext.merge.executor import (

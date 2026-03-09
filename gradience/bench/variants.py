@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # Check for optional dependencies
 try:
-    import torch
-    from datasets import load_dataset
-    from peft import LoraConfig, TaskType, get_peft_model
-    from transformers import (
+    import torch  # noqa: F401
+    from datasets import load_dataset  # noqa: F401
+    from peft import LoraConfig, TaskType, get_peft_model  # noqa: F401
+    from transformers import (  # noqa: F401
         AutoModelForSequenceClassification,
         AutoTokenizer,
         DataCollatorWithPadding,

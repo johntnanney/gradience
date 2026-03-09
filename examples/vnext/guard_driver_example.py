@@ -21,7 +21,6 @@ from tests.helpers.hf_callback_driver import (
     LogEvent,
     create_cooldown_scenario,
     create_grad_explosion_scenario,
-    create_max_rollbacks_scenario,
 )
 
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 import torch
 
 from gradience.vnext.merge.null_controls import (

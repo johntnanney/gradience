@@ -23,8 +23,6 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
-import re
-import shutil
 from pathlib import Path
 
 import yaml

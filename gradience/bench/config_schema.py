@@ -7,7 +7,7 @@ Validates required keys at load time and normalizes deprecated field names.
 from __future__ import annotations
 
 import warnings
-from typing import Any, Dict
+from typing import Any
 
 
 def _normalize_train_config(raw: dict[str, Any]) -> dict[str, Any]:

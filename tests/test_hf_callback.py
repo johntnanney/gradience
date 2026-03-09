@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 # Check if transformers is available
 try:
-    import transformers
+    import transformers  # noqa: F401
 
     HAS_TRANSFORMERS = True
 except ImportError:
@@ -38,7 +38,6 @@ class TestGradienceCallback(unittest.TestCase):
 
     def test_import_succeeds_with_transformers(self):
         """Test that callback can be imported when transformers is available."""
-        from gradience.vnext.integrations.hf import GradienceCallback
 
     def test_callback_lifecycle_minimal(self):
         """Test minimal callback lifecycle: instantiate -> train_begin -> log -> evaluate -> train_end."""

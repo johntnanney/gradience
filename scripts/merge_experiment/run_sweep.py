@@ -31,10 +31,10 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 try:
-    import torch
+    import torch  # noqa: F401
 except ImportError:
     print("Error: torch not installed")
     sys.exit(1)

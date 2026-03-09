@@ -32,7 +32,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from gradience.exceptions import MergeError
 from gradience.vnext.merge.report import MergeAuditReport

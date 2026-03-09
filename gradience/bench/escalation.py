@@ -14,10 +14,9 @@ Training is handled by the caller via the existing
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gradience.bench.constants import (
-    DEFAULT_ACCURACY_TOLERANCE,
     DEFAULT_CATASTROPHIC_MARGIN_MIN,
     DEFAULT_CATASTROPHIC_MARGIN_RATIO,
 )

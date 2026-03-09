@@ -5,11 +5,9 @@ Tests that the aggregator can handle both old-style (string) and new-style (dict
 task field formats without breaking.
 """
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import numpy as np
 

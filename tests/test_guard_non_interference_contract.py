@@ -17,25 +17,23 @@ This test addresses the #1 user fear: "Will this mess with training?"
 
 import json
 import sys
-import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Dict, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Check if dependencies are available
 try:
-    import torch
+    import torch  # noqa: F401
 
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
 
 try:
-    import transformers
+    import transformers  # noqa: F401
 
     HAS_TRANSFORMERS = True
 except ImportError:

@@ -8,8 +8,7 @@ dataclasses for Python-only structures (intermediate results).
 from __future__ import annotations
 
 import sys
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
 
 if sys.version_info >= (3, 11):
     from typing import NotRequired, TypedDict

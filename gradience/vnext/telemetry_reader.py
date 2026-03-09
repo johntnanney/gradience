@@ -24,7 +24,7 @@ import json
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .types import (
     TELEMETRY_SCHEMA_VERSION,

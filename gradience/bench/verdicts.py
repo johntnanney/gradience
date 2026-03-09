@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from gradience.bench.task_profiles import get_task_profile_from_config
 

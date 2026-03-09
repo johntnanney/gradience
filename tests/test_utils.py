@@ -4,7 +4,6 @@ Test utilities for creating minimal adapter fixtures.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 import torch
 

@@ -3,7 +3,6 @@ import os
 import random
 
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 

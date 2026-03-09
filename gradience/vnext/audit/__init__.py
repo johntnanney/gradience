@@ -8,7 +8,7 @@ Primary entrypoints:
 
 """
 
-from .lora_audit import (
+from .lora_audit import (  # noqa: F401
     LoRAAdapterConfig,
     LoRAAuditResult,
     LoRALayerAudit,
@@ -19,11 +19,11 @@ from .lora_audit import (
     load_adapter_state_dict,
     load_peft_adapter_config,
 )
-from .lora_audit import (
+from .lora_audit import (  # noqa: F401
     # LoRA weight utilities — promoted to public API for merge audit use.
     _iter_lora_pairs as iter_lora_pairs,
 )
-from .lora_audit import (
+from .lora_audit import (  # noqa: F401
     _orient_lora_factors as orient_lora_factors,
 )
-from .qa_artifact import AdapterQAArtifact, build_qa_artifact
+from .qa_artifact import AdapterQAArtifact, build_qa_artifact  # noqa: F401

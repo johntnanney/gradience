@@ -12,17 +12,13 @@ These tests enforce the behavioral contract defined in lora_audit.py:
 NO external dependencies (HF/transformers) - fast and deterministic.
 """
 
-import json
 import math
 
 # Import UDR functions using repo-root detection
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
 
-import numpy as np
-import pytest
 import torch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # file is in tests/

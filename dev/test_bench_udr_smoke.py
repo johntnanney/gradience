@@ -11,12 +11,10 @@ Runs a minimal LoRA training (5 steps) and validates:
 
 import json
 import os
-import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
-import torch
 
 
 def create_minimal_bench_config() -> dict[str, Any]:

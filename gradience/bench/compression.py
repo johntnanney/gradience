@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from gradience.bench._util import round_to_allowed_ranks
 from gradience.bench.constants import (

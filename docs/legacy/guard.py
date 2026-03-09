@@ -15,14 +15,12 @@ Enable active mode with: Guard(shadow_mode=False)
 
 import json
 import os
-import shutil
 import time
 from collections import deque
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import torch
 
@@ -778,7 +776,7 @@ if "IntegrityStatus" not in globals():
     else:
         # Minimal fallback so imports don't fail (fields used in tests are common)
         from dataclasses import dataclass
-        from typing import Any, Dict, Optional
+        from typing import Any, Optional
 
         @dataclass
         class IntegrityStatus:
@@ -819,7 +817,7 @@ if "IntegrityTracker" not in globals():
     else:
         # Minimal fallback tracker that records integrity events.
         from dataclasses import dataclass, field
-        from typing import Any, Dict, List, Optional
+        from typing import Any, Optional
 
         @dataclass
         class _IntegrityEvent:

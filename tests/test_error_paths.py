@@ -16,9 +16,8 @@ Organized by module:
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import patch
 
 import pytest

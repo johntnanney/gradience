@@ -9,7 +9,6 @@ import unittest
 
 from gradience.vnext.rank_suggestion import (
     DEFAULT_ALLOWED_RANKS,
-    PerLayerRankSuggestion,
     suggest_per_layer_ranks,
 )
 

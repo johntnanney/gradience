@@ -9,7 +9,6 @@ Tests the full compression config generation pipeline:
 - generate_compression_configs(): end-to-end pipeline integration
 """
 
-import json
 import shutil
 import tempfile
 import unittest
@@ -26,11 +25,8 @@ from gradience.bench.compression import (
 )
 from gradience.bench.constants import (
     CONSERVATISM_SCORES,
-    DEFAULT_MAX_CANDIDATES,
     DEFAULT_POST_TUNE_LR_SCALE,
     DEFAULT_POST_TUNE_STEPS,
-    DEFAULT_SEED,
-    SHUFFLE_SEED_OFFSET,
 )
 from gradience.bench.decision_trace import DecisionTrace
 

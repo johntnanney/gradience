@@ -31,9 +31,6 @@ from gradience.analysis.early_stopping import (
 from gradience.analysis.extract_timeseries import extract_all_runs, save_aligned
 from gradience.analysis.lead_lag import (
     aggregate_ccfs,
-    compute_ccf,
-    granger_causality_test,
-    ridge_forecast,
     run_lead_lag_analysis,
     surrogate_null_test,
 )

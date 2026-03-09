@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any
 
 from gradience.bench.constants import CONFIG_HASH_LENGTH
 

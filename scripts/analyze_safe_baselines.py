@@ -12,7 +12,6 @@ Usage:
 
 import argparse
 import json
-from collections import defaultdict
 from pathlib import Path
 
 import numpy as np

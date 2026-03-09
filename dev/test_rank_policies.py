@@ -6,12 +6,9 @@ Demonstrates how to use the enhanced audit system with multiple
 rank selection heuristics (OHT, entropy effective rank, knee/elbow, etc).
 """
 
-import numpy as np
 import torch
 
 from gradience.vnext.audit.rank_policies import (
-    RankPolicySpec,
-    RankSuggestion,
     analyze_policy_consensus,
     apply_rank_policy,
     get_standard_policies,
@@ -94,9 +91,6 @@ def test_rank_policies():
 
 def test_audit_integration():
     """Test integration with the audit system."""
-    import json
-    import tempfile
-    from pathlib import Path
 
     from gradience.vnext.audit.lora_audit import audit_lora_state_dict
 

@@ -17,7 +17,6 @@ After running:
     gradience audit --peft-dir outputs/adapter
 """
 
-import torch
 from datasets import Dataset
 from transformers import (
     AutoModelForSequenceClassification,

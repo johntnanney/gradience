@@ -14,7 +14,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from gradience.bench.protocol import run_bench_protocol
 
 
 class TestUDROptInPolicy:

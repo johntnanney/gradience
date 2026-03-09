@@ -2,7 +2,7 @@
 Task profile registry for Bench.
 """
 
-from typing import Any, Dict, Type
+from typing import Any
 
 from .base import TaskProfile
 

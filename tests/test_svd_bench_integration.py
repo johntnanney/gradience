@@ -6,17 +6,15 @@ Uses CPU-only toy configurations for fast testing.
 """
 
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 
 # Only import if bench modules are available
 try:
-    from gradience.bench.protocol import generate_compression_configs
-    from gradience.vnext.svd_truncate import svd_truncate_peft_dir
+    from gradience.bench.protocol import generate_compression_configs  # noqa: F401
+    from gradience.vnext.svd_truncate import svd_truncate_peft_dir  # noqa: F401
 
     BENCH_AVAILABLE = True
 except ImportError as e:

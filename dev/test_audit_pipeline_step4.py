@@ -8,7 +8,6 @@ policies are correctly integrated into the per-layer audit loop.
 
 import json
 
-import numpy as np
 import torch
 
 from gradience.vnext.audit.lora_audit import audit_lora_state_dict

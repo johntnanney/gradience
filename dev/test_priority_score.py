@@ -6,7 +6,6 @@ Verifies that layers are correctly ordered by priority_score = spread_norm * uni
 to help Bench automatically select the most critical layers for focused validation.
 """
 
-import json
 import sys
 
 sys.path.insert(0, ".")

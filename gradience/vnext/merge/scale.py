@@ -12,7 +12,6 @@ related (not identical) values: bounded_ratio is invariant, log_ratio flips sign
 from __future__ import annotations
 
 import math
-from typing import Any, Dict
 
 
 def _bounded_and_log(

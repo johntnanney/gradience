@@ -6,7 +6,6 @@ Verifies that audit emits machine-readable focus information that Bench
 can consume directly to restrict per-layer validation to critical layers.
 """
 
-import json
 import sys
 
 sys.path.insert(0, ".")

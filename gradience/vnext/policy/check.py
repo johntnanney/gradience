@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..types import ConfigSnapshot, Recommendation, Severity, SignalSnapshot, TaskFamily
 

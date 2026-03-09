@@ -4,15 +4,12 @@ Unit tests for the Gradience Bench watchdog system.
 Tests hang detection, diagnostic collection, and monitoring integration.
 """
 
-import json
-import os
 import signal
 import tempfile
-import threading
 import time
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from gradience.bench.monitored_stage import (
     monitor_evaluation,

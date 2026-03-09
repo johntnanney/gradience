@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import json
-import os
-import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def run_artifact_hygiene_cleanup(output_dir: Path, config: dict[str, Any]) -> None:
@@ -121,7 +118,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
     Fails fast with helpful diagnostics to save hours of debugging.
     """
     import os
-    import shutil
+    import shutil  # noqa: F401
     import subprocess
     import tempfile
     from pathlib import Path
@@ -198,7 +195,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
         import os
         from pathlib import Path
 
-        from transformers import AutoTokenizer
+        from transformers import AutoTokenizer  # noqa: F401
 
         # Get HF cache directory (try multiple methods for different HF versions)
         try:

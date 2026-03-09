@@ -6,22 +6,17 @@ These are fast CPU-only tests that don't require Transformers or large models.
 """
 
 import json
-import math
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
 
-import numpy as np
 import pytest
 import torch
 
-from gradience.vnext.audit.lora_audit import LoRAAdapterConfig
 from gradience.vnext.svd_truncate import (
     SVDTruncationReport,
     _compute_svd_truncation,
     _parse_and_pair_lora_matrices,
-    _update_adapter_config,
     svd_truncate_peft_dir,
 )
 

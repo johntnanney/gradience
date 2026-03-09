@@ -23,13 +23,10 @@ class TestBasicFunctionality:
         assert hasattr(gradience, "__version__")
 
         # Bench imports
-        from gradience.bench import aggregate, protocol, run_bench
 
         # VNext imports
-        from gradience.vnext import telemetry, types
 
         # HuggingFace integration
-        from gradience.vnext.integrations import hf
 
     def test_bench_config_parsing(self):
         """Test that bench configs can be parsed."""
@@ -55,7 +52,7 @@ class TestBasicFunctionality:
 
     def test_telemetry_types(self):
         """Test telemetry type definitions."""
-        from gradience.vnext.types import EventType, Severity
+        from gradience.vnext.types import Severity
 
         # Test severity enum
         assert hasattr(Severity, "INFO")
@@ -95,7 +92,6 @@ class TestConfigValidation:
 
     def test_all_configs_parse(self):
         """Test that all YAML configs in the package can be parsed."""
-        from pathlib import Path
 
         import yaml
 
@@ -120,7 +116,6 @@ class TestConfigValidation:
 
     def test_gpu_smoke_config_exists(self):
         """Test that GPU smoke config exists and is valid."""
-        from pathlib import Path
 
         import yaml
 

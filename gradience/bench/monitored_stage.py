@@ -8,9 +8,7 @@ Provides comprehensive monitoring for critical ML operations including:
 - Artifact tracking
 """
 
-import time
 from pathlib import Path
-from typing import List, Optional, Union
 
 from .heartbeat import start_heartbeat, stop_heartbeat
 from .watchdog import WatchdogContext, setup_stack_trace_handler

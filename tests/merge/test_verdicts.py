@@ -7,7 +7,6 @@ import pytest
 from gradience.vnext.merge.spectral_compat import SubspaceMetrics
 from gradience.vnext.merge.verdicts import (
     CompatibilityVerdict,
-    LayerVerdict,
     VerdictThresholds,
     assess_layer,
     assess_overall,

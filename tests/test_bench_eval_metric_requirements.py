@@ -14,9 +14,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import pytest
 
 from gradience.bench.protocol import _extract_accuracy_with_fallback
 from gradience.bench.task_profiles.gsm8k_causal_lm import GSM8KCausalLMProfile

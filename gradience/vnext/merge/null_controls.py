@@ -10,7 +10,7 @@ that observed overlap/alignment is meaningful (above chance).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 import torch
 

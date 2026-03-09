@@ -11,10 +11,8 @@ This tests that Bench correctly:
 No actual model training - focuses on integration logic.
 """
 
-import json
 
 # Add gradience to path using dynamic resolution
-import os
 import sys
 import tempfile
 from pathlib import Path

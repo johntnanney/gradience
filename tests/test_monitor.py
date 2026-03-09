@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import json
-import math
-import tempfile
-from pathlib import Path
 
 import pytest
 
 from gradience.vnext.monitor import MonitorAlert, MonitorConfig, TrainingMonitor
-from gradience.vnext.monitor_replay import ReplayResult, replay_telemetry
+from gradience.vnext.monitor_replay import replay_telemetry
 
 # ---------------------------------------------------------------------------
 # MonitorConfig

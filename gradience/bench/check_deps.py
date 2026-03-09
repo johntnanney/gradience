@@ -6,7 +6,7 @@ Provides exact install commands without stack traces.
 
 import importlib.util
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 def check_module(module_name: str) -> bool:

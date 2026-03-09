@@ -19,7 +19,6 @@ Output:
     └── trainer_state.json     # HF training state
 """
 
-import os
 from pathlib import Path
 
 # Gradience integration

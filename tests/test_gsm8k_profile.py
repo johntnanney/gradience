@@ -5,10 +5,9 @@ Tests the response-only masking, answer extraction, and formatting
 as required by the Bench extension checklist.
 """
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
-from transformers import AutoTokenizer
 
 from gradience.bench.task_profiles.gsm8k_causal_lm import GSM8KCausalLMProfile
 

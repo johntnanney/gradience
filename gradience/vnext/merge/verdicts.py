@@ -18,9 +18,9 @@ VerdictThresholds instance.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from gradience.vnext.merge.spectral_compat import SubspaceMetrics
 

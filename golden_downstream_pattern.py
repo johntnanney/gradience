@@ -12,7 +12,7 @@ Usage:
 import argparse
 import json
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def load_audit_data(audit_path: str) -> dict[str, Any] | None:

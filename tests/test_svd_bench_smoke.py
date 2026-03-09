@@ -7,18 +7,15 @@ in the bench results.
 """
 
 import json
-import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
-import yaml
 
 # Skip if bench modules not available
 try:
-    from gradience.bench.protocol import run_bench_protocol
-    from gradience.vnext.svd_truncate import svd_truncate_peft_dir
+    from gradience.bench.protocol import run_bench_protocol  # noqa: F401
+    from gradience.vnext.svd_truncate import svd_truncate_peft_dir  # noqa: F401
 
     BENCH_AVAILABLE = True
 except ImportError as e:

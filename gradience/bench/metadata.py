@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 from gradience.bench.constants import GIT_SUBPROCESS_TIMEOUT
 

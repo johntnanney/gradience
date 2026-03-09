@@ -12,10 +12,9 @@ This avoids actual training to focus on UDR functionality.
 
 import json
 import os
-import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import torch
 

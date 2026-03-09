@@ -34,7 +34,7 @@ import time
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import torch
 
@@ -831,7 +831,7 @@ def low_rank_stable_rank(
         # Apply additional rank selection policies if requested
         if rank_policies is not None:
             try:
-                import numpy as np
+                import numpy as np  # noqa: F401
 
                 from .rank_policies import RankPolicySpec, apply_rank_policy
 
@@ -1438,7 +1438,7 @@ def compute_base_model_norms(
     try:
         # Try to import transformers
         try:
-            import transformers
+            import transformers  # noqa: F401
             from transformers import AutoConfig, AutoModelForCausalLM
         except ImportError:
             issues.append("transformers library not available for base model loading")

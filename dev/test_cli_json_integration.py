@@ -7,13 +7,9 @@ Demonstrates how the JSON output now includes detailed flagging rationale.
 
 import json
 import sys
-import tempfile
-from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from gradience.cli import cmd_audit
-from gradience.vnext.audit.lora_audit import LoRAAuditResult, LoRALayerAudit
 
 
 def create_mock_layers():

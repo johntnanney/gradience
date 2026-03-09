@@ -58,16 +58,15 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from collections.abc import Iterable, Iterator
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from gradience.exceptions import ConfigError, TelemetryError
 
 # NOTE: The reader lives in a separate module so writer-only users don't
 # accidentally pull in heavier summarization logic.
-from .telemetry_reader import TelemetryReader
+from .telemetry_reader import TelemetryReader  # noqa: F401
 from .types import (
     TELEMETRY_SCHEMA_VERSION,
     ConfigSnapshot,

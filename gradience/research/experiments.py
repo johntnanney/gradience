@@ -21,16 +21,15 @@ import argparse
 import json
 import os
 import time
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def check_dependencies():
     """Check that required dependencies are available."""
     try:
-        import torch
-        import torch.nn as nn
-        from torch.utils.data import DataLoader, Dataset
+        import torch  # noqa: F401
+        import torch.nn as nn  # noqa: F401
+        from torch.utils.data import DataLoader, Dataset  # noqa: F401
 
         return True
     except ImportError as e:
@@ -185,7 +184,6 @@ def run_hessian_coevolution_experiment(
         aggregate_layerwise_spectra,
         compute_hessian_snapshot,
         compute_layerwise_spectra,
-        create_loss_fn_for_batch,
     )
 
     print("=" * 60)
@@ -290,7 +288,6 @@ def run_hessian_coevolution_experiment(
     hessian_lambdas = [r["hessian_lambda_max"] for r in results]
 
     if len(weight_kappas) > 10:
-        from gradience.research import compute_autocorrelation
 
         # Normalize
         wk_mean = sum(weight_kappas) / len(weight_kappas)
@@ -395,7 +392,6 @@ def run_grokking_experiment(
         GrokDetector,
         PhaseTransitionTracker,
         aggregate_layerwise_spectra,
-        compute_layerwise_spectra,
     )
 
     print("=" * 60)

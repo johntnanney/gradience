@@ -39,7 +39,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gradience.vnext.merge import merge_audit, recommend_merge
 from gradience.vnext.merge.verdicts import VerdictThresholds

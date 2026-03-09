@@ -4,17 +4,14 @@ GLUE sequence classification task profile.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Tuple, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from datasets import Dataset
     from transformers import (
-        DataCollatorWithPadding,
         PreTrainedModel,
         PreTrainedTokenizerBase,
         Trainer,
-        TrainingArguments,
     )
 
 

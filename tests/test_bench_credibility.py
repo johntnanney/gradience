@@ -8,7 +8,6 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 from gradience.bench.aggregate import (
     _extract_seed_id,

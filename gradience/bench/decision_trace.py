@@ -6,7 +6,7 @@ Keeps the "why" behind compression candidate selection explicit.
 """
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gradience.bench._util import round_to_allowed_ranks
 

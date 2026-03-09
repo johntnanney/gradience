@@ -21,7 +21,6 @@ import tempfile
 
 # Add gradience to path using repo-root detection
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 import pytest
 import torch
@@ -38,8 +37,8 @@ def get_test_env():
 def check_dependencies():
     """Check if required dependencies are available."""
     try:
-        import peft
-        import transformers
+        import peft  # noqa: F401
+        import transformers  # noqa: F401
 
         return True
     except ImportError as e:

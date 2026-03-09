@@ -20,7 +20,7 @@ import time
 import traceback
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import psutil
 

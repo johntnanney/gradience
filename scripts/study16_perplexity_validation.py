@@ -70,7 +70,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -403,7 +403,6 @@ def run_merges(
         execute_merge,
         merge_audit,
         plan_from_audit,
-        recommend_merge,
     )
 
     merge_dir = output_dir / "merged_adapters"

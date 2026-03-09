@@ -29,7 +29,7 @@ import math
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
@@ -233,7 +233,6 @@ def hutchinson_trace(
 
 def normalize_vector(v: list) -> list:
     """Normalize a parameter-structured vector to unit norm."""
-    import torch
 
     norm = math.sqrt(sum((vi**2).sum().item() for vi in v))
     if norm < 1e-10:

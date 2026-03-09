@@ -1,10 +1,8 @@
 import json
-import math
 import os
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
 os.makedirs("./experiments/transformer_grok", exist_ok=True)
