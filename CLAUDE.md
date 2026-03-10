@@ -127,6 +127,7 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - `typing_extensions` used for Python 3.10 compatibility
 - Tests use `pytest` conventions with `test_` prefix; markers: `slow`
 - Test timeout: 30 seconds per test
+- When combining `# type: ignore` and `# noqa:` on one line, mypy's directive must come first: `# type: ignore[no-redef]  # noqa: F811`
 
 ### Key Patterns
 
@@ -135,6 +136,18 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - Deprecated Guard API raises `DeprecationWarning` + `ImportError` with migration guidance
 - Telemetry uses structured JSONL format (`gradience.vnext.telemetry/v1`)
 - Bench configs are YAML files validated by `config_schema.py`
+
+### Merge Pipeline (`vnext/merge/`)
+
+- Pipeline: `merge_audit()` → `diagnose_pair()` → `recommend_merge()` → `format_recommendation()`
+- Strategy strings are lowercase: `"linear"`, `"ties"`, `"dare_ties"`, `"dare_linear"` — not class names
+- `MergeRecommendation.overall_strategy` is always `"audit_aware"`
+- `PairDiagnosis.layer_diagnoses` (tuple, not `.layers`)
+- `report.aggregate.overall_verdict` / `.compatibility_score` (not direct on report)
+- `layer_verdicts` is `list[dict]`, not list of dataclasses
+- Canonical helpers: `_energy_rank()` in `audit/lora_audit.py`, `_shorten_layer_name()` in `merge/report.py`
+- Verdict branch order: Branch 0 (IMBALANCED, low overlap) → Branch 1 (SAFE, orthogonal) → Branch 2 (REDUNDANT) → Branch 3 (CONFLICTING) → Branch 4 (IMBALANCED, high overlap) → Branch 5 (SAFE, default)
+- Merge test fixtures in `tests/merge/conftest.py`: `orthogonal_pair`, `redundant_pair`, `conflicting_pair`, `imbalanced_pair` — each returns `tuple[Path, Path]`
 
 ## CI/CD
 
@@ -150,7 +163,7 @@ Pre-commit hooks enforce: trailing whitespace, EOF fixers, YAML/TOML/JSON validi
 ## Testing Guidelines
 
 - All tests live in `tests/` with `test_` prefix
-- Use existing fixtures from `tests/conftest.py` and `tests/fixtures/`
+- Use existing fixtures from `tests/conftest.py`, `tests/merge/conftest.py`, and `tests/fixtures/`
 - Default test timeout is 30 seconds; mark slow tests with `@pytest.mark.slow`
 - `DeprecationWarning` is treated as error except from gradience itself
 - Run `make test-smoke` for quick validation; `make test` for full coverage
