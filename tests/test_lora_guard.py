@@ -16,8 +16,7 @@ class TinyLoRAModel(nn.Module):
         self.weight = nn.Parameter(torch.randn(8, 8))
 
     def named_parameters(self, prefix="", recurse=True):
-        for name, p in super().named_parameters(prefix=prefix, recurse=recurse):
-            yield name, p
+        yield from super().named_parameters(prefix=prefix, recurse=recurse)
 
 
 class TestLoRAGuard(unittest.TestCase):

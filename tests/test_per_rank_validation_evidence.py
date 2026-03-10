@@ -94,7 +94,7 @@ class TestPerRankValidationEvidence(unittest.TestCase):
         """Test statement for ranks that fail validation."""
         # Create scenario where r=24 fails completely (0/3 pass)
         failing_reports = []
-        for i, seed in enumerate([42, 123, 456]):
+        for i, _seed in enumerate([42, 123, 456]):
             report = json.loads(json.dumps(self.seed_reports[i]))  # Deep copy
 
             # Add a failing variant
@@ -124,7 +124,7 @@ class TestPerRankValidationEvidence(unittest.TestCase):
         """Test statement for ranks with poor but non-zero pass rates."""
         # Create scenario where r=16 has 1/3 pass rate
         unreliable_reports = []
-        for i, seed in enumerate([42, 123, 456]):
+        for i, _seed in enumerate([42, 123, 456]):
             report = json.loads(json.dumps(self.seed_reports[i]))  # Deep copy
 
             # Add an unreliable variant

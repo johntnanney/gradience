@@ -40,6 +40,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -226,7 +227,9 @@ def bootstrap_ci(
     from scipy import stats
 
     if func is None:
-        func = lambda a, b: stats.spearmanr(a, b)[0]
+
+        def func(a, b):
+            return stats.spearmanr(a, b)[0]
 
     estimate = func(x, y)
     n = len(x)
@@ -234,10 +237,8 @@ def bootstrap_ci(
     boot_vals = []
     for _ in range(n_boot):
         idx = rng.choice(n, size=n, replace=True)
-        try:
+        with contextlib.suppress(Exception):
             boot_vals.append(func(x[idx], y[idx]))
-        except Exception:
-            pass
 
     if not boot_vals:
         return (estimate, float("nan"), float("nan"))

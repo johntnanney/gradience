@@ -26,6 +26,7 @@ Design goals:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import math
@@ -103,10 +104,8 @@ except ImportError:  # pragma: no cover
     yaml = None
 
 safetensors_load_file: Any | None = None
-try:
+with contextlib.suppress(ImportError):  # pragma: no cover
     from safetensors.torch import load_file as safetensors_load_file
-except ImportError:  # pragma: no cover
-    pass
 
 
 # -----------------------------
@@ -310,7 +309,7 @@ class LoRAAuditResult:
             if topk_layers is not None:
                 # show the most "wasteful" layers first (lowest utilization)
                 layers = sorted(layers, key=lambda x: x.utilization)[:topk_layers]
-            layer_rows = [l.to_dict() for l in layers]
+            layer_rows = [lyr.to_dict() for lyr in layers]
             out["layer_data"] = {"layer_rows_schema": "v1", "layer_rows": layer_rows}
         # Normalize module_type for layer rows
         layer_data = out.get("layer_data")
@@ -352,19 +351,19 @@ class LoRAAuditResult:
 
             sigma_scaled = []
             frob_scaled = []
-            for l in getattr(self, "layers", []) or []:
-                r = getattr(l, "r", None)
-                alpha = getattr(l, "alpha", None)
+            for lyr in getattr(self, "layers", []) or []:
+                r = getattr(lyr, "r", None)
+                alpha = getattr(lyr, "alpha", None)
                 if not r or alpha is None:
                     continue
                 try:
                     scale = float(alpha) / float(r)
                 except (ValueError, TypeError):
                     continue
-                sigma = getattr(l, "sigma_max", None)
+                sigma = getattr(lyr, "sigma_max", None)
                 if sigma is not None:
                     sigma_scaled.append(scale * float(sigma))
-                frob_sq = getattr(l, "frob_sq", None)
+                frob_sq = getattr(lyr, "frob_sq", None)
                 if frob_sq is not None:
                     frob = math.sqrt(max(float(frob_sq), 0.0))
                     frob_scaled.append(scale * frob)
@@ -381,8 +380,8 @@ class LoRAAuditResult:
 
         # UDR summary statistics
         try:
-            udr_values = [l.udr for l in self.layers if l.udr is not None]
-            sdi_values = [l.sdi for l in self.layers if l.sdi is not None]
+            udr_values = [lyr.udr for lyr in self.layers if lyr.udr is not None]
+            sdi_values = [lyr.sdi for lyr in self.layers if lyr.sdi is not None]
 
             # Check if UDR computation was enabled at audit time
             if self._udr_enabled:
@@ -822,7 +821,7 @@ def low_rank_stable_rank(
 
     # Apply rank selection policies (both new and existing)
     policy_results: dict[str, Any] | None = None
-    if rank_policies is not None or True:  # Always compute policies for consistency
+    if True:  # Always compute policies for consistency
         policy_results = {}
 
         # Always include existing energy@90 policy for consistency
@@ -1077,7 +1076,7 @@ def compute_gain_metrics(layers: list[LoRALayerAudit]) -> dict[str, Any]:
     if per_layer_metrics:
         layers_by_energy = sorted(per_layer_metrics, key=lambda x: x["delta_fro_sq_sum"], reverse=True)
         top_layers_by_delta_fro = [
-            {"layer": l["layer"], "delta_fro_sq_sum": l["delta_fro_sq_sum"]} for l in layers_by_energy[:5]
+            {"layer": lyr["layer"], "delta_fro_sq_sum": lyr["delta_fro_sq_sum"]} for lyr in layers_by_energy[:5]
         ]
 
     return {
@@ -1146,7 +1145,7 @@ BASE NORMS HANDLING:
 -------------------
 When base norms missing:
     • Individual layer UDR/SDI fields are None/null
-    • Summary statistics exclude layers without base norms  
+    • Summary statistics exclude layers without base norms
     • Structured issue recorded with reason (cache miss, load failure, etc.)
 
 When base norms present:
@@ -1176,7 +1175,7 @@ ERROR HANDLING:
 OUTPUT SCHEMA:
 -------------
 Per-layer fields (in LoRALayerAudit):
-    • delta_sigma_max: float - ||ΔW||₂ 
+    • delta_sigma_max: float - ||ΔW||₂
     • delta_fro_norm: float - ||ΔW||_F (for debugging)
     • scale: float - α/r scaling factor used
     • base_sigma_max: Optional[float] - ||W_base||₂ (None if unavailable)
@@ -1192,7 +1191,7 @@ Summary fields (in LoRAAuditResult):
 GUARANTEES:
 ----------
 1. UDR values are deterministic for same inputs (base norms + adapter weights)
-2. SDI is monotonically increasing with UDR  
+2. SDI is monotonically increasing with UDR
 3. Audit never fails due to UDR computation errors
 4. Base norm caching is atomic (write success or rollback)
 5. All UDR-related fields are either consistently present or consistently None
@@ -1240,7 +1239,7 @@ def spectral_norm_power_iter(W: torch.Tensor, n_iter: int = 20) -> float:
     if W.ndim == 1:
         return float(torch.norm(W, 2).item())
 
-    m, n = W.shape[0], W.shape[1]
+    _m, n = W.shape[0], W.shape[1]
 
     # Random initialization
     with torch.no_grad():
@@ -1446,7 +1445,7 @@ def compute_base_model_norms(
 
         # Load model config to understand architecture
         try:
-            config = AutoConfig.from_pretrained(base_model_id)
+            _config = AutoConfig.from_pretrained(base_model_id)
         except (OSError, ValueError, RuntimeError) as e:
             issues.append(f"Failed to load config for {base_model_id}: {e}")
             return None
@@ -1884,11 +1883,11 @@ def _aggregate_audit_statistics(
             continue
         by_type[t] = {
             "n_layers": float(len(ls)),
-            "params": float(sum(l.params for l in ls)),
-            "stable_rank_mean": float(sum(l.stable_rank for l in ls) / len(ls)),
-            "utilization_mean": float(sum(l.utilization for l in ls) / len(ls)),
-            "energy_rank_90_p50": float(_percentile_int([l.energy_rank_90 for l in ls], 0.50)),
-            "energy_rank_90_p90": float(_percentile_int([l.energy_rank_90 for l in ls], 0.90)),
+            "params": float(sum(lyr.params for lyr in ls)),
+            "stable_rank_mean": float(sum(lyr.stable_rank for lyr in ls) / len(ls)),
+            "utilization_mean": float(sum(lyr.utilization for lyr in ls) / len(ls)),
+            "energy_rank_90_p50": float(_percentile_int([lyr.energy_rank_90 for lyr in ls], 0.50)),
+            "energy_rank_90_p90": float(_percentile_int([lyr.energy_rank_90 for lyr in ls], 0.90)),
         }
 
     # Build structured policy schema (v1)
@@ -1963,15 +1962,13 @@ def audit_lora_state_dict(
 
     for idx, (prefix, a_key, b_key) in enumerate(all_pairs, 1):
         # Progress reporting every 10 layers or for significant progress
-        if total_pairs >= 20:
-            if idx % 10 == 0 or idx == total_pairs:
-                print(
-                    f"  audit progress: {idx}/{total_pairs} layers processed ({100 * idx / total_pairs:.1f}%)",
-                    file=sys.stderr,
-                )
-        elif total_pairs >= 5:
-            if idx % 5 == 0 or idx == total_pairs:
-                print(f"  audit progress: {idx}/{total_pairs} layers processed", file=sys.stderr)
+        if total_pairs >= 20 and (idx % 10 == 0 or idx == total_pairs):
+            print(
+                f"  audit progress: {idx}/{total_pairs} layers processed ({100 * idx / total_pairs:.1f}%)",
+                file=sys.stderr,
+            )
+        elif total_pairs >= 5 and (idx % 5 == 0 or idx == total_pairs):
+            print(f"  audit progress: {idx}/{total_pairs} layers processed", file=sys.stderr)
 
         A = state_dict.get(a_key)
         B = state_dict.get(b_key)
@@ -2090,10 +2087,8 @@ def audit_lora_state_dict(
         # Derive module_type from the true module name (frozen dataclass workaround)
         layer_name = getattr(layer, "name", None) or getattr(layer, "full_name", None) or getattr(layer, "key", None)
         module_type = infer_module_type(str(layer_name or ""))
-        try:
+        with contextlib.suppress(AttributeError, TypeError):
             object.__setattr__(layer, "module_type", module_type)
-        except (AttributeError, TypeError):
-            pass
         by_type_acc.setdefault(module_type, []).append(layer)
 
         stable_ranks.append(layer.stable_rank)

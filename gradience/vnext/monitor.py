@@ -406,7 +406,7 @@ class TrainingMonitor:
         recent_losses = self._eval_loss_history[-self.config.eval_patience :]
 
         # Check if any recent eval improved over the best
-        if all(l >= best_loss - 1e-8 for l in recent_losses):
+        if all(loss_val >= best_loss - 1e-8 for loss_val in recent_losses):
             self._eval_plateau_active = True
             return self._emit_if_cool(
                 step,

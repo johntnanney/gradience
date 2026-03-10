@@ -113,7 +113,7 @@ def compute_full_spectrum(
         W = weight_tensor.float()
 
         # Reshape to 2D if needed
-        original_shape = W.shape
+        _original_shape = W.shape
         if W.dim() > 2:
             W = W.view(W.size(0), -1)
         elif W.dim() == 1:
@@ -389,13 +389,11 @@ def compute_layerwise_spectra(
             continue
 
         # Apply filters
-        if include_patterns:
-            if not any(re.search(p, name) for p in include_patterns):
-                continue
+        if include_patterns and not any(re.search(p, name) for p in include_patterns):
+            continue
 
-        if exclude_patterns:
-            if any(re.search(p, name) for p in exclude_patterns):
-                continue
+        if exclude_patterns and any(re.search(p, name) for p in exclude_patterns):
+            continue
 
         snapshot = compute_full_spectrum(
             param.data,

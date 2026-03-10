@@ -106,7 +106,7 @@ def analyze_safety_criteria(baselines, safety_policy=None):
 
         # Stability analysis (lower std = more stable)
         delta_stats = calculate_safety_stats(deltas, "delta")
-        acc_stats = calculate_safety_stats(accuracies, "accuracy")
+        calculate_safety_stats(accuracies, "accuracy")
 
         # Conservative thresholds for "safe"
         worst_delta = max(deltas) if deltas else float("inf")  # Worst accuracy drop

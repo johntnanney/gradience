@@ -11,7 +11,6 @@ import sys
 sys.path.insert(0, ".")
 
 
-
 def create_mock_layers():
     """Create mock layers with policy disagreements for testing."""
 

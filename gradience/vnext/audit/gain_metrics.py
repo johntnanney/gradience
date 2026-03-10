@@ -90,7 +90,7 @@ def compute_lora_norms(
     if r_A != r_B:
         raise AuditError(f"Incompatible LoRA factors: A.shape[0]={r_A} != B.shape[1]={r_B}")
 
-    r = r_A
+    _r = r_A
 
     # Move to computation device/dtype
     A_compute = A.detach().to(dtype=compute_dtype, device=device)

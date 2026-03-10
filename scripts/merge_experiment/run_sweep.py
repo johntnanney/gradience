@@ -210,7 +210,7 @@ def run_quick_screen(
     eval_count = 0
 
     for name, info in merged_results.items():
-        config: SweepConfig = info["config"]
+        info["config"]
         # Use custom templates for all evaluations (fair comparison)
         template_mode = "custom"
 

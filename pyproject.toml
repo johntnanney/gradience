@@ -110,6 +110,7 @@ include-package-data = true
 [tool.ruff]
 target-version = "py310"
 line-length = 120
+extend-exclude = ["scripts/one_liner_inspect.py"]  # Shell heredoc, not valid Python
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
@@ -121,7 +122,11 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011", "SIM300"]
-"scripts/*" = ["E402"]
+"scripts/*" = ["E402", "E741"]  # E402: deferred imports, E741: `l` for layer in research scripts
+"dev/*" = ["E741", "E722", "F821"]  # Legacy dev scripts; F821: some use undefined repo_root
+"examples/*" = ["B904"]  # raise-without-from in example scripts (readability)
+"docs/legacy/*" = ["E402", "E722", "SIM102", "SIM115", "B018"]  # Legacy code, not actively maintained
+"scripts/one_liner_inspect.py" = ["E701", "W291", "W292"]  # Shell heredoc, not valid Python
 
 [tool.mypy]
 python_version = "3.10"

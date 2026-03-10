@@ -31,7 +31,7 @@ def create_test_adapter_with_varied_ranks():
         ("layer_3.down", [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5], "almost_uniform"),
     ]
 
-    for module_name, singular_values, description in test_layers:
+    for module_name, singular_values, _description in test_layers:
         r = len(singular_values)
 
         # Create A and B matrices with controlled singular values

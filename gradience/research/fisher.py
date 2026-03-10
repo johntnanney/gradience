@@ -245,7 +245,7 @@ def compute_fisher_spectral_properties(
     eigenvalues: list[float] = []
     V: list[torch.Tensor] = []  # Eigenvectors for deflation
 
-    for k in range(n_eigenvalues):
+    for _k in range(n_eigenvalues):
         v = torch.randn(d, device=G.device)
         v = v / (v.norm() + 1e-8)
 

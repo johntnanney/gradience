@@ -195,7 +195,7 @@ with open('{config_path}') as f:
 
 adapter_config = {{
     'r': config['lora_r'],
-    'lora_alpha': config['lora_alpha'], 
+    'lora_alpha': config['lora_alpha'],
     'lora_dropout': config['lora_dropout'],
     'target_modules': config['lora_target_modules'],
     'peft_type': 'LORA',
@@ -219,7 +219,7 @@ torch.save(weights, peft_dir / 'adapter_model.bin')
 # Create training metrics
 metrics = {{
     'train_loss': 0.5,
-    'eval_loss': 0.6, 
+    'eval_loss': 0.6,
     'eval_accuracy': 0.75,
     'train_runtime': 30.0
 }}
@@ -394,7 +394,6 @@ print(f"Mock training completed: {{output_dir}}")
 
             total_params = 0
             num_layers = 2
-            modules_per_layer = 4
             hidden_size = 64
 
             for layer_idx in range(num_layers):

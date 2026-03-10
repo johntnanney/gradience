@@ -23,7 +23,7 @@ import torch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]  # file is in tests/
 sys.path.insert(0, str(REPO_ROOT))
-from gradience.vnext.audit.lora_audit import (
+from gradience.vnext.audit.lora_audit import (  # noqa: E402
     cache_base_model_norms,
     compute_udr_metrics,
     compute_update_norms,

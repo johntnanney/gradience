@@ -19,7 +19,6 @@ import sys
 from pathlib import Path
 
 
-
 def check_seed_status(seed_dir: Path) -> dict[str, any]:
     """Check the status of a single seed run."""
     status = {

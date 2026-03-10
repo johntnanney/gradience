@@ -22,7 +22,8 @@ def main():
 
     # Load audit data
     try:
-        audit = json.load(open(audit_file))
+        with open(audit_file) as f:
+            audit = json.load(f)
     except Exception as e:
         print(f"Error loading {audit_file}: {e}")
         sys.exit(1)

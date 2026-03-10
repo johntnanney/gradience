@@ -213,7 +213,7 @@ class TestGuardNonInterferenceContract(unittest.TestCase):
             # Store initial state
             initial_model_state = str(driver.model.state_dict())
             initial_args = str(vars(driver.mock_args))
-            initial_state = str(vars(driver.mock_state))
+            str(vars(driver.mock_state))
 
             # Run with extreme conditions
             extreme_events = [
@@ -221,7 +221,7 @@ class TestGuardNonInterferenceContract(unittest.TestCase):
                 LogEvent(step=2, loss=1e100, grad_norm=1e100),
             ]
 
-            result = driver.run_events(extreme_events, scenario_name="state_mutation_test")
+            driver.run_events(extreme_events, scenario_name="state_mutation_test")
 
             # Verify no state mutations beyond normal progress
             final_model_state = str(driver.model.state_dict())

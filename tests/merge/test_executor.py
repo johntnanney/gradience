@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 from gradience.vnext.merge import merge_audit
 from gradience.vnext.merge.executor import (
     LayerMergeResult,
@@ -53,7 +52,7 @@ class TestExecuteMerge:
     def test_produces_peft_directory(self, orthogonal_pair, tmp_path):
         """Merge output should contain adapter_config.json + adapter_model.safetensors."""
         output_dir = tmp_path / "merged"
-        result = _run_merge(orthogonal_pair, "uniform_linear", output_dir)
+        _run_merge(orthogonal_pair, "uniform_linear", output_dir)
 
         assert (output_dir / "adapter_config.json").exists()
         assert (output_dir / "adapter_model.safetensors").exists() or (output_dir / "adapter_model.bin").exists()
@@ -126,7 +125,7 @@ class TestExecuteMerge:
         )
 
         info = load_adapter(output_dir)
-        for prefix, a_key, b_key in info.lora_pairs:
+        for _prefix, a_key, b_key in info.lora_pairs:
             A = info.state_dict[a_key]
             B = info.state_dict[b_key]
             assert A.shape[0] == target_rank, f"A should have rank rows: {A.shape}"

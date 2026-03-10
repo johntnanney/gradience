@@ -57,7 +57,7 @@ compression:
       rank_source: 8
       post_tune:
         enabled: false
-    - name: svd_trunc_r4_tune  
+    - name: svd_trunc_r4_tune
       method: svd_truncate
       rank_source: 4
       post_tune:
@@ -67,7 +67,7 @@ compression:
 
 runtime:
   device: cpu
-  
+
 run_type: "svd_test"
 """
 
@@ -86,14 +86,14 @@ run_type: "svd_test"
         assert svd_variant["name"] == "svd_trunc_r8"
         assert svd_variant["method"] == "svd_truncate"
         assert svd_variant["rank_source"] == 8
-        assert svd_variant["post_tune"]["enabled"] == False
+        assert svd_variant["post_tune"]["enabled"] is False
 
         # Check second variant (with post-tune)
         tune_variant = variants[1]
         assert tune_variant["name"] == "svd_trunc_r4_tune"
         assert tune_variant["method"] == "svd_truncate"
         assert tune_variant["rank_source"] == 4
-        assert tune_variant["post_tune"]["enabled"] == True
+        assert tune_variant["post_tune"]["enabled"] is True
         assert tune_variant["post_tune"]["max_steps"] == 5
 
     @pytest.mark.skipif(not BENCH_AVAILABLE, reason="Bench modules not available")
@@ -123,7 +123,7 @@ runtime:
 
         # Verify legacy format
         compression = config["compression"]
-        assert compression["enable_svd_variants"] == True
+        assert compression["enable_svd_variants"] is True
         assert compression["svd_ranks"] == [8, 4]
         assert compression["allowed_ranks"] == [2, 4, 8, 16]
 

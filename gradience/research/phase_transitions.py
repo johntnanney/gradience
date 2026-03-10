@@ -118,7 +118,7 @@ def compute_integrated_autocorr_time(acf: list[float], cutoff: float = 0.05) -> 
     Truncate when ACF drops below cutoff.
     """
     tau = 1.0
-    for k, a in enumerate(acf[1:], 1):
+    for _k, a in enumerate(acf[1:], 1):
         if abs(a) < cutoff:
             break
         tau += 2 * a

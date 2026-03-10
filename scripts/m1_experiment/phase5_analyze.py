@@ -151,7 +151,7 @@ def extract_accuracy(eval_result: dict | None, task_name: str | None = None) -> 
                 return task_results[key]
 
     # Fallback: iterate all result keys
-    for tname, task_results in results.items():
+    for _tname, task_results in results.items():
         for key in _METRIC_KEYS:
             if key in task_results:
                 return task_results[key]
@@ -729,7 +729,7 @@ def _generate_markdown(report: dict, config: dict) -> str:
                     "|----|-----------|----------|-------|",
                 ]
             )
-            for i, (edges, pred, obs, count) in enumerate(
+            for _i, (edges, pred, obs, count) in enumerate(
                 zip(
                     cal["bin_edges"],
                     cal["mean_predicted"],

@@ -175,7 +175,7 @@ class TestUDRIntegrationSimple:
 
             # Validate layers have UDR fields
             if "layers" in audit_result:
-                udr_layers = [l for l in audit_result["layers"] if l.get("udr") is not None]
+                udr_layers = [layer for layer in audit_result["layers"] if layer.get("udr") is not None]
                 assert len(udr_layers) > 0, "No layers have UDR computed"
 
                 # Check per-layer schema
@@ -227,7 +227,7 @@ class TestUDRIntegrationSimple:
             assert audit_result["n_layers"] > 0, "Basic audit failed"
 
             # Check that UDR fields are absent
-            udr_fields = [k for k in audit_result.keys() if "udr" in k.lower() or "sdi" in k.lower()]
+            udr_fields = [k for k in audit_result if "udr" in k.lower() or "sdi" in k.lower()]
             assert len(udr_fields) == 0, f"UDR fields present with --no-udr: {udr_fields}"
 
             # Check layers also have no UDR

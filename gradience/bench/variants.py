@@ -236,7 +236,7 @@ def run_svd_truncation_variant(
         eval_dataset_size = eval_results.get(
             "eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"]))
         )
-        eval_json_path = write_probe_eval_json(
+        _eval_json_path = write_probe_eval_json(
             probe_dir=variant_dir, eval_results=eval_results, eval_dataset_size=eval_dataset_size, config=config
         )
 

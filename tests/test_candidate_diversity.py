@@ -108,7 +108,6 @@ class TestCandidateDiversity(unittest.TestCase):
         )
 
         # Check that dedup notes indicate remapping occurred
-        remapped_found = False
         preferred_found = False
 
         for variant_name, variant_config in compression_configs.items():
@@ -116,7 +115,6 @@ class TestCandidateDiversity(unittest.TestCase):
                 dedup_note = variant_config.get("reason", "") or ""
 
                 if "second rung" in dedup_note:
-                    remapped_found = True
                     print(f"Found remapped candidate: {variant_name} - {dedup_note}")
 
                 if "Preferred choice" in dedup_note:

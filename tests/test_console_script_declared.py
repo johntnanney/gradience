@@ -33,10 +33,7 @@ def _has_gradience_console_script_in_pyproject(pyproject: Path) -> bool:
     val = pdm_scripts.get("gradience")
     if val == "gradience.cli:main":
         return True
-    if isinstance(val, dict) and val.get("call") == "gradience.cli:main":
-        return True
-
-    return False
+    return bool(isinstance(val, dict) and val.get("call") == "gradience.cli:main")
 
 
 def _has_gradience_console_script_in_setup_cfg(setup_cfg: Path) -> bool:

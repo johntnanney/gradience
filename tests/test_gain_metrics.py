@@ -320,7 +320,7 @@ class TestEnergyConcentrationAnalysis:
         assert result["energy_total_fro2"] == 10.0
 
         # Layer 0 should dominate
-        layer_0 = next(l for l in result["layers"] if l["layer"] == 0)
+        layer_0 = next(entry for entry in result["layers"] if entry["layer"] == 0)
         assert abs(layer_0["share"] - 0.9) < 1e-10, "Layer 0 should have 90% share"
 
         # Top-k should capture most energy
@@ -356,13 +356,13 @@ class TestEnergyConcentrationAnalysis:
         result = compute_layer_energy_concentration(module_energies)
 
         # Should have 3 layers: 0, 1, and -1 (unknown)
-        layer_indices = {l["layer"] for l in result["layers"]}
+        layer_indices = {entry["layer"] for entry in result["layers"]}
         assert 0 in layer_indices, "Should have layer 0"
         assert 1 in layer_indices, "Should have layer 1"
         assert -1 in layer_indices, "Should have unknown layer (-1)"
 
         # Unknown layer should have combined energy
-        unknown_layer = next(l for l in result["layers"] if l["layer"] == -1)
+        unknown_layer = next(entry for entry in result["layers"] if entry["layer"] == -1)
         assert unknown_layer["energy_fro2"] == 1.5, "Unknown layer should have combined energy"
 
 
@@ -469,7 +469,7 @@ class TestIntegrationEndToEnd:
         assert "concentration_index" in concentration
 
         # Should have 3 layers (0, 1, 2)
-        layer_indices = {l["layer"] for l in concentration["layers"]}
+        layer_indices = {entry["layer"] for entry in concentration["layers"]}
         assert layer_indices == {0, 1, 2}, f"Expected layers 0,1,2, got {layer_indices}"
 
         # Total energy should equal sum of module energies
@@ -477,7 +477,7 @@ class TestIntegrationEndToEnd:
         assert abs(concentration["energy_total_fro2"] - expected_total) < 1e-10
 
         # Layer shares should sum to 1
-        total_share = sum(l["share"] for l in concentration["layers"])
+        total_share = sum(entry["share"] for entry in concentration["layers"])
         assert abs(total_share - 1.0) < 1e-10, "Layer shares should sum to 1"
 
         # HHI should be reasonable (between 1/3 and 1 for 3 layers)

@@ -122,7 +122,7 @@ def top_eigenvalue(model, criterion, data_batches, max_iters=40, tol=1e-3):
     v = v / v.norm()
 
     lambda_prev = 0.0
-    for iteration in range(max_iters):
+    for _iteration in range(max_iters):
         # Average HVP over batches
         Hv = torch.zeros(n_params, device=device)
         for inputs, labels in data_batches:
@@ -175,7 +175,7 @@ def compute_gHg(model, criterion, data_batches):
 
     This measures the curvature in the direction of the gradient.
     """
-    device = next(model.parameters()).device
+    _device = next(model.parameters()).device
 
     # First compute the gradient (averaged over batches)
     model.zero_grad()
@@ -307,7 +307,7 @@ def main():
 
     # ── Training ───────────────────────────────────────────────────────
     telemetry_path = os.path.join(args.out_dir, "telemetry.jsonl")
-    telemetry_file = open(telemetry_path, "w")
+    telemetry_file = open(telemetry_path, "w")  # noqa: SIM115
 
     data_iter = iter(train_loader)
     grokked = False

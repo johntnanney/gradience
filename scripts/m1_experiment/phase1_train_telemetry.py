@@ -87,7 +87,7 @@ def _compute_structural_metrics(model) -> dict[str, float]:
     frob_norms = []
     sigma_maxes = []
 
-    for prefix, A, B in pairs:
+    for _prefix, A, B in pairs:
         # A: (r, d_in), B: (d_out, r)
         # Do the big matmuls on-device in float32 (bf16 loses too much precision
         # for eigendecomposition, but float32 is fine for the r×r intermediates)
@@ -354,7 +354,7 @@ def train_single_adapter(
 
     # ---- NEW: Train/eval split ----
     n_eval = max(1, int(len(tokenized) * eval_fraction))
-    n_train = len(tokenized) - n_eval
+    len(tokenized) - n_eval
     split = tokenized.train_test_split(
         test_size=n_eval,
         seed=seed,

@@ -104,7 +104,6 @@ def demo_stable_imports():
     # Test discoverable import
     import gradience
 
-    api_module = gradience.api
     print("✅ Discoverable import: gradience.api")
 
     # Test key functions exist

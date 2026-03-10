@@ -201,7 +201,7 @@ def main():
     if args.recover:
         print("Recovery mode: scanning for existing lm-eval results...")
         recovered = 0
-        for results_file in evals_dir.rglob("results_*.json"):
+        for _results_file in evals_dir.rglob("results_*.json"):
             # Already in a proper location, skip
             pass
 

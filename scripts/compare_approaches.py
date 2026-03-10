@@ -139,7 +139,7 @@ def main():
     print("=== PRACTICAL INSIGHTS ===")
 
     if len(approaches) >= 2:
-        approach_names = list(approaches.keys())
+        list(approaches.keys())
         per_layer_data = approaches.get("Per-Layer Adaptive", [])
         uniform_r8_data = approaches.get("Uniform r=8", [])
         uniform_r16_data = approaches.get("Uniform r=16 (Safe)", [])

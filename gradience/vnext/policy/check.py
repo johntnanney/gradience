@@ -576,22 +576,21 @@ def check_run(
         # Possible underfitting heuristic (very conservative)
         # Low gap + low accuracy + very concentrated updates can indicate you
         # simply don't have enough adapter capacity or training budget.
-        if gap is not None and gap < 1.2 and test_acc is not None:
-            if test_acc < 0.2 and (sr is not None and sr < 2.0):
-                recs.append(
-                    _rec(
-                        severity=Severity.INFO,
-                        action="possible_underfitting",
-                        message=(
-                            f"Gap is low ({gap:.2f}x) but test accuracy is also low ({test_acc:.1%}). "
-                            "This can indicate underfitting; consider increasing rank (e.g., r=16) or training longer."
-                        ),
-                        rationale="When restraint is very strong (low LR / low stable rank), the adapter may not have enough capacity to express the needed change.",
-                        confidence=0.4,
-                        scope="monitor",
-                        evidence={"gap": gap, "test_accuracy": test_acc, "stable_rank_mean": sr},
-                    )
+        if gap is not None and gap < 1.2 and test_acc is not None and test_acc < 0.2 and (sr is not None and sr < 2.0):
+            recs.append(
+                _rec(
+                    severity=Severity.INFO,
+                    action="possible_underfitting",
+                    message=(
+                        f"Gap is low ({gap:.2f}x) but test accuracy is also low ({test_acc:.1%}). "
+                        "This can indicate underfitting; consider increasing rank (e.g., r=16) or training longer."
+                    ),
+                    rationale="When restraint is very strong (low LR / low stable rank), the adapter may not have enough capacity to express the needed change.",
+                    confidence=0.4,
+                    scope="monitor",
+                    evidence={"gap": gap, "test_accuracy": test_acc, "stable_rank_mean": sr},
                 )
+            )
 
     # Efficiency nudge: low utilization on big ranks.
     if config is not None and config.lora.r is not None and sr is not None and config.lora.r > 0:
@@ -764,16 +763,16 @@ def check_run(
             return None
         # ConfigSnapshot dataclass
         try:
-            l = getattr(cfg, "lora", None)
-            if l is not None and hasattr(l, "r"):
-                return int(l.r)
+            lora_cfg = getattr(cfg, "lora", None)
+            if lora_cfg is not None and hasattr(lora_cfg, "r"):
+                return int(lora_cfg.r)
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
         # Dict-like config
         try:
-            l = cfg.get("lora") if hasattr(cfg, "get") else None
-            if isinstance(l, dict) and "r" in l:
-                return int(l["r"])
+            lora_cfg = cfg.get("lora") if hasattr(cfg, "get") else None
+            if isinstance(lora_cfg, dict) and "r" in lora_cfg:
+                return int(lora_cfg["r"])
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
         return None

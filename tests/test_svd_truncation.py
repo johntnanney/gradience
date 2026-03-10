@@ -76,7 +76,7 @@ class TestSVDMathematicalCorrectness:
         relative_error = error / (original_norm + 1e-8)
 
         # Energy retained should correlate with low reconstruction error
-        expected_error_ratio = 1.0 - energy_retained
+        1.0 - energy_retained
 
         # Allow some tolerance for numerical precision and energy computation differences
         # The relationship should hold approximately: relative_error² ≈ 1 - energy_retained
@@ -350,7 +350,7 @@ class TestAdapterIO:
 
         output_dir = temp_peft_dir.parent / "truncated_adapter"
 
-        report = svd_truncate_peft_dir(
+        svd_truncate_peft_dir(
             peft_dir=temp_peft_dir, out_dir=output_dir, target_rank=target_rank, alpha_mode="keep_ratio"
         )
 
@@ -379,7 +379,7 @@ class TestAdapterIO:
 
         output_dir = temp_peft_dir.parent / "truncated_adapter"
 
-        report = svd_truncate_peft_dir(
+        svd_truncate_peft_dir(
             peft_dir=temp_peft_dir, out_dir=output_dir, target_rank=target_rank, alpha_mode="keep_alpha"
         )
 
@@ -403,7 +403,7 @@ class TestAdapterIO:
 
         output_dir = temp_peft_dir.parent / "truncated_adapter"
 
-        report = svd_truncate_peft_dir(peft_dir=temp_peft_dir, out_dir=output_dir, target_rank=target_rank)
+        svd_truncate_peft_dir(peft_dir=temp_peft_dir, out_dir=output_dir, target_rank=target_rank)
 
         # Try to load truncated weights
         weights_file = output_dir / "adapter_model.safetensors"
@@ -421,8 +421,8 @@ class TestAdapterIO:
             state_dict = torch.load(weights_file, map_location="cpu")
 
         # Verify LoRA matrices have correct shapes
-        lora_a_keys = [k for k in state_dict.keys() if "lora_A" in k]
-        lora_b_keys = [k for k in state_dict.keys() if "lora_B" in k]
+        lora_a_keys = [k for k in state_dict if "lora_A" in k]
+        lora_b_keys = [k for k in state_dict if "lora_B" in k]
 
         assert len(lora_a_keys) == 2, f"Expected 2 LoRA A matrices, got {len(lora_a_keys)}"
         assert len(lora_b_keys) == 2, f"Expected 2 LoRA B matrices, got {len(lora_b_keys)}"
@@ -436,7 +436,7 @@ class TestAdapterIO:
             assert tensor.shape[1] == target_rank, f"LoRA B rank mismatch: {tensor.shape}"
 
         # Verify non-LoRA tensors preserved
-        non_lora_keys = [k for k in state_dict.keys() if "lora_A" not in k and "lora_B" not in k]
+        non_lora_keys = [k for k in state_dict if "lora_A" not in k and "lora_B" not in k]
         assert len(non_lora_keys) > 0, "Non-LoRA tensors not preserved"
 
     def test_error_handling(self, temp_peft_dir):
@@ -547,7 +547,7 @@ class TestLoraMatrixParsing:
         assert len(pairs) == 2, f"Expected 2 pairs, got {len(pairs)}"
 
         # Check that pairs have correct structure
-        for base_key, pair in pairs.items():
+        for _base_key, pair in pairs.items():
             assert "A" in pair and "B" in pair
             A_key, A_tensor = pair["A"]
             B_key, B_tensor = pair["B"]

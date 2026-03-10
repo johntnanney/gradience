@@ -35,6 +35,7 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -72,11 +73,8 @@ def cmd_report(args: argparse.Namespace) -> None:
     events: list[dict[str, Any]] = []
     with open(telemetry_path) as f:
         for line in f:
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 events.append(json.loads(line))
-            except json.JSONDecodeError:
-                # Skip malformed lines
-                pass
 
     if not events:
         print("Error: No events found in telemetry file")
@@ -1668,7 +1666,7 @@ def _print_audit_summary(
         # Get layers for "don't compress" analysis
         layers = getattr(result, "layers", [])
         r_alloc_values = [layer.r for layer in layers] if layers else []
-        typical_r = max(r_alloc_values) if r_alloc_values else 8
+        _typical_r = max(r_alloc_values) if r_alloc_values else 8
 
         for policy_internal, stats in policy_suggestions.items():
             # Map to user-friendly name
@@ -1698,9 +1696,7 @@ def _print_audit_summary(
             print(f"  {policy_name:<16}  {median:>6}  {p90:>4}  {max_val:>4}       {dont_compress_pct:>4.0f}%")
 
         # Add footnote for experimental policies
-        has_experimental = any(
-            policy_internal in experimental_policies for policy_internal in policy_suggestions.keys()
-        )
+        has_experimental = any(policy_internal in experimental_policies for policy_internal in policy_suggestions)
         if has_experimental:
             print("  (exp.) = Experimental policy based on theoretical assumptions")
 
@@ -1974,13 +1970,13 @@ def cmd_audit(args: argparse.Namespace) -> None:
                 # Check if any UDR-related data exists to determine if UDR was attempted
                 layers = getattr(result, "layers", [])
                 has_udr_data = any(
-                    getattr(l, "udr", None) is not None
-                    or getattr(l, "base_sigma_max", None) is not None
-                    or getattr(l, "base_fro_norm", None) is not None
-                    for l in layers
+                    getattr(lyr, "udr", None) is not None
+                    or getattr(lyr, "base_sigma_max", None) is not None
+                    or getattr(lyr, "base_fro_norm", None) is not None
+                    for lyr in layers
                 )
                 if has_udr_data:
-                    udr_count = sum(1 for l in layers if getattr(l, "udr", None) is not None)
+                    udr_count = sum(1 for lyr in layers if getattr(lyr, "udr", None) is not None)
                     payload["n_layers_with_udr"] = udr_count
 
             # Add per-layer rank suggestions if requested
@@ -2589,7 +2585,7 @@ def cmd_explain(args: argparse.Namespace) -> None:
             for layer in all_layers:
                 status = (
                     "🔥 FLAGGED"
-                    if layer.get("layer_name") in [l.get("layer_name") for l in flagged_layers]
+                    if layer.get("layer_name") in [lyr.get("layer_name") for lyr in flagged_layers]
                     else "○ not flagged"
                 )
                 print(f"  {layer.get('layer_name')} {status}")

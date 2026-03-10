@@ -404,7 +404,7 @@ class TestAuditSchemaIntegration:
         # Verify layer-level suggestions
         layer = mock_audit_result["layers"][0]
         assert "rank_suggestions" in layer
-        for policy_name, suggestion in layer["rank_suggestions"].items():
+        for _policy_name, suggestion in layer["rank_suggestions"].items():
             assert "k" in suggestion
             assert "confidence" in suggestion
 
@@ -492,7 +492,7 @@ class TestPolicyDisagreementDetection:
         def calculate_spread(layer):
             """Extract the spread calculation logic for testing."""
             k_values = []
-            for policy, suggestion in layer.rank_suggestions.items():
+            for _policy, suggestion in layer.rank_suggestions.items():
                 if isinstance(suggestion, dict) and "k" in suggestion:
                     k = suggestion["k"]
                     if isinstance(k, (int, float)) and k >= 0:

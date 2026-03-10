@@ -27,7 +27,7 @@ print("\n1. Default behavior:")
 try:
     compute_udr, base_model_id = validate_udr_config({})
     print(f"✅ compute_udr={compute_udr}, base_model_id={base_model_id}")
-    assert compute_udr == False
+    assert compute_udr is False
 except Exception as e:
     print(f"❌ {e}")
 
@@ -45,7 +45,7 @@ print("\n3. Explicitly disabled:")
 try:
     compute_udr, base_model_id = validate_udr_config({"compute_udr": False, "base_model": "distilbert-base-uncased"})
     print(f"✅ compute_udr={compute_udr}, base_model_id={base_model_id}")
-    assert compute_udr == False
+    assert compute_udr is False
 except Exception as e:
     print(f"❌ {e}")
 
@@ -54,7 +54,7 @@ print("\n4. Proper opt-in:")
 try:
     compute_udr, base_model_id = validate_udr_config({"compute_udr": True, "base_model": "distilbert-base-uncased"})
     print(f"✅ compute_udr={compute_udr}, base_model_id={base_model_id}")
-    assert compute_udr == True
+    assert compute_udr is True
     assert base_model_id == "distilbert-base-uncased"
 except Exception as e:
     print(f"❌ {e}")

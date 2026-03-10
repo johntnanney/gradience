@@ -14,7 +14,6 @@ import unittest
 from pathlib import Path
 
 
-
 class TestAggregateReportCorrectness(unittest.TestCase):
     """Test aggregate report generation with critical bug fixes."""
 
@@ -113,7 +112,7 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # BEFORE BUG FIX: would be {"is_multiseed": false, "n_seeds": 1, "rationale": "Single seed..."}
         # AFTER BUG FIX: should reflect multi-seed reality
-        assert validation_classification["is_multiseed"] == True, "Should be marked as multi-seed"
+        assert validation_classification["is_multiseed"] is True, "Should be marked as multi-seed"
         assert validation_classification["n_seeds"] == 3, (
             f"Should show 3 seeds, got {validation_classification['n_seeds']}"
         )
@@ -249,7 +248,7 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Create test case with mixed pass rates
         mixed_reports = []
-        for i, seed in enumerate([42, 123, 456]):
+        for i, _seed in enumerate([42, 123, 456]):
             report = json.loads(json.dumps(self.seed_reports[i]))  # Deep copy
 
             # energy_p90: passes all 3 seeds (100% rate) -> safe
@@ -286,8 +285,8 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Selection strategy should recommend safe
         strategy = summary["selection_strategy"]
-        assert strategy["safe_available"] == True
-        assert strategy["aggressive_available"] == True
+        assert strategy["safe_available"] is True
+        assert strategy["aggressive_available"] is True
         assert strategy["recommendation"] == "use_safe"
 
         # Legacy best_compression should prefer safe variant
@@ -299,7 +298,7 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Create test case where all variants have <100% pass rate
         aggressive_only_reports = []
-        for i, seed in enumerate([42, 123, 456]):
+        for i, _seed in enumerate([42, 123, 456]):
             report = json.loads(json.dumps(self.seed_reports[i]))  # Deep copy
 
             # energy_p90: passes 2/3 seeds (67% rate)
@@ -321,8 +320,8 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Should recommend aggressive with caution
         strategy = summary["selection_strategy"]
-        assert strategy["safe_available"] == False
-        assert strategy["aggressive_available"] == True
+        assert strategy["safe_available"] is False
+        assert strategy["aggressive_available"] is True
         assert strategy["recommendation"] == "use_aggressive_with_caution"
 
         # Legacy best_compression should fallback to aggressive
@@ -335,7 +334,7 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Create test case where all variants fail majority of seeds
         failing_reports = []
-        for i, seed in enumerate([42, 123, 456]):
+        for i, _seed in enumerate([42, 123, 456]):
             report = json.loads(json.dumps(self.seed_reports[i]))  # Deep copy
 
             # All variants pass only 1/3 seeds (33% rate) - below 60% threshold
@@ -355,8 +354,8 @@ class TestAggregateReportCorrectness(unittest.TestCase):
 
         # Strategy should indicate no viable options
         strategy = summary["selection_strategy"]
-        assert strategy["safe_available"] == False
-        assert strategy["aggressive_available"] == False
+        assert strategy["safe_available"] is False
+        assert strategy["aggressive_available"] is False
         assert strategy["recommendation"] == "no_viable_variants"
 
         # Legacy best_compression should be None
@@ -373,7 +372,7 @@ class TestAggregateReportCorrectness(unittest.TestCase):
         assert result["seeds"] == [42, 123, 456]
 
         # Fix 2: Multi-seed validation classification
-        assert result["env"]["validation_classification"]["is_multiseed"] == True
+        assert result["env"]["validation_classification"]["is_multiseed"] is True
         assert result["env"]["validation_classification"]["n_seeds"] == 3
 
         # Fix 3: Verdicts use 80% threshold

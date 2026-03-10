@@ -151,7 +151,7 @@ class GSM8KCausalLMProfile:
             dataloader_drop_last=False,
             seed=train_config.get("seed", 42),
             report_to=[],  # Disable wandb/tensorboard
-            bf16=True if train_config.get("torch_dtype") == "bf16" else False,
+            bf16=bool(train_config.get("torch_dtype") == "bf16"),
             remove_unused_columns=False,  # Prevent column removal issues
         )
 

@@ -123,7 +123,7 @@ def _parse_and_pair_lora_matrices(
     print(f"Found {len(complete_pairs)} complete LoRA A/B pairs")
 
     # Debug: print first few pairs for verification
-    for i, (base_key, pair) in enumerate(complete_pairs.items()):
+    for i, (_base_key, pair) in enumerate(complete_pairs.items()):
         if i < 3:  # Show first 3 pairs
             A_key, A_tensor = pair["A"]
             B_key, B_tensor = pair["B"]
@@ -443,7 +443,7 @@ This adapter was created via SVD truncation using Gradience.
 ## Truncation Summary
 
 - **Original rank**: {report.original_rank}
-- **Target rank**: {report.target_rank}  
+- **Target rank**: {report.target_rank}
 - **Compression ratio**: {report.compression_ratio:.1f}x
 - **Energy retained**: {report.energy_retained:.1%}
 - **Alpha mode**: {report.alpha_mode}

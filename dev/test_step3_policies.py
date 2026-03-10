@@ -134,7 +134,7 @@ class TestEntropyPolicy:
 
         # Verify normalization: p_i = σ_i / Σσ_j
         total_sv = np.sum(s)  # = 5.0
-        expected_p = s / total_sv  # Each p_i = 0.2
+        s / total_sv  # Each p_i = 0.2
 
         # Entropy for uniform: H = -Σ p log(p) = -5 × (0.2 × log(0.2))
         expected_entropy = -5 * (0.2 * np.log(0.2))
@@ -325,7 +325,7 @@ class TestPolicyIntegration:
 
         policies = [("OHT", create_oht_policy()), ("Entropy", create_entropy_policy()), ("Knee", create_knee_policy())]
 
-        for name, policy in policies:
+        for _name, policy in policies:
             result = apply_rank_policy(policy, s, shape, r_alloc)
 
             # All should return valid RankSuggestion

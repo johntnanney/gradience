@@ -61,7 +61,7 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     # Render known variants in stable order (extras allowed)
     ordered = ["uniform_median", "uniform_p90", "per_layer"]
-    keys = ordered + [k for k in compressed.keys() if k not in ordered]
+    keys = ordered + [k for k in compressed if k not in ordered]
 
     for k in keys:
         r = compressed.get(k, {}) or {}
@@ -105,7 +105,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append("### Top 5 layers by Δ energy")
             lines.append("")
             top_layers = composition["top_k"]["layers"][:5]  # Ensure max 5
-            total_energy = composition.get("energy_total_fro2", 0)
+            _total_energy = composition.get("energy_total_fro2", 0)
 
             for i, layer_info in enumerate(top_layers, 1):
                 layer_num = layer_info["layer"]

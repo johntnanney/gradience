@@ -13,6 +13,7 @@ Default: Shadow mode (detects and logs, but doesn't intervene)
 Enable active mode with: Guard(shadow_mode=False)
 """
 
+import contextlib
 import json
 import os
 import time
@@ -251,9 +252,8 @@ class Guard:
                 return CorruptionType.NONFINITE_WEIGHTS
 
         # Check gradients if enabled
-        if self.config.check_gradients:
-            if self._has_nonfinite_gradients():
-                return CorruptionType.NONFINITE_GRADIENTS
+        if self.config.check_gradients and self._has_nonfinite_gradients():
+            return CorruptionType.NONFINITE_GRADIENTS
 
         return None
 
@@ -633,23 +633,19 @@ class Guard:
         if value is None:
             return False
         try:
-            return not (value == value) or abs(value) == float("inf")  # NaN != NaN
+            return value != value or abs(value) == float("inf")  # NaN != NaN
         except:
             return True
 
     def _has_nonfinite_weights(self) -> bool:
         """Check if any model weights are NaN or Inf."""
-        for param in self.model.parameters():
-            if torch.isnan(param).any() or torch.isinf(param).any():
-                return True
-        return False
+        return any(torch.isnan(param).any() or torch.isinf(param).any() for param in self.model.parameters())
 
     def _has_nonfinite_gradients(self) -> bool:
         """Check if any gradients are NaN or Inf."""
         for param in self.model.parameters():
-            if param.grad is not None:
-                if torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
-                    return True
+            if param.grad is not None and (torch.isnan(param.grad).any() or torch.isinf(param.grad).any()):
+                return True
         return False
 
     def _log_event(self, event: GuardEvent, data: dict[str, Any]):
@@ -698,10 +694,8 @@ class Guard:
 
     def __del__(self):
         """Ensure cleanup on deletion."""
-        try:
+        with contextlib.suppress(BaseException):
             self.cleanup()
-        except:
-            pass
 
 
 @dataclass

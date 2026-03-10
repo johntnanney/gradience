@@ -144,7 +144,7 @@ def power_iteration_hessian(
     eigenvalues: list[float] = []
     eigenvectors: list[list[torch.Tensor]] = []  # For deflation
 
-    for k in range(n_eigenvalues):
+    for _k in range(n_eigenvalues):
         # Initialize random vector
         v = [torch.randn_like(p) for p in params]
         v = normalize_vector(v)
@@ -157,7 +157,7 @@ def power_iteration_hessian(
 
         # Power iteration
         prev_eigenvalue = None
-        for i in range(n_iterations):
+        for _i in range(n_iterations):
             # Hv
             Hv = hessian_vector_product(loss_fn, params, v)
 
@@ -173,9 +173,8 @@ def power_iteration_hessian(
             v = normalize_vector(Hv)
 
             # Check convergence
-            if prev_eigenvalue is not None:
-                if abs(eigenvalue - prev_eigenvalue) < tolerance:
-                    break
+            if prev_eigenvalue is not None and abs(eigenvalue - prev_eigenvalue) < tolerance:
+                break
             prev_eigenvalue = eigenvalue
 
         eigenvalues.append(eigenvalue)

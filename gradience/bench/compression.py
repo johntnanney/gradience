@@ -462,7 +462,7 @@ def generate_compression_configs(
             used_ranks.add(rank)
 
             # For remaining candidates, try to map to "second rung" alternatives
-            for i, displaced_candidate in enumerate(sorted_candidates[1:], 1):
+            for _i, displaced_candidate in enumerate(sorted_candidates[1:], 1):
                 next_rank = find_next_aggressive_rank(rank, used_ranks, allowed_ranks)
                 if next_rank is not None:
                     print(

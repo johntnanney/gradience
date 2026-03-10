@@ -5,6 +5,7 @@ This module provides a clean interface for testing HF callbacks without
 requiring real Trainer infrastructure, model downloads, or GPU resources.
 """
 
+import contextlib
 import json
 import tempfile
 from dataclasses import dataclass
@@ -245,10 +246,8 @@ class HFCallbackDriver:
                 for line in f:
                     line = line.strip()
                     if line:
-                        try:
+                        with contextlib.suppress(json.JSONDecodeError):
                             self.events.append(json.loads(line))
-                        except json.JSONDecodeError:
-                            pass  # Skip malformed lines
 
     def cleanup(self):
         """Clean up temporary resources."""

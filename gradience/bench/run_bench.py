@@ -9,7 +9,7 @@ Usage:
 
 Runs the complete bench protocol:
 1. Train probe adapter (r=16)
-2. Audit -> suggestions  
+2. Audit -> suggestions
 3. Generate compression configs
 4. Retrain compressed variants
 5. Evaluate and make verdicts
@@ -43,13 +43,13 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   # Basic benchmark
   python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output results/run_001
-  
+
   # Smoke test (faster)
   python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output smoke_test --smoke
-  
+
   # CI mode (fails if compression strategies don't pass)
   python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output ci_run --ci
-  
+
   # Override device
   python -m gradience.bench.run_bench --config configs/distilbert_sst2.yaml --output gpu_run --device cuda
         """,

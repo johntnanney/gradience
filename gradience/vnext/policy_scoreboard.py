@@ -175,7 +175,7 @@ class PolicyScoreboard:
 
     def _recalculate_metrics(self) -> None:
         """Recalculate derived metrics for all policies."""
-        for policy_name, policy_data in self.data["policies"].items():
+        for _policy_name, policy_data in self.data["policies"].items():
             if policy_data["total_attempts"] == 0:
                 continue
 

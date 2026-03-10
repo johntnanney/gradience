@@ -388,7 +388,7 @@ def main():
     print("=" * 72)
 
     ce_results = {}
-    for name, (X, feats) in feature_sets.items():
+    for name, (X, _feats) in feature_sets.items():
         ce = compute_conditional_entropy(X, y_int, seeds, n_classes)
         ce_results[name] = ce
         print(
@@ -413,7 +413,7 @@ def main():
     print("=" * 72)
 
     mdl_results = {}
-    for name, (X, feats) in feature_sets.items():
+    for name, (X, _feats) in feature_sets.items():
         mdl = compute_mdl(X, y_int, seeds, n_classes, name)
         mdl_results[name] = mdl
         print(f"  {name:>15s}: BIC={mdl['bic']:.3f}, AIC={mdl['aic']:.3f} (k={mdl['n_params']}, NLL={mdl['nll']:.3f})")

@@ -142,7 +142,7 @@ def setup_compressed_model_and_tokenizer(
     """Setup model and tokenizer with compressed LoRA configuration."""
     model_config = config["model"]
     model_name = model_config["name"]
-    base_lora_config = config["lora"]
+    _base_lora_config = config["lora"]
     variant_config = compression_config["config"]
 
     tokenizer, model, task_type = _load_base_model(model_config, model_name, device)

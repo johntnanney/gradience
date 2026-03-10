@@ -165,7 +165,7 @@ class TestUDRIntegration:
             assert audit_without_base["total_lora_params"] > 0, "No LoRA params found"
 
             # Should NOT have UDR keys
-            udr_keys_without_base = [k for k in audit_without_base.keys() if "udr" in k.lower()]
+            udr_keys_without_base = [k for k in audit_without_base if "udr" in k.lower()]
             assert len(udr_keys_without_base) == 0, f"Unexpected UDR keys without base model: {udr_keys_without_base}"
 
             # Test audit WITH base model (should compute UDR)
@@ -196,7 +196,7 @@ class TestUDRIntegration:
                 "n_layers_with_udr",
             }
 
-            actual_udr_keys = set(k for k in audit_with_base.keys() if "udr" in k.lower() or "sdi" in k.lower())
+            actual_udr_keys = set(k for k in audit_with_base if "udr" in k.lower() or "sdi" in k.lower())
 
             missing_keys = expected_udr_keys - actual_udr_keys
             assert len(missing_keys) == 0, f"Missing UDR keys in audit output: {missing_keys}"
@@ -213,7 +213,7 @@ class TestUDRIntegration:
 
             # Check per-layer UDR fields
             if "layers" in audit_with_base:
-                udr_layers = [l for l in audit_with_base["layers"] if l.get("udr") is not None]
+                udr_layers = [layer for layer in audit_with_base["layers"] if layer.get("udr") is not None]
                 assert len(udr_layers) > 0, "No individual layers have UDR"
 
                 # Check required per-layer fields
@@ -285,7 +285,7 @@ class TestCLIBehavior:
             audit_result = json.loads(result.stdout)
 
             # Should NOT have UDR keys when disabled
-            udr_keys = [k for k in audit_result.keys() if "udr" in k.lower() or "sdi" in k.lower()]
+            udr_keys = [k for k in audit_result if "udr" in k.lower() or "sdi" in k.lower()]
             assert len(udr_keys) == 0, f"UDR keys present despite --no-udr flag: {udr_keys}"
 
     @pytest.mark.slow

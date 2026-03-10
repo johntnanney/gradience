@@ -404,7 +404,7 @@ def _generate_report(runs, all_results, agg_ccfs, surrogate_results, all_stoppin
     lines.append("## 3. Granger Causality Tests")
     lines.append("")
     granger_features: dict[str, list] = {}
-    for label, results in all_results.items():
+    for _label, results in all_results.items():
         for gr in results["granger"]:
             if gr.feature_name not in granger_features:
                 granger_features[gr.feature_name] = []

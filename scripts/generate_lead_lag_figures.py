@@ -95,7 +95,7 @@ def fig1_ccf_aggregate():
         ax.plot(lags, mean, color=COLORS["primary"], linewidth=2)
 
         # Significance bands
-        n_runs = agg["n_runs"]
+        agg["n_runs"]
         # Approximate CI for mean of n runs
         ci = 1.96 / np.sqrt(max(1, lags.max() - lags.min()))
         ax.axhline(ci, color=COLORS["muted"], linestyle="--", linewidth=0.8, alpha=0.5)
@@ -147,7 +147,7 @@ def fig2_lead_lag_heatmap():
 
     # Build matrix
     all_lags = None
-    for feat, agg in features.items():
+    for _feat, agg in features.items():
         if all_lags is None:
             all_lags = np.array(agg["common_lags"])
 

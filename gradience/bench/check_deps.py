@@ -81,13 +81,13 @@ def get_missing_for_command(command: str, results: dict) -> list[str]:
     """Get list of missing modules for a specific command."""
     if command == "bench":
         missing = []
-        for module, info in results["bench"].items():
+        for _module, info in results["bench"].items():
             if not info["installed"]:
                 missing.append(info["display_name"])
         return missing
     elif command == "hf":
         missing = []
-        for module, info in results["hf"].items():
+        for _module, info in results["hf"].items():
             if not info["installed"]:
                 missing.append(info["display_name"])
         return missing
@@ -104,7 +104,7 @@ def main():
 
     # Check core dependencies
     core_missing = []
-    for module, info in results["core"].items():
+    for _module, info in results["core"].items():
         if info["installed"]:
             print(f"✅ {info['display_name']:12} {info['version']}")
         else:
@@ -145,7 +145,7 @@ def main():
     # Check dev dependencies
     print("\n🔧 Development Tools ([dev] extra):")
     dev_missing = []
-    for module, info in results["dev"].items():
+    for _module, info in results["dev"].items():
         if info["installed"]:
             print(f"   ✅ {info['display_name']:12} {info['version']}")
         else:

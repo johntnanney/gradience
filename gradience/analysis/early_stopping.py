@@ -258,7 +258,7 @@ def aggregate_stopping_results(
         triggered_count = 0
         total_count = 0
 
-        for run_label, results in all_results.items():
+        for _run_label, results in all_results.items():
             for r in results:
                 if r.rule_name != rule_name:
                     continue

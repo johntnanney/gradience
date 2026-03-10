@@ -181,7 +181,7 @@ def main():
                 event = json.loads(line.strip())
                 event_type = event.get("event", "unknown")
                 print(f"   {i + 1}. {event_type}")
-            except:
+            except Exception:
                 print(f"   {i + 1}. (parse error)")
 
         if len(lines) > 3:

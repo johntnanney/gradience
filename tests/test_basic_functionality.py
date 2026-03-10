@@ -128,7 +128,7 @@ class TestConfigValidation:
         # Validate GPU-specific settings
         assert config["runtime"]["device"] == "cuda"
         assert config["train"]["max_steps"] == 20  # Fast smoke test
-        assert config["audit"]["compute_udr"] == False  # UDR disabled for speed
+        assert config["audit"]["compute_udr"] is False  # UDR disabled for speed
 
 
 if __name__ == "__main__":

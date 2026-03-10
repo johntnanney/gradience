@@ -115,7 +115,7 @@ def discover_specific_candidates():
                         filename="adapter_config.json",
                         cache_dir="/tmp/hf_discover_cache",
                     )
-                    config = json.loads(open(config_path).read())
+                    config = json.loads(open(config_path).read())  # noqa: SIM115
                     base = config.get("base_model_name_or_path", "?")
                     rank = config.get("r", "?")
                     modules = config.get("target_modules", "?")

@@ -28,6 +28,7 @@ Defaults are CPU-friendly and trivial on any GPU.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
 import os
@@ -92,10 +93,8 @@ def _infer_lora_targets(model: Any) -> list[str]:
 def _select_small_split(ds: Any, n: int, seed: int) -> Any:
     if n is None or n <= 0:
         return ds
-    try:
+    with contextlib.suppress(Exception):
         ds = ds.shuffle(seed=seed)
-    except Exception:
-        pass
     try:
         return ds.select(range(min(n, len(ds))))
     except Exception:
@@ -302,7 +301,7 @@ def main() -> None:
             dataset_name_for_config = ds_name
 
         train_split = ds["train"] if "train" in ds else list(ds.values())[0]
-        test_split = ds["validation"] if "validation" in ds else (ds["test"] if "test" in ds else train_split)
+        test_split = ds["validation"] if "validation" in ds else (ds.get("test", train_split))
 
         cols = set(train_split.column_names)
         text_key = "sentence" if "sentence" in cols else ("text" if "text" in cols else train_split.column_names[0])

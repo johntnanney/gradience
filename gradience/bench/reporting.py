@@ -224,7 +224,7 @@ def create_canonical_bench_report(
 
     # Extract probe summary metrics from audit
     probe_summary = audit_data.get("summary", {})
-    probe_baseline = verdict_analysis["probe_baseline"]
+    _probe_baseline = verdict_analysis["probe_baseline"]
 
     # Build compressed section
     compressed = {}
@@ -347,7 +347,7 @@ def create_canonical_bench_report(
         audit_layers = audit_data.get("layers", [])
         if audit_layers:
             # Sort layers by UDR, take top 5
-            layers_with_udr = [l for l in audit_layers if l.get("udr") is not None]
+            layers_with_udr = [lyr for lyr in audit_layers if lyr.get("udr") is not None]
             layers_with_udr.sort(key=lambda x: x["udr"], reverse=True)
             top_5_modules = [
                 {"name": layer["name"], "udr": round(layer["udr"], 4), "rank": layer.get("r", "unknown")}
@@ -434,7 +434,12 @@ def create_canonical_bench_report(
     report["protocol_invariants"] = {
         "probe_quality_gate": {
             "status": "PASSED" if probe_gate_data["passed"] else "FAILED",
-            "message": "Probe {} {:.4f} {} {:.4f}".format(probe_gate_data["metric_key"], probe_gate_data["metric_value"], "\u2265" if probe_gate_data["passed"] else "<", probe_gate_data["min_value"]),
+            "message": "Probe {} {:.4f} {} {:.4f}".format(
+                probe_gate_data["metric_key"],
+                probe_gate_data["metric_value"],
+                "\u2265" if probe_gate_data["passed"] else "<",
+                probe_gate_data["min_value"],
+            ),
             "metric_key": probe_gate_data["metric_key"],
             "metric_value": probe_gate_data["metric_value"],
             "min_value": probe_gate_data["min_value"],
@@ -1191,8 +1196,8 @@ The following statements reflect the complete evidence from all {n_seeds} seeds:
         variants = rank_to_variants[rank]
 
         # Determine overall validation status for this rank
-        all_pass_counts = [data["pass_count"] for _, data in variants]
-        all_total_runs = [data["total_runs"] for _, data in variants]
+        _all_pass_counts = [data["pass_count"] for _, data in variants]
+        _all_total_runs = [data["total_runs"] for _, data in variants]
 
         # Use the variant with the most comprehensive data (highest total_runs)
         best_variant_name, best_data = max(variants, key=lambda x: x[1]["total_runs"])

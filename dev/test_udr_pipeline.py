@@ -220,7 +220,7 @@ def run_udr_test():
                 print(f"   ✓ JSON output contains {len(result_json)} fields")
 
                 # Check for UDR fields
-                udr_fields = [k for k in result_json.keys() if "udr" in k.lower() or "sdi" in k.lower()]
+                udr_fields = [k for k in result_json if "udr" in k.lower() or "sdi" in k.lower()]
                 if udr_fields:
                     print(f"   ✓ UDR fields present: {', '.join(udr_fields)}")
                 else:

@@ -35,7 +35,7 @@ class TestUDRPolicyIntegration:
 
         # Test Case 1: Default behavior (no audit section)
         compute_udr, base_model_id = validate_udr_config({})
-        assert compute_udr == False
+        assert compute_udr is False
         assert base_model_id is None
 
         # Test Case 2: Explicit error case
@@ -52,12 +52,12 @@ class TestUDRPolicyIntegration:
         compute_udr, base_model_id = validate_udr_config(
             {"compute_udr": False, "base_model": "distilbert-base-uncased"}
         )
-        assert compute_udr == False
+        assert compute_udr is False
         assert base_model_id == "distilbert-base-uncased"
 
         # Test Case 4: Proper opt-in
         compute_udr, base_model_id = validate_udr_config({"compute_udr": True, "base_model": "distilbert-base-uncased"})
-        assert compute_udr == True
+        assert compute_udr is True
         assert base_model_id == "distilbert-base-uncased"
 
     def test_protocol_enforces_udr_validation(self):
@@ -104,7 +104,7 @@ class TestUDRPolicyIntegration:
             # Test the success case
             config_success = {"audit": {"compute_udr": True, "base_model": "distilbert-base-uncased"}}
             compute_udr, base_model_id = simulate_audit_config_processing(config_success)
-            assert compute_udr == True
+            assert compute_udr is True
             assert base_model_id == "distilbert-base-uncased"
 
     def test_protocol_default_behavior(self):
@@ -122,11 +122,11 @@ class TestUDRPolicyIntegration:
 
         # Test default (no audit section)
         config_default = {}
-        assert simulate_default_behavior(config_default) == False
+        assert simulate_default_behavior(config_default) is False
 
         # Test explicit false
         config_false = {"audit": {"compute_udr": False}}
-        assert simulate_default_behavior(config_false) == False
+        assert simulate_default_behavior(config_false) is False
 
     def test_udr_policy_examples(self):
         """Test specific examples that should pass/fail."""
@@ -143,11 +143,11 @@ class TestUDRPolicyIntegration:
 
         # Example 1: Legacy config (no audit section) - should work
         legacy_config = {"model": {"name": "distilbert-base-uncased"}, "task": {"dataset": "glue", "subset": "sst2"}}
-        assert process_config(legacy_config) == False
+        assert process_config(legacy_config) is False
 
         # Example 2: Explicit UDR disable - should work
         disabled_config = {"model": {"name": "distilbert-base-uncased"}, "audit": {"compute_udr": False}}
-        assert process_config(disabled_config) == False
+        assert process_config(disabled_config) is False
 
         # Example 3: Broken config (UDR enabled but no base model) - should fail
         broken_config = {"model": {"name": "distilbert-base-uncased"}, "audit": {"compute_udr": True}}
@@ -159,7 +159,7 @@ class TestUDRPolicyIntegration:
             "model": {"name": "distilbert-base-uncased"},
             "audit": {"compute_udr": True, "base_model": "distilbert-base-uncased"},
         }
-        assert process_config(proper_config) == True
+        assert process_config(proper_config) is True
 
 
 if __name__ == "__main__":

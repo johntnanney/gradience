@@ -154,7 +154,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
             )
 
     except ImportError as e:
-        raise RuntimeError(f"PyTorch not available: {e}")
+        raise RuntimeError(f"PyTorch not available: {e}") from e
 
     # 2. Disk space checks
     critical_paths = ["/tmp"]
@@ -227,7 +227,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
                     print("\u2705 HF cache directory writable")
                 except (OSError, PermissionError) as e:
                     print(f"\u274c HF cache directory not writable: {e}")
-                    raise RuntimeError(f"HuggingFace cache directory not writable: {cache_dir}")
+                    raise RuntimeError(f"HuggingFace cache directory not writable: {cache_dir}") from e
             else:
                 print(f"\u2139\ufe0f  HF cache directory will be created: {cache_dir}")
 
@@ -249,7 +249,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
     env_issues = []
     runpod_detected = os.path.exists("/workspace")
 
-    for env_var, description in hf_env_vars.items():
+    for env_var, _description in hf_env_vars.items():
         value = os.environ.get(env_var)
         if value:
             cache_path = Path(value)
@@ -318,7 +318,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:
                 print("\U0001f4a1 SOLUTION: Delete the corrupted cache:")
                 print(f"   rm -rf ~/.cache/huggingface/hub/models--{model_name.replace('/', '--')}")
                 print("   Or nuke entire cache: rm -rf ~/.cache/huggingface/")
-                raise RuntimeError(f"HuggingFace cache corruption: {e}")
+                raise RuntimeError(f"HuggingFace cache corruption: {e}") from e
             else:
                 print(f"\u26a0\ufe0f  Model loading issue: {e}")
                 # Don't fail on other model loading issues as they might resolve during training

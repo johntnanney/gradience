@@ -231,7 +231,6 @@ def run_cooldown_lockout_validation():
         second_abort = False
 
         first_trigger_context = None
-        first_rollback_context = None
         second_trigger_context = None
         second_abort_context = None
 
@@ -261,7 +260,6 @@ def run_cooldown_lockout_validation():
                     rollback_step = metadata.get("step")
                     if rollback_step == first_trigger_step:
                         first_rollback = True
-                        first_rollback_context = metadata
                         print(f"   ✓ GUARD_ROLLBACK (first): {event.get('message')}")
                 elif code in ("GUARD_ABORT", "GUARD_ABORT_NO_SNAPSHOT"):
                     # For GUARD_ABORT, step info is in metadata

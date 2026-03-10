@@ -131,7 +131,7 @@ class TestMergeErrors:
             d.mkdir()
             json.dump(
                 {"r": 4, "lora_alpha": 4, "target_modules": ["q_proj"], "peft_type": "LORA"},
-                open(d / "adapter_config.json", "w"),
+                open(d / "adapter_config.json", "w"),  # noqa: SIM115  # noqa: SIM115
             )
             weights = {
                 "base_model.model.layer.0.self_attn.q_proj.lora_A.weight": torch.randn(4, 64),
@@ -156,7 +156,7 @@ class TestMergeErrors:
         # Config with no 'r'
         json.dump(
             {"lora_alpha": 4, "target_modules": ["q_proj"], "peft_type": "LORA"},
-            open(d / "adapter_config.json", "w"),
+            open(d / "adapter_config.json", "w"),  # noqa: SIM115
         )
         weights = {
             "base_model.model.layer.0.self_attn.q_proj.lora_A.weight": torch.randn(4, 64),
@@ -181,7 +181,7 @@ class TestMergeErrors:
         # Config with no 'lora_alpha'
         json.dump(
             {"r": 4, "target_modules": ["q_proj"], "peft_type": "LORA"},
-            open(d / "adapter_config.json", "w"),
+            open(d / "adapter_config.json", "w"),  # noqa: SIM115
         )
         weights = {
             "base_model.model.layer.0.self_attn.q_proj.lora_A.weight": torch.randn(4, 64),
@@ -287,7 +287,7 @@ class TestSvdTruncateErrors:
         d.mkdir(parents=True, exist_ok=True)
         json.dump(
             {"r": rank, "lora_alpha": rank, "target_modules": ["q_proj"], "peft_type": "LORA"},
-            open(d / "adapter_config.json", "w"),
+            open(d / "adapter_config.json", "w"),  # noqa: SIM115
         )
         weights = {
             "base_model.model.layer.0.self_attn.q_proj.lora_A.weight": torch.randn(rank, 64),
@@ -334,7 +334,7 @@ class TestSvdTruncateErrors:
         d.mkdir()
         json.dump(
             {"r": 8, "lora_alpha": 8, "target_modules": ["q_proj"], "peft_type": "LORA"},
-            open(d / "adapter_config.json", "w"),
+            open(d / "adapter_config.json", "w"),  # noqa: SIM115
         )
         # Weights with no LoRA keys
         weights = {"some_other_key": torch.randn(4, 4)}

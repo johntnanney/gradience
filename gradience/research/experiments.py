@@ -241,7 +241,7 @@ def run_hessian_coevolution_experiment(
             # Hessian spectra (expensive)
             print("Hessian...", end=" ", flush=True)
 
-            def loss_fn():
+            def loss_fn(batch=batch):
                 out = model(**batch)
                 return out.loss
 
@@ -288,7 +288,6 @@ def run_hessian_coevolution_experiment(
     hessian_lambdas = [r["hessian_lambda_max"] for r in results]
 
     if len(weight_kappas) > 10:
-
         # Normalize
         wk_mean = sum(weight_kappas) / len(weight_kappas)
         hl_mean = sum(hessian_lambdas) / len(hessian_lambdas)

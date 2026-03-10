@@ -92,10 +92,8 @@ def main():
     # Show results
     if result.returncode == 0:
         print("✅ All smoke tests passed!")
-        status = "PASS"
     else:
         print("❌ Some smoke tests failed!")
-        status = "FAIL"
 
         # Show output on failure
         if result.stdout:

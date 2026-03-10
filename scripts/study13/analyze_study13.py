@@ -468,7 +468,7 @@ def main():
         alpha_pre_list = []
         alpha_post_list = []
 
-        for seed_id, sr in seed_results.items():
+        for _seed_id, sr in seed_results.items():
             if sr["grok_step"] is None:
                 continue
             seg = sr["windowed"].get(metric, {})

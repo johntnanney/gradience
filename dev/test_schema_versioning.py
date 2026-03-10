@@ -224,7 +224,7 @@ def test_edge_case_schemas():
     analysis = _analyze_policy_disagreements([], name_mapping, None, "full")
 
     assert analysis["schema_version"] == 1, "Schema version missing for no layers case"
-    assert analysis["analysis_performed"] == False, "Analysis performed should be False"
+    assert not analysis["analysis_performed"], "Analysis performed should be False"
     assert analysis["reason"] == "no_layers", "Reason should be no_layers"
     assert "computed_with" in analysis, "Version info missing for no layers case"
     print("  ✓ Schema correctly versioned for no layers case")
@@ -248,7 +248,7 @@ def test_edge_case_schemas():
 
     assert analysis["schema_version"] == 1, "Schema version missing for no disagreements case"
     # For consensus layers, analysis is performed but no layers are flagged
-    assert analysis["analysis_performed"] == True, "Analysis should be performed"
+    assert analysis["analysis_performed"], "Analysis should be performed"
     # The layer is processed but has spread=0, so it doesn't meet the spread threshold
     assert len(analysis["all_layers_with_disagreement"]) == 1, "Should process the layer"
     assert analysis["summary"]["layers_flagged_as_high_impact"] == 0, "Should flag 0 layers as high-impact"
@@ -256,7 +256,7 @@ def test_edge_case_schemas():
     # Check that the layer didn't meet spread threshold
     layer_rationale = analysis["all_layers_with_disagreement"][0]["flagging_rationale"]
     assert layer_rationale["spread"] == 0, "Consensus layer should have spread=0"
-    assert layer_rationale["meets_spread_threshold"] == False, "Should not meet spread threshold"
+    assert not layer_rationale["meets_spread_threshold"], "Should not meet spread threshold"
     print("  ✓ Schema correctly versioned for no disagreements case")
 
 

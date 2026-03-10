@@ -221,7 +221,7 @@ def test_json_serialization():
         print("✅ JSON serialization successful")
 
         # Test deserialization
-        parsed = json.loads(json_str)
+        json.loads(json_str)
         print("✅ JSON deserialization successful")
 
         # Show sample of the JSON structure

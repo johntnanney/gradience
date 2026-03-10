@@ -308,7 +308,6 @@ def run_realistic_grad_explosion_validation():
         guard_triggered = False
         guard_rollback = False
         trigger_context = None
-        rollback_context = None
 
         for event in events:
             event_type = event.get("event")
@@ -321,7 +320,7 @@ def run_realistic_grad_explosion_validation():
                     print(f"   ✓ GUARD_TRIGGERED: {event.get('message')}")
                 elif code == "GUARD_ROLLBACK":
                     guard_rollback = True
-                    rollback_context = event.get("metadata", {})
+                    event.get("metadata", {})
                     print(f"   ✓ GUARD_ROLLBACK: {event.get('message')}")
 
             elif event_type == "metrics" and event.get("kind") == "guard":

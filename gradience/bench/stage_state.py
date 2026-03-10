@@ -275,10 +275,12 @@ class StageStateManager:
                     # If parsing fails, remove the entry
                     del self._state["stages"][stage_name]
                     cleaned_stages.append(stage_name)
-            elif stage_name == "compression_configs_generated":
-                if not (self.output_dir / "compression_configs.json").exists():
-                    del self._state["stages"][stage_name]
-                    cleaned_stages.append(stage_name)
+            elif (
+                stage_name == "compression_configs_generated"
+                and not (self.output_dir / "compression_configs.json").exists()
+            ):
+                del self._state["stages"][stage_name]
+                cleaned_stages.append(stage_name)
 
         # Clean variant state
         for variant_name in list(self._state["variants"].keys()):

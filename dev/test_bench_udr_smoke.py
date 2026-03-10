@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any
 
 
-
 def create_minimal_bench_config() -> dict[str, Any]:
     """Create minimal Bench configuration for CPU smoke test."""
     return {
@@ -152,7 +151,7 @@ def test_udr_in_bench_context():
             audit_result = json.loads(result.stdout)
 
             # Check for UDR fields
-            udr_fields = [k for k in audit_result.keys() if "udr" in k.lower() or "sdi" in k.lower()]
+            udr_fields = [k for k in audit_result if "udr" in k.lower() or "sdi" in k.lower()]
             if not udr_fields:
                 print("   ⚠️  No UDR fields found in audit output")
                 print(f"   🔍 Available fields: {list(audit_result.keys())}")
@@ -219,7 +218,7 @@ def test_udr_in_bench_context():
                 # Check for UDR in telemetry
                 for event in audit_events:
                     metrics = event.get("metrics", {})
-                    udr_keys = [k for k in metrics.keys() if "udr" in k.lower()]
+                    udr_keys = [k for k in metrics if "udr" in k.lower()]
                     if udr_keys:
                         print(f"   ✅ UDR metrics in telemetry: {udr_keys}")
                         break

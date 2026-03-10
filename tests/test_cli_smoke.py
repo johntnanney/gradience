@@ -11,8 +11,7 @@ class TestCLISmoke(unittest.TestCase):
 
         p = subprocess.run(
             [sys.executable, "-m", "gradience", "monitor", str(fixture)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
         )
         self.assertEqual(p.returncode, 0, p.stderr)

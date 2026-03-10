@@ -69,7 +69,11 @@ from gradience.bench.constants import (
     SMOKE_TRAIN_SAMPLES,
     TASK_QUALITY_THRESHOLDS,
 )
-from gradience.bench.decision_trace import DecisionTrace, create_decision_trace, maybe_add_second_rung_candidates  # noqa: F401
+from gradience.bench.decision_trace import (  # noqa: F401
+    DecisionTrace,
+    create_decision_trace,
+    maybe_add_second_rung_candidates,
+)
 from gradience.bench.escalation import (
     EscalationTrace,  # noqa: F401
     enrich_verdicts_with_stability,
@@ -256,7 +260,7 @@ def setup_compressed_model_and_tokenizer(
     model_config = config["model"]
     model_name = model_config["name"]
     model_type = model_config.get("type", "seqcls")
-    base_lora_config = config["lora"]
+    _base_lora_config = config["lora"]
     variant_config = compression_config["config"]
 
     # Load tokenizer
@@ -659,7 +663,7 @@ def run_probe_training(  # noqa: F811  # type: ignore[no-redef]
     # Add optional dataset/task context for richer telemetry
     task_config = config.get("task", {})
     if task_config.get("dataset") and task_config.get("subset"):
-        dataset_name = f"{task_config['dataset']}/{task_config['subset']}"
+        _dataset_name = f"{task_config['dataset']}/{task_config['subset']}"
         # Note: callback doesn't require these fields, but bench can provide them
         # for richer downstream monitor output
         # We'll pass them via environment or config if the callback supports it in future
@@ -1000,7 +1004,7 @@ def run_svd_truncation_variant(  # noqa: F811  # type: ignore[no-redef]
         eval_dataset_size = eval_results.get(
             "eval_samples", len(tokenized_dataset.get("validation", tokenized_dataset["train"]))
         )
-        eval_json_path = write_probe_eval_json(
+        _eval_json_path = write_probe_eval_json(
             probe_dir=variant_dir, eval_results=eval_results, eval_dataset_size=eval_dataset_size, config=config
         )
 
@@ -1865,7 +1869,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None: 
             )
 
     except ImportError as e:
-        raise RuntimeError(f"PyTorch not available: {e}")
+        raise RuntimeError(f"PyTorch not available: {e}") from e
 
     # 2. Disk space checks
     critical_paths = ["/tmp"]
@@ -1938,7 +1942,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None: 
                     print("✅ HF cache directory writable")
                 except (OSError, PermissionError) as e:
                     print(f"❌ HF cache directory not writable: {e}")
-                    raise RuntimeError(f"HuggingFace cache directory not writable: {cache_dir}")
+                    raise RuntimeError(f"HuggingFace cache directory not writable: {cache_dir}") from e
             else:
                 print(f"ℹ️  HF cache directory will be created: {cache_dir}")
 
@@ -1960,7 +1964,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None: 
     env_issues = []
     runpod_detected = os.path.exists("/workspace")
 
-    for env_var, description in hf_env_vars.items():
+    for env_var, _description in hf_env_vars.items():
         value = os.environ.get(env_var)
         if value:
             cache_path = Path(value)
@@ -2027,7 +2031,7 @@ def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None: 
                 print("💡 SOLUTION: Delete the corrupted cache:")
                 print(f"   rm -rf ~/.cache/huggingface/hub/models--{model_name.replace('/', '--')}")
                 print("   Or nuke entire cache: rm -rf ~/.cache/huggingface/")
-                raise RuntimeError(f"HuggingFace cache corruption: {e}")
+                raise RuntimeError(f"HuggingFace cache corruption: {e}") from e
             else:
                 print(f"⚠️  Model loading issue: {e}")
                 # Don't fail on other model loading issues as they might resolve during training

@@ -40,8 +40,7 @@ def run_cli(*args: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
     """Run `python -m gradience <args>` and return the CompletedProcess."""
     return subprocess.run(
         [sys.executable, "-m", "gradience", *args],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
     )

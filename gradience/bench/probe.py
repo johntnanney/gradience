@@ -278,7 +278,7 @@ def run_probe_training(
     # Add optional dataset/task context for richer telemetry
     task_config = config.get("task", {})
     if task_config.get("dataset") and task_config.get("subset"):
-        dataset_name = f"{task_config['dataset']}/{task_config['subset']}"
+        _dataset_name = f"{task_config['dataset']}/{task_config['subset']}"
         # Note: callback doesn't require these fields, but bench can provide them
         # for richer downstream monitor output
         # We'll pass them via environment or config if the callback supports it in future

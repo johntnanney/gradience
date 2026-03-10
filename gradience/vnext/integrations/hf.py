@@ -393,6 +393,7 @@ class GradienceCallback(TrainerCallback):
                     "LoRAGuard enabled but could not import experimental.guard module. "
                     "Guard will be disabled for this run.",
                     UserWarning,
+                    stacklevel=2,
                 )
                 self.guard = None
 

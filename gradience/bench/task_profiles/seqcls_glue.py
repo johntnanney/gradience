@@ -66,7 +66,7 @@ class GLUESequenceClassificationProfile:
                 )
             else:
                 # Fallback: try to guess the text field
-                text_keys = [k for k in examples.keys() if "text" in k.lower() or "sentence" in k.lower()]
+                text_keys = [k for k in examples if "text" in k.lower() or "sentence" in k.lower()]
                 if text_keys:
                     result = tokenizer(examples[text_keys[0]], truncation=True, padding=True, max_length=128)
                 else:
@@ -113,7 +113,7 @@ class GLUESequenceClassificationProfile:
             dataloader_drop_last=False,
             seed=train_config.get("seed", 42),
             report_to=[],  # Disable wandb/tensorboard
-            bf16=True if cfg.get("model", {}).get("torch_dtype") == "bf16" else False,
+            bf16=bool(cfg.get("model", {}).get("torch_dtype") == "bf16"),
         )
 
         return cast(

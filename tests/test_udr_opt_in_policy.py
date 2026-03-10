@@ -15,7 +15,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-
 class TestUDROptInPolicy:
     """Test UDR explicit opt-in policy enforcement."""
 
@@ -93,7 +92,7 @@ class TestUDROptInPolicy:
             "current_r": 16,
         }
 
-        config = self.create_minimal_config()  # No audit section
+        self.create_minimal_config()  # No audit section
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_dir = Path(tmp_dir)
@@ -276,7 +275,7 @@ def extract_audit_logic():
 
 
 # Add the extracted function to the protocol module for testing
-import gradience.bench.protocol
+import gradience.bench.protocol  # noqa: E402
 
 gradience.bench.protocol.run_audit_step = extract_audit_logic()
 

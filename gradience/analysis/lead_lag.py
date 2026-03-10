@@ -183,8 +183,8 @@ def aggregate_ccfs(ccf_results: list[CCFResult]) -> dict[str, Any]:
 
     # Find union lag range
     all_lags = [r.lags for r in ccf_results]
-    min_lag = min(l.min() for l in all_lags)
-    max_lag_val = max(l.max() for l in all_lags)
+    min_lag = min(lyr.min() for lyr in all_lags)
+    max_lag_val = max(lyr.max() for lyr in all_lags)
     union_lags = np.arange(min_lag, max_lag_val + 1)
 
     # Collect CCF values aligned to union lags (NaN where run doesn't cover)

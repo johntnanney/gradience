@@ -173,11 +173,10 @@ class ValidationIntegration:
                     framework_name = gradience_name.replace("base_model.model.", "")
                     framework_pattern[framework_name] = rank
 
-            elif model_architecture == "distilbert":
+            elif model_architecture == "distilbert" and "base_model.model." in gradience_name:
                 # PEFT expects: "distilbert.transformer.layer.0.attention.q_lin"
-                if "base_model.model." in gradience_name:
-                    framework_name = gradience_name.replace("base_model.model.", "")
-                    framework_pattern[framework_name] = rank
+                framework_name = gradience_name.replace("base_model.model.", "")
+                framework_pattern[framework_name] = rank
 
         return framework_pattern
 

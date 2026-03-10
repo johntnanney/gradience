@@ -60,7 +60,7 @@ import time
 import uuid
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from gradience.exceptions import ConfigError, TelemetryError
 
@@ -74,7 +74,7 @@ from .types import (
     Severity,
 )
 
-Jsonable = Union[None, bool, int, float, str, dict[str, Any], list[Any]]
+Jsonable = None | bool | int | float | str | dict[str, Any] | list[Any]
 
 
 def _to_jsonable(obj: Any) -> Jsonable:
@@ -227,9 +227,7 @@ class TelemetryWriter:
         payload.update(extras)
         self.log("alert", step=step, **payload)
 
-    def recommendation(
-        self, recommendations: list[Recommendation], *, step: int | None = None, **extras: Any
-    ) -> None:
+    def recommendation(self, recommendations: list[Recommendation], *, step: int | None = None, **extras: Any) -> None:
         payload: dict[str, Any] = {"recommendations": recommendations}
         payload.update(extras)
         self.log("recommendation", step=step, **payload)

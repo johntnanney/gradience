@@ -288,7 +288,7 @@ class TestSVDBenchSmoke:
 
         # Validate legacy format structure
         compression = legacy_config["compression"]
-        assert compression["enable_svd_variants"] == True
+        assert compression["enable_svd_variants"] is True
         assert isinstance(compression["svd_ranks"], list)
         assert len(compression["svd_ranks"]) > 0
         assert all(isinstance(r, int) and r > 0 for r in compression["svd_ranks"])

@@ -11,7 +11,6 @@ This tests that Bench correctly:
 No actual model training - focuses on integration logic.
 """
 
-
 # Add gradience to path using dynamic resolution
 import sys
 import tempfile
@@ -66,7 +65,7 @@ def test_bench_udr_config_parsing():
 
             # Test 1: Config with UDR should pass UDR parameters
             print("🔍 Testing config with UDR...")
-            audit_path = protocol.run_probe_audit(probe_dir, config_with_udr)
+            protocol.run_probe_audit(probe_dir, config_with_udr)
 
             # Verify audit was called with UDR parameters
             mock_audit.assert_called_with(
@@ -78,7 +77,7 @@ def test_bench_udr_config_parsing():
 
             # Test 2: Config without audit section should disable UDR (opt-in policy)
             print("🔍 Testing config without UDR section...")
-            audit_path = protocol.run_probe_audit(probe_dir, config_without_udr)
+            protocol.run_probe_audit(probe_dir, config_without_udr)
 
             # Verify audit was called with UDR disabled (opt-in policy)
             mock_audit.assert_called_with(probe_dir, base_model_id=None, base_norms_cache=None, compute_udr=False)
@@ -197,7 +196,7 @@ lora:
     assert "audit" in config, "Missing audit section"
     assert config["audit"]["base_model"] == "distilbert-base-uncased"
     assert config["audit"]["base_norms_cache"] == "/workspace/cache"
-    assert config["audit"]["compute_udr"] == True
+    assert config["audit"]["compute_udr"]
 
     print("✅ YAML config parsing works")
 

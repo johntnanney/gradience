@@ -295,9 +295,9 @@ def test_udr_bench_integration():
             udr_found = False
             for event in audit_events:
                 metrics = event.get("metrics", {})
-                if any("udr" in k.lower() for k in metrics.keys()):
+                if any("udr" in k.lower() for k in metrics):
                     udr_found = True
-                    udr_keys = [k for k in metrics.keys() if "udr" in k.lower() or "sdi" in k.lower()]
+                    udr_keys = [k for k in metrics if "udr" in k.lower() or "sdi" in k.lower()]
                     print(f"   ✅ UDR metrics in telemetry: {udr_keys}")
                     break
 
@@ -319,7 +319,7 @@ def test_udr_bench_integration():
                 return False
 
             monitor_result = json.loads(result.stdout)
-            print(f"   ✅ Monitor parsed {len([k for k in monitor_result.keys()])} summary fields")
+            print(f"   ✅ Monitor parsed {len([k for k in monitor_result])} summary fields")
 
             # Look for audit data in monitor
             if "audit" in str(monitor_result).lower():

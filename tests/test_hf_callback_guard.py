@@ -129,7 +129,7 @@ class TestHFCallbackGuard(unittest.TestCase):
         mock_control = Mock()
 
         model = TinyLoRAModel()
-        original_weights = model.lora_A.data.clone()
+        model.lora_A.data.clone()
 
         # Initialize
         callback.on_train_begin(mock_args, mock_state, mock_control, model=model)
