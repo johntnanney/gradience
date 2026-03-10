@@ -379,7 +379,7 @@ def setup_compressed_model_and_tokenizer(
 # This function is kept for backward compatibility but deprecated
 
 
-def write_probe_eval_json(  # noqa: F811  # type: ignore[no-redef]
+def write_probe_eval_json(  # type: ignore[no-redef]  # noqa: F811
     probe_dir: Path, eval_results: dict[str, Any], eval_dataset_size: int, config: dict[str, Any]
 ) -> Path:
     """
@@ -426,7 +426,7 @@ def write_probe_eval_json(  # noqa: F811  # type: ignore[no-redef]
     return eval_path
 
 
-def run_probe_audit(  # noqa: F811  # type: ignore[no-redef]
+def run_probe_audit(  # type: ignore[no-redef]  # noqa: F811
     probe_dir: Path, config: dict[str, Any]
 ) -> Path:
     """
@@ -609,7 +609,7 @@ def run_probe_audit(  # noqa: F811  # type: ignore[no-redef]
     return audit_path
 
 
-def run_probe_training(  # noqa: F811  # type: ignore[no-redef]
+def run_probe_training(  # type: ignore[no-redef]  # noqa: F811
     config_path: str | Path, output_dir: str | Path, smoke: bool = False, stage_manager=None, resume: bool = False
 ) -> dict[str, Any]:
     """
@@ -804,7 +804,7 @@ def run_probe_training(  # noqa: F811  # type: ignore[no-redef]
     }
 
 
-def run_post_tuning(  # noqa: F811  # type: ignore[no-redef]
+def run_post_tuning(  # type: ignore[no-redef]  # noqa: F811
     model,
     tokenizer,
     dataset: dict[str, Any],
@@ -898,7 +898,7 @@ def run_post_tuning(  # noqa: F811  # type: ignore[no-redef]
     return model
 
 
-def run_svd_truncation_variant(  # noqa: F811  # type: ignore[no-redef]
+def run_svd_truncation_variant(  # type: ignore[no-redef]  # noqa: F811
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
@@ -1057,7 +1057,7 @@ def run_svd_truncation_variant(  # noqa: F811  # type: ignore[no-redef]
         }
 
 
-def run_compressed_variant_training(  # noqa: F811  # type: ignore[no-redef]
+def run_compressed_variant_training(  # type: ignore[no-redef]  # noqa: F811
     config_path: str | Path,
     output_dir: str | Path,
     variant_name: str,
@@ -1303,7 +1303,7 @@ def run_compressed_variant_training(  # noqa: F811  # type: ignore[no-redef]
     return result
 
 
-def run_all_compressed_variants(  # noqa: F811  # type: ignore[no-redef]
+def run_all_compressed_variants(  # type: ignore[no-redef]  # noqa: F811
     config_path: str | Path,
     output_dir: str | Path,
     compression_configs: dict[str, dict[str, Any]],
@@ -1346,7 +1346,7 @@ def run_all_compressed_variants(  # noqa: F811  # type: ignore[no-redef]
     return results
 
 
-def classify_validation_level(config: dict[str, Any]) -> dict[str, str]:  # noqa: F811  # type: ignore[no-redef]
+def classify_validation_level(config: dict[str, Any]) -> dict[str, str]:  # type: ignore[no-redef]  # noqa: F811
     """
     Classify validation level based on configuration.
 
@@ -1388,7 +1388,7 @@ def classify_validation_level(config: dict[str, Any]) -> dict[str, str]:  # noqa
     }
 
 
-def compute_verdicts(  # noqa: F811  # type: ignore[no-redef]
+def compute_verdicts(  # type: ignore[no-redef]  # noqa: F811
     probe_results: dict[str, Any],
     variant_results: dict[str, dict[str, Any]],
     config: dict[str, Any],
@@ -1571,7 +1571,7 @@ def compute_verdicts(  # noqa: F811  # type: ignore[no-redef]
     }
 
 
-def run_multi_seed_bench_protocol(  # noqa: F811  # type: ignore[no-redef]
+def run_multi_seed_bench_protocol(  # type: ignore[no-redef]  # noqa: F811
     config_path: str | Path,
     output_dir: str | Path,
     seeds: list[int],
@@ -1721,7 +1721,7 @@ def run_multi_seed_bench_protocol(  # noqa: F811  # type: ignore[no-redef]
     return aggregated_report
 
 
-def run_artifact_hygiene_cleanup(output_dir: Path, config: dict[str, Any]) -> None:  # noqa: F811  # type: ignore[no-redef]
+def run_artifact_hygiene_cleanup(output_dir: Path, config: dict[str, Any]) -> None:  # type: ignore[no-redef]  # noqa: F811
     """
     Clean up heavy adapter weights and checkpoints while preserving scientific artifacts.
 
@@ -1820,7 +1820,7 @@ def run_artifact_hygiene_cleanup(output_dir: Path, config: dict[str, Any]) -> No
                 print(f"   - {len(checkpoint_dirs)} checkpoint directories")
 
 
-def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:  # noqa: F811  # type: ignore[no-redef]
+def run_bench_preflight_check(config: dict[str, Any], model_name: str) -> None:  # type: ignore[no-redef]  # noqa: F811
     """
     Preflight checks to catch common failure modes before expensive training.
 

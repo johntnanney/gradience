@@ -283,12 +283,12 @@ class GradienceCallback(TrainerCallback):
         self._run_id: str | None = None
 
         # Guard state - only initialize if Guard will be enabled
-        self.guard = None  # type: Optional[LoRAGuard]
+        self.guard: LoRAGuard | None = None
         # Only track loss/grad_norm if Guard is enabled (lazy init later)
         # This ensures zero overhead when Guard is disabled
 
         # Training monitor - initialized in on_train_begin
-        self._monitor = None  # type: Optional[Any]  # TrainingMonitor
+        self._monitor: Any = None  # TrainingMonitor
 
     def on_train_begin(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs.get("model")

@@ -61,7 +61,8 @@ def _auc_roc_numpy(
     fpr = np.concatenate([[0.0], fpr])
 
     # Trapezoidal integration (np.trapezoid in numpy >=2, np.trapz before)
-    _trapz = getattr(np, "trapezoid", None) or np.trapz
+    _trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz", None)
+    assert _trapz is not None, "numpy has no trapezoid or trapz function"
     return float(_trapz(tpr, fpr))
 
 

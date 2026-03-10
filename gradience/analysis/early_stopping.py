@@ -137,7 +137,7 @@ def make_stopping_rules(
                 rules.append(
                     StoppingRule(
                         name=name,
-                        trigger_fn=lambda df, c=col, d=delta, p=pat: plateau_rule(df, c, d, p),
+                        trigger_fn=lambda df, c=col, d=delta, p=pat: plateau_rule(df, c, d, p),  # type: ignore[misc]
                         params={"series": col, "delta": delta, "patience": pat},
                     )
                 )
@@ -147,7 +147,7 @@ def make_stopping_rules(
         rules.append(
             StoppingRule(
                 name=f"loss_patience_p{pat}",
-                trigger_fn=lambda df, p=pat: loss_patience_rule(df, p),
+                trigger_fn=lambda df, p=pat: loss_patience_rule(df, p),  # type: ignore[misc]
                 params={"patience": pat},
             )
         )

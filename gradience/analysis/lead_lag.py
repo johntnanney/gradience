@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy import signal as sp_signal
+from scipy import signal as sp_signal  # type: ignore[import-untyped]
 
 # ---------------------------------------------------------------------------
 # Cross-Correlation Functions (CCF)
@@ -199,10 +199,10 @@ def aggregate_ccfs(ccf_results: list[CCFResult]) -> dict[str, Any]:
                 row.append(np.nan)
         ccf_matrix.append(row)
 
-    ccf_matrix = np.array(ccf_matrix)
-    mean_ccf = np.nanmean(ccf_matrix, axis=0)
-    std_ccf = np.nanstd(ccf_matrix, axis=0)
-    count_per_lag = np.sum(~np.isnan(ccf_matrix), axis=0).tolist()
+    ccf_arr = np.array(ccf_matrix)
+    mean_ccf = np.nanmean(ccf_arr, axis=0)
+    std_ccf = np.nanstd(ccf_arr, axis=0)
+    count_per_lag = np.sum(~np.isnan(ccf_arr), axis=0).tolist()
 
     # Peak lag statistics
     peak_lags = [r.peak_lag for r in ccf_results if not np.isnan(r.peak_corr)]
@@ -489,15 +489,15 @@ def ridge_forecast(
         persistence_preds.append(y_current[t])  # persistence: predict current value
         all_coefs.append(model.coef_)
 
-    predictions = np.array(predictions)
-    actuals = np.array(actuals)
-    persistence_preds = np.array(persistence_preds)
+    pred_arr = np.array(predictions)
+    act_arr = np.array(actuals)
+    pers_arr = np.array(persistence_preds)
 
-    if len(predictions) == 0:
+    if len(pred_arr) == 0:
         return ForecastResult(
-            predictions=predictions,
-            actuals=actuals,
-            persistence_predictions=persistence_preds,
+            predictions=pred_arr,
+            actuals=act_arr,
+            persistence_predictions=pers_arr,
             rmse_model=np.nan,
             rmse_persistence=np.nan,
             rmse_reduction_pct=np.nan,
@@ -508,12 +508,12 @@ def ridge_forecast(
             include_ar=include_ar,
         )
 
-    rmse_model = float(np.sqrt(np.mean((predictions - actuals) ** 2)))
-    rmse_persist = float(np.sqrt(np.mean((persistence_preds - actuals) ** 2)))
+    rmse_model = float(np.sqrt(np.mean((pred_arr - act_arr) ** 2)))
+    rmse_persist = float(np.sqrt(np.mean((pers_arr - act_arr) ** 2)))
     rmse_reduction = (1 - rmse_model / (rmse_persist + 1e-12)) * 100
 
-    ss_res = np.sum((predictions - actuals) ** 2)
-    ss_tot = np.sum((actuals - actuals.mean()) ** 2)
+    ss_res = np.sum((pred_arr - act_arr) ** 2)
+    ss_tot = np.sum((act_arr - act_arr.mean()) ** 2)
     r2_oos = float(1 - ss_res / (ss_tot + 1e-12)) if ss_tot > 0 else np.nan
 
     # Feature importances: mean absolute coefficient
@@ -521,9 +521,9 @@ def ridge_forecast(
     importances = {col: float(c) for col, c in zip(feature_cols, mean_coefs)}
 
     return ForecastResult(
-        predictions=predictions,
-        actuals=actuals,
-        persistence_predictions=persistence_preds,
+        predictions=pred_arr,
+        actuals=act_arr,
+        persistence_predictions=pers_arr,
         rmse_model=rmse_model,
         rmse_persistence=rmse_persist,
         rmse_reduction_pct=rmse_reduction,
@@ -606,10 +606,10 @@ def surrogate_null_test(
         surr_result = ridge_forecast(df_surr, geometric_features, target, horizon=horizon, alpha=alpha)
         surrogate_reductions.append(surr_result.rmse_reduction_pct)
 
-    surrogate_reductions = np.array(surrogate_reductions)
+    surr_arr = np.array(surrogate_reductions)
 
     # p-value: fraction of surrogates >= actual
-    valid_surr = surrogate_reductions[~np.isnan(surrogate_reductions)]
+    valid_surr = surr_arr[~np.isnan(surr_arr)]
     if len(valid_surr) > 0:
         p_value = float(np.mean(valid_surr >= actual_reduction))
         z_score = float((actual_reduction - np.mean(valid_surr)) / (np.std(valid_surr) + 1e-12))
@@ -619,7 +619,7 @@ def surrogate_null_test(
 
     return SurrogateResult(
         actual_rmse_reduction=actual_reduction,
-        surrogate_reductions=surrogate_reductions,
+        surrogate_reductions=surr_arr,
         p_value=p_value,
         z_score=z_score,
         method=method,

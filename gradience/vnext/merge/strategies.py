@@ -403,7 +403,8 @@ class NormEqualizedMerge(MergeStrategy):
 
         coeff_a, _ = config.coefficients
         result = norm_equalized_merge(dW_a, dW_b, weight_A=coeff_a)
-        return result["merged"]
+        merged: Tensor = result["merged"]
+        return merged
 
 
 # ---------------------------------------------------------------------------
