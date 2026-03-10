@@ -194,21 +194,29 @@ def conflicting_pair(tmp_path: Path) -> tuple[Path, Path]:
 
 @pytest.fixture
 def imbalanced_pair(tmp_path: Path) -> tuple[Path, Path]:
-    """Two adapters where one has ~10x the magnitude.
+    """Two adapters with ~10x magnitude difference and orthogonal subspaces.
 
-    Expected: verdict=IMBALANCED, magnitude_ratio ≈ 10.0
+    Uses separate random SVDs so that subspaces are nearly orthogonal
+    (mean_overlap ≈ 0) while Frobenius norms differ by ~10x.  This triggers
+    verdict Branch 0: frobenius_ratio > 5.0 AND mean_overlap < 0.5 → IMBALANCED.
+
+    Expected: verdict=IMBALANCED, frobenius_ratio ≈ 10.0
     """
     torch.manual_seed(789)
+    U_a, _, Vt_a = torch.linalg.svd(torch.randn(D_OUT, D_IN), full_matrices=False)
+    U_a_r = U_a[:, :RANK]
+    Vt_a_r = Vt_a[:RANK, :]
 
-    U, _, Vt = torch.linalg.svd(torch.randn(D_OUT, D_IN), full_matrices=False)
-    U_r = U[:, :RANK]
-    Vt_r = Vt[:RANK, :]
+    torch.manual_seed(101)
+    U_b, _, Vt_b = torch.linalg.svd(torch.randn(D_OUT, D_IN), full_matrices=False)
+    U_b_r = U_b[:, :RANK]
+    Vt_b_r = Vt_b[:RANK, :]
 
     S_a = torch.linspace(50.0, 10.0, RANK)
     S_b = torch.linspace(5.0, 1.0, RANK)  # 10x smaller
 
-    weights_a = _make_lora_weights_from_svd(MODULE_PREFIXES, U_r, S_a, Vt_r, RANK, ALPHA)
-    weights_b = _make_lora_weights_from_svd(MODULE_PREFIXES, U_r, S_b, Vt_r, RANK, ALPHA)
+    weights_a = _make_lora_weights_from_svd(MODULE_PREFIXES, U_a_r, S_a, Vt_a_r, RANK, ALPHA)
+    weights_b = _make_lora_weights_from_svd(MODULE_PREFIXES, U_b_r, S_b, Vt_b_r, RANK, ALPHA)
 
     dir_a = _make_adapter_dir(tmp_path, "adapter_a", RANK, ALPHA, ["q_proj", "v_proj"], weights_a)
     dir_b = _make_adapter_dir(tmp_path, "adapter_b", RANK, ALPHA, ["q_proj", "v_proj"], weights_b)

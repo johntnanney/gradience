@@ -121,18 +121,17 @@ class TestMergeRecommendPipeline:
         dir_a, dir_b = imbalanced_pair
         report = merge_audit(str(dir_a), str(dir_b))
         _assert_report(report)
-        # The imbalanced fixture uses identical subspaces with 10x magnitude
-        # difference.  Because subspace overlap is high and directions are
-        # aligned, the verdict engine classifies this as "redundant" (Branch 2
-        # fires before the high-overlap imbalanced Branch 4).
-        assert report.aggregate.overall_verdict == "redundant"
+        assert report.aggregate.overall_verdict == "imbalanced"
 
         diag = diagnose_pair(report)
         _assert_diagnosis(diag, report)
-        assert all(ld.risk_level == "medium" for ld in diag.layer_diagnoses)
 
         rec = recommend_merge(report)
-        _assert_recommendation(rec, report, expected_strategy="ties")
+        _assert_recommendation(rec, report, expected_strategy="linear")
+        # Imbalanced should have rebalanced (non-equal) coefficients
+        for lr in rec.layer_recommendations:
+            a, b = lr.coefficients
+            assert abs(a - b) > 0.01, "imbalanced should rebalance coefficients"
 
         text = format_recommendation(rec)
         _assert_formatted(text, rec)

@@ -77,8 +77,7 @@ class TestMergeAuditPipeline:
             adapter_b_dir=dir_b,
         )
 
-        # Either IMBALANCED or REDUNDANT depending on overlap
-        assert report.aggregate["overall_verdict"] in ("imbalanced", "redundant")
+        assert report.aggregate["overall_verdict"] == "imbalanced"
 
     def test_different_ranks(self, different_rank_pair, tmp_path):
         """Different rank adapters (r=4, r=16) -> analysis completes."""
