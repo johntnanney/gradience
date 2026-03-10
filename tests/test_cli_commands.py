@@ -461,3 +461,78 @@ class TestTruncateCommand:
     def test_truncate_no_args(self):
         p = run_cli("truncate")
         assert p.returncode != 0
+
+
+# ---------------------------------------------------------------------------
+# Compress → Merge CLI pipeline smoke test
+# ---------------------------------------------------------------------------
+
+
+class TestCompressMergeCLIPipeline:
+    """End-to-end CLI smoke test: truncate → merge-audit → merge-plan → merge."""
+
+    def test_full_cli_pipeline(self, tmp_path: Path):
+        # Create two synthetic adapters (rank=8, separate dirs so names don't clash)
+        torch.manual_seed(42)
+        dir_a = _make_adapter_dir(tmp_path / "a", rank=8)
+        torch.manual_seed(99)
+        dir_b = _make_adapter_dir(tmp_path / "b", rank=8)
+
+        # Step 1: Truncate both adapters from rank 8 → rank 4
+        compressed_a = tmp_path / "compressed_a"
+        p = run_cli("truncate", "--peft-dir", str(dir_a), "--out-dir", str(compressed_a), "--rank", "4")
+        assert p.returncode == 0, f"truncate A failed: {p.stderr}"
+        assert (compressed_a / "adapter_config.json").exists()
+
+        compressed_b = tmp_path / "compressed_b"
+        p = run_cli("truncate", "--peft-dir", str(dir_b), "--out-dir", str(compressed_b), "--rank", "4")
+        assert p.returncode == 0, f"truncate B failed: {p.stderr}"
+        assert (compressed_b / "adapter_config.json").exists()
+
+        # Step 2: Merge audit on compressed pair
+        audit_out = tmp_path / "audit_output"
+        p = run_cli(
+            "merge-audit",
+            "--adapter-a", str(compressed_a),
+            "--adapter-b", str(compressed_b),
+            "--output-dir", str(audit_out),
+        )
+        assert p.returncode == 0, f"merge-audit failed: {p.stderr}"
+        assert (audit_out / "merge_audit.json").exists()
+        assert (audit_out / "merge_audit.md").exists()
+
+        # Step 3: Generate merge plan
+        plan_out = tmp_path / "plan_output"
+        p = run_cli(
+            "merge-plan",
+            "--adapter-a", str(compressed_a),
+            "--adapter-b", str(compressed_b),
+            "--strategy", "audit_aware",
+            "--output-dir", str(plan_out),
+            "--output-rank", "4",
+        )
+        assert p.returncode == 0, f"merge-plan failed: {p.stderr}"
+        plan_path = plan_out / "merge_plan.json"
+        assert plan_path.exists()
+
+        # Step 4: Execute the merge
+        merged_out = tmp_path / "merged_adapter"
+        p = run_cli(
+            "merge",
+            "--plan", str(plan_path),
+            "--output-dir", str(merged_out),
+        )
+        assert p.returncode == 0, f"merge failed: {p.stderr}"
+        assert (merged_out / "adapter_config.json").exists()
+        has_weights = (
+            (merged_out / "adapter_model.safetensors").exists()
+            or (merged_out / "adapter_model.bin").exists()
+        )
+        assert has_weights, "merged adapter missing weight file"
+        assert (merged_out / "merge_result.json").exists()
+
+        # Validate merged adapter config
+        with open(merged_out / "adapter_config.json") as f:
+            config = json.load(f)
+        assert config["peft_type"] == "LORA"
+        assert isinstance(config["r"], int) and config["r"] > 0
