@@ -152,14 +152,32 @@ exp*/
 *_output/
 *_extracted/
 _artifacts/
+figures/
+*_results/
+*_results_full/
+intervention_*/
+lora_results/
+per_layer/
+per_layer_shuffled/
+probe_r16/
+uniform_*/
+smoke_test_*/
+test_regular_*/
 
-# Bench aggregate files (generated)
+# Bench aggregate and generated files
 bench_aggregate.json
 bench_aggregate.md
 seed_summary.json
+bench.json
+bench_internal.json
+compression_configs.json
+
+# Security scan output (generated)
+gitleaks-dir.json
+gitleaks-git.json
+trufflehog.json
 
 # One-off dev scripts and docs
-demo_*.py
 test_priority_*.yaml
 CI_REQUIREMENTS.md
 PYPI_README_IMPROVEMENTS.md

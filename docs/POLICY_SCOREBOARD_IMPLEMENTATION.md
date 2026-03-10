@@ -196,7 +196,7 @@ Markdown Table → Aggregate Reports → User Insights
 
 ### **New Files**
 - `gradience/vnext/policy_scoreboard.py` - Core scoreboard implementation
-- `demo_policy_scoreboard.py` - Comprehensive demo
+- `examples/demo_policy_scoreboard.py` - Comprehensive demo
 - `test_policy_scoreboard_integration.py` - Integration tests
 - `design_policy_scoreboard.md` - Design documentation
 

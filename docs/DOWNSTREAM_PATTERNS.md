@@ -53,13 +53,13 @@ Features:
 
 ```bash
 # Basic usage
-python3 golden_downstream_pattern.py audit_results.json
+python3 examples/golden_downstream_pattern.py audit_results.json
 
 # With fallback control
-python3 golden_downstream_pattern.py audit_results.json --top-n 5
+python3 examples/golden_downstream_pattern.py audit_results.json --top-n 5
 
 # Generate Bench config
-python3 golden_downstream_pattern.py audit_results.json --generate-config
+python3 examples/golden_downstream_pattern.py audit_results.json --generate-config
 ```
 
 **Example Output:**
@@ -193,10 +193,10 @@ def prioritize_validation_layers(audit_data, max_layers=3):
 
 ## 📝 File Summary
 
-- `simple_downstream_pattern.py`: Minimal 15-line implementation
-- `golden_downstream_pattern.py`: Full-featured production implementation  
+- `examples/simple_downstream_pattern.py`: Minimal 15-line implementation
+- `examples/golden_downstream_pattern.py`: Full-featured production implementation
 - `test_fallback_scenario.py`: Creates test data for fallback scenarios
-- `sample_audit_for_explain.json`: Sample audit with flagged layers
-- `fallback_scenario_audit.json`: Sample audit with no flagged layers
+- `examples/sample_audit_for_explain.json`: Sample audit with flagged layers
+- `examples/fallback_scenario_audit.json`: Sample audit with no flagged layers
 
 Both patterns implement the same core strategy but with different levels of sophistication. Choose based on your integration needs and error handling requirements.
