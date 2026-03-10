@@ -455,7 +455,7 @@ class TrainingMonitor:
                 },
                 recommendation=(
                     "The adapter is using less than a quarter of its allocated rank. "
-                    "Consider compressing with `gradience compress` to reduce "
+                    "Consider compressing with `gradience truncate` to reduce "
                     "memory and improve merge compatibility."
                 ),
             ),

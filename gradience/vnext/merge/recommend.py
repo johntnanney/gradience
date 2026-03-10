@@ -779,12 +779,12 @@ def format_recommendation(
             targets_a = [lr.compress_target_rank_a for lr in compress_a if lr.compress_target_rank_a is not None]
             median_a = sorted(targets_a)[len(targets_a) // 2]
             lines.append(f"    Adapter A: {len(compress_a)} layer(s) over-provisioned with high overlap")
-            lines.append(f"    $ gradience compress --peft-dir {adapter_a_path} --target-rank {median_a}")
+            lines.append(f"    $ gradience truncate --peft-dir {adapter_a_path} --rank {median_a}")
         if compress_b:
             targets_b = [lr.compress_target_rank_b for lr in compress_b if lr.compress_target_rank_b is not None]
             median_b = sorted(targets_b)[len(targets_b) // 2]
             lines.append(f"    Adapter B: {len(compress_b)} layer(s) over-provisioned with high overlap")
-            lines.append(f"    $ gradience compress --peft-dir {adapter_b_path} --target-rank {median_b}")
+            lines.append(f"    $ gradience truncate --peft-dir {adapter_b_path} --rank {median_b}")
         lines.append(
             f"    Then re-run: gradience merge-audit --adapter-a {adapter_a_path} --adapter-b {adapter_b_path}"
         )

@@ -396,7 +396,7 @@ class TestFormatRecommendation:
         output = format_recommendation(rec, adapter_a_path="./chat-lora")
 
         assert "Pre-compression recommended" in output
-        assert "gradience compress" in output
+        assert "gradience truncate" in output
         assert "./chat-lora" in output
 
     def test_no_compression_section_when_not_needed(self):
