@@ -77,7 +77,24 @@ class TestCompressMergePipeline:
         with open(merged_dir / "adapter_config.json") as f:
             merged_config = json.load(f)
 
-        assert merged_config["peft_type"] == "LORA", f"Expected peft_type=LORA, got {merged_config['peft_type']}"
-        assert isinstance(merged_config["r"], int) and merged_config["r"] > 0, (
-            f"Expected valid r field, got {merged_config.get('r')}"
-        )
+        assert merged_config["peft_type"] == "LORA"
+        assert isinstance(merged_config["r"], int) and merged_config["r"] > 0
+
+        # Provenance: adapter_config embeds merge metadata
+        provenance = merged_config.get("gradience_merge")
+        assert provenance is not None, "Missing gradience_merge provenance in adapter_config.json"
+        assert provenance["strategy"] == "audit_aware"
+        assert str(compressed_a) in provenance["adapter_a"]
+        assert str(compressed_b) in provenance["adapter_b"]
+
+        # Provenance: merge_result.json has per-layer data
+        with open(merged_dir / "merge_result.json") as f:
+            merge_result = json.load(f)
+        assert "per_layer" in merge_result
+        assert len(merge_result["per_layer"]) > 0
+
+        # Provenance: truncation reports record rank reduction
+        assert report_a.original_rank == 8
+        assert report_a.target_rank == 4
+        assert report_b.original_rank == 8
+        assert report_b.target_rank == 4

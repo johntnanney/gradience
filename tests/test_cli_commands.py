@@ -536,3 +536,27 @@ class TestCompressMergeCLIPipeline:
             config = json.load(f)
         assert config["peft_type"] == "LORA"
         assert isinstance(config["r"], int) and config["r"] > 0
+
+        # Provenance: merge metadata embedded in adapter config
+        provenance = config.get("gradience_merge")
+        assert provenance is not None, "Missing gradience_merge provenance"
+        assert provenance["strategy"] == "audit_aware"
+        assert "adapter_a" in provenance
+        assert "adapter_b" in provenance
+
+        # Provenance: merge_result.json has per-layer reconstruction data
+        with open(merged_out / "merge_result.json") as f:
+            result = json.load(f)
+        assert "per_layer" in result
+        assert len(result["per_layer"]) > 0
+
+        # Provenance: merge_plan.json records strategy
+        with open(plan_path) as f:
+            plan_data = json.load(f)
+        assert plan_data["strategy_name"] == "audit_aware"
+
+        # Provenance: merge_audit.json has schema and verdicts
+        with open(audit_out / "merge_audit.json") as f:
+            audit_data = json.load(f)
+        assert "per_layer" in audit_data
+        assert len(audit_data["per_layer"]) > 0
