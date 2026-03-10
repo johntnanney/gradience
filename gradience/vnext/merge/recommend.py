@@ -40,6 +40,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from gradience.vnext.merge.eligibility import EligibilityStatus
+from gradience.vnext.merge.report import _shorten_layer_name
 
 # ===================================================================
 # Data structures
@@ -720,23 +721,7 @@ def recommend_merge(
 # ---------------------------------------------------------------------------
 
 
-def _shorten_layer_name(name: str) -> str:
-    """Shorten a fully-qualified layer name for display.
-
-    "base_model.model.model.layers.10.self_attn.k_proj" -> "L10.k_proj"
-    """
-    parts = name.split(".")
-    block_idx = None
-    suffix_start = len(parts)
-    for i in range(len(parts) - 1, -1, -1):
-        if parts[i].isdigit():
-            block_idx = parts[i]
-            suffix_start = i + 1
-            break
-    suffix = ".".join(parts[suffix_start:]) if suffix_start < len(parts) else parts[-1]
-    if block_idx is not None:
-        return f"L{block_idx}.{suffix}"
-    return suffix
+### _shorten_layer_name — canonical definition lives in report.py
 
 
 def _format_params(lr: LayerRecommendation) -> str:

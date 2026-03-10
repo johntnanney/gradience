@@ -111,14 +111,14 @@ class TestEnergyRank:
         assert _energy_rank(s, threshold=0.90) == 9  # need 9/10 = 90%
 
     def test_empty(self):
-        """Empty tensor returns 1."""
+        """Empty tensor returns 0 (no energy)."""
         s = torch.tensor([])
-        assert _energy_rank(s) == 1
+        assert _energy_rank(s) == 0
 
     def test_near_zero(self):
-        """All near-zero returns 1."""
+        """All near-zero returns 0 (no energy above eps)."""
         s = torch.tensor([1e-15, 1e-16])
-        assert _energy_rank(s) == 1
+        assert _energy_rank(s) == 0
 
     def test_threshold_boundary(self):
         """Check exact boundary behavior."""

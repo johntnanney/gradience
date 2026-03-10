@@ -19,6 +19,7 @@ from typing import Any
 import torch
 
 from gradience.exceptions import MergeError
+from gradience.vnext.audit.lora_audit import _energy_rank
 from gradience.vnext.merge.scale import symmetric_frobenius_metrics, symmetric_scale_metrics
 
 # ---------------------------------------------------------------------------
@@ -126,21 +127,6 @@ def compute_layer_svd(
     Vt = Vt[order, :]
 
     return U, S, Vt
-
-
-def _energy_rank(s: torch.Tensor, threshold: float = 0.90, eps: float = 1e-12) -> int:
-    """Minimal k such that sum_{i<=k} s_i^2 / sum s_i^2 >= threshold."""
-    s = s[s > eps]
-    if s.numel() == 0:
-        return 1
-    e = s.pow(2)
-    total = e.sum()
-    if total <= eps:
-        return 1
-    c = torch.cumsum(e, dim=0) / total
-    idx = torch.searchsorted(c, torch.tensor([threshold], device=c.device, dtype=c.dtype), right=False)
-    k = int(idx.item()) + 1
-    return min(k, int(s.numel()))
 
 
 def _stable_rank(s: torch.Tensor, eps: float = 1e-12) -> float:

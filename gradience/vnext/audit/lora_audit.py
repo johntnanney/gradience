@@ -719,7 +719,7 @@ def _effective_rank_from_singular_values(s: torch.Tensor, eps: float = 1e-12) ->
     return torch.exp(entropy).item()
 
 
-def _energy_rank(s: torch.Tensor, threshold: float, eps: float = 1e-12) -> int:
+def _energy_rank(s: torch.Tensor, threshold: float = 0.90, eps: float = 1e-12) -> int:
     """Return minimal k s.t. sum_{i<=k} s_i^2 / sum s_i^2 >= threshold."""
     s = s[s > eps]
     if s.numel() == 0:
