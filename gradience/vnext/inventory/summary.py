@@ -208,3 +208,59 @@ def build_inventory_summary(
         dominant_issue_counts=dict(issue_counter),
         strict_qa_block_candidates=strict_qa_block_candidates,
     )
+
+
+# ---------------------------------------------------------------------------
+# Terminal formatter
+# ---------------------------------------------------------------------------
+
+_SECTION_DEFS: tuple[tuple[str, str], ...] = (
+    ("adapter_status_counts", "ADAPTER STATUS"),
+    ("adapter_flag_counts", "STRUCTURAL FLAGS"),
+    ("pair_risk_counts", "PAIR RISK"),
+    ("recommended_strategy_counts", "RECOMMENDED STRATEGIES"),
+    ("dominant_issue_counts", "DOMINANT ISSUES"),
+)
+
+
+def format_inventory_summary(summary: InventorySummary) -> str:
+    """Format an :class:`InventorySummary` as clean, human-readable text.
+
+    Sections whose count dicts are empty (all zeroes or no keys) are
+    omitted.  The SOURCES and STRICT-QA BLOCK CANDIDATES sections are
+    always shown.
+    """
+    lines: list[str] = []
+
+    lines.append("")
+    lines.append("  INVENTORY SUMMARY")
+    lines.append("  " + "=" * 60)
+
+    # --- SOURCES (always shown) ---
+    lines.append("")
+    lines.append("  SOURCES")
+    lines.append("  " + "-" * 40)
+    for key in sorted(summary.sources):
+        label = key.replace("_", " ").replace("count", "").strip()
+        # Capitalise first word only for readability
+        label = label[0].upper() + label[1:] + ":" if label else key + ":"
+        lines.append(f"  {label:<20s}{summary.sources[key]}")
+
+    # --- Count-map sections (omitted when empty) ---
+    for attr, header in _SECTION_DEFS:
+        counts: dict[str, int] = getattr(summary, attr)
+        if not counts or all(v == 0 for v in counts.values()):
+            continue
+        lines.append("")
+        lines.append(f"  {header}")
+        lines.append("  " + "-" * 40)
+        for key in sorted(counts):
+            lines.append(f"  {key}:  {counts[key]}")
+
+    # --- STRICT-QA BLOCK CANDIDATES (always shown) ---
+    lines.append("")
+    lines.append(f"  STRICT-QA BLOCK CANDIDATES: {summary.strict_qa_block_candidates}")
+
+    lines.append("")
+
+    return "\n".join(lines)

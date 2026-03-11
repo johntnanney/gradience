@@ -10,7 +10,12 @@ import pytest
 
 from gradience.exceptions import QASchemaError
 from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
-from gradience.vnext.inventory.summary import SCHEMA_ID, InventorySummary, build_inventory_summary
+from gradience.vnext.inventory.summary import (
+    SCHEMA_ID,
+    InventorySummary,
+    build_inventory_summary,
+    format_inventory_summary,
+)
 from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.merge.qa_report import MergeQAReport
 
@@ -289,3 +294,62 @@ class TestBuildInventorySummary:
         d = result.to_dict()
         roundtripped = InventorySummary.from_dict(d)
         assert roundtripped == result
+
+
+# ---------------------------------------------------------------------------
+# format_inventory_summary tests
+# ---------------------------------------------------------------------------
+
+
+def _summary_for_format() -> InventorySummary:
+    """Return a populated InventorySummary for formatter tests."""
+    return InventorySummary(
+        sources={"qa_artifact_count": 5, "merge_report_count": 3},
+        adapter_status_counts={"eligible": 2, "flagged_weak": 1},
+        adapter_flag_counts={"low_utilization": 3, "high_rank_waste": 2},
+        pair_risk_counts={"low": 1, "high": 2},
+        recommended_strategy_counts={"linear": 1, "audit_aware": 1},
+        dominant_issue_counts={"none": 1, "norm_imbalance": 1},
+        strict_qa_block_candidates=2,
+    )
+
+
+class TestFormatInventorySummary:
+    """Tests for the format_inventory_summary terminal formatter."""
+
+    def test_contains_header(self) -> None:
+        output = format_inventory_summary(_summary_for_format())
+        assert "INVENTORY SUMMARY" in output
+
+    def test_contains_sources(self) -> None:
+        output = format_inventory_summary(_summary_for_format())
+        assert "Merge report" in output
+        assert "Qa artifact" in output
+
+    def test_contains_adapter_status(self) -> None:
+        output = format_inventory_summary(_summary_for_format())
+        assert "eligible:" in output
+        assert "flagged_weak:" in output
+
+    def test_contains_strict_qa_count(self) -> None:
+        output = format_inventory_summary(_summary_for_format())
+        assert "STRICT-QA BLOCK CANDIDATES" in output
+        assert "STRICT-QA BLOCK CANDIDATES: 2" in output
+
+    def test_empty_section_omitted(self) -> None:
+        summary = InventorySummary(
+            sources={"qa_artifact_count": 1, "merge_report_count": 0},
+            adapter_status_counts={"eligible": 1},
+            adapter_flag_counts={},
+            pair_risk_counts={},
+            recommended_strategy_counts={},
+            dominant_issue_counts={},
+            strict_qa_block_candidates=0,
+        )
+        output = format_inventory_summary(summary)
+        assert "STRUCTURAL FLAGS" not in output
+        assert "PAIR RISK" not in output
+        assert "RECOMMENDED STRATEGIES" not in output
+        assert "DOMINANT ISSUES" not in output
+        # But ADAPTER STATUS should still be present
+        assert "ADAPTER STATUS" in output
