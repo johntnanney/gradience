@@ -146,7 +146,8 @@ class TestBuildQAReport:
         qa = build_qa_report(report)
 
         assert qa.pair_risk == "low"
-        assert "none" in qa.dominant_issue.lower() or "compatible" in qa.dominant_issue.lower()
+        assert qa.dominant_issue == "none"
+        assert qa.dominant_issue_detail  # non-empty
         assert qa.adapter_a.rank == 8
         assert qa.adapter_b.rank == 8
         assert qa.verdict_distribution["safe"] == 2
@@ -168,7 +169,7 @@ class TestBuildQAReport:
         qa = build_qa_report(report)
 
         assert qa.pair_risk == "high"
-        assert "conflict" in qa.dominant_issue.lower()
+        assert qa.dominant_issue == "subspace_conflict"
         assert "caution" in qa.recommended_action.lower() or "dare" in qa.recommended_action.lower()
 
     def test_imbalanced_layers_norm_issue(self):
@@ -197,7 +198,7 @@ class TestBuildQAReport:
         )
         qa = build_qa_report(report)
 
-        assert "imbalance" in qa.dominant_issue.lower()
+        assert qa.dominant_issue == "norm_imbalance"
         assert qa.verdict_distribution["imbalanced"] == 1
 
     def test_redundant_layers(self):
@@ -219,7 +220,7 @@ class TestBuildQAReport:
         )
         qa = build_qa_report(report)
 
-        assert "redundan" in qa.dominant_issue.lower()
+        assert qa.dominant_issue in ("high_redundancy", "partial_redundancy")
 
     def test_eligibility_not_provided(self):
         """No source QA → eligibility_status is None."""
@@ -350,7 +351,9 @@ class TestQAReportSerialization:
         assert "adapter_b" in d
         assert "pair_risk" in d
         assert "dominant_issue" in d
+        assert "dominant_issue_detail" in d
         assert "recommended_action" in d
+        assert "confidence" in d
         assert "confidence_note" in d
         assert "caveats" in d
 

@@ -36,6 +36,21 @@ from gradience.vnext.merge.recommend import (
 )
 
 # ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+DOMINANT_ISSUE_LABELS = frozenset(
+    {
+        "norm_imbalance",
+        "subspace_conflict",
+        "high_redundancy",
+        "partial_redundancy",
+        "none",
+        "unknown",
+    }
+)
+
+# ---------------------------------------------------------------------------
 # Data structure
 # ---------------------------------------------------------------------------
 
@@ -73,9 +88,11 @@ class MergeQAReport:
     adapter_a: AdapterSummary
     adapter_b: AdapterSummary
     pair_risk: str  # "low" | "medium" | "high"
-    dominant_issue: str  # human-readable label
+    dominant_issue: str  # machine-readable label from DOMINANT_ISSUE_LABELS
+    dominant_issue_detail: str  # human-readable explanation
     recommended_action: str  # one-sentence action
     recommended_strategy: str  # strategy name for the merge plan
+    confidence: str  # "high" | "medium" | "low"
     confidence_note: str  # how much to trust the recommendation
     caveats: tuple[str, ...]  # things the user should know
     verdict_distribution: dict[str, int]  # {"safe": N, "redundant": N, ...}
@@ -88,8 +105,10 @@ class MergeQAReport:
             "adapter_b": self.adapter_b.to_dict(),
             "pair_risk": self.pair_risk,
             "dominant_issue": self.dominant_issue,
+            "dominant_issue_detail": self.dominant_issue_detail,
             "recommended_action": self.recommended_action,
             "recommended_strategy": self.recommended_strategy,
+            "confidence": self.confidence,
             "confidence_note": self.confidence_note,
             "caveats": list(self.caveats),
             "verdict_distribution": self.verdict_distribution,
@@ -111,8 +130,10 @@ class MergeQAReport:
             adapter_b=AdapterSummary(**d["adapter_b"]),
             pair_risk=d["pair_risk"],
             dominant_issue=d["dominant_issue"],
+            dominant_issue_detail=d.get("dominant_issue_detail", ""),
             recommended_action=d["recommended_action"],
             recommended_strategy=d["recommended_strategy"],
+            confidence=d.get("confidence", "medium"),
             confidence_note=d["confidence_note"],
             caveats=tuple(d["caveats"]),
             verdict_distribution=d["verdict_distribution"],
@@ -136,8 +157,11 @@ def _eligibility_label(diag: PairDiagnosis, which: str) -> str | None:
 def _dominant_issue(
     diag: PairDiagnosis,
     agg: Any,
-) -> str:
-    """Identify the single biggest concern for this pair."""
+) -> tuple[str, str]:
+    """Identify the single biggest concern for this pair.
+
+    Returns (machine_label, human_detail).
+    """
     n_imbalanced = getattr(agg, "n_imbalanced", 0)
     n_conflicting = getattr(agg, "n_conflicting", 0)
     n_redundant = getattr(agg, "n_redundant", 0)
@@ -145,26 +169,26 @@ def _dominant_issue(
     total = n_safe + n_redundant + n_conflicting + n_imbalanced
 
     if total == 0:
-        return "unknown (no layer data)"
+        return "unknown", "no layer data available"
 
     # Check magnitude imbalance first — it's the most actionable
     mean_mag = getattr(agg, "mean_magnitude_ratio", 1.0)
     if n_imbalanced > 0 and mean_mag > 3.0:
-        return f"norm imbalance ({mean_mag:.1f}x mean magnitude ratio across {n_imbalanced} layer(s))"
+        return "norm_imbalance", f"{mean_mag:.1f}x mean magnitude ratio across {n_imbalanced} layer(s)"
 
     if n_conflicting > 0 and n_conflicting >= n_imbalanced:
-        return f"subspace conflict ({n_conflicting} conflicting layer(s))"
+        return "subspace_conflict", f"{n_conflicting} conflicting layer(s)"
 
     if n_imbalanced > 0:
-        return f"norm imbalance ({n_imbalanced} imbalanced layer(s))"
+        return "norm_imbalance", f"{n_imbalanced} imbalanced layer(s)"
 
     if n_redundant > 0 and n_redundant > n_safe:
-        return f"high redundancy ({n_redundant} redundant layer(s))"
+        return "high_redundancy", f"{n_redundant} redundant layer(s)"
 
     if n_redundant > 0:
-        return f"partial redundancy ({n_redundant} redundant layer(s))"
+        return "partial_redundancy", f"{n_redundant} redundant layer(s)"
 
-    return "none — adapters are spectrally compatible"
+    return "none", "adapters are spectrally compatible"
 
 
 def _recommended_action(
@@ -264,6 +288,17 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
     return tuple(caveats)
 
 
+def _derive_confidence(diag: PairDiagnosis, score: float) -> str:
+    """Derive categorical confidence level."""
+    if not diag.eligibility.has_data:
+        return "low"
+    if diag.overall_risk == "high":
+        return "low"
+    if diag.eligibility.both_eligible and score >= 0.8 and diag.overall_risk == "low":
+        return "high"
+    return "medium"
+
+
 def build_qa_report(report: Any) -> MergeQAReport:
     """Build a QA report from a MergeAuditReport.
 
@@ -313,13 +348,18 @@ def build_qa_report(report: Any) -> MergeQAReport:
         "imbalanced": getattr(agg, "n_imbalanced", 0),
     }
 
+    issue_label, issue_detail = _dominant_issue(diag, agg)
+    confidence = _derive_confidence(diag, score)
+
     return MergeQAReport(
         adapter_a=adapter_a,
         adapter_b=adapter_b,
         pair_risk=diag.overall_risk,
-        dominant_issue=_dominant_issue(diag, agg),
+        dominant_issue=issue_label,
+        dominant_issue_detail=issue_detail,
         recommended_action=_recommended_action(diag, rec, agg),
         recommended_strategy=rec.overall_strategy,
+        confidence=confidence,
         confidence_note=_confidence_note(diag, score),
         caveats=_caveats(diag, rec),
         verdict_distribution=verdict_dist,
@@ -362,7 +402,9 @@ def format_qa_report(qa: MergeQAReport) -> str:
     risk_indicator = {"low": "LOW", "medium": "MEDIUM", "high": "HIGH"}
     lines.append(f"  Pair risk:       {risk_indicator.get(qa.pair_risk, qa.pair_risk.upper())}")
     lines.append(f"  Compat. score:   {qa.compatibility_score:.3f}")
-    lines.append(f"  Dominant issue:  {qa.dominant_issue}")
+    lines.append(f"  Dominant issue:  {qa.dominant_issue.upper().replace('_', ' ')}")
+    if qa.dominant_issue_detail:
+        lines.append(f"                   {qa.dominant_issue_detail}")
 
     # Verdict distribution
     dist = qa.verdict_distribution
@@ -395,11 +437,14 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append("  2. BEHAVIORAL STATUS")
     lines.append("  " + "-" * 40)
 
-    lines.append(f"  Adapter A eligibility: {qa.adapter_a.eligibility_status}")
-    lines.append(f"  Adapter B eligibility: {qa.adapter_b.eligibility_status}")
+    a_status = qa.adapter_a.eligibility_status or "not provided"
+    b_status = qa.adapter_b.eligibility_status or "not provided"
+    lines.append(f"  Adapter A eligibility: {a_status}")
+    lines.append(f"  Adapter B eligibility: {b_status}")
 
     lines.append("")
-    lines.append(f"  Confidence: {qa.confidence_note}")
+    lines.append(f"  Confidence:      {qa.confidence}")
+    lines.append(f"                   {qa.confidence_note}")
 
     # ---------------------------------------------------------------
     # Section 3: Eligibility Warning
