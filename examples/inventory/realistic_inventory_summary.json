@@ -1,0 +1,40 @@
+{
+  "schema": "gradience.inventory_summary/v1",
+  "sources": {
+    "qa_artifact_count": 10,
+    "merge_report_count": 8
+  },
+  "adapter_status_counts": {
+    "eligible": 6,
+    "uncertain": 2,
+    "flagged_weak": 1,
+    "unknown_no_behavioral_eval": 1
+  },
+  "adapter_flag_counts": {
+    "low_utilization": 4,
+    "high_rank_waste": 3,
+    "concentrated_spectrum": 2,
+    "underutilized_capacity": 1
+  },
+  "pair_risk_counts": {
+    "low": 4,
+    "medium": 3,
+    "high": 1
+  },
+  "recommended_strategy_counts": {
+    "linear": 4,
+    "norm_equalized": 3,
+    "audit_aware": 1
+  },
+  "dominant_issue_counts": {
+    "none": 4,
+    "norm_imbalance": 2,
+    "subspace_conflict": 1,
+    "partial_redundancy": 1
+  },
+  "strict_qa_block_candidates": 3,
+  "notes": [
+    "2 adapters pending behavioral evaluation",
+    "1 adapter flagged for retraining at lower rank"
+  ]
+}
