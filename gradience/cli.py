@@ -2159,9 +2159,10 @@ def cmd_audit_adapter(args: argparse.Namespace) -> None:
 def _load_source_qa(path_str: str | None) -> Any:
     """Load an AdapterQAResult from a JSON file path, or return None.
 
-    Supports both legacy flat AdapterQAResult dicts and the new
-    ``gradience.adapter_qa/v1`` artifact format (auto-detected via
-    the ``schema`` field).
+    Three-way routing:
+    - schema key present: strict v1 loader (AdapterQAArtifact.from_dict)
+    - schema key absent: legacy flat-format parser (AdapterQAResult.from_dict)
+    - schema key present but wrong: hard fail, no fallback to legacy
     """
     if path_str is None:
         return None
@@ -2174,17 +2175,30 @@ def _load_source_qa(path_str: str | None) -> Any:
     try:
         with open(p) as f:
             data = jsonlib.load(f)
-        # Auto-detect v1 artifact format
-        if isinstance(data, dict) and data.get("schema", "").startswith("gradience.adapter_qa/"):
+    except Exception as e:
+        print(f"Error: Failed to parse QA file {p}: {e}")
+        sys.exit(1)
+
+    # Three-way routing based on schema key presence
+    schema_key = data.get("schema") if isinstance(data, dict) else None
+
+    if schema_key is not None:
+        # Schema present — must go through strict v1 loader
+        try:
             from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
 
             return AdapterQAArtifact.from_dict(data).to_qa_result()
-        # Legacy flat format
+        except Exception as e:
+            print(f"Error: Invalid QA artifact {p}: {e}")
+            sys.exit(1)
+
+    # Schema absent — legacy flat format
+    try:
         from gradience.vnext.merge.eligibility import AdapterQAResult
 
         return AdapterQAResult.from_dict(data)
     except Exception as e:
-        print(f"Error: Failed to load QA file {p}: {e}")
+        print(f"Error: Failed to load legacy QA file {p}: {e}")
         sys.exit(1)
 
 

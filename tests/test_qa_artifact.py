@@ -433,6 +433,17 @@ class TestLoadSourceQA:
 
         assert _load_source_qa(None) is None
 
+    def test_load_rejects_wrong_schema(self, tmp_path):
+        """Wrong schema key should error, not fall back to legacy."""
+        d = {"schema": "gradience.adapter_qa/v99", "adapter": {}}
+        p = tmp_path / "bad_schema.json"
+        p.write_text(json.dumps(d))
+
+        from gradience.cli import _load_source_qa
+
+        with pytest.raises(SystemExit):
+            _load_source_qa(str(p))
+
 
 # ---------------------------------------------------------------------------
 # Missing behavioral data tests
