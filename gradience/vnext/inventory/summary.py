@@ -10,6 +10,7 @@ Schema: ``gradience.inventory_summary/v1`` -- frozen, additive-only.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ from gradience.exceptions import QASchemaError
 # ---------------------------------------------------------------------------
 
 SCHEMA_ID = "gradience.inventory_summary/v1"
+
+_STRICT_QA_BLOCK_STATUSES = frozenset({"flagged_weak", "unknown_no_behavioral_eval"})
 
 # Sections that must be present and must be dict[str, int].
 _REQUIRED_COUNT_MAPS = (
@@ -138,3 +141,70 @@ class InventorySummary:
             strict_qa_block_candidates=sqbc,
             notes=notes,
         )
+
+
+# ---------------------------------------------------------------------------
+# Builder
+# ---------------------------------------------------------------------------
+
+
+def build_inventory_summary(
+    qa_artifacts: list[Any],
+    merge_reports: list[Any],
+) -> InventorySummary:
+    """Aggregate QA artifacts and merge reports into an inventory summary.
+
+    Pure counting — no policy decisions beyond identifying strict-QA block
+    candidates.
+
+    Parameters
+    ----------
+    qa_artifacts
+        List of :class:`~gradience.vnext.audit.qa_artifact.AdapterQAArtifact`.
+    merge_reports
+        List of :class:`~gradience.vnext.merge.qa_report.MergeQAReport`.
+
+    Returns
+    -------
+    InventorySummary
+    """
+    # --- Adapter-level counts ---
+    status_counter: Counter[str] = Counter()
+    flag_counter: Counter[str] = Counter()
+    for artifact in qa_artifacts:
+        status_counter[artifact.status.value] += 1
+        for flag in artifact.structural_flags:
+            flag_counter[flag] += 1
+
+    # --- Merge-report-level counts ---
+    risk_counter: Counter[str] = Counter()
+    strategy_counter: Counter[str] = Counter()
+    issue_counter: Counter[str] = Counter()
+    strict_qa_block_candidates = 0
+
+    for report in merge_reports:
+        risk_counter[report.pair_risk] += 1
+        strategy_counter[report.recommended_strategy] += 1
+        issue_counter[report.dominant_issue] += 1
+
+        # A report is a block candidate if *either* adapter has a
+        # problematic eligibility status.  Both-bad still counts as 1.
+        a_elig = report.adapter_a.eligibility_status
+        b_elig = report.adapter_b.eligibility_status
+        a_blocks = a_elig is None or a_elig in _STRICT_QA_BLOCK_STATUSES
+        b_blocks = b_elig is None or b_elig in _STRICT_QA_BLOCK_STATUSES
+        if a_blocks or b_blocks:
+            strict_qa_block_candidates += 1
+
+    return InventorySummary(
+        sources={
+            "qa_artifact_count": len(qa_artifacts),
+            "merge_report_count": len(merge_reports),
+        },
+        adapter_status_counts=dict(status_counter),
+        adapter_flag_counts=dict(flag_counter),
+        pair_risk_counts=dict(risk_counter),
+        recommended_strategy_counts=dict(strategy_counter),
+        dominant_issue_counts=dict(issue_counter),
+        strict_qa_block_candidates=strict_qa_block_candidates,
+    )

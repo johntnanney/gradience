@@ -1,4 +1,4 @@
-"""Tests for InventorySummary dataclass and from_dict validation."""
+"""Tests for InventorySummary dataclass, from_dict validation, and build_inventory_summary."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from pathlib import Path
 import pytest
 
 from gradience.exceptions import QASchemaError
-from gradience.vnext.inventory.summary import SCHEMA_ID, InventorySummary
+from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+from gradience.vnext.inventory.summary import SCHEMA_ID, InventorySummary, build_inventory_summary
+from gradience.vnext.merge.eligibility import EligibilityStatus
+from gradience.vnext.merge.qa_report import MergeQAReport
 
 
 def _valid_dict() -> dict:
@@ -150,3 +153,139 @@ class TestFromDictValidation:
         obj = InventorySummary.from_dict(d)
         assert obj.sources == {}
         assert obj.strict_qa_block_candidates == 0
+
+
+# ---------------------------------------------------------------------------
+# build_inventory_summary helpers & tests
+# ---------------------------------------------------------------------------
+
+
+def _make_qa_artifact(status: str = "eligible", flags: list[str] | None = None) -> AdapterQAArtifact:
+    """Create a minimal AdapterQAArtifact for testing."""
+    return AdapterQAArtifact(
+        adapter_name="test",
+        adapter_path="/tmp/test",
+        base_model="llama",
+        rank_nominal=8,
+        n_layers=32,
+        utilization_mean=0.5,
+        utilization_median=0.5,
+        stable_rank_mean=4.0,
+        energy_rank_90_p50=4.0,
+        rank_waste_ratio=0.5,
+        structural_flags=flags or [],
+        eval_available=True,
+        status=EligibilityStatus(status),
+    )
+
+
+def _make_merge_report_dict(
+    pair_risk: str = "low",
+    dominant_issue: str = "none",
+    strategy: str = "linear",
+    eligibility_a: str | None = "eligible",
+    eligibility_b: str | None = "eligible",
+) -> dict:
+    """Create a minimal valid MergeQAReport dict for from_dict loading."""
+    return {
+        "schema": "gradience.merge_qa_report/v1",
+        "adapter_a": {"path": "/tmp/a", "rank": 8, "eligibility_status": eligibility_a},
+        "adapter_b": {"path": "/tmp/b", "rank": 8, "eligibility_status": eligibility_b},
+        "pair_risk": pair_risk,
+        "dominant_issue": dominant_issue,
+        "recommended_strategy": strategy,
+        "confidence": "high",
+        "compatibility_score": 0.9,
+    }
+
+
+def _make_merge_report(**kwargs: str | None) -> MergeQAReport:
+    return MergeQAReport.from_dict(_make_merge_report_dict(**kwargs))
+
+
+class TestBuildInventorySummary:
+    """Tests for the build_inventory_summary aggregation function."""
+
+    def test_empty_inputs(self) -> None:
+        result = build_inventory_summary([], [])
+        assert result.sources == {"qa_artifact_count": 0, "merge_report_count": 0}
+        assert result.adapter_status_counts == {}
+        assert result.adapter_flag_counts == {}
+        assert result.pair_risk_counts == {}
+        assert result.recommended_strategy_counts == {}
+        assert result.dominant_issue_counts == {}
+        assert result.strict_qa_block_candidates == 0
+
+    def test_adapter_status_counts(self) -> None:
+        artifacts = [
+            _make_qa_artifact("eligible"),
+            _make_qa_artifact("eligible"),
+            _make_qa_artifact("flagged_weak"),
+        ]
+        result = build_inventory_summary(artifacts, [])
+        assert result.adapter_status_counts == {"eligible": 2, "flagged_weak": 1}
+        assert result.sources["qa_artifact_count"] == 3
+
+    def test_adapter_flag_counts(self) -> None:
+        artifacts = [
+            _make_qa_artifact(flags=["low_utilization", "high_rank_waste"]),
+            _make_qa_artifact(flags=["low_utilization"]),
+        ]
+        result = build_inventory_summary(artifacts, [])
+        assert result.adapter_flag_counts == {"low_utilization": 2, "high_rank_waste": 1}
+
+    def test_pair_risk_counts(self) -> None:
+        reports = [
+            _make_merge_report(pair_risk="low"),
+            _make_merge_report(pair_risk="low"),
+            _make_merge_report(pair_risk="high"),
+        ]
+        result = build_inventory_summary([], reports)
+        assert result.pair_risk_counts == {"low": 2, "high": 1}
+        assert result.sources["merge_report_count"] == 3
+
+    def test_strategy_counts(self) -> None:
+        reports = [
+            _make_merge_report(strategy="linear"),
+            _make_merge_report(strategy="audit_aware"),
+            _make_merge_report(strategy="audit_aware"),
+        ]
+        result = build_inventory_summary([], reports)
+        assert result.recommended_strategy_counts == {"linear": 1, "audit_aware": 2}
+
+    def test_dominant_issue_counts(self) -> None:
+        reports = [
+            _make_merge_report(dominant_issue="none"),
+            _make_merge_report(dominant_issue="subspace_conflict"),
+            _make_merge_report(dominant_issue="subspace_conflict"),
+        ]
+        result = build_inventory_summary([], reports)
+        assert result.dominant_issue_counts == {"none": 1, "subspace_conflict": 2}
+
+    def test_strict_qa_block_candidates_flagged_weak(self) -> None:
+        reports = [_make_merge_report(eligibility_a="flagged_weak")]
+        result = build_inventory_summary([], reports)
+        assert result.strict_qa_block_candidates == 1
+
+    def test_strict_qa_block_candidates_null(self) -> None:
+        reports = [_make_merge_report(eligibility_a=None)]
+        result = build_inventory_summary([], reports)
+        assert result.strict_qa_block_candidates == 1
+
+    def test_strict_qa_block_candidates_unknown(self) -> None:
+        reports = [_make_merge_report(eligibility_a="unknown_no_behavioral_eval")]
+        result = build_inventory_summary([], reports)
+        assert result.strict_qa_block_candidates == 1
+
+    def test_strict_qa_block_not_double_counted(self) -> None:
+        reports = [_make_merge_report(eligibility_a="flagged_weak", eligibility_b=None)]
+        result = build_inventory_summary([], reports)
+        assert result.strict_qa_block_candidates == 1
+
+    def test_to_dict_produces_valid_schema(self) -> None:
+        artifacts = [_make_qa_artifact("eligible"), _make_qa_artifact("flagged_weak")]
+        reports = [_make_merge_report(pair_risk="low", dominant_issue="none", strategy="linear")]
+        result = build_inventory_summary(artifacts, reports)
+        d = result.to_dict()
+        roundtripped = InventorySummary.from_dict(d)
+        assert roundtripped == result
