@@ -23,10 +23,10 @@
   "behavioral_summary": {
     "eval_available": false,
     "eval_dataset": null,
-    "metric_name": "",
+    "metric_name": null,
     "adapter_score": null,
     "base_score": null,
-    "lower_is_better": true,
+    "lower_is_better": null,
     "beats_base": null
   },
   "eligibility": {
@@ -39,5 +39,6 @@
       "spectrum concentrated in very few singular values",
       "stable rank far below nominal rank"
     ]
-  }
+  },
+  "notes": []
 }

@@ -524,6 +524,7 @@ class TestExampleFiles:
             ("btgenbot_r8_qa.json", "flagged_weak"),
             ("eligible_adapter_qa.json", "eligible"),
             ("structural_only_qa.json", "unknown_no_behavioral_eval"),
+            ("uncertain_adapter_qa.json", "uncertain"),
         ],
     )
     def test_example_file_valid(self, filename, expected_status):
@@ -627,6 +628,22 @@ class TestFromDictValidation:
         d["adapter"]["extra_field"] = "ignored"
         art = AdapterQAArtifact.from_dict(d)
         assert art.adapter_name == "test-adapter"
+
+
+# ---------------------------------------------------------------------------
+# Public API tests
+# ---------------------------------------------------------------------------
+
+
+class TestPublicAPI:
+    def test_import_from_init(self):
+        from gradience import AdapterQAArtifact, EligibilityStatus
+        assert AdapterQAArtifact is not None
+        assert EligibilityStatus is not None
+
+    def test_audit_adapter_importable(self):
+        from gradience.api import audit_adapter
+        assert callable(audit_adapter)
 
 
 # ---------------------------------------------------------------------------
