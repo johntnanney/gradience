@@ -185,16 +185,17 @@ class AdapterQAArtifact:
     # Behavioral summary
     eval_available: bool
     eval_dataset: str | None = None
-    metric_name: str = ""
+    metric_name: str | None = None
     adapter_score: float | None = None
     base_score: float | None = None
-    lower_is_better: bool = True
+    lower_is_better: bool | None = None
     beats_base: bool | None = None
 
     # Eligibility judgment
     status: EligibilityStatus = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
     confidence: str = CONFIDENCE_LOW
     reasons: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to a JSON-compatible dict matching the v1 schema."""
@@ -229,6 +230,7 @@ class AdapterQAArtifact:
                 "confidence": self.confidence,
                 "reasons": list(self.reasons),
             },
+            "notes": list(self.notes),
         }
 
     @staticmethod
@@ -258,14 +260,15 @@ class AdapterQAArtifact:
             structural_flags=list(structural.get("flags", [])),
             eval_available=bool(behavioral.get("eval_available", False)),
             eval_dataset=behavioral.get("eval_dataset"),
-            metric_name=str(behavioral.get("metric_name", "")),
+            metric_name=behavioral.get("metric_name"),
             adapter_score=behavioral.get("adapter_score"),
             base_score=behavioral.get("base_score"),
-            lower_is_better=bool(behavioral.get("lower_is_better", True)),
+            lower_is_better=behavioral.get("lower_is_better"),
             beats_base=behavioral.get("beats_base"),
             status=status,
             confidence=str(eligibility.get("confidence", CONFIDENCE_LOW)),
             reasons=list(eligibility.get("reasons", [])),
+            notes=list(d.get("notes", [])),
         )
 
     def to_qa_result(self) -> AdapterQAResult:
@@ -279,8 +282,8 @@ class AdapterQAArtifact:
             status=self.status,
             adapter_metric=self.adapter_score,
             base_metric=self.base_score,
-            metric_name=self.metric_name,
-            lower_is_better=self.lower_is_better,
+            metric_name=self.metric_name or "",
+            lower_is_better=self.lower_is_better if self.lower_is_better is not None else True,
             eval_dataset=self.eval_dataset,
             notes="; ".join(self.reasons) if self.reasons else None,
             evidence={
@@ -304,10 +307,11 @@ def build_qa_artifact(
     base_model: str = "",
     adapter_score: float | None = None,
     base_score: float | None = None,
-    metric_name: str = "",
-    lower_is_better: bool = True,
+    metric_name: str | None = None,
+    lower_is_better: bool | None = True,
     eval_dataset: str | None = None,
     margin: float = 0.0,
+    notes: list[str] | None = None,
 ) -> AdapterQAArtifact:
     """Build a QA artifact from a :class:`LoRAAuditResult` and optional behavioral data.
 
@@ -375,12 +379,16 @@ def build_qa_artifact(
     # --- Eligibility ---
     from gradience.vnext.merge.eligibility import classify_eligibility
 
+    # Coerce to non-None for internal helpers that expect str/bool
+    _metric_name_str = metric_name or ""
+    _lower_is_better_bool = lower_is_better if lower_is_better is not None else True
+
     qa_result = classify_eligibility(
         adapter_path=path_str,
         adapter_metric=adapter_score,
         base_metric=base_score,
-        metric_name=metric_name,
-        lower_is_better=lower_is_better,
+        metric_name=_metric_name_str,
+        lower_is_better=_lower_is_better_bool,
         eval_dataset=eval_dataset,
         margin=margin,
     )
@@ -396,10 +404,14 @@ def build_qa_artifact(
     reasons = build_reasons(
         eval_available=eval_available,
         status=status,
-        metric_name=metric_name,
+        metric_name=_metric_name_str,
         eval_dataset=eval_dataset,
         structural_flags=structural_flags,
     )
+
+    # When no eval is available, use None for absent behavioral fields
+    final_metric_name = metric_name if eval_available else None
+    final_lower_is_better = lower_is_better if eval_available else None
 
     return AdapterQAArtifact(
         adapter_name=name,
@@ -415,12 +427,13 @@ def build_qa_artifact(
         structural_flags=structural_flags,
         eval_available=eval_available,
         eval_dataset=eval_dataset,
-        metric_name=metric_name,
+        metric_name=final_metric_name,
         adapter_score=adapter_score,
         base_score=base_score,
-        lower_is_better=lower_is_better,
+        lower_is_better=final_lower_is_better,
         beats_base=beats_base,
         status=status,
         confidence=confidence,
         reasons=reasons,
+        notes=notes or [],
     )

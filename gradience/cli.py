@@ -2063,7 +2063,10 @@ def _print_qa_summary(artifact: Any) -> None:
     else:
         if artifact.eval_dataset:
             print(f"  Eval dataset:  {artifact.eval_dataset}")
-        direction = "lower is better" if artifact.lower_is_better else "higher is better"
+        if artifact.lower_is_better is not None:
+            direction = "lower is better" if artifact.lower_is_better else "higher is better"
+        else:
+            direction = ""
         if artifact.metric_name:
             print(f"  Metric:        {artifact.metric_name} ({direction})")
         print(f"  Adapter score: {artifact.adapter_score}")
@@ -2123,7 +2126,7 @@ def cmd_audit_adapter(args: argparse.Namespace) -> None:
         base_model=getattr(args, "base_model", None) or "",
         adapter_score=adapter_score,
         base_score=base_score,
-        metric_name=getattr(args, "metric_name", None) or "",
+        metric_name=getattr(args, "metric_name", None) or None,
         lower_is_better=getattr(args, "lower_is_better", True),
         eval_dataset=getattr(args, "eval_dataset", None),
         margin=float(getattr(args, "margin", 0.0) or 0.0),

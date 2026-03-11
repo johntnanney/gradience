@@ -110,6 +110,31 @@ class TestSchemaOutput:
         assert "effective_rank_90_median" in d["structural_summary"]
         assert "energy_rank_90_p50" not in d["structural_summary"]
 
+    def test_metric_name_null_when_no_eval(self):
+        """metric_name should be null (not empty string) when no eval."""
+        art = _make_artifact(eval_available=False, metric_name=None)
+        d = art.to_dict()
+        assert d["behavioral_summary"]["metric_name"] is None
+
+    def test_lower_is_better_null_when_no_eval(self):
+        """lower_is_better should be null when no eval."""
+        art = _make_artifact(eval_available=False, lower_is_better=None)
+        d = art.to_dict()
+        assert d["behavioral_summary"]["lower_is_better"] is None
+
+    def test_notes_field_present(self):
+        """notes must always be present in output."""
+        d = _make_artifact().to_dict()
+        assert "notes" in d
+        assert isinstance(d["notes"], list)
+
+    def test_notes_roundtrip(self):
+        art = _make_artifact()
+        d = art.to_dict()
+        d["notes"] = ["structural audit only"]
+        restored = AdapterQAArtifact.from_dict(d)
+        assert restored.notes == ["structural audit only"]
+
     def test_from_dict_empty(self):
         art = AdapterQAArtifact.from_dict({})
         assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
@@ -534,10 +559,10 @@ def _make_artifact(**overrides: Any) -> AdapterQAArtifact:
         structural_flags=["low_utilization", "high_rank_waste"],
         eval_available=False,
         eval_dataset=None,
-        metric_name="",
+        metric_name=None,
         adapter_score=None,
         base_score=None,
-        lower_is_better=True,
+        lower_is_better=None,
         beats_base=None,
         status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
         confidence=CONFIDENCE_LOW,
