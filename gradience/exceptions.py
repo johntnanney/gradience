@@ -29,6 +29,10 @@ class MergeError(GradienceError, ValueError):
     """Merge audit failures (incompatible adapters, shape mismatches)."""
 
 
+class QASchemaError(GradienceError, ValueError):
+    """Raised when a QA artifact fails schema validation (missing fields, wrong types, unknown schema)."""
+
+
 class TelemetryError(GradienceError, ValueError):
     """Telemetry read/write errors."""
 
