@@ -3356,6 +3356,53 @@ def _setup_monitor_command(subparsers):
     monitor_parser.set_defaults(func=cmd_monitor)
 
 
+def _setup_summarize_inventory_command(subparsers):
+    p = subparsers.add_parser(
+        "summarize-inventory",
+        help="Summarize an inventory of adapter QA artifacts and merge risk reports",
+    )
+    p.add_argument("--qa-dir", type=str, default=None, help="Directory to scan for QA artifact JSON files")
+    p.add_argument("--report-dir", type=str, default=None, help="Directory to scan for merge report JSON files")
+    p.add_argument("--emit-report", type=str, default=None, help="Write inventory summary v1 JSON to this path")
+    p.add_argument("--strict-input", action="store_true", help="Fail on first malformed file")
+    p.set_defaults(func=cmd_summarize_inventory)
+
+
+def cmd_summarize_inventory(args: argparse.Namespace) -> None:
+    """Summarize an inventory of adapter QA artifacts and merge risk reports."""
+    qa_dir = getattr(args, "qa_dir", None)
+    report_dir = getattr(args, "report_dir", None)
+    strict_input = bool(getattr(args, "strict_input", False))
+    emit_path = getattr(args, "emit_report", None)
+
+    if not qa_dir and not report_dir:
+        print("Error: At least one of --qa-dir or --report-dir is required")
+        sys.exit(1)
+
+    try:
+        from gradience.api import summarize_inventory
+        from gradience.vnext.inventory.summary import format_inventory_summary
+    except ImportError as e:
+        print(f"Error: Failed to import inventory modules: {e}")
+        sys.exit(1)
+
+    try:
+        summary = summarize_inventory(qa_dir=qa_dir, report_dir=report_dir, strict_input=strict_input)
+    except Exception as e:
+        print(f"Error: Inventory summary failed: {e}")
+        sys.exit(1)
+
+    print(format_inventory_summary(summary))
+
+    if emit_path:
+        try:
+            summary.to_json(emit_path)
+            print(f"Inventory summary written to {emit_path}")
+        except Exception as e:
+            print(f"Error: Failed to write report: {e}")
+            sys.exit(1)
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -3379,6 +3426,7 @@ def main() -> None:
     _setup_explain_command(subparsers)
     _setup_truncate_command(subparsers)
     _setup_monitor_command(subparsers)
+    _setup_summarize_inventory_command(subparsers)
 
     args = parser.parse_args()
     if args.command is None:
