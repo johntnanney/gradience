@@ -126,8 +126,8 @@ class TestClassifyEligibility:
             lower_is_better=True,
             margin=0.2,
         )
-        # delta = 2.75 - 2.85 = -0.10, which is < 0 → flagged weak
-        assert qa.status == EligibilityStatus.FLAGGED_WEAK
+        # delta = 2.75 - 2.85 = -0.10, within [-0.2, 0.2] → uncertain
+        assert qa.status == EligibilityStatus.UNCERTAIN
 
     def test_lower_is_better_margin_uncertain(self):
         # Adapter just barely beats base but within margin
@@ -170,6 +170,19 @@ class TestClassifyEligibility:
             eval_dataset="gsm8k",
         )
         assert qa.eval_dataset == "gsm8k"
+
+    def test_uncertain_symmetric_negative_delta_within_margin(self):
+        """Small negative delta within margin should be uncertain, not flagged_weak."""
+        result = classify_eligibility(
+            adapter_path="./test",
+            adapter_metric=4.70,  # slightly worse
+            base_metric=4.66,  # base is better (lower is better)
+            metric_name="perplexity",
+            lower_is_better=True,
+            margin=0.1,
+        )
+        # delta = 4.66 - 4.70 = -0.04, within [-0.1, 0.1] → uncertain
+        assert result.status == EligibilityStatus.UNCERTAIN
 
 
 # ---------------------------------------------------------------------------

@@ -192,9 +192,9 @@ def classify_eligibility(
             f"Adapter beats base by {abs(delta):.4f} "
             f"({metric_name}, {'lower' if lower_is_better else 'higher'} is better)."
         )
-    elif delta >= 0:
+    elif delta >= -margin:
         status = EligibilityStatus.UNCERTAIN
-        notes = f"Adapter is within margin of base (delta={delta:.4f}, margin={margin:.4f})."
+        notes = f"Adapter is within margin of base (delta={delta:.4f}, margin=\u00b1{margin:.4f})."
     else:
         status = EligibilityStatus.FLAGGED_WEAK
         notes = (
