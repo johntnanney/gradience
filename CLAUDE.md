@@ -110,7 +110,7 @@ Bench entry point: `gradience.bench.run_bench:main` (registered as `gradience-be
 
 ### Exception Hierarchy
 
-All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `AuditError`, `MergeError`, `TelemetryError`, `TelemetrySchemaError`, `TelemetryFormatError`, `DependencyError`.
+All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `AuditError`, `MergeError`, `TelemetryError`, `TelemetrySchemaError`, `TelemetryFormatError`, `DependencyError`, `QASchemaError`.
 
 ### Optional Dependencies
 
@@ -148,6 +148,21 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - Canonical helpers: `_energy_rank()` in `audit/lora_audit.py`, `_shorten_layer_name()` in `merge/report.py`
 - Verdict branch order: Branch 0 (IMBALANCED, low overlap) → Branch 1 (SAFE, orthogonal) → Branch 2 (REDUNDANT) → Branch 3 (CONFLICTING) → Branch 4 (IMBALANCED, high overlap) → Branch 5 (SAFE, default)
 - Merge test fixtures in `tests/merge/conftest.py`: `orthogonal_pair`, `redundant_pair`, `conflicting_pair`, `imbalanced_pair` — each returns `tuple[Path, Path]`
+
+### Adapter QA Artifact (`vnext/audit/qa_artifact.py`)
+
+- Schema: `gradience.adapter_qa/v1` — frozen, additive-only versioning
+- `AdapterQAArtifact` and `EligibilityStatus` are stable public API (exported from `gradience.__init__`)
+- `gradience.api.audit_adapter()` is the stable Python entry point; same builder path as CLI
+- Four eligibility statuses: `eligible`, `uncertain`, `flagged_weak`, `unknown_no_behavioral_eval`
+- `behavioral_summary` = evidence, `eligibility` = policy judgment (not raw measurement)
+- Nullable fields: `metric_name` and `lower_is_better` are `None` (not `""` / `True`) when no eval
+- `from_dict()` is the single validation gatekeeper — raises `QASchemaError` on contract violations
+- Three-way loader in CLI (`_load_source_qa`): schema present+correct → strict v1, absent → legacy, wrong → hard fail
+- `--strict-qa` blocks both `flagged_weak` and `unknown_no_behavioral_eval`
+- JSON key: `effective_rank_90_median` in output (internal field: `energy_rank_90_p50`)
+- Canonical examples in `examples/qa/` — one per status
+- Definition doc: `docs/adapter-qa-artifact.md`
 
 ## CI/CD
 
