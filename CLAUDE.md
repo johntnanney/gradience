@@ -181,6 +181,20 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - Canonical examples in `examples/reports/` — one per scenario (safe, high-risk warning, strict-blocked)
 - Definition doc: `docs/merge-risk-report.md`
 
+### Inventory Summary (`vnext/inventory/summary.py`)
+
+- Schema: `gradience.inventory_summary/v1` — frozen, additive-only versioning
+- `InventorySummary` is stable public API (exported from `gradience.__init__`)
+- `gradience.api.summarize_inventory()` is the stable Python entry point (direct aggregation, not subprocess)
+- `from_dict()` is the single validation gatekeeper — raises `QASchemaError` on contract violations
+- Descriptive object, not decision-bearing — only aggregates existing judgments
+- Count maps: `adapter_status_counts`, `adapter_flag_counts`, `pair_risk_counts`, `recommended_strategy_counts`, `dominant_issue_counts`
+- `strict_qa_block_candidates`: pair reports that would be blocked under `--strict-qa`
+- CLI: `gradience summarize-inventory --qa-dir ... --report-dir ... [--emit-report ...] [--strict-input]`
+- Malformed input: skip with warning by default, `--strict-input` fails hard
+- Canonical example in `examples/inventory/`
+- Definition doc: `docs/inventory-summary.md`
+
 ## CI/CD
 
 GitHub Actions workflows:
