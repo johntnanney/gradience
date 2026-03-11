@@ -2272,6 +2272,16 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             print("\nError: --strict-qa requires source QA data for both adapters.")
             print("  Provide --source-a-qa and --source-b-qa, or remove --strict-qa.")
             sys.exit(1)
+        # Block if either adapter has no QA (null eligibility) — partial data
+        if diag.eligibility.status_a is None or diag.eligibility.status_b is None:
+            missing = []
+            if diag.eligibility.status_a is None:
+                missing.append("A")
+            if diag.eligibility.status_b is None:
+                missing.append("B")
+            print(f"\nError: --strict-qa requires QA data for adapter(s) {', '.join(missing)}.")
+            print("  Provide --source-a-qa and --source-b-qa, or remove --strict-qa.")
+            sys.exit(1)
         if diag.eligibility.any_weak:
             weak_labels = []
             if diag.eligibility.status_a and diag.eligibility.status_a.value == "flagged_weak":
@@ -2360,11 +2370,13 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             print(f"  \u26a0 {warn}")
 
     # --- QA Report ---
+    qa_for_emit = None
     if getattr(args, "qa_report", False):
         try:
             from gradience.vnext.merge.qa_report import build_qa_report, format_qa_report
 
             qa = build_qa_report(report)
+            qa_for_emit = qa
             print(format_qa_report(qa))
             out_dir_qa = getattr(args, "output_dir", None)
             if out_dir_qa:
@@ -2381,13 +2393,15 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     # --- Emit structured report ---
     emit_path = getattr(args, "emit_report", None)
     if emit_path:
-        from gradience.vnext.merge import to_json
+        if not qa_for_emit:
+            from gradience.vnext.merge.qa_report import build_qa_report as _build_qa
 
+            qa_for_emit = _build_qa(report)
         emit_p = Path(emit_path)
         emit_p.parent.mkdir(parents=True, exist_ok=True)
         with open(emit_p, "w") as f:
-            jsonlib.dump(to_json(report), f, indent=2)
-        print(f"\nStructured report written to: {emit_p}")
+            jsonlib.dump(qa_for_emit.to_dict(), f, indent=2)
+        print(f"\nMerge QA report written to: {emit_p}")
 
     out_dir = getattr(args, "output_dir", None)
     if out_dir:
