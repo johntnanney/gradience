@@ -192,7 +192,7 @@ class AdapterQAArtifact:
     beats_base: bool | None = None
 
     # Eligibility judgment
-    status: EligibilityStatus = EligibilityStatus.UNKNOWN
+    status: EligibilityStatus = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
     confidence: str = CONFIDENCE_LOW
     reasons: list[str] = field(default_factory=list)
 
@@ -240,9 +240,9 @@ class AdapterQAArtifact:
         eligibility = d.get("eligibility", {})
 
         try:
-            status = EligibilityStatus(eligibility.get("status", "unknown"))
+            status = EligibilityStatus(eligibility.get("status", "unknown_no_behavioral_eval"))
         except ValueError:
-            status = EligibilityStatus.UNKNOWN
+            status = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
         return AdapterQAArtifact(
             adapter_name=str(adapter.get("name", "")),

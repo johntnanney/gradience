@@ -49,7 +49,7 @@ class AdapterSummary:
     alpha: float
     n_layers: int
     base_model: str
-    eligibility: str  # "eligible" | "flagged_weak" | "uncertain" | "unknown" | "not provided"
+    eligibility: str  # "eligible" | "flagged_weak" | "uncertain" | "unknown_no_behavioral_eval" | "not provided"
 
     def to_dict(self) -> dict[str, Any]:
         return {

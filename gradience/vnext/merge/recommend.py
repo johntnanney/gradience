@@ -436,11 +436,11 @@ def _parse_eligibility(report: Any) -> EligibilityContext:
         entry = source_qa.get(key)
         if entry is None:
             return None
-        raw = entry.get("status", EligibilityStatus.UNKNOWN.value)
+        raw = entry.get("status", EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL.value)
         try:
             return EligibilityStatus(raw)
         except ValueError:
-            return EligibilityStatus.UNKNOWN
+            return EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
     return EligibilityContext(
         status_a=_status("adapter_a"),

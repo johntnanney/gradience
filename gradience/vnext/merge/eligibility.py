@@ -42,7 +42,7 @@ class EligibilityStatus(str, Enum):
     FLAGGED_WEAK
         Adapter appears weaker than the base model on its target task.
         Merging may not be worth preserving this side.
-    UNKNOWN
+    UNKNOWN_NO_BEHAVIORAL_EVAL
         No behavioral evaluation is available.  This is the default
         when users run a purely structural audit.
     """
@@ -50,7 +50,7 @@ class EligibilityStatus(str, Enum):
     ELIGIBLE = "eligible"
     UNCERTAIN = "uncertain"
     FLAGGED_WEAK = "flagged_weak"
-    UNKNOWN = "unknown"
+    UNKNOWN_NO_BEHAVIORAL_EVAL = "unknown_no_behavioral_eval"
 
 
 # ---------------------------------------------------------------------------
@@ -111,11 +111,11 @@ class AdapterQAResult:
 
     @staticmethod
     def from_dict(d: dict[str, Any]) -> AdapterQAResult:
-        status_raw = d.get("status", EligibilityStatus.UNKNOWN.value)
+        status_raw = d.get("status", EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL.value)
         try:
             status = EligibilityStatus(status_raw)
         except ValueError:
-            status = EligibilityStatus.UNKNOWN
+            status = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
         return AdapterQAResult(
             adapter_path=str(d.get("adapter_path", "")),
@@ -172,7 +172,7 @@ def classify_eligibility(
     if adapter_metric is None or base_metric is None:
         return AdapterQAResult(
             adapter_path=adapter_path,
-            status=EligibilityStatus.UNKNOWN,
+            status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
             adapter_metric=adapter_metric,
             base_metric=base_metric,
             metric_name=metric_name,
@@ -250,7 +250,7 @@ def screen_adapters(
                 msg += f" on {qa.metric_name}"
             msg += ".  Merge results may be unpredictable."
             warnings.append(msg)
-        elif qa.status == EligibilityStatus.UNKNOWN:
+        elif qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL:
             msg = (
                 f"No behavioral evaluation available for adapter {label} "
                 f"({qa.adapter_path}).  Merge recommendation is based on "

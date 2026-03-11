@@ -102,11 +102,11 @@ class TestSchemaOutput:
         d = _make_artifact().to_dict()
         d["eligibility"]["status"] = "bogus_value"
         art = AdapterQAArtifact.from_dict(d)
-        assert art.status == EligibilityStatus.UNKNOWN
+        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
     def test_from_dict_empty(self):
         art = AdapterQAArtifact.from_dict({})
-        assert art.status == EligibilityStatus.UNKNOWN
+        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
         assert art.adapter_name == ""
         assert art.confidence == CONFIDENCE_LOW
 
@@ -157,7 +157,7 @@ class TestEligibilityAssignment:
     def test_unknown_no_behavioral(self):
         result = _StubAuditResult()
         art = build_qa_artifact(result)
-        assert art.status == EligibilityStatus.UNKNOWN
+        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
         assert art.eval_available is False
         assert art.beats_base is None
 
@@ -251,7 +251,7 @@ class TestConfidence:
         assert conf == CONFIDENCE_HIGH
 
     def test_low_confidence_structural_only(self):
-        conf = derive_confidence(eval_available=False, status=EligibilityStatus.UNKNOWN)
+        conf = derive_confidence(eval_available=False, status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL)
         assert conf == CONFIDENCE_LOW
 
     def test_never_high_without_behavioral(self):
@@ -300,7 +300,7 @@ class TestReasons:
     def test_reasons_mention_no_eval(self):
         reasons = build_reasons(
             eval_available=False,
-            status=EligibilityStatus.UNKNOWN,
+            status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
             metric_name="",
             eval_dataset=None,
             structural_flags=["low_utilization"],
@@ -311,7 +311,7 @@ class TestReasons:
     def test_reasons_structural_flags_appended(self):
         reasons = build_reasons(
             eval_available=False,
-            status=EligibilityStatus.UNKNOWN,
+            status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
             metric_name="",
             eval_dataset=None,
             structural_flags=["low_utilization", "high_rank_waste"],
@@ -431,7 +431,7 @@ class TestMissingBehavioral:
         assert art.adapter_score is None
         assert art.base_score is None
         assert art.beats_base is None
-        assert art.status == EligibilityStatus.UNKNOWN
+        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
         assert art.confidence == CONFIDENCE_LOW
         assert any("no behavioral" in r for r in art.reasons)
 
@@ -488,7 +488,7 @@ class TestExampleFiles:
             ("catsubcat_r16_qa.json", "flagged_weak"),
             ("btgenbot_r8_qa.json", "flagged_weak"),
             ("eligible_adapter_qa.json", "eligible"),
-            ("structural_only_qa.json", "unknown"),
+            ("structural_only_qa.json", "unknown_no_behavioral_eval"),
         ],
     )
     def test_example_file_valid(self, filename, expected_status):
@@ -533,7 +533,7 @@ def _make_artifact(**overrides: Any) -> AdapterQAArtifact:
         base_score=None,
         lower_is_better=True,
         beats_base=None,
-        status=EligibilityStatus.UNKNOWN,
+        status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
         confidence=CONFIDENCE_LOW,
         reasons=["no behavioral evaluation available"],
     )

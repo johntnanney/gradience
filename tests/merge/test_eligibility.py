@@ -19,7 +19,7 @@ class TestEligibilityStatus:
         assert EligibilityStatus.ELIGIBLE.value == "eligible"
         assert EligibilityStatus.UNCERTAIN.value == "uncertain"
         assert EligibilityStatus.FLAGGED_WEAK.value == "flagged_weak"
-        assert EligibilityStatus.UNKNOWN.value == "unknown"
+        assert EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL.value == "unknown_no_behavioral_eval"
 
     def test_is_str_enum(self):
         assert isinstance(EligibilityStatus.ELIGIBLE, str)
@@ -35,10 +35,10 @@ class TestAdapterQAResult:
     def test_construction_defaults(self):
         qa = AdapterQAResult(
             adapter_path="/path/to/adapter",
-            status=EligibilityStatus.UNKNOWN,
+            status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
         )
         assert qa.adapter_path == "/path/to/adapter"
-        assert qa.status == EligibilityStatus.UNKNOWN
+        assert qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
         assert qa.adapter_metric is None
         assert qa.base_metric is None
         assert qa.metric_name == ""
@@ -70,11 +70,11 @@ class TestAdapterQAResult:
 
     def test_from_dict_unknown_status(self):
         qa = AdapterQAResult.from_dict({"status": "bogus_value"})
-        assert qa.status == EligibilityStatus.UNKNOWN
+        assert qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
     def test_from_dict_empty(self):
         qa = AdapterQAResult.from_dict({})
-        assert qa.status == EligibilityStatus.UNKNOWN
+        assert qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
         assert qa.adapter_path == ""
 
 
@@ -86,11 +86,11 @@ class TestAdapterQAResult:
 class TestClassifyEligibility:
     def test_no_metrics_returns_unknown(self):
         qa = classify_eligibility("./adapter", None, None)
-        assert qa.status == EligibilityStatus.UNKNOWN
+        assert qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
     def test_adapter_metric_only_returns_unknown(self):
         qa = classify_eligibility("./adapter", 2.5, None)
-        assert qa.status == EligibilityStatus.UNKNOWN
+        assert qa.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
     def test_lower_is_better_eligible(self):
         # Adapter PPL 2.11, base PPL 2.86 → adapter beats base
@@ -219,7 +219,7 @@ class TestScreenAdapters:
         assert any("ill-posed" in w.lower() for w in warnings)
 
     def test_unknown_warns_about_structural_only(self):
-        qa_a = AdapterQAResult(adapter_path="./a", status=EligibilityStatus.UNKNOWN)
+        qa_a = AdapterQAResult(adapter_path="./a", status=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL)
         warnings = screen_adapters(qa_a, None)
         assert len(warnings) == 1
         assert "structural analysis only" in warnings[0].lower()

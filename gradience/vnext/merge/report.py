@@ -341,12 +341,12 @@ def to_markdown(report: MergeAuditReport) -> str:
         for label, key in [("Adapter A", "adapter_a"), ("Adapter B", "adapter_b")]:
             qa = report.source_qa.get(key)
             if qa:
-                status = qa.get("status", "unknown").upper()
+                status = qa.get("status", "unknown_no_behavioral_eval").upper()
                 status_indicator = {
                     "ELIGIBLE": "PASS",
                     "UNCERTAIN": "UNCERTAIN",
                     "FLAGGED_WEAK": "WEAK",
-                    "UNKNOWN": "NO DATA",
+                    "UNKNOWN_NO_BEHAVIORAL_EVAL": "NO DATA",
                 }.get(status, status)
                 lines.append(f"- **{label}:** {status_indicator}")
                 if qa.get("notes"):

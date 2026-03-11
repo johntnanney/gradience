@@ -30,7 +30,7 @@
     "beats_base": null
   },
   "eligibility": {
-    "status": "unknown",
+    "status": "unknown_no_behavioral_eval",
     "confidence": "low",
     "reasons": [
       "no behavioral evaluation available",
