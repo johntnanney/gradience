@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 
+from gradience.exceptions import QASchemaError
 from gradience.vnext.audit.qa_artifact import (
     CONFIDENCE_HIGH,
     CONFIDENCE_LOW,
@@ -19,7 +20,6 @@ from gradience.vnext.audit.qa_artifact import (
     derive_confidence,
     derive_structural_flags,
 )
-from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.eligibility import AdapterQAResult, EligibilityStatus
 
 # ---------------------------------------------------------------------------
@@ -638,11 +638,13 @@ class TestFromDictValidation:
 class TestPublicAPI:
     def test_import_from_init(self):
         from gradience import AdapterQAArtifact, EligibilityStatus
+
         assert AdapterQAArtifact is not None
         assert EligibilityStatus is not None
 
     def test_audit_adapter_importable(self):
         from gradience.api import audit_adapter
+
         assert callable(audit_adapter)
 
 

@@ -309,9 +309,8 @@ class AdapterQAArtifact:
             status = EligibilityStatus(status_raw)
         except ValueError:
             raise QASchemaError(
-                f"Unknown eligibility status: '{status_raw}'. "
-                f"Valid values: {[e.value for e in EligibilityStatus]}"
-            )
+                f"Unknown eligibility status: '{status_raw}'. Valid values: {[e.value for e in EligibilityStatus]}"
+            ) from None
 
         # --- Optional fields with type validation ---
         confidence = eligibility.get("confidence", CONFIDENCE_LOW)

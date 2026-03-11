@@ -65,9 +65,7 @@ class TestCompressMergePipeline:
         # Merged output assertions
         assert (merged_dir / "adapter_config.json").exists(), "Missing adapter_config.json in merged output"
 
-        has_weights = (merged_dir / "adapter_model.safetensors").exists() or (
-            merged_dir / "adapter_model.bin"
-        ).exists()
+        has_weights = (merged_dir / "adapter_model.safetensors").exists() or (merged_dir / "adapter_model.bin").exists()
         assert has_weights, "Missing weights file (.safetensors or .bin) in merged output"
 
         assert (merged_dir / "merge_result.json").exists(), "Missing merge_result.json"

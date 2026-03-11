@@ -91,7 +91,12 @@ class TestStudyDryRun:
 
         cond2_dir = pair_dir / "compressed_norm_eq"
         cond2 = _run_condition(
-            "compressed_norm_eq", "norm_equalized", compressed_report, compressed_a, compressed_b, cond2_dir,
+            "compressed_norm_eq",
+            "norm_equalized",
+            compressed_report,
+            compressed_a,
+            compressed_b,
+            cond2_dir,
             output_rank=4,
         )
 
@@ -134,10 +139,7 @@ class TestStudyDryRun:
         for cond_dir in [cond1_dir, cond2_dir]:
             for fname in CONDITION_FILES:
                 assert (cond_dir / fname).exists(), f"Missing {fname} in {cond_dir.name}"
-            has_weights = (
-                (cond_dir / "adapter_model.safetensors").exists()
-                or (cond_dir / "adapter_model.bin").exists()
-            )
+            has_weights = (cond_dir / "adapter_model.safetensors").exists() or (cond_dir / "adapter_model.bin").exists()
             assert has_weights, f"Missing weight file in {cond_dir.name}"
 
         # 4. Provenance divergence — different plan IDs

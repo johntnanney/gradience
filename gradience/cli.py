@@ -2292,7 +2292,9 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             print(
                 f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(unverified_labels)} have no behavioral evaluation."
             )
-            print("  Strict mode requires behavioral evidence for eligibility. Provide evaluation scores via audit-adapter.")
+            print(
+                "  Strict mode requires behavioral evidence for eligibility. Provide evaluation scores via audit-adapter."
+            )
             sys.exit(1)
 
     # --- Output ---

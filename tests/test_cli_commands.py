@@ -493,9 +493,12 @@ class TestCompressMergeCLIPipeline:
         audit_out = tmp_path / "audit_output"
         p = run_cli(
             "merge-audit",
-            "--adapter-a", str(compressed_a),
-            "--adapter-b", str(compressed_b),
-            "--output-dir", str(audit_out),
+            "--adapter-a",
+            str(compressed_a),
+            "--adapter-b",
+            str(compressed_b),
+            "--output-dir",
+            str(audit_out),
         )
         assert p.returncode == 0, f"merge-audit failed: {p.stderr}"
         assert (audit_out / "merge_audit.json").exists()
@@ -505,11 +508,16 @@ class TestCompressMergeCLIPipeline:
         plan_out = tmp_path / "plan_output"
         p = run_cli(
             "merge-plan",
-            "--adapter-a", str(compressed_a),
-            "--adapter-b", str(compressed_b),
-            "--strategy", "audit_aware",
-            "--output-dir", str(plan_out),
-            "--output-rank", "4",
+            "--adapter-a",
+            str(compressed_a),
+            "--adapter-b",
+            str(compressed_b),
+            "--strategy",
+            "audit_aware",
+            "--output-dir",
+            str(plan_out),
+            "--output-rank",
+            "4",
         )
         assert p.returncode == 0, f"merge-plan failed: {p.stderr}"
         plan_path = plan_out / "merge_plan.json"
@@ -519,15 +527,14 @@ class TestCompressMergeCLIPipeline:
         merged_out = tmp_path / "merged_adapter"
         p = run_cli(
             "merge",
-            "--plan", str(plan_path),
-            "--output-dir", str(merged_out),
+            "--plan",
+            str(plan_path),
+            "--output-dir",
+            str(merged_out),
         )
         assert p.returncode == 0, f"merge failed: {p.stderr}"
         assert (merged_out / "adapter_config.json").exists()
-        has_weights = (
-            (merged_out / "adapter_model.safetensors").exists()
-            or (merged_out / "adapter_model.bin").exists()
-        )
+        has_weights = (merged_out / "adapter_model.safetensors").exists() or (merged_out / "adapter_model.bin").exists()
         assert has_weights, "merged adapter missing weight file"
         assert (merged_out / "merge_result.json").exists()
 
