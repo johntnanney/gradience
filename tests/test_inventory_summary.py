@@ -324,8 +324,8 @@ class TestFormatInventorySummary:
 
     def test_contains_sources(self) -> None:
         output = format_inventory_summary(_summary_for_format())
-        assert "Merge report" in output
-        assert "Qa artifact" in output
+        assert "Merge reports:" in output
+        assert "QA artifacts:" in output
 
     def test_contains_adapter_status(self) -> None:
         output = format_inventory_summary(_summary_for_format())
@@ -336,6 +336,22 @@ class TestFormatInventorySummary:
         output = format_inventory_summary(_summary_for_format())
         assert "STRICT-QA BLOCK CANDIDATES" in output
         assert "STRICT-QA BLOCK CANDIDATES: 2" in output
+
+    def test_sources_label_qa_artifacts(self) -> None:
+        """Source label for QA artifact count should read 'QA artifacts:'."""
+        text = format_inventory_summary(_summary_for_format())
+        assert "QA artifacts:" in text
+
+    def test_sources_label_merge_reports(self) -> None:
+        """Source label for merge report count should read 'Merge reports:'."""
+        text = format_inventory_summary(_summary_for_format())
+        assert "Merge reports:" in text
+
+    def test_sources_label_not_mangled(self) -> None:
+        """Source labels should NOT contain the old mangled forms."""
+        text = format_inventory_summary(_summary_for_format())
+        assert "Qa artifact" not in text
+        assert "Merge report:" not in text or "Merge reports:" in text
 
     def test_empty_section_omitted(self) -> None:
         summary = InventorySummary(

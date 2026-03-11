@@ -214,6 +214,11 @@ def build_inventory_summary(
 # Terminal formatter
 # ---------------------------------------------------------------------------
 
+_SOURCE_LABELS: dict[str, str] = {
+    "qa_artifact_count": "QA artifacts:",
+    "merge_report_count": "Merge reports:",
+}
+
 _SECTION_DEFS: tuple[tuple[str, str], ...] = (
     ("adapter_status_counts", "ADAPTER STATUS"),
     ("adapter_flag_counts", "STRUCTURAL FLAGS"),
@@ -241,9 +246,7 @@ def format_inventory_summary(summary: InventorySummary) -> str:
     lines.append("  SOURCES")
     lines.append("  " + "-" * 40)
     for key in sorted(summary.sources):
-        label = key.replace("_", " ").replace("count", "").strip()
-        # Capitalise first word only for readability
-        label = label[0].upper() + label[1:] + ":" if label else key + ":"
+        label = _SOURCE_LABELS.get(key, key + ":")
         lines.append(f"  {label:<20s}{summary.sources[key]}")
 
     # --- Count-map sections (omitted when empty) ---
