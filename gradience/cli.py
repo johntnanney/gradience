@@ -2281,6 +2281,19 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             print(f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(weak_labels)} flagged as weak.")
             print("  Recommendations withheld. Review source adapter quality before merging.")
             sys.exit(1)
+        if diag.eligibility.any_unverified:
+            from gradience.vnext.merge.eligibility import EligibilityStatus
+
+            unverified_labels = []
+            if diag.eligibility.status_a == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL:
+                unverified_labels.append("A")
+            if diag.eligibility.status_b == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL:
+                unverified_labels.append("B")
+            print(
+                f"\nError: --strict-qa gate failed. Adapter(s) {', '.join(unverified_labels)} have no behavioral evaluation."
+            )
+            print("  Strict mode requires behavioral evidence for eligibility. Provide evaluation scores via audit-adapter.")
+            sys.exit(1)
 
     # --- Output ---
     if getattr(args, "json", False):

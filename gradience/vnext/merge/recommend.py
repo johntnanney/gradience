@@ -125,6 +125,14 @@ class EligibilityContext:
     def both_eligible(self) -> bool:
         return self.status_a == EligibilityStatus.ELIGIBLE and self.status_b == EligibilityStatus.ELIGIBLE
 
+    @property
+    def any_unverified(self) -> bool:
+        """True if either adapter has no behavioral evaluation."""
+        return (
+            self.status_a == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
+            or self.status_b == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
+        )
+
 
 @dataclass(frozen=True)
 class PairDiagnosis:

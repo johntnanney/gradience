@@ -254,6 +254,28 @@ class TestScreenAdapters:
 # ---------------------------------------------------------------------------
 
 
+class TestEligibilityContextProperties:
+    def test_eligibility_context_any_unverified(self):
+        """any_unverified should be True when either adapter has unknown status."""
+        from gradience.vnext.merge.recommend import EligibilityContext
+
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.ELIGIBLE,
+            status_b=EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL,
+        )
+        assert ctx.any_unverified is True
+
+    def test_eligibility_context_not_unverified_when_both_known(self):
+        """any_unverified should be False when both have behavioral eval."""
+        from gradience.vnext.merge.recommend import EligibilityContext
+
+        ctx = EligibilityContext(
+            status_a=EligibilityStatus.ELIGIBLE,
+            status_b=EligibilityStatus.UNCERTAIN,
+        )
+        assert ctx.any_unverified is False
+
+
 class TestPublicAPI:
     def test_importable_from_merge(self):
         from gradience.vnext.merge import (
