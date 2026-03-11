@@ -49,7 +49,7 @@ class AdapterSummary:
     alpha: float
     n_layers: int
     base_model: str
-    eligibility: str  # "eligible" | "flagged_weak" | "uncertain" | "unknown_no_behavioral_eval" | "not provided"
+    eligibility_status: str | None  # EligibilityStatus value or None when no QA provided
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -58,7 +58,7 @@ class AdapterSummary:
             "alpha": float(self.alpha),
             "n_layers": self.n_layers,
             "base_model": self.base_model,
-            "eligibility": self.eligibility,
+            "eligibility_status": self.eligibility_status,
         }
 
 
@@ -125,11 +125,11 @@ class MergeQAReport:
 # ---------------------------------------------------------------------------
 
 
-def _eligibility_label(diag: PairDiagnosis, which: str) -> str:
-    """Get a human-readable eligibility label for adapter A or B."""
+def _eligibility_label(diag: PairDiagnosis, which: str) -> str | None:
+    """Get eligibility status for adapter A or B, or None if no QA provided."""
     status = diag.eligibility.status_a if which == "a" else diag.eligibility.status_b
     if status is None:
-        return "not provided"
+        return None
     return status.value
 
 
@@ -292,7 +292,7 @@ def build_qa_report(report: Any) -> MergeQAReport:
         alpha=getattr(adapter_a_info, "alpha", 0.0),
         n_layers=getattr(adapter_a_info, "n_layers", 0),
         base_model=getattr(adapter_a_info, "base_model", "unknown"),
-        eligibility=_eligibility_label(diag, "a"),
+        eligibility_status=_eligibility_label(diag, "a"),
     )
 
     adapter_b = AdapterSummary(
@@ -301,7 +301,7 @@ def build_qa_report(report: Any) -> MergeQAReport:
         alpha=getattr(adapter_b_info, "alpha", 0.0),
         n_layers=getattr(adapter_b_info, "n_layers", 0),
         base_model=getattr(adapter_b_info, "base_model", "unknown"),
-        eligibility=_eligibility_label(diag, "b"),
+        eligibility_status=_eligibility_label(diag, "b"),
     )
 
     score = getattr(agg, "compatibility_score", agg.get("compatibility_score", 0.0) if hasattr(agg, "get") else 0.0)
@@ -395,8 +395,8 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append("  2. BEHAVIORAL STATUS")
     lines.append("  " + "-" * 40)
 
-    lines.append(f"  Adapter A eligibility: {qa.adapter_a.eligibility}")
-    lines.append(f"  Adapter B eligibility: {qa.adapter_b.eligibility}")
+    lines.append(f"  Adapter A eligibility: {qa.adapter_a.eligibility_status}")
+    lines.append(f"  Adapter B eligibility: {qa.adapter_b.eligibility_status}")
 
     lines.append("")
     lines.append(f"  Confidence: {qa.confidence_note}")

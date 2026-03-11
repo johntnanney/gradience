@@ -121,12 +121,12 @@ class TestAdapterSummary:
             alpha=16.0,
             n_layers=32,
             base_model="llama",
-            eligibility="eligible",
+            eligibility_status="eligible",
         )
         d = s.to_dict()
         assert d["path"] == "/tmp/a"
         assert d["rank"] == 8
-        assert d["eligibility"] == "eligible"
+        assert d["eligibility_status"] == "eligible"
 
 
 # ---------------------------------------------------------------------------
@@ -222,12 +222,12 @@ class TestBuildQAReport:
         assert "redundan" in qa.dominant_issue.lower()
 
     def test_eligibility_not_provided(self):
-        """No source QA → eligibility shows 'not provided'."""
+        """No source QA → eligibility_status is None."""
         report = _FakeReport([_make_lv_dict("safe")])
         qa = build_qa_report(report)
 
-        assert qa.adapter_a.eligibility == "not provided"
-        assert qa.adapter_b.eligibility == "not provided"
+        assert qa.adapter_a.eligibility_status is None
+        assert qa.adapter_b.eligibility_status is None
         assert any("no source-eligibility" in c.lower() for c in qa.caveats)
 
     def test_eligibility_both_eligible(self):
@@ -241,8 +241,8 @@ class TestBuildQAReport:
         )
         qa = build_qa_report(report)
 
-        assert qa.adapter_a.eligibility == "eligible"
-        assert qa.adapter_b.eligibility == "eligible"
+        assert qa.adapter_a.eligibility_status == "eligible"
+        assert qa.adapter_b.eligibility_status == "eligible"
         assert "verified" in qa.confidence_note.lower() or "both" in qa.confidence_note.lower()
 
     def test_eligibility_one_weak(self):
@@ -256,7 +256,7 @@ class TestBuildQAReport:
         )
         qa = build_qa_report(report)
 
-        assert qa.adapter_b.eligibility == "flagged_weak"
+        assert qa.adapter_b.eligibility_status == "flagged_weak"
         assert any("underperform" in c.lower() or "weak" in c.lower() for c in qa.caveats)
 
     def test_eligibility_both_weak(self):
