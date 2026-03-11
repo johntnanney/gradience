@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from gradience.exceptions import QASchemaError
+from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.merge.recommend import (
     MergeRecommendation,
     PairDiagnosis,
@@ -39,6 +41,8 @@ from gradience.vnext.merge.recommend import (
 # Constants
 # ---------------------------------------------------------------------------
 
+SCHEMA_ID = "gradience.merge_qa_report/v1"
+
 DOMINANT_ISSUE_LABELS = frozenset(
     {
         "norm_imbalance",
@@ -49,6 +53,9 @@ DOMINANT_ISSUE_LABELS = frozenset(
         "unknown",
     }
 )
+
+PAIR_RISK_VALUES = frozenset({"low", "medium", "high"})
+CONFIDENCE_VALUES = frozenset({"high", "medium", "low"})
 
 # ---------------------------------------------------------------------------
 # Data structure
@@ -75,6 +82,66 @@ class AdapterSummary:
             "base_model": self.base_model,
             "eligibility_status": self.eligibility_status,
         }
+
+
+def _validate_adapter_summary(raw: dict[str, Any], section_name: str) -> AdapterSummary:
+    """Validate and construct an AdapterSummary from a raw dict.
+
+    Required fields: ``path`` (str), ``rank`` (numeric -> int).
+    Optional: ``alpha`` (numeric -> float, default 0.0),
+    ``n_layers`` (int, default 0), ``base_model`` (str, default ""),
+    ``eligibility_status`` (valid EligibilityStatus value or None).
+
+    Raises ``QASchemaError`` on contract violations.
+    Extra keys are silently ignored.
+    """
+    # path (required, str)
+    if "path" not in raw:
+        raise QASchemaError(f"Missing required field: {section_name}.path")
+    path = str(raw["path"])
+
+    # rank (required, numeric -> int)
+    if "rank" not in raw:
+        raise QASchemaError(f"Missing required field: {section_name}.rank")
+    raw_rank = raw["rank"]
+    if not isinstance(raw_rank, (int, float)):
+        raise QASchemaError(f"Field '{section_name}.rank' must be numeric, got {type(raw_rank).__name__}")
+    rank = int(raw_rank)
+
+    # alpha (optional, numeric -> float)
+    raw_alpha = raw.get("alpha", 0.0)
+    if not isinstance(raw_alpha, (int, float)):
+        raise QASchemaError(f"Field '{section_name}.alpha' must be numeric, got {type(raw_alpha).__name__}")
+    alpha = float(raw_alpha)
+
+    # n_layers (optional, int)
+    n_layers = int(raw.get("n_layers", 0))
+
+    # base_model (optional, str)
+    base_model = str(raw.get("base_model", ""))
+
+    # eligibility_status (optional; if present and non-null, must be valid EligibilityStatus)
+    raw_eligibility = raw.get("eligibility_status")
+    if raw_eligibility is None:
+        eligibility_status = None
+    else:
+        try:
+            EligibilityStatus(raw_eligibility)
+        except ValueError:
+            raise QASchemaError(
+                f"Unknown eligibility_status in {section_name}: '{raw_eligibility}'. "
+                f"Valid values: {[e.value for e in EligibilityStatus]}"
+            ) from None
+        eligibility_status = raw_eligibility
+
+    return AdapterSummary(
+        path=path,
+        rank=rank,
+        alpha=alpha,
+        n_layers=n_layers,
+        base_model=base_model,
+        eligibility_status=eligibility_status,
+    )
 
 
 @dataclass(frozen=True)
@@ -124,20 +191,105 @@ class MergeQAReport:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> MergeQAReport:
-        """Reconstruct from a dict (e.g. loaded from JSON)."""
+        """Deserialize from a v1 schema dict.
+
+        This is the single canonical gatekeeper for the merge_qa_report/v1
+        schema.  Validates schema identity, required sections, type
+        enforcement, and controlled vocabularies.  Raises
+        ``QASchemaError`` for contract violations.  Extra keys are
+        silently ignored for forward compatibility.
+        """
+        # --- Schema identity ---
+        if "schema" not in d:
+            raise QASchemaError("Missing required field: schema")
+        if d["schema"] != SCHEMA_ID:
+            raise QASchemaError(f"Expected schema '{SCHEMA_ID}', got '{d['schema']}'")
+
+        # --- Required adapter sections ---
+        for section_name in ("adapter_a", "adapter_b"):
+            if section_name not in d:
+                raise QASchemaError(f"Missing required section: {section_name}")
+            if not isinstance(d[section_name], dict):
+                raise QASchemaError(f"Section '{section_name}' must be a dict")
+
+        adapter_a = _validate_adapter_summary(d["adapter_a"], "adapter_a")
+        adapter_b = _validate_adapter_summary(d["adapter_b"], "adapter_b")
+
+        # --- pair_risk ---
+        if "pair_risk" not in d:
+            raise QASchemaError("Missing required field: pair_risk")
+        pair_risk = d["pair_risk"]
+        if pair_risk not in PAIR_RISK_VALUES:
+            raise QASchemaError(f"Invalid pair_risk '{pair_risk}'. Must be one of: {sorted(PAIR_RISK_VALUES)}")
+
+        # --- dominant_issue ---
+        if "dominant_issue" not in d:
+            raise QASchemaError("Missing required field: dominant_issue")
+        dominant_issue = d["dominant_issue"]
+        if dominant_issue not in DOMINANT_ISSUE_LABELS:
+            raise QASchemaError(
+                f"Unknown dominant_issue '{dominant_issue}'. Must be one of: {sorted(DOMINANT_ISSUE_LABELS)}"
+            )
+
+        # --- recommended_strategy (required, but lenient on values for forward compat) ---
+        if "recommended_strategy" not in d:
+            raise QASchemaError("Missing required field: recommended_strategy")
+        recommended_strategy = str(d["recommended_strategy"])
+
+        # --- confidence ---
+        if "confidence" not in d:
+            raise QASchemaError("Missing required field: confidence")
+        confidence = d["confidence"]
+        if confidence not in CONFIDENCE_VALUES:
+            raise QASchemaError(f"Invalid confidence '{confidence}'. Must be one of: {sorted(CONFIDENCE_VALUES)}")
+
+        # --- compatibility_score (numeric -> float) ---
+        if "compatibility_score" not in d:
+            raise QASchemaError("Missing required field: compatibility_score")
+        raw_score = d["compatibility_score"]
+        if not isinstance(raw_score, (int, float)):
+            raise QASchemaError(f"Field 'compatibility_score' must be numeric, got {type(raw_score).__name__}")
+        compatibility_score = float(raw_score)
+
+        # --- Optional string fields (backfill to "" if absent) ---
+        dominant_issue_detail = str(d.get("dominant_issue_detail", ""))
+        confidence_note = str(d.get("confidence_note", ""))
+        recommended_action = str(d.get("recommended_action", ""))
+
+        # --- caveats (list[str] if present, backfill to () if absent) ---
+        raw_caveats = d.get("caveats")
+        if raw_caveats is None:
+            caveats: tuple[str, ...] = ()
+        else:
+            if not isinstance(raw_caveats, list) or not all(isinstance(x, str) for x in raw_caveats):
+                raise QASchemaError("Field 'caveats' must be a list of strings")
+            caveats = tuple(raw_caveats)
+
+        # --- verdict_distribution (dict with int values if present, backfill to {} if absent) ---
+        raw_vd = d.get("verdict_distribution")
+        if raw_vd is None:
+            verdict_distribution: dict[str, int] = {}
+        else:
+            if not isinstance(raw_vd, dict):
+                raise QASchemaError("Field 'verdict_distribution' must be a dict")
+            for k, v in raw_vd.items():
+                if not isinstance(v, int):
+                    raise QASchemaError(f"verdict_distribution['{k}'] must be int, got {type(v).__name__}")
+            verdict_distribution = raw_vd
+
         return cls(
-            adapter_a=AdapterSummary(**d["adapter_a"]),
-            adapter_b=AdapterSummary(**d["adapter_b"]),
-            pair_risk=d["pair_risk"],
-            dominant_issue=d["dominant_issue"],
-            dominant_issue_detail=d.get("dominant_issue_detail", ""),
-            recommended_action=d["recommended_action"],
-            recommended_strategy=d["recommended_strategy"],
-            confidence=d.get("confidence", "medium"),
-            confidence_note=d["confidence_note"],
-            caveats=tuple(d["caveats"]),
-            verdict_distribution=d["verdict_distribution"],
-            compatibility_score=d["compatibility_score"],
+            adapter_a=adapter_a,
+            adapter_b=adapter_b,
+            pair_risk=pair_risk,
+            dominant_issue=dominant_issue,
+            dominant_issue_detail=dominant_issue_detail,
+            recommended_action=recommended_action,
+            recommended_strategy=recommended_strategy,
+            confidence=confidence,
+            confidence_note=confidence_note,
+            caveats=caveats,
+            verdict_distribution=verdict_distribution,
+            compatibility_score=compatibility_score,
         )
 
 

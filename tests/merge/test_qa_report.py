@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 
+from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult
 from gradience.vnext.merge.qa_report import (
+    SCHEMA_ID,
     AdapterSummary,
     MergeQAReport,
     build_qa_report,
@@ -423,3 +426,156 @@ class TestStrategyDerivation:
         )
         qa = build_qa_report(report)
         assert qa.recommended_strategy == "audit_aware"
+
+
+# ---------------------------------------------------------------------------
+# Tests — from_dict validation
+# ---------------------------------------------------------------------------
+
+
+def _minimal_report_dict(**overrides: Any) -> dict[str, Any]:
+    """Return a minimal valid merge_qa_report/v1 dict, with optional overrides."""
+    d: dict[str, Any] = {
+        "schema": SCHEMA_ID,
+        "adapter_a": {
+            "path": "/tmp/a",
+            "rank": 8,
+            "alpha": 16.0,
+            "n_layers": 32,
+            "base_model": "llama",
+            "eligibility_status": "eligible",
+        },
+        "adapter_b": {
+            "path": "/tmp/b",
+            "rank": 16,
+            "alpha": 32.0,
+            "n_layers": 32,
+            "base_model": "llama",
+            "eligibility_status": None,
+        },
+        "pair_risk": "low",
+        "dominant_issue": "none",
+        "dominant_issue_detail": "adapters are spectrally compatible",
+        "recommended_action": "Merge is safe.",
+        "recommended_strategy": "linear",
+        "confidence": "high",
+        "confidence_note": "High spectral compatibility",
+        "caveats": ["caveat one"],
+        "verdict_distribution": {"safe": 30, "redundant": 2, "conflicting": 0, "imbalanced": 0},
+        "compatibility_score": 0.85,
+    }
+    d.update(overrides)
+    return d
+
+
+class TestFromDictValidation:
+    """Strict validation tests for MergeQAReport.from_dict()."""
+
+    def test_valid_roundtrip(self):
+        """Valid dict round-trips through from_dict -> to_dict."""
+        d = _minimal_report_dict()
+        report = MergeQAReport.from_dict(d)
+        assert report.pair_risk == "low"
+        assert report.adapter_a.path == "/tmp/a"
+        assert report.adapter_a.rank == 8
+        assert report.adapter_b.eligibility_status is None
+        assert report.dominant_issue == "none"
+        assert report.recommended_strategy == "linear"
+        assert report.confidence == "high"
+        assert report.compatibility_score == pytest.approx(0.85)
+        assert report.caveats == ("caveat one",)
+        assert report.verdict_distribution["safe"] == 30
+
+        # Round-trip through to_dict
+        d2 = report.to_dict()
+        report2 = MergeQAReport.from_dict(d2)
+        assert report2.pair_risk == report.pair_risk
+        assert report2.adapter_a.rank == report.adapter_a.rank
+
+    def test_missing_schema(self):
+        d = _minimal_report_dict()
+        del d["schema"]
+        with pytest.raises(QASchemaError, match="Missing required field: schema"):
+            MergeQAReport.from_dict(d)
+
+    def test_wrong_schema(self):
+        d = _minimal_report_dict(schema="gradience.wrong/v99")
+        with pytest.raises(QASchemaError, match="Expected schema"):
+            MergeQAReport.from_dict(d)
+
+    def test_missing_adapter_section(self):
+        d = _minimal_report_dict()
+        del d["adapter_a"]
+        with pytest.raises(QASchemaError, match="Missing required section: adapter_a"):
+            MergeQAReport.from_dict(d)
+
+    def test_bad_pair_risk(self):
+        d = _minimal_report_dict(pair_risk="extreme")
+        with pytest.raises(QASchemaError, match="Invalid pair_risk"):
+            MergeQAReport.from_dict(d)
+
+    def test_unknown_dominant_issue(self):
+        d = _minimal_report_dict(dominant_issue="cosmic_rays")
+        with pytest.raises(QASchemaError, match="Unknown dominant_issue"):
+            MergeQAReport.from_dict(d)
+
+    def test_unknown_eligibility_status(self):
+        d = _minimal_report_dict()
+        d["adapter_a"]["eligibility_status"] = "super_eligible"
+        with pytest.raises(QASchemaError, match="Unknown eligibility_status"):
+            MergeQAReport.from_dict(d)
+
+    def test_bad_confidence(self):
+        d = _minimal_report_dict(confidence="very_high")
+        with pytest.raises(QASchemaError, match="Invalid confidence"):
+            MergeQAReport.from_dict(d)
+
+    def test_caveats_must_be_list_of_str(self):
+        d = _minimal_report_dict(caveats=[1, 2, 3])
+        with pytest.raises(QASchemaError, match="caveats.*list of strings"):
+            MergeQAReport.from_dict(d)
+
+    def test_verdict_distribution_values_must_be_int(self):
+        d = _minimal_report_dict(verdict_distribution={"safe": 1.5})
+        with pytest.raises(QASchemaError, match="verdict_distribution.*must be int"):
+            MergeQAReport.from_dict(d)
+
+    def test_extra_keys_ignored(self):
+        d = _minimal_report_dict(future_field="hello", another_extra=42)
+        report = MergeQAReport.from_dict(d)
+        assert report.pair_risk == "low"
+
+    def test_null_eligibility_accepted(self):
+        d = _minimal_report_dict()
+        d["adapter_a"]["eligibility_status"] = None
+        d["adapter_b"]["eligibility_status"] = None
+        report = MergeQAReport.from_dict(d)
+        assert report.adapter_a.eligibility_status is None
+        assert report.adapter_b.eligibility_status is None
+
+    def test_missing_optional_fields_backfilled(self):
+        d = _minimal_report_dict()
+        del d["dominant_issue_detail"]
+        del d["confidence_note"]
+        del d["recommended_action"]
+        del d["caveats"]
+        del d["verdict_distribution"]
+        report = MergeQAReport.from_dict(d)
+        assert report.dominant_issue_detail == ""
+        assert report.confidence_note == ""
+        assert report.recommended_action == ""
+        assert report.caveats == ()
+        assert report.verdict_distribution == {}
+
+    def test_numeric_rank_normalized_to_int(self):
+        d = _minimal_report_dict()
+        d["adapter_a"]["rank"] = 8.0  # float instead of int
+        report = MergeQAReport.from_dict(d)
+        assert report.adapter_a.rank == 8
+        assert isinstance(report.adapter_a.rank, int)
+
+    def test_unknown_strategy_accepted(self):
+        """recommended_strategy is lenient for forward compatibility."""
+        d = _minimal_report_dict(recommended_strategy="future_strategy_v3")
+        report = MergeQAReport.from_dict(d)
+        assert report.recommended_strategy == "future_strategy_v3"
