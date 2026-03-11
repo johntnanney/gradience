@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import glob
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -586,6 +587,26 @@ class TestFromDictValidation:
 # ---------------------------------------------------------------------------
 # Tests — example files
 # ---------------------------------------------------------------------------
+
+
+class TestStrictReloadInvariant:
+    """from_dict(to_dict(obj)) must produce an identical object."""
+
+    def test_roundtrip_identity_safe(self) -> None:
+        p = Path("examples/reports/safe_merge_report.json")
+        with open(p) as f:
+            d = json.load(f)
+        original = MergeQAReport.from_dict(d)
+        reloaded = MergeQAReport.from_dict(original.to_dict())
+        assert reloaded == original
+
+    def test_roundtrip_identity_high_risk(self) -> None:
+        p = Path("examples/reports/high_risk_warn_report.json")
+        with open(p) as f:
+            d = json.load(f)
+        original = MergeQAReport.from_dict(d)
+        reloaded = MergeQAReport.from_dict(original.to_dict())
+        assert reloaded == original
 
 
 class TestExampleFiles:

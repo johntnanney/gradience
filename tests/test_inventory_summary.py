@@ -386,6 +386,31 @@ class TestExampleFiles:
         assert summary.sources["qa_artifact_count"] >= 0
 
 
+class TestStrictReloadInvariant:
+    """from_dict(to_dict(obj)) must produce an identical object."""
+
+    def test_roundtrip_identity(self) -> None:
+        d = _valid_dict()
+        original = InventorySummary.from_dict(d)
+        reloaded = InventorySummary.from_dict(original.to_dict())
+        assert reloaded == original
+
+    def test_roundtrip_with_empty_counts(self) -> None:
+        d = _valid_dict()
+        d["adapter_flag_counts"] = {}
+        d["pair_risk_counts"] = {}
+        original = InventorySummary.from_dict(d)
+        reloaded = InventorySummary.from_dict(original.to_dict())
+        assert reloaded == original
+
+    def test_roundtrip_with_notes(self) -> None:
+        d = _valid_dict()
+        d["notes"] = ["note one", "note two"]
+        original = InventorySummary.from_dict(d)
+        reloaded = InventorySummary.from_dict(original.to_dict())
+        assert reloaded == original
+
+
 class TestIntegrationWithExampleFiles:
     def test_summarize_from_existing_examples(self) -> None:
         """Build summary from the existing QA and report example files."""

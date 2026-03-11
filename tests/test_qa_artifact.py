@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -656,6 +657,33 @@ class TestPublicAPI:
         from gradience import InventorySummary
 
         assert hasattr(InventorySummary, "from_dict")
+
+
+# ---------------------------------------------------------------------------
+# Strict reload invariant
+# ---------------------------------------------------------------------------
+
+
+class TestStrictReloadInvariant:
+    """from_dict(to_dict(obj)) must produce an identical object."""
+
+    def test_roundtrip_identity_eligible(self) -> None:
+        """Load an eligible example, round-trip, verify equality."""
+        p = Path("examples/qa/eligible_adapter_qa.json")
+        with open(p) as f:
+            d = json.load(f)
+        original = AdapterQAArtifact.from_dict(d)
+        reloaded = AdapterQAArtifact.from_dict(original.to_dict())
+        assert reloaded == original
+
+    def test_roundtrip_identity_structural_only(self) -> None:
+        """Load a structural-only example, round-trip, verify equality."""
+        p = Path("examples/qa/structural_only_qa.json")
+        with open(p) as f:
+            d = json.load(f)
+        original = AdapterQAArtifact.from_dict(d)
+        reloaded = AdapterQAArtifact.from_dict(original.to_dict())
+        assert reloaded == original
 
 
 # ---------------------------------------------------------------------------
