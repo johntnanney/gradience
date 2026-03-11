@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import glob
 import json
 import tempfile
 from pathlib import Path
@@ -353,3 +354,34 @@ class TestFormatInventorySummary:
         assert "DOMINANT ISSUES" not in output
         # But ADAPTER STATUS should still be present
         assert "ADAPTER STATUS" in output
+
+
+# ---------------------------------------------------------------------------
+# Example file smoke tests
+# ---------------------------------------------------------------------------
+
+
+class TestExampleFiles:
+    @pytest.mark.parametrize("path", sorted(glob.glob("examples/inventory/*.json")))
+    def test_example_loads_via_from_dict(self, path: str) -> None:
+        with open(path) as f:
+            d = json.load(f)
+        summary = InventorySummary.from_dict(d)
+        assert summary.sources["qa_artifact_count"] >= 0
+
+
+class TestIntegrationWithExampleFiles:
+    def test_summarize_from_existing_examples(self) -> None:
+        """Build summary from the existing QA and report example files."""
+        from gradience.api import summarize_inventory
+
+        summary = summarize_inventory(
+            qa_dir="examples/qa",
+            report_dir="examples/reports",
+        )
+        assert summary.sources["qa_artifact_count"] >= 1
+        assert summary.sources["merge_report_count"] >= 1
+        # Round-trip
+        d = summary.to_dict()
+        summary2 = InventorySummary.from_dict(d)
+        assert summary2 == summary
