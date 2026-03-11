@@ -68,6 +68,8 @@ from gradience import api
 
 # Exception hierarchy
 from gradience.exceptions import GradienceError
+from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.telemetry import TelemetryReader, TelemetryWriter
 
 
@@ -99,6 +101,9 @@ __all__ = [
     "api",
     # Exception hierarchy
     "GradienceError",
+    # Adapter QA schema
+    "AdapterQAArtifact",
+    "EligibilityStatus",
     # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",

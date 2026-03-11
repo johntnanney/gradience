@@ -325,6 +325,86 @@ def monitor(
     return MonitorResult(returncode=returncode, log_path=log_p)
 
 
+def audit_adapter(
+    *,
+    peft_dir: str | Path,
+    base_model: str | None = None,
+    adapter_score: float | None = None,
+    base_score: float | None = None,
+    metric_name: str | None = None,
+    lower_is_better: bool = True,
+    eval_dataset: str | None = None,
+    margin: float = 0.0,
+    notes: list[str] | None = None,
+    adapter_config_path: str | Path | None = None,
+    adapter_weights_path: str | Path | None = None,
+    base_norms_cache: str | Path | None = None,
+    compute_udr: bool = True,
+) -> Any:
+    """Produce an AdapterQAArtifact from a PEFT adapter directory.
+
+    This is the preferred stable Python entry point for producing adapter
+    QA artifacts.  It runs the structural audit internally and builds the
+    artifact through the same policy path as the CLI.
+
+    Parameters
+    ----------
+    peft_dir
+        Path to the PEFT adapter directory.
+    base_model
+        Base model identifier (e.g. ``meta-llama/Llama-2-7b-hf``).
+    adapter_score, base_score
+        Behavioral evaluation scores.  Both must be provided for
+        behavioral eligibility classification.
+    metric_name
+        Name of the evaluation metric.
+    lower_is_better
+        True for metrics like perplexity where lower = better.
+    eval_dataset
+        Dataset used for evaluation.
+    margin
+        Tolerance margin for eligibility classification (symmetric).
+    notes
+        Optional list of caveats or annotations.
+    adapter_config_path, adapter_weights_path
+        Override default adapter config/weights file detection.
+    base_norms_cache
+        Path to cached base model norms for UDR computation.
+    compute_udr
+        Whether to compute Update Dominance Ratio metrics.
+
+    Returns
+    -------
+    AdapterQAArtifact
+        The canonical QA artifact for this adapter.
+    """
+    from gradience.vnext.audit import audit_lora_peft_dir
+    from gradience.vnext.audit.qa_artifact import build_qa_artifact
+
+    result = audit_lora_peft_dir(
+        str(peft_dir),
+        adapter_config_path=str(adapter_config_path) if adapter_config_path else None,
+        adapter_weights_path=str(adapter_weights_path) if adapter_weights_path else None,
+        map_location="cpu",
+        base_model_id=base_model,
+        base_norms_cache=str(base_norms_cache) if base_norms_cache else None,
+        compute_udr=compute_udr,
+    )
+
+    return build_qa_artifact(
+        result,
+        adapter_path=str(peft_dir),
+        base_model=base_model or "",
+        adapter_score=adapter_score,
+        base_score=base_score,
+        metric_name=metric_name,
+        lower_is_better=lower_is_better,
+        eval_dataset=eval_dataset,
+        margin=margin,
+        notes=notes,
+    )
+
+
 # -----------------------------
 # Convenience: load canonical artifacts
 # -----------------------------
