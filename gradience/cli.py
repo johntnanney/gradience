@@ -3110,7 +3110,7 @@ def _setup_audit_adapter_command(subparsers):
         "--out",
         type=str,
         default=None,
-        help="Write QA artifact JSON to this path",
+        help="Write QA artifact JSON to this path (overwrites existing file)",
     )
     p.add_argument(
         "--json",
@@ -3205,7 +3205,7 @@ def _setup_merge_audit_command(subparsers):
         "--emit-report",
         type=str,
         default=None,
-        help="Write structured JSON report to this path (e.g. report.json)",
+        help="Write structured JSON report to this path (overwrites existing file)",
     )
     merge_audit_parser.add_argument(
         "--strict-qa",
@@ -3363,7 +3363,12 @@ def _setup_summarize_inventory_command(subparsers):
     )
     p.add_argument("--qa-dir", type=str, default=None, help="Directory to scan for QA artifact JSON files")
     p.add_argument("--report-dir", type=str, default=None, help="Directory to scan for merge report JSON files")
-    p.add_argument("--emit-report", type=str, default=None, help="Write inventory summary v1 JSON to this path")
+    p.add_argument(
+        "--emit-report",
+        type=str,
+        default=None,
+        help="Write inventory summary v1 JSON to this path (overwrites existing file)",
+    )
     p.add_argument("--strict-input", action="store_true", help="Fail on first malformed file")
     p.set_defaults(func=cmd_summarize_inventory)
 
