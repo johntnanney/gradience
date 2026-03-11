@@ -389,3 +389,37 @@ class TestQAReportSerialization:
         assert restored.pair_risk == qa.pair_risk
         assert restored.recommended_strategy == qa.recommended_strategy
         assert restored.adapter_a.path == qa.adapter_a.path
+
+
+# ---------------------------------------------------------------------------
+# Tests — strategy derivation
+# ---------------------------------------------------------------------------
+
+
+class TestStrategyDerivation:
+    def test_low_risk_no_compression_is_linear(self):
+        """Low-risk, no compression -> linear."""
+        report = _FakeReport(
+            [
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.q_proj"),
+                _make_lv_dict("safe", layer_name="model.layers.0.self_attn.v_proj"),
+            ]
+        )
+        qa = build_qa_report(report)
+        assert qa.recommended_strategy == "linear"
+
+    def test_high_risk_is_audit_aware(self):
+        """High-risk -> audit_aware."""
+        report = _FakeReport(
+            [
+                _make_lv_dict(
+                    "conflicting",
+                    mean_overlap=0.6,
+                    directional_agreement=-0.5,
+                    conflict_dimensions=3,
+                    layer_name="model.layers.0.self_attn.q_proj",
+                ),
+            ]
+        )
+        qa = build_qa_report(report)
+        assert qa.recommended_strategy == "audit_aware"

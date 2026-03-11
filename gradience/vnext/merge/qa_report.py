@@ -288,6 +288,23 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
     return tuple(caveats)
 
 
+def _derive_strategy(diag: PairDiagnosis, rec: MergeRecommendation) -> str:
+    """Derive the primary recommended strategy from diagnosis.
+
+    Policy:
+      low risk + no compression  -> "linear"
+      medium risk + no compression -> "norm_equalized"
+      otherwise (high risk or compression needed) -> "audit_aware"
+    """
+    if diag.compression_needed:
+        return "audit_aware"
+    if diag.overall_risk == "low":
+        return "linear"
+    if diag.overall_risk == "medium":
+        return "norm_equalized"
+    return "audit_aware"
+
+
 def _derive_confidence(diag: PairDiagnosis, score: float) -> str:
     """Derive categorical confidence level."""
     if not diag.eligibility.has_data:
@@ -358,7 +375,7 @@ def build_qa_report(report: Any) -> MergeQAReport:
         dominant_issue=issue_label,
         dominant_issue_detail=issue_detail,
         recommended_action=_recommended_action(diag, rec, agg),
-        recommended_strategy=rec.overall_strategy,
+        recommended_strategy=_derive_strategy(diag, rec),
         confidence=confidence,
         confidence_note=_confidence_note(diag, score),
         caveats=_caveats(diag, rec),
