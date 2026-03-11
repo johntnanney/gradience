@@ -19,6 +19,7 @@ from gradience.vnext.audit.qa_artifact import (
     derive_confidence,
     derive_structural_flags,
 )
+from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.eligibility import AdapterQAResult, EligibilityStatus
 
 # ---------------------------------------------------------------------------
@@ -98,12 +99,6 @@ class TestSchemaOutput:
         parsed = json.loads(serialized)
         assert parsed["schema"] == SCHEMA_VERSION
 
-    def test_from_dict_unknown_status_on_bad_value(self):
-        d = _make_artifact().to_dict()
-        d["eligibility"]["status"] = "bogus_value"
-        art = AdapterQAArtifact.from_dict(d)
-        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
-
     def test_effective_rank_90_median_key(self):
         """JSON output uses 'effective_rank_90_median', not 'energy_rank_90_p50'."""
         d = _make_artifact().to_dict()
@@ -135,11 +130,9 @@ class TestSchemaOutput:
         restored = AdapterQAArtifact.from_dict(d)
         assert restored.notes == ["structural audit only"]
 
-    def test_from_dict_empty(self):
-        art = AdapterQAArtifact.from_dict({})
-        assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
-        assert art.adapter_name == ""
-        assert art.confidence == CONFIDENCE_LOW
+    def test_from_dict_empty_raises(self):
+        with pytest.raises(QASchemaError):
+            AdapterQAArtifact.from_dict({})
 
 
 # ---------------------------------------------------------------------------
@@ -536,6 +529,93 @@ class TestExampleFiles:
         # Roundtrip
         d2 = art.to_dict()
         assert d2["eligibility"]["status"] == expected_status
+
+
+# ---------------------------------------------------------------------------
+# from_dict validation tests
+# ---------------------------------------------------------------------------
+
+
+class TestFromDictValidation:
+    def test_rejects_missing_schema(self):
+        with pytest.raises(QASchemaError, match="Missing required field: schema"):
+            AdapterQAArtifact.from_dict({"adapter": {}})
+
+    def test_rejects_wrong_schema(self):
+        d = _make_artifact().to_dict()
+        d["schema"] = "gradience.adapter_qa/v2"
+        with pytest.raises(QASchemaError, match="Expected schema"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_missing_section(self):
+        d = _make_artifact().to_dict()
+        del d["eligibility"]
+        with pytest.raises(QASchemaError, match="Missing required section: eligibility"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_section_not_dict(self):
+        d = _make_artifact().to_dict()
+        d["adapter"] = "not a dict"
+        with pytest.raises(QASchemaError, match="must be a dict"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_missing_required_field(self):
+        d = _make_artifact().to_dict()
+        del d["adapter"]["rank_nominal"]
+        with pytest.raises(QASchemaError, match="rank_nominal"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_unknown_status(self):
+        d = _make_artifact().to_dict()
+        d["eligibility"]["status"] = "experimental_new_status"
+        with pytest.raises(QASchemaError, match="Unknown eligibility status"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_bad_confidence(self):
+        d = _make_artifact().to_dict()
+        d["eligibility"]["confidence"] = "super_high"
+        with pytest.raises(QASchemaError, match="confidence"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_flags_not_list_of_str(self):
+        d = _make_artifact().to_dict()
+        d["structural_summary"]["flags"] = [1, 2, 3]
+        with pytest.raises(QASchemaError, match="flags"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_rejects_notes_not_list_of_str(self):
+        d = _make_artifact().to_dict()
+        d["notes"] = "not a list"
+        with pytest.raises(QASchemaError, match="notes"):
+            AdapterQAArtifact.from_dict(d)
+
+    def test_accepts_numeric_as_float(self):
+        """Integer values for float fields should be accepted and normalized."""
+        d = _make_artifact().to_dict()
+        d["structural_summary"]["utilization_mean"] = 0  # int, not float
+        d["structural_summary"]["rank_waste_ratio"] = 1  # int, not float
+        art = AdapterQAArtifact.from_dict(d)
+        assert isinstance(art.utilization_mean, float)
+        assert isinstance(art.rank_waste_ratio, float)
+
+    def test_missing_notes_backfilled(self):
+        d = _make_artifact().to_dict()
+        del d["notes"]
+        art = AdapterQAArtifact.from_dict(d)
+        assert art.notes == []
+
+    def test_missing_reasons_backfilled(self):
+        d = _make_artifact().to_dict()
+        del d["eligibility"]["reasons"]
+        art = AdapterQAArtifact.from_dict(d)
+        assert art.reasons == []
+
+    def test_extra_keys_ignored(self):
+        d = _make_artifact().to_dict()
+        d["provenance"] = {"generated_by": "test"}
+        d["adapter"]["extra_field"] = "ignored"
+        art = AdapterQAArtifact.from_dict(d)
+        assert art.adapter_name == "test-adapter"
 
 
 # ---------------------------------------------------------------------------

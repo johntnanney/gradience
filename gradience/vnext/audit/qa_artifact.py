@@ -18,6 +18,7 @@ import statistics
 from dataclasses import dataclass, field
 from typing import Any
 
+from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.eligibility import AdapterQAResult, EligibilityStatus
 
 # ---------------------------------------------------------------------------
@@ -154,6 +155,29 @@ def build_reasons(
 
 
 # ---------------------------------------------------------------------------
+# from_dict validation helpers
+# ---------------------------------------------------------------------------
+
+
+def _require_field(section: dict, field_name: str, section_name: str) -> Any:
+    if field_name not in section:
+        raise QASchemaError(f"Missing required field: {section_name}.{field_name}")
+    return section[field_name]
+
+
+def _require_list_of_str(value: Any, field_name: str) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(x, str) for x in value):
+        raise QASchemaError(f"Field '{field_name}' must be a list of strings")
+    return value
+
+
+def _to_float(value: Any, field_name: str) -> float:
+    if not isinstance(value, (int, float)):
+        raise QASchemaError(f"Field '{field_name}' must be numeric, got {type(value).__name__}")
+    return float(value)
+
+
+# ---------------------------------------------------------------------------
 # QA artifact dataclass
 # ---------------------------------------------------------------------------
 
@@ -235,30 +259,92 @@ class AdapterQAArtifact:
 
     @staticmethod
     def from_dict(d: dict[str, Any]) -> AdapterQAArtifact:
-        """Deserialize from a v1 schema dict."""
-        adapter = d.get("adapter", {})
-        structural = d.get("structural_summary", {})
-        behavioral = d.get("behavioral_summary", {})
-        eligibility = d.get("eligibility", {})
+        """Deserialize from a v1 schema dict.
 
+        This is the single canonical gatekeeper for the v1 schema.
+        Validates required sections, required fields with type enforcement,
+        known status values, and known confidence levels.  Raises
+        ``QASchemaError`` for contract violations.  Extra keys are
+        silently ignored for forward compatibility.
+        """
+        # --- Schema identity ---
+        if "schema" not in d:
+            raise QASchemaError("Missing required field: schema")
+        if d["schema"] != SCHEMA_VERSION:
+            raise QASchemaError(f"Expected schema '{SCHEMA_VERSION}', got '{d['schema']}'")
+
+        # --- Required sections ---
+        for section_name in ("adapter", "structural_summary", "behavioral_summary", "eligibility"):
+            if section_name not in d:
+                raise QASchemaError(f"Missing required section: {section_name}")
+            if not isinstance(d[section_name], dict):
+                raise QASchemaError(f"Section '{section_name}' must be a dict")
+
+        adapter = d["adapter"]
+        structural = d["structural_summary"]
+        behavioral = d["behavioral_summary"]
+        eligibility = d["eligibility"]
+
+        # --- Required fields with type enforcement ---
+        adapter_name = str(_require_field(adapter, "name", "adapter"))
+        adapter_path = str(_require_field(adapter, "path", "adapter"))
+        rank_nominal = int(_require_field(adapter, "rank_nominal", "adapter"))
+
+        utilization_mean = _to_float(
+            _require_field(structural, "utilization_mean", "structural_summary"),
+            "structural_summary.utilization_mean",
+        )
+        rank_waste_ratio = _to_float(
+            _require_field(structural, "rank_waste_ratio", "structural_summary"),
+            "structural_summary.rank_waste_ratio",
+        )
+
+        eval_available_raw = _require_field(behavioral, "eval_available", "behavioral_summary")
+        if not isinstance(eval_available_raw, bool):
+            raise QASchemaError("Field 'behavioral_summary.eval_available' must be a bool")
+        eval_available = eval_available_raw
+
+        status_raw = _require_field(eligibility, "status", "eligibility")
         try:
-            status = EligibilityStatus(eligibility.get("status", "unknown_no_behavioral_eval"))
+            status = EligibilityStatus(status_raw)
         except ValueError:
-            status = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
+            raise QASchemaError(
+                f"Unknown eligibility status: '{status_raw}'. "
+                f"Valid values: {[e.value for e in EligibilityStatus]}"
+            )
 
+        # --- Optional fields with type validation ---
+        confidence = eligibility.get("confidence", CONFIDENCE_LOW)
+        if confidence not in (CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, CONFIDENCE_LOW):
+            raise QASchemaError(f"Invalid confidence '{confidence}'. Must be one of: high, medium, low")
+
+        # list[str] fields — validate if present, backfill if absent
+        raw_flags = structural.get("flags", [])
+        structural_flags = _require_list_of_str(raw_flags, "structural_summary.flags")
+
+        raw_reasons = eligibility.get("reasons", [])
+        reasons = _require_list_of_str(raw_reasons, "eligibility.reasons")
+
+        raw_notes = d.get("notes")
+        if raw_notes is None:
+            notes: list[str] = []
+        else:
+            notes = _require_list_of_str(raw_notes, "notes")
+
+        # --- Remaining optional fields (lenient) ---
         return AdapterQAArtifact(
-            adapter_name=str(adapter.get("name", "")),
-            adapter_path=str(adapter.get("path", "")),
+            adapter_name=adapter_name,
+            adapter_path=adapter_path,
             base_model=str(adapter.get("base_model", "")),
-            rank_nominal=int(adapter.get("rank_nominal", 0)),
+            rank_nominal=rank_nominal,
             n_layers=int(adapter.get("n_layers", 0)),
-            utilization_mean=float(structural.get("utilization_mean", 0.0)),
+            utilization_mean=utilization_mean,
             utilization_median=float(structural.get("utilization_median", 0.0)),
             stable_rank_mean=float(structural.get("stable_rank_mean", 0.0)),
             energy_rank_90_p50=structural.get("effective_rank_90_median", structural.get("energy_rank_90_p50")),
-            rank_waste_ratio=float(structural.get("rank_waste_ratio", 0.0)),
-            structural_flags=list(structural.get("flags", [])),
-            eval_available=bool(behavioral.get("eval_available", False)),
+            rank_waste_ratio=rank_waste_ratio,
+            structural_flags=structural_flags,
+            eval_available=eval_available,
             eval_dataset=behavioral.get("eval_dataset"),
             metric_name=behavioral.get("metric_name"),
             adapter_score=behavioral.get("adapter_score"),
@@ -266,9 +352,9 @@ class AdapterQAArtifact:
             lower_is_better=behavioral.get("lower_is_better"),
             beats_base=behavioral.get("beats_base"),
             status=status,
-            confidence=str(eligibility.get("confidence", CONFIDENCE_LOW)),
-            reasons=list(eligibility.get("reasons", [])),
-            notes=list(d.get("notes", [])),
+            confidence=confidence,
+            reasons=reasons,
+            notes=notes,
         )
 
     def to_qa_result(self) -> AdapterQAResult:
