@@ -1,0 +1,34 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "./adapters/sql_lora",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "./adapters/code_lora",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "linear",
+  "confidence": "high",
+  "confidence_note": "High spectral compatibility (score=0.912) -- both adapters have verified behavioral quality",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 30,
+    "redundant": 2,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.912
+}

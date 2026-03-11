@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "./adapters/summarize_lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "./adapters/translate_lora",
+    "rank": 32,
+    "alpha": 64.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": null
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "4.1x mean magnitude ratio across 8 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.410) -- no behavioral evaluation data available, so recommendation is based on structural analysis only",
+  "caveats": [
+    "No source-eligibility data was provided for Adapter B. The recommendation optimizes structural balance only and cannot predict downstream task performance.",
+    "8 layer(s) are over-provisioned. Pre-compression before merging may improve results.",
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 12,
+    "redundant": 4,
+    "conflicting": 8,
+    "imbalanced": 8
+  },
+  "compatibility_score": 0.41
+}

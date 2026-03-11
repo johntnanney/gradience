@@ -10,6 +10,7 @@ import pytest
 from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult
 from gradience.vnext.merge.qa_report import (
+    DOMINANT_ISSUE_LABELS,
     SCHEMA_ID,
     AdapterSummary,
     MergeQAReport,
@@ -579,3 +580,20 @@ class TestFromDictValidation:
         d = _minimal_report_dict(recommended_strategy="future_strategy_v3")
         report = MergeQAReport.from_dict(d)
         assert report.recommended_strategy == "future_strategy_v3"
+
+
+# ---------------------------------------------------------------------------
+# Tests — example files
+# ---------------------------------------------------------------------------
+
+import glob
+
+
+class TestExampleFiles:
+    @pytest.mark.parametrize("path", sorted(glob.glob("examples/reports/*.json")))
+    def test_example_loads_via_from_dict(self, path):
+        with open(path) as f:
+            d = json.load(f)
+        report = MergeQAReport.from_dict(d)
+        assert report.pair_risk in ("low", "medium", "high")
+        assert report.dominant_issue in DOMINANT_ISSUE_LABELS
