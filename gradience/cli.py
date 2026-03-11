@@ -2047,7 +2047,7 @@ def _print_qa_summary(artifact: Any) -> None:
     print(f"  Utilization (median):  {artifact.utilization_median:.3f}")
     print(f"  Stable rank (mean):    {artifact.stable_rank_mean:.3f}")
     if artifact.energy_rank_90_p50 is not None:
-        print(f"  Energy rank 90 p50:    {artifact.energy_rank_90_p50:.1f}")
+        print(f"  Effective rank 90 (median):  {artifact.energy_rank_90_p50:.1f}")
     print(f"  Rank waste ratio:      {artifact.rank_waste_ratio:.3f}")
     if artifact.structural_flags:
         print(f"  Flags:                 {', '.join(artifact.structural_flags)}")

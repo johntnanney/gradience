@@ -11,7 +11,7 @@
     "utilization_mean": 0.18,
     "utilization_median": 0.14,
     "stable_rank_mean": 1.4,
-    "energy_rank_90_p50": 1.8,
+    "effective_rank_90_median": 1.8,
     "rank_waste_ratio": 0.82,
     "flags": [
       "low_utilization",

@@ -104,6 +104,12 @@ class TestSchemaOutput:
         art = AdapterQAArtifact.from_dict(d)
         assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
 
+    def test_effective_rank_90_median_key(self):
+        """JSON output uses 'effective_rank_90_median', not 'energy_rank_90_p50'."""
+        d = _make_artifact().to_dict()
+        assert "effective_rank_90_median" in d["structural_summary"]
+        assert "energy_rank_90_p50" not in d["structural_summary"]
+
     def test_from_dict_empty(self):
         art = AdapterQAArtifact.from_dict({})
         assert art.status == EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
