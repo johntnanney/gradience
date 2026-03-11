@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import glob
 import json
 from typing import Any
 
@@ -585,8 +586,6 @@ class TestFromDictValidation:
 # ---------------------------------------------------------------------------
 # Tests — example files
 # ---------------------------------------------------------------------------
-
-import glob
 
 
 class TestExampleFiles:

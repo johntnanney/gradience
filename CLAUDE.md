@@ -164,6 +164,23 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - Canonical examples in `examples/qa/` — one per status
 - Definition doc: `docs/adapter-qa-artifact.md`
 
+### Merge QA Report (`vnext/merge/qa_report.py`)
+
+- Schema: `gradience.merge_qa_report/v1` — frozen, additive-only versioning
+- `MergeQAReport` is stable public API (exported from `gradience.__init__`)
+- `gradience.api.merge_risk_report()` is the stable Python entry point (CLI-delegating wrapper)
+- `from_dict()` is the single validation gatekeeper — raises `QASchemaError` on contract violations
+- `eligibility_status` per adapter: canonical `EligibilityStatus` value or `null` (no QA provided)
+- `dominant_issue`: machine-readable label from frozen set (`norm_imbalance`, `subspace_conflict`, `high_redundancy`, `partial_redundancy`, `none`, `unknown`)
+- `dominant_issue_detail`: human-readable explanation companion to `dominant_issue`
+- `recommended_strategy`: operational — `"linear"` (low risk), `"norm_equalized"` (medium), `"audit_aware"` (high/compression)
+- `recommended_action`: explanatory prose, does not override `recommended_strategy`
+- `confidence`: categorical (`"high"`, `"medium"`, `"low"`); `confidence_note` is prose companion
+- `--emit-report` writes v1 JSON; `--qa-report` prints 4-section terminal format
+- `--strict-qa` blocks `flagged_weak`, `unknown_no_behavioral_eval`, and `null` eligibility
+- Canonical examples in `examples/reports/` — one per scenario (safe, high-risk warning, strict-blocked)
+- Definition doc: `docs/merge-risk-report.md`
+
 ## CI/CD
 
 GitHub Actions workflows:
