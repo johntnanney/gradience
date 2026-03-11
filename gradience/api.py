@@ -486,6 +486,110 @@ def merge_risk_report(
         emit_path.unlink(missing_ok=True)
 
 
+def summarize_inventory(
+    *,
+    qa_dir: str | Path | None = None,
+    report_dir: str | Path | None = None,
+    qa_paths: list[str | Path] | None = None,
+    report_paths: list[str | Path] | None = None,
+    strict_input: bool = False,
+) -> Any:
+    """Build an :class:`~gradience.vnext.inventory.summary.InventorySummary`.
+
+    Scans directories and/or explicit file paths for adapter QA artifacts
+    and merge risk reports, then aggregates them into a single summary.
+
+    Parameters
+    ----------
+    qa_dir
+        Directory to glob for ``*.json`` adapter QA artifacts.
+    report_dir
+        Directory to glob for ``*.json`` merge risk reports.
+    qa_paths
+        Explicit paths to adapter QA artifact JSON files.
+    report_paths
+        Explicit paths to merge risk report JSON files.
+    strict_input
+        When ``False`` (default), malformed files are skipped with a
+        warning to stderr.  When ``True``, exceptions from ``from_dict()``
+        are re-raised immediately.
+
+    Returns
+    -------
+    InventorySummary
+        The aggregated inventory summary.
+
+    Raises
+    ------
+    ValueError
+        If no input source is provided.
+    """
+    import sys
+
+    from gradience.vnext.audit.qa_artifact import AdapterQAArtifact as _AdapterQAArtifact
+    from gradience.vnext.inventory.summary import build_inventory_summary as _build_inventory_summary
+    from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
+
+    if qa_dir is None and report_dir is None and not qa_paths and not report_paths:
+        raise ValueError("At least one of qa_dir, report_dir, qa_paths, or report_paths must be provided")
+
+    # --- Collect file paths ---
+    qa_files: list[Path] = []
+    report_files: list[Path] = []
+
+    if qa_dir is not None:
+        qa_files.extend(sorted(Path(qa_dir).glob("*.json")))
+    if qa_paths:
+        qa_files.extend(Path(p) for p in qa_paths)
+
+    if report_dir is not None:
+        report_files.extend(sorted(Path(report_dir).glob("*.json")))
+    if report_paths:
+        report_files.extend(Path(p) for p in report_paths)
+
+    # --- Load artifacts ---
+    artifacts: list[Any] = []
+    for fp in qa_files:
+        try:
+            data = _read_json(fp)
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
+            continue
+        schema = data.get("schema", "")
+        if not isinstance(schema, str) or not schema.startswith("gradience.adapter_qa/"):
+            continue
+        try:
+            artifacts.append(_AdapterQAArtifact.from_dict(data))
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping malformed QA artifact: {fp}", file=sys.stderr)
+
+    # --- Load merge reports ---
+    reports: list[Any] = []
+    for fp in report_files:
+        try:
+            data = _read_json(fp)
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
+            continue
+        schema = data.get("schema", "")
+        if not isinstance(schema, str) or not schema.startswith("gradience.merge_qa_report/"):
+            continue
+        try:
+            reports.append(_MergeQAReport.from_dict(data))
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping malformed merge report: {fp}", file=sys.stderr)
+
+    return _build_inventory_summary(artifacts, reports)
+
+
 # -----------------------------
 # Convenience: load canonical artifacts
 # -----------------------------

@@ -652,6 +652,11 @@ class TestPublicAPI:
 
         assert hasattr(MergeQAReport, "from_dict")
 
+    def test_inventory_summary_importable_from_gradience(self):
+        from gradience import InventorySummary
+
+        assert hasattr(InventorySummary, "from_dict")
+
 
 # ---------------------------------------------------------------------------
 # Helpers
