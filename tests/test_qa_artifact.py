@@ -647,6 +647,11 @@ class TestPublicAPI:
 
         assert callable(audit_adapter)
 
+    def test_merge_qa_report_importable_from_gradience(self):
+        from gradience import MergeQAReport
+
+        assert hasattr(MergeQAReport, "from_dict")
+
 
 # ---------------------------------------------------------------------------
 # Helpers

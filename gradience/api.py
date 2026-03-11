@@ -410,6 +410,87 @@ def audit_adapter(
 # -----------------------------
 
 
+def merge_risk_report(
+    *,
+    adapter_a: str | Path,
+    adapter_b: str | Path,
+    source_a_qa: str | Path | None = None,
+    source_b_qa: str | Path | None = None,
+    thresholds: str = "default",
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
+    check: bool = True,
+) -> Any:
+    """Run merge-audit and return the pair-level MergeQAReport.
+
+    This is the stable Python wrapper for the ``merge-audit --qa-report
+    --emit-report`` workflow. It delegates report generation to the CLI,
+    then loads the resulting JSON as a ``MergeQAReport``.
+
+    Parameters
+    ----------
+    adapter_a, adapter_b
+        Paths to the two PEFT adapter directories.
+    source_a_qa, source_b_qa
+        Optional paths to adapter QA artifact JSON files.
+    thresholds
+        Threshold preset: ``"default"``, ``"conservative"``, or ``"permissive"``.
+
+    Returns
+    -------
+    MergeQAReport
+        The canonical pair-level merge risk report.
+    """
+    import tempfile
+
+    adapter_a_p = Path(adapter_a)
+    adapter_b_p = Path(adapter_b)
+
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+        emit_path = Path(tmp.name)
+
+    try:
+        argv = [
+            _pyexe(python),
+            "-m",
+            "gradience",
+            "merge-audit",
+            "--adapter-a",
+            str(adapter_a_p),
+            "--adapter-b",
+            str(adapter_b_p),
+            "--qa-report",
+            "--emit-report",
+            str(emit_path),
+            "--thresholds",
+            thresholds,
+        ]
+        if source_a_qa:
+            argv.extend(["--source-a-qa", str(Path(source_a_qa))])
+        if source_b_qa:
+            argv.extend(["--source-b-qa", str(Path(source_b_qa))])
+
+        _run(
+            argv,
+            env=env,
+            check=check,
+            log_path=Path(log_path) if log_path else None,
+        )
+
+        report_data = _read_json(emit_path)
+        from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
+
+        return _MergeQAReport.from_dict(report_data)
+    finally:
+        emit_path.unlink(missing_ok=True)
+
+
+# -----------------------------
+# Convenience: load canonical artifacts
+# -----------------------------
+
+
 def load_bench_report(output_dir: str | Path) -> dict[str, Any]:
     """Load <output_dir>/bench.json."""
     logger.debug("Loading bench report from %s", output_dir)
