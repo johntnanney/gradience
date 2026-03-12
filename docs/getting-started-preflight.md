@@ -24,12 +24,14 @@ Since this adapter has no behavioral evaluation, the artifact will have `eligibi
 
 ## Step 2: Run a Merge Audit
 
-Produce a `MergeQAReport` comparing two adapters. For this demo, we compare the adapter against itself:
+Produce a `MergeQAReport` comparing two adapters. For this demo, we compare the adapter against itself (a real workflow would use two different adapters). We feed in the QA artifact from Step 1 so the report includes source eligibility context:
 
 ```bash
 gradience merge-audit \
   --adapter-a examples/adapters/tiny_lora \
   --adapter-b examples/adapters/tiny_lora \
+  --source-a-qa /tmp/gradience_preflight/qa_artifact.json \
+  --source-b-qa /tmp/gradience_preflight/qa_artifact.json \
   --emit-report /tmp/gradience_preflight/merge_report.json
 ```
 
@@ -77,11 +79,12 @@ The `--strict-qa` flag on `merge-audit` blocks merges when either adapter lacks 
 gradience merge-audit \
   --adapter-a examples/adapters/tiny_lora \
   --adapter-b examples/adapters/tiny_lora \
-  --strict-qa \
-  --emit-report /tmp/gradience_preflight/strict_report.json
+  --source-a-qa /tmp/gradience_preflight/qa_artifact.json \
+  --source-b-qa /tmp/gradience_preflight/qa_artifact.json \
+  --strict-qa
 ```
 
-Expected: non-zero exit code, error message about adapter eligibility.
+Expected: non-zero exit code, error message about adapter eligibility (because neither adapter has behavioral evaluation).
 
 ## Cleanup
 
@@ -106,7 +109,7 @@ report = merge_risk_report(
 )
 
 # Step 3: Summarize (direct aggregation from JSON files)
-summary = summarize_inventory(qa_dir="examples/qa", report_dir="examples/reports")
+summary = summarize_inventory(qa_dir="/tmp/gradience_preflight", report_dir="/tmp/gradience_preflight")
 ```
 
 ## Demo Bundle
