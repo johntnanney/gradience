@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "code-lora-r16",
+    "path": "./adapters/code_lora",
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "rank_nominal": 16,
+    "n_layers": 32
+  },
+  "structural_summary": {
+    "utilization_mean": 0.61,
+    "utilization_median": 0.58,
+    "stable_rank_mean": 9.8,
+    "effective_rank_90_median": 9.0,
+    "rank_waste_ratio": 0.39,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "mbpp",
+    "metric_name": "pass_at_1",
+    "adapter_score": 0.34,
+    "base_score": 0.22,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on pass_at_1 (mbpp)"
+    ]
+  },
+  "notes": []
+}

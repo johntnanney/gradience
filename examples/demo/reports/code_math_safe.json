@@ -1,0 +1,36 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "./adapters/code_lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "./adapters/math_lora",
+    "rank": 64,
+    "alpha": 128.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "eligibility_status": "unknown_no_behavioral_eval"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters occupy largely orthogonal subspaces",
+  "recommended_action": "Merge is structurally safe. Validate on downstream tasks.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Good spectral compatibility but adapter B lacks behavioral evaluation",
+  "caveats": [
+    "Adapter B has no behavioral evaluation. Structural compatibility does not guarantee task quality."
+  ],
+  "verdict_distribution": {
+    "safe": 28,
+    "redundant": 3,
+    "conflicting": 1,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.874
+}

@@ -109,6 +109,10 @@ report = merge_risk_report(
 summary = summarize_inventory(qa_dir="examples/qa", report_dir="examples/reports")
 ```
 
+## Demo Bundle
+
+For a pre-built set of artifacts covering all key cases (eligible, weak, and missing-QA adapters; safe and risky merge pairs; inventory summary), see `examples/demo/`.
+
 ## Next Steps
 
 - See `docs/adapter-qa-artifact.md` for the adapter QA schema contract

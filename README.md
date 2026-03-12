@@ -359,6 +359,7 @@ Gradience is a **preflight QA and merge-risk layer** for LoRA adapter decisions,
 
 ## Examples
 
+- **[Curated demo bundle](https://github.com/johntnanney/gradience/tree/main/examples/demo/)** -- Complete preflight artifacts: eligible, weak, and missing-QA adapters; safe and risky merge pairs; inventory summary
 - **[Minimal integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
 - **[HF Trainer integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
 - **[Experiment configs](https://github.com/johntnanney/gradience/tree/main/examples/configs/)** -- Define experimental protocols
