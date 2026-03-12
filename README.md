@@ -26,15 +26,17 @@
 
 - **ML researchers studying training dynamics** -- Use spectral measurements to probe how low-rank structure emerges and evolves during fine-tuning
 - **Researchers comparing adaptation strategies** -- Generate reproducible, statistically rigorous evidence across seeds, ranks, and tasks
-- **Practitioners applying findings** -- Translate spectral insights into validated compression configurations
+- **Practitioners managing adapter inventories** -- Screen adapter quality, assess merge risk, and run preflight checks before deployment
 
 ## What you get
 
+- **Adapter QA** -- Structural eligibility screening for individual LoRA adapters, with machine-readable artifacts
+- **Merge-risk reporting** -- Pairwise geometric compatibility analysis with per-layer verdicts, strategy recommendations, and risk levels
+- **Inventory preflight** -- Aggregated summary across adapters and merge pairs, with strict-QA gating for deployment workflows
 - **Spectral measurements** -- Per-layer SVD analysis yielding stable rank, energy concentration, utilization ratios, and rank waste quantification
 - **Training telemetry** -- Structured JSONL recording of spectral evolution across training steps
-- **Reproducible experimental infrastructure** -- Multi-seed benchmarking with statistical aggregation, tolerance-based validation, and automated candidate generation
 - **Merge compatibility analysis** -- Principal angle and directional agreement measurements between adapter pairs, with per-layer geometric characterization
-- **Publication-ready artifacts** -- JSON data, Markdown reports, and aggregate statistics suitable for tables and figures
+- **Reproducible experimental infrastructure** -- Multi-seed benchmarking with statistical aggregation, tolerance-based validation, and automated candidate generation
 
 ## Install
 
@@ -137,15 +139,22 @@ cat results/audit.json  # Per-layer spectral analysis
 
 **Performance expectations**: First run ~60-90s (model download + training), subsequent runs ~30s (cached).
 
+## Preflight artifacts
+
+The standard preflight workflow produces machine-readable QA and risk artifacts:
+
+- **`*_qa.json`** -- Adapter QA artifact (`gradience.adapter_qa/v1`): structural summary, eligibility status, behavioral evidence
+- **`*_report.json`** -- Merge risk report (`gradience.merge_qa_report/v1`): pairwise risk level, recommended strategy, dominant issue
+- **`inventory_summary.json`** -- Inventory summary (`gradience.inventory_summary/v1`): aggregated counts across adapters and pairs
+
 ## Experimental artifacts
 
-Every benchmark run produces a complete experimental record:
+Benchmark runs produce additional experimental records:
 
 - **`audit.json`** -- Per-layer spectral decomposition: stable rank, energy concentration, utilization ratios, rank waste
 - **`bench.json`** -- Full validation results with per-seed metrics and statistical comparisons
 - **`bench.md`** -- Human-readable summary of findings
 - **`bench_aggregate.json`** -- Multi-seed statistical aggregation (mean, std, confidence intervals, effect sizes)
-- **`compression_configs.json`** -- Derived rank configurations from spectral analysis (multiple policy variants)
 - **`merge_audit.json`** -- Per-layer geometric compatibility between two adapters (principal angles, directional agreement, magnitude balance)
 - **`merge_audit.md`** -- Human-readable merge compatibility report with per-layer characterization
 
@@ -234,7 +243,34 @@ gradience monitor output/run.jsonl --verbose
 gradience audit --peft-dir output/adapter --layers --json
 ```
 
-## Example workflow
+## Default workflow: preflight QA
+
+The standard Gradience workflow screens adapters and merge pairs before deployment:
+
+```bash
+# 1. Audit each adapter
+gradience audit-adapter --peft-dir ./adapter_a --out qa/adapter_a_qa.json
+gradience audit-adapter --peft-dir ./adapter_b --out qa/adapter_b_qa.json
+
+# 2. Assess merge risk (with source QA context)
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
+    --source-a-qa qa/adapter_a_qa.json --source-b-qa qa/adapter_b_qa.json \
+    --emit-report reports/ab_report.json
+
+# 3. Aggregate inventory
+gradience summarize-inventory --qa-dir qa/ --report-dir reports/ \
+    --emit-report inventory/summary.json
+
+# 4. Gate on quality (optional strict mode)
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
+    --source-a-qa qa/adapter_a_qa.json --source-b-qa qa/adapter_b_qa.json --strict-qa
+```
+
+See **[Getting Started: Preflight](https://github.com/johntnanney/gradience/blob/main/docs/getting-started-preflight.md)** for the full walkthrough and **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** for interpretation examples.
+
+## Experimental workflow
+
+For research into spectral training dynamics:
 
 ```bash
 # 1. Train with telemetry (or use existing adapter)
@@ -251,36 +287,11 @@ gradience-bench --config my_config.yaml --output experiment_results/
 
 # 5. Examine statistical evidence
 cat experiment_results/bench_aggregate.json
-
-# 6. Before merging adapters, measure geometric compatibility
-gradience merge-audit --adapter-a adapter_code/ --adapter-b adapter_chat/ --output-dir merge_analysis/
 ```
-
-## Source QA workflow
-
-Before merging adapters, assess each adapter's standalone quality:
-
-```bash
-# Audit each adapter with behavioral context
-gradience audit-adapter --peft-dir ./adapter_a \
-    --eval-dataset oasst2 --metric-name perplexity \
-    --adapter-score 3.21 --base-score 4.66 \
-    --lower-is-better --out adapter_a_qa.json
-
-# Feed QA artifacts into merge audit
-gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
-    --source-a-qa adapter_a_qa.json --source-b-qa adapter_b_qa.json
-
-# Use --strict-qa to gate on source quality
-gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
-    --source-a-qa adapter_a_qa.json --source-b-qa adapter_b_qa.json --strict-qa
-```
-
-See **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** for the full workflow guide, interpretation examples, and strict QA gating.
 
 ## Configuration
 
-Experiment configs specify model, task, derivation policies, and validation criteria:
+Experiment configs specify model, task, and validation criteria:
 
 ```yaml
 model:
@@ -294,14 +305,12 @@ lora:
   r: 16              # Probe rank
   target_modules: ["q_lin", "v_lin"]
 
-compression:
-  policies: ["energy_p90", "knee_p90", "uniform"]
-  tolerance: 0.02    # 2% quality loss threshold
-
 runtime:
   device: "auto"
   seed: [42, 43, 45]  # Multi-seed validation
 ```
+
+See **[Configuration Reference](https://github.com/johntnanney/gradience/blob/main/docs/configs.md)** for the full schema including experimental options.
 
 ## Requirements
 
@@ -328,21 +337,25 @@ Every release is validated with comprehensive CI gates:
 
 ## What Gradience is
 
-Gradience is a **research instrument**, not a product. Specifically:
+Gradience is a **preflight QA and merge-risk layer** for LoRA adapter decisions, backed by spectral measurement:
 
-- **A measurement tool** -- It computes spectral metrics (stable rank, energy concentration, utilization) from adapter weights. It does not tune hyperparameters or make architectural decisions.
-- **An experimental protocol** -- It structures multi-seed validation so that findings about rank structure are reproducible and statistically grounded.
-- **A companion to your training stack** -- It instruments and analyzes; it does not replace your trainer, optimizer, or evaluation pipeline.
-- **A source of evidence, not prescriptions** -- Spectral measurements inform your analysis. The interpretation is yours.
+- **A structural screening tool** -- It audits individual adapters for spectral health and screens merge pairs for geometric compatibility
+- **A merge-risk reporting system** -- It produces machine-readable risk artifacts with per-layer verdicts, strategy recommendations, and strict-QA gating
+- **An inventory preflight layer** -- It aggregates adapter-level and pair-level judgments into deployment-ready summaries
+- **A research instrument** -- It computes spectral metrics (stable rank, energy concentration, utilization) from adapter weights for training dynamics research
+- **A companion to your training stack** -- It instruments and analyzes; it does not replace your trainer, optimizer, or evaluation pipeline
+- **A source of evidence, not prescriptions** -- Spectral measurements inform your analysis. The interpretation is yours
 
 ## API Stability
 
 **Stable interfaces** (backwards compatible):
-- CLI commands (`gradience audit`, `gradience merge-audit`, `gradience-bench`, etc.)
+- CLI commands (`gradience audit-adapter`, `gradience merge-audit`, `gradience summarize-inventory`, `gradience-bench`, etc.)
+- Frozen artifact schemas: `gradience.adapter_qa/v1`, `gradience.merge_qa_report/v1`, `gradience.inventory_summary/v1`
+- Python API: `gradience.api.audit_adapter()`, `gradience.api.merge_risk_report()`, `gradience.api.summarize_inventory()`
 - Config schema (YAML structure)
 - Output artifacts (`audit.json`, `bench.json`, `bench.md`, `merge_audit.json`, `merge_audit.md`)
 
-**Experimental features** are clearly marked and may change.
+**Experimental features** (including spectral compression) are clearly marked and may change.
 
 ## Examples
 
