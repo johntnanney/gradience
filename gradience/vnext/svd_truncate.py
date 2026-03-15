@@ -16,6 +16,7 @@ Key features:
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -25,6 +26,8 @@ import torch
 import numpy as np
 
 from gradience.exceptions import AuditError, ConfigError
+
+logger = logging.getLogger(__name__)
 
 from .audit.lora_audit import (
     find_peft_files,
@@ -96,7 +99,7 @@ def _parse_and_pair_lora_matrices(
                 
                 # Check if B matrix exists
                 if lora_B_key not in state_dict:
-                    print(f"Warning: Found LoRA A key '{key}' but no matching B key '{lora_B_key}'")
+                    logger.warning("Found LoRA A key '%s' but no matching B key '%s'", key, lora_B_key)
                     continue
                 
                 lora_A = tensor
@@ -104,14 +107,14 @@ def _parse_and_pair_lora_matrices(
                 
                 # Validate shapes are compatible for LoRA: A (r, d_in), B (d_out, r)
                 if lora_A.dim() != 2 or lora_B.dim() != 2:
-                    print(f"Warning: LoRA tensors must be 2D. A: {lora_A.shape}, B: {lora_B.shape}")
+                    logger.warning("LoRA tensors must be 2D. A: %s, B: %s", lora_A.shape, lora_B.shape)
                     continue
                 
                 r_A, d_in = lora_A.shape
                 d_out, r_B = lora_B.shape
                 
                 if r_A != r_B:
-                    print(f"Warning: Rank mismatch between A and B. A rank: {r_A}, B rank: {r_B}")
+                    logger.warning("Rank mismatch between A and B. A rank: %d, B rank: %d", r_A, r_B)
                     continue
                 
                 # Create base key for grouping (remove lora_A/lora_B specific parts)
@@ -126,17 +129,16 @@ def _parse_and_pair_lora_matrices(
                 }
                 
             except (KeyError, ValueError, RuntimeError) as e:
-                print(f"Warning: Failed to process LoRA A key '{key}': {e}")
+                logger.warning("Failed to process LoRA A key '%s': %s", key, e)
                 continue
     
-    print(f"Found {len(complete_pairs)} complete LoRA A/B pairs")
-    
-    # Debug: print first few pairs for verification
+    logger.info("Found %d complete LoRA A/B pairs", len(complete_pairs))
+
     for i, (base_key, pair) in enumerate(complete_pairs.items()):
-        if i < 3:  # Show first 3 pairs
+        if i < 3:
             A_key, A_tensor = pair["A"]
             B_key, B_tensor = pair["B"]
-            print(f"  Pair {i+1}: {A_key} {A_tensor.shape} <-> {B_key} {B_tensor.shape}")
+            logger.debug("  Pair %d: %s %s <-> %s %s", i + 1, A_key, A_tensor.shape, B_key, B_tensor.shape)
     
     return complete_pairs
 
@@ -243,14 +245,14 @@ def _update_adapter_config(
         else:
             # Fallback: use target_rank as alpha (common default)
             new_config["lora_alpha"] = float(target_rank)
-            print(f"Warning: Could not preserve alpha ratio, using alpha={target_rank}")
+            logger.warning("Could not preserve alpha ratio, using alpha=%d", target_rank)
     elif alpha_mode == "keep_alpha":
         # Keep original alpha unchanged (scaling will change)
         if config.lora_alpha is not None:
             new_config["lora_alpha"] = config.lora_alpha
         else:
             new_config["lora_alpha"] = float(target_rank)
-            print(f"Warning: No original alpha found, using alpha={target_rank}")
+            logger.warning("No original alpha found, using alpha=%d", target_rank)
     
     # Set rank_pattern and alpha_pattern to empty dicts for uniform truncation
     # IMPORTANT: Don't remove these keys entirely - PEFT expects them to exist
@@ -396,7 +398,7 @@ def svd_truncate_peft_dir(
         # Fallback to torch.save if safetensors not available
         weights_out_path = out_dir / "adapter_model.pt"
         torch.save(new_state_dict, weights_out_path)
-        print("Warning: safetensors not available, saved as .pt file")
+        logger.warning("safetensors not available, saved as .pt file")
     
     # 3. Save truncation report (OPTIONAL but highly useful for debugging)
     report_path = out_dir / "truncation_report.json"
@@ -419,7 +421,7 @@ def svd_truncate_peft_dir(
                 shutil.copy2(item, out_dir / item.name)
                 copied_files.append(item.name)
             except (OSError, PermissionError) as e:
-                print(f"Warning: Failed to copy {item.name}: {e}")
+                logger.warning("Failed to copy %s: %s", item.name, e)
     
     # 5. Generate a simple README for the truncated adapter
     readme_path = out_dir / "README.md"

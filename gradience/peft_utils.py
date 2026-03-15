@@ -2,6 +2,12 @@
 Utilities for working with PEFT (Parameter Efficient Fine-Tuning) configurations.
 """
 
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+
 def normalize_peft_module_name(name: str) -> str:
     """
     Normalize module names for PEFT compatibility.
@@ -141,7 +147,7 @@ def create_complete_alpha_pattern(
     return complete_pattern
 
 
-def find_adapter_weights_path(variant_dir) -> str:
+def find_adapter_weights_path(variant_dir: str | Path) -> str:
     """
     Robust adapter weight path detection for rank checks and auditing.
     
@@ -159,9 +165,8 @@ def find_adapter_weights_path(variant_dir) -> str:
     Raises:
         FileNotFoundError: If no adapter_model.safetensors found
     """
-    from pathlib import Path
     import os
-    
+
     variant_path = Path(variant_dir)
     
     # Strategy 1: <variant_dir>/peft/adapter_model.safetensors
@@ -190,7 +195,7 @@ def find_adapter_weights_path(variant_dir) -> str:
                           f"1) peft/, 2) checkpoint-*/, 3) any subdirectory")
 
 
-def check_heterogeneous_ranks(adapter_weights_path: str, allowed_ranks: list) -> dict:
+def check_heterogeneous_ranks(adapter_weights_path: str, allowed_ranks: list[int]) -> dict[str, Any]:
     """
     Regression check for per-layer rank patterns.
     
@@ -213,8 +218,7 @@ def check_heterogeneous_ranks(adapter_weights_path: str, allowed_ranks: list) ->
     """
     try:
         from safetensors.torch import load_file
-        from pathlib import Path
-        
+
         # Load safetensors weights
         tensors = load_file(Path(adapter_weights_path))
         

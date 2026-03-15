@@ -222,7 +222,7 @@ class ConfigSnapshot:
         tp = d.get("task_profile", TaskFamily.UNKNOWN.value)
         try:
             task_profile = TaskFamily(tp)
-        except Exception:
+        except (ValueError, KeyError):
             task_profile = TaskFamily.UNKNOWN
 
         return ConfigSnapshot(

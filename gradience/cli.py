@@ -1833,8 +1833,8 @@ def _parse_rank_policies(policies_arg: Optional[str]) -> Optional[List[str]]:
 
 
 def cmd_audit(args: argparse.Namespace) -> None:
-    import json as jsonlib
     """Audit a PEFT LoRA adapter directory and print a compact efficiency summary."""
+    import json as jsonlib
 
     peft_dir = getattr(args, "peft_dir", None)
     if not peft_dir:

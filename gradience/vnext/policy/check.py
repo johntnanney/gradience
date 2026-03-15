@@ -806,7 +806,7 @@ def check_run(
                 confidence=0.7,
                 scope=str(getattr(config, 'task_profile', 'unknown')) if config is not None else 'unknown',
                 evidence={
-                    'utilization_mean': util,
+                    'utilization_mean': lora_audit_util,
                     'suggested_r_global_median': s_med,
                     'suggested_r_global_90': s_p90,
                     'current_r': current_r,

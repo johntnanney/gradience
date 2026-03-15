@@ -26,12 +26,14 @@ from gradience.vnext.merge.eligibility import AdapterQAResult, EligibilityStatus
 
 SCHEMA_VERSION = "gradience.adapter_qa/v1"
 
-# Structural flag thresholds (initial policy — not gospel)
-_UTILIZATION_LOW_THRESHOLD = 0.25
-_RANK_WASTE_HIGH_THRESHOLD = 0.75  # 1 - utilization
-_CONCENTRATED_SPECTRUM_ENERGY_RANK = 2.0
-_CONCENTRATED_SPECTRUM_MIN_RANK = 8
-_UNDERUTILIZED_STABLE_RANK_RATIO = 0.2
+# Structural flag thresholds (initial policy — calibrated from Study 16 adapter sweep).
+# These are conservative defaults chosen to minimize false positives; users should
+# tighten them for their specific domain once baseline behaviour is established.
+_UTILIZATION_LOW_THRESHOLD = 0.25        # Flag if <25% of singular values carry meaningful energy
+_RANK_WASTE_HIGH_THRESHOLD = 0.75        # 1 - utilization; flag when >75% of rank capacity is wasted
+_CONCENTRATED_SPECTRUM_ENERGY_RANK = 2.0  # Flag if effective rank (energy-based) < 2 — nearly rank-1
+_CONCENTRATED_SPECTRUM_MIN_RANK = 8       # Only flag concentration when nominal rank >= 8
+_UNDERUTILIZED_STABLE_RANK_RATIO = 0.2   # Flag if stable_rank / nominal_rank < 20%
 
 
 # ---------------------------------------------------------------------------

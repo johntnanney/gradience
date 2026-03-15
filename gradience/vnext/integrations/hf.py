@@ -98,7 +98,7 @@ def _coerce_task_profile(tp: Optional[Union[str, TaskFamily]]) -> TaskFamily:
     # Accept strings like "easy_classification"
     try:
         return TaskFamily(str(tp))
-    except Exception:
+    except (ValueError, KeyError):
         return TaskFamily.UNKNOWN
 
 
