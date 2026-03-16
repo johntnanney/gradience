@@ -1,5 +1,5 @@
 # Gradience Development Makefile
-.PHONY: setup setup-cache verify-version install test lint format clean help demo-gain-audit sensitivity-check build publish publish-test
+.PHONY: setup setup-cache verify-version install test lint format clean help demo-gain-audit sensitivity-check build publish publish-test docs docs-serve
 
 help: ## Show this help message
 	@echo "Gradience Development Commands:"
@@ -94,6 +94,23 @@ demo-gain-audit: ## Demo the LoRA gain audit functionality (v0.7.0)
 sensitivity-check: ## Prove gain metrics respond to rank changes (r=4 vs r=16)  
 	@echo "🔬 Running sensitivity analysis..."
 	@./scripts/sensitivity_check_fixed_seed.sh
+
+docs: ## Build documentation site
+	@echo "📚 Building documentation..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && mkdocs build; \
+	else \
+		python3 -m mkdocs build; \
+	fi
+	@echo "✅ Documentation built in site/"
+
+docs-serve: ## Serve documentation locally (http://127.0.0.1:8000)
+	@echo "📚 Serving documentation at http://127.0.0.1:8000..."
+	@if [ -f .venv/bin/activate ]; then \
+		. .venv/bin/activate && mkdocs serve; \
+	else \
+		python3 -m mkdocs serve; \
+	fi
 
 check: lint format-check test-quick ## Run all code quality checks
 	@echo "✅ All checks passed!"

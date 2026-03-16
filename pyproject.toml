@@ -39,7 +39,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/johntnanney/gradience"
 Repository = "https://github.com/johntnanney/gradience"
-Documentation = "https://github.com/johntnanney/gradience#readme"
+Documentation = "https://johntnanney.github.io/gradience"
 "Bug Tracker" = "https://github.com/johntnanney/gradience/issues"
 
 [project.optional-dependencies]
@@ -67,6 +67,14 @@ hf = [
   "protobuf>=3.20.0",        # For tokenizers
 ]
 
+# Documentation - for building the docs site
+# Install with: pip install gradience[docs]
+docs = [
+  "mkdocs>=1.5.0",
+  "mkdocs-material>=9.0.0",
+  "pymdown-extensions>=10.0",
+]
+
 # Development tools - for contributors
 # Install with: pip install gradience[dev]
 dev = [
@@ -89,7 +97,7 @@ fast = [
 # All optional dependencies for full functionality
 # Install with: pip install "gradience[all]"
 all = [
-  "gradience[bench,hf,dev,fast]",
+  "gradience[bench,hf,dev,docs,fast]",
 ]
 
 [project.scripts]
