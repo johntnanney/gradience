@@ -14,15 +14,15 @@ Cycle metadata:
 
 ## Metadata
 
-- Decision date: `<YYYY-MM-DD>`
-- Author(s): `<name(s)>`
+- Decision date: `2026-03-17`
+- Author(s): `Codex + investigator`
 - Related corpus review memo: `docs/internal/corpus-review-memo-2026-04.md`
-- Decision id: `<calibration-202604-XX>`
+- Decision id: `calibration-202604-01`
 
 ## Decision Context
 
-- Triggering observation: `<1-2 sentences>`
-- Scope of decision: `<single behavior to keep/change>`
+- Triggering observation: `Cycle-02 completed 3 new real inventories and surfaced one low-risk/core-space mismatch case, without repeated strict-policy pressure.`
+- Scope of decision: `whether to keep behavior unchanged vs apply one narrow calibration`
 - Non-goals:
   - no feature expansion
   - no default workflow redesign
@@ -30,36 +30,36 @@ Cycle metadata:
 
 ## Change Under Consideration
 
-- component: `<module/component>`
-- current behavior: `<explicit before>`
-- observed issue: `<what appears miscalibrated>`
-- proposed change: `<one small change>`
-- why not broader changes: `<why scope is intentionally constrained>`
+- component: `core-space interpretation policy (review layer only)`
+- current behavior: `core-space remains optional advanced diagnostic with no default recommendation effect`
+- observed issue: `single low-risk/core-space-incompatible mismatch observed`
+- proposed change: `none this cycle`
+- why not broader changes: `evidence is specific but not yet consistent/repeated across inventories`
 
 ## Evidence Summary
 
 ### Aggregate evidence
 
-- Corpus inventory count used: `<int>`
-- Relevant pair/report count: `<int>`
-- Relevant neighborhood/core-space slice: `<int + short note>`
+- Corpus inventory count used: `3` (cycle-02 slice)
+- Relevant pair/report count: `12`
+- Relevant neighborhood/core-space slice: `3 core-space pairs; 10 groups; 12 boundary warnings`
 
 ### Low-risk/core-space mismatch evidence
 
-- mismatch population count: `<int>`
-- mismatch share among low-risk pairs: `<pct>`
-- repeatability across inventories: `<yes/no + note>`
+- mismatch population count: `1`
+- mismatch share among low-risk pairs: `20.0%` (1/5)
+- repeatability across inventories: `no` (single observed case in qnli triplet)
 
 ### Representative examples
 
-1. `<example 1 path/run_id + 1 sentence>`
-2. `<example 2 path/run_id + 1 sentence>`
-3. `<example 3 path/run_id + 1 sentence>`
+1. `cycle02_qnli_triplet_20260317`: low-risk pair with `core_space.status=incompatible`.
+2. `cycle02_roberta_sst2_triplet_20260317`: mixed high/medium/low risk with one core-space marginal case.
+3. `cycle02_final_test_quartet_20260317`: larger inventory with high-risk and high-redundancy coverage.
 
 ### Counter-evidence / uncertainty
 
-- `<uncertainty 1>`
-- `<uncertainty 2>`
+- Core-space disagreement is currently sparse, not a repeated pattern.
+- No non-singleton neighborhoods appeared in this cycle, limiting calibration confidence for grouping behavior.
 
 ## Candidate Actions
 
@@ -84,9 +84,9 @@ Cycle metadata:
 
 ## Decision
 
-Selected option: `<no_change | targeted_calibration | defer>`
+Selected option: `no_change`
 
-Rationale: `<4-8 sentences>`
+Rationale: `Cycle-02 produced coherent aggregate behavior and one meaningful advanced diagnostic mismatch, but not a repeated, specific issue that warrants even a narrow calibration yet. Strict-QA block pressure was absent in this slice, and neighborhood behavior remained stable under conservative grouping rules. Changing thresholds or logic now would reduce comparability without enough gain. Continue frozen behavior and collect additional diverse inventories for a stronger signal.`
 
 ## Validation Criteria
 
@@ -130,15 +130,15 @@ Rollback immediately if any of:
 
 ## If `no_change` or `defer` Is Selected
 
-- Next evidence checkpoint date: `<YYYY-MM-DD>`
+- Next evidence checkpoint date: `2026-04-15`
 - Required additional evidence:
-  - `<evidence requirement 1>`
-  - `<evidence requirement 2>`
+  - at least `1-2` additional diverse inventories, including one likely non-singleton neighborhood case
+  - at least one repeated low-risk/core-space mismatch pattern before any calibration proposal
 
 ## Approval
 
-- Reviewer(s): `<name(s)>`
-- Status: `<approved | approved with caveats | rejected>`
+- Reviewer(s): `pending investigator confirmation`
+- Status: `approved with caveats`
 - Follow-up item(s):
-  - `<task 1>`
-  - `<task 2>`
+  - continue cycle-02 collection toward 4–5 inventories
+  - re-check decision after next evidence checkpoint
