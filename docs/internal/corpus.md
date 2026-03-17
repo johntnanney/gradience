@@ -94,6 +94,7 @@ For corpus-backed review cycles, use:
 
 - `docs/internal/corpus-review-cycle-01.md` (execution runbook)
 - `docs/internal/corpus-review-cycle-02.md` (execution runbook)
+- `docs/internal/corpus-review-cycle-03.md` (execution runbook)
 - `docs/internal/templates/corpus-review-memo-template.md`
 - `docs/internal/templates/selective-calibration-decision-template.md`
 - `docs/internal/corpus-identity-hardening-note.md`
