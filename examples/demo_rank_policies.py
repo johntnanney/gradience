@@ -8,18 +8,18 @@ with the traditional energy@90% approach.
 """
 
 import torch
-import numpy as np
+
 from gradience.vnext.audit.rank_policies import (
-    apply_rank_policy,
     analyze_policy_consensus,
-    get_standard_policies,
+    apply_rank_policy,
     create_energy_policy,
     create_entropy_policy,
-    create_oht_policy,
     create_knee_policy,
+    create_oht_policy,
     create_stable_ceil_policy,
-    RankPolicySpec,
+    get_standard_policies,
 )
+
 
 def demo_policy_comparison():
     """Demonstrate policy comparison on synthetic data."""
@@ -43,7 +43,7 @@ def demo_policy_comparison():
             "name": "High Noise (rank~2)",
             "singular_values": torch.tensor([15.0, 8.0, 0.3, 0.25, 0.2, 0.15, 0.1, 0.08, 0.05]),
             "expected_rank": 2,
-        }
+        },
     ]
 
     policies = [
@@ -62,7 +62,7 @@ def demo_policy_comparison():
         print(f"   Expected rank: {test_case['expected_rank']}")
         print("-" * 60)
 
-        s_np = test_case['singular_values'].numpy()
+        s_np = test_case["singular_values"].numpy()
         r_alloc = len(s_np)
 
         # Get consensus analysis
@@ -77,7 +77,7 @@ def demo_policy_comparison():
             confidence = result.confidence
 
             # Check agreement with expected
-            diff = abs(rank - test_case['expected_rank'])
+            diff = abs(rank - test_case["expected_rank"])
             if diff == 0:
                 agreement = "✅ Perfect"
             elif diff == 1:
@@ -95,6 +95,7 @@ def demo_policy_comparison():
         if len(s_np) > 0 and s_np[-1] > 0:
             cond = s_np[0] / s_np[-1]
             print(f"📉 Condition number: {cond:.1f}")
+
 
 def demo_cli_integration():
     """Show how the new policies integrate with CLI."""
@@ -120,6 +121,7 @@ def demo_cli_integration():
             print()
         else:
             print(f"\033[94m{cmd}\033[0m")  # Blue commands
+
 
 def demo_programmatic_usage():
     """Show programmatic usage of the policy system."""
@@ -152,6 +154,7 @@ def demo_programmatic_usage():
     print("# Standard policies:")
     print(f"policies = {[p.name for p in policies]}")
 
+
 def main():
     """Run the complete demo."""
 
@@ -174,6 +177,7 @@ def main():
     print("• 📈 CLI and programmatic interfaces")
     print()
     print("No more 'energy@90% or bust' - now you have a defensible menu!")
+
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,7 @@ Design goals:
 - Avoid entangling internal modules (e.g., gradience.bench.protocol).
 - Prefer calling the canonical CLI/module entrypoints for reproducibility.
 - Return paths to canonical artifacts (bench.json, bench_aggregate.json, etc.).
+- Keep advanced helpers explicit and opt-in (diagnostic-first, non-default).
 
 Stability policy:
 - This module is part of Gradience's "Stable (public API)" tier.
@@ -138,6 +139,38 @@ def _read_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         data: dict[str, Any] = json.load(f)
         return data
+
+
+def _load_schema_artifacts(
+    *,
+    files: Sequence[Path],
+    schema_prefix: str,
+    from_dict: Any,
+    strict_input: bool,
+    malformed_label: str,
+) -> list[Any]:
+    """Load typed artifacts from a path list with schema-prefixed filtering."""
+    import sys
+
+    loaded: list[Any] = []
+    for fp in files:
+        try:
+            data = _read_json(fp)
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
+            continue
+        schema = data.get("schema", "")
+        if not isinstance(schema, str) or not schema.startswith(schema_prefix):
+            continue
+        try:
+            loaded.append(from_dict(data))
+        except Exception:
+            if strict_input:
+                raise
+            print(f"WARNING: skipping malformed {malformed_label}: {fp}", file=sys.stderr)
+    return loaded
 
 
 # -----------------------------
@@ -417,6 +450,7 @@ def merge_risk_report(
     source_a_qa: str | Path | None = None,
     source_b_qa: str | Path | None = None,
     thresholds: str = "default",
+    compute_core_space: bool = False,
     python: str | None = None,
     env: Mapping[str, str] | None = None,
     log_path: str | Path | None = None,
@@ -436,6 +470,9 @@ def merge_risk_report(
         Optional paths to adapter QA artifact JSON files.
     thresholds
         Threshold preset: ``"default"``, ``"conservative"``, or ``"permissive"``.
+    compute_core_space
+        When ``True``, enable optional shared-basis diagnostics and include
+        the optional ``core_space`` block in the loaded ``MergeQAReport``.
 
     Returns
     -------
@@ -470,6 +507,8 @@ def merge_risk_report(
             argv.extend(["--source-a-qa", str(Path(source_a_qa))])
         if source_b_qa:
             argv.extend(["--source-b-qa", str(Path(source_b_qa))])
+        if compute_core_space:
+            argv.append("--compute-core-space")
 
         _run(
             argv,
@@ -484,6 +523,48 @@ def merge_risk_report(
         return _MergeQAReport.from_dict(report_data)
     finally:
         emit_path.unlink(missing_ok=True)
+
+
+def compute_core_space_diagnostic(
+    *,
+    adapter_a: str | Path,
+    adapter_b: str | Path,
+    source_a_qa: str | Path | None = None,
+    source_b_qa: str | Path | None = None,
+    thresholds: str = "default",
+    python: str | None = None,
+    env: Mapping[str, str] | None = None,
+    log_path: str | Path | None = None,
+    check: bool = True,
+) -> Any:
+    """Compute the advanced optional core-space diagnostic for one adapter pair.
+
+    This is a thin wrapper over :func:`merge_risk_report` with
+    ``compute_core_space=True``. It returns the report's ``core_space``
+    section as a typed object when available.
+
+    Notes
+    -----
+    - Diagnostic-only: this call does not alter default merge recommendation
+      behavior.
+    - Optional advanced tier: keep usage explicit in ambiguous pair analysis.
+    """
+    report = merge_risk_report(
+        adapter_a=adapter_a,
+        adapter_b=adapter_b,
+        source_a_qa=source_a_qa,
+        source_b_qa=source_b_qa,
+        thresholds=thresholds,
+        compute_core_space=True,
+        python=python,
+        env=env,
+        log_path=log_path,
+        check=check,
+    )
+    core_space = getattr(report, "core_space", None)
+    if core_space is None:
+        raise RuntimeError("Expected core_space diagnostic block, but none was returned")
+    return core_space
 
 
 def summarize_inventory(
@@ -524,8 +605,6 @@ def summarize_inventory(
     ValueError
         If no input source is provided.
     """
-    import sys
-
     from gradience.vnext.audit.qa_artifact import AdapterQAArtifact as _AdapterQAArtifact
     from gradience.vnext.inventory.summary import build_inventory_summary as _build_inventory_summary
     from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
@@ -548,46 +627,86 @@ def summarize_inventory(
         report_files.extend(Path(p) for p in report_paths)
 
     # --- Load artifacts ---
-    artifacts: list[Any] = []
-    for fp in qa_files:
-        try:
-            data = _read_json(fp)
-        except Exception:
-            if strict_input:
-                raise
-            print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
-            continue
-        schema = data.get("schema", "")
-        if not isinstance(schema, str) or not schema.startswith("gradience.adapter_qa/"):
-            continue
-        try:
-            artifacts.append(_AdapterQAArtifact.from_dict(data))
-        except Exception:
-            if strict_input:
-                raise
-            print(f"WARNING: skipping malformed QA artifact: {fp}", file=sys.stderr)
+    artifacts = _load_schema_artifacts(
+        files=qa_files,
+        schema_prefix="gradience.adapter_qa/",
+        from_dict=_AdapterQAArtifact.from_dict,
+        strict_input=strict_input,
+        malformed_label="QA artifact",
+    )
 
-    # --- Load merge reports ---
-    reports: list[Any] = []
-    for fp in report_files:
-        try:
-            data = _read_json(fp)
-        except Exception:
-            if strict_input:
-                raise
-            print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
-            continue
-        schema = data.get("schema", "")
-        if not isinstance(schema, str) or not schema.startswith("gradience.merge_qa_report/"):
-            continue
-        try:
-            reports.append(_MergeQAReport.from_dict(data))
-        except Exception:
-            if strict_input:
-                raise
-            print(f"WARNING: skipping malformed merge report: {fp}", file=sys.stderr)
+    reports = _load_schema_artifacts(
+        files=report_files,
+        schema_prefix="gradience.merge_qa_report/",
+        from_dict=_MergeQAReport.from_dict,
+        strict_input=strict_input,
+        malformed_label="merge report",
+    )
 
     return _build_inventory_summary(artifacts, reports)
+
+
+def suggest_neighborhoods(
+    *,
+    qa_dir: str | Path | None = None,
+    report_dir: str | Path | None = None,
+    qa_paths: list[str | Path] | None = None,
+    report_paths: list[str | Path] | None = None,
+    strict_input: bool = False,
+    strict_qa: bool = False,
+    min_compatibility: float = 0.0,
+    exclude_unknown: bool = False,
+) -> Any:
+    """Build a ``MergeNeighborhoodReport`` from QA artifacts and pair reports.
+
+    This is the advanced inventory workflow wrapper for neighborhood
+    suggestions. It is additive and diagnostic-first; it does not alter any
+    default merge recommendation logic.
+    """
+    from gradience.vnext.audit.qa_artifact import AdapterQAArtifact as _AdapterQAArtifact
+    from gradience.vnext.inventory.neighborhoods import suggest_merge_neighborhoods as _suggest_merge_neighborhoods
+    from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
+
+    if report_dir is None and not report_paths:
+        raise ValueError("At least one of report_dir or report_paths must be provided")
+
+    qa_files: list[Path] = []
+    report_files: list[Path] = []
+
+    if qa_dir is not None:
+        qa_files.extend(sorted(Path(qa_dir).glob("*.json")))
+    if qa_paths:
+        qa_files.extend(Path(p) for p in qa_paths)
+
+    if report_dir is not None:
+        report_files.extend(sorted(Path(report_dir).glob("*.json")))
+    if report_paths:
+        report_files.extend(Path(p) for p in report_paths)
+
+    artifacts = _load_schema_artifacts(
+        files=qa_files,
+        schema_prefix="gradience.adapter_qa/",
+        from_dict=_AdapterQAArtifact.from_dict,
+        strict_input=strict_input,
+        malformed_label="QA artifact",
+    )
+    reports = _load_schema_artifacts(
+        files=report_files,
+        schema_prefix="gradience.merge_qa_report/",
+        from_dict=_MergeQAReport.from_dict,
+        strict_input=strict_input,
+        malformed_label="merge report",
+    )
+    if not reports:
+        raise ValueError("No valid merge reports were found from the provided input")
+
+    return _suggest_merge_neighborhoods(
+        artifacts,
+        reports,
+        strict_qa=strict_qa,
+        min_compatibility=min_compatibility,
+        exclude_unknown=exclude_unknown,
+    )
 
 
 # -----------------------------

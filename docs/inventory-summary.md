@@ -37,6 +37,10 @@ with open("inventory.json", "w") as f:
 
 `summarize_inventory()` is direct Python aggregation -- it loads files, validates them through `from_dict()`, and counts. It does not shell out to a subprocess.
 
+Advanced extension:
+- For rule-based grouping suggestions across the same inventory inputs, use `gradience suggest-neighborhoods` (see `docs/merge-neighborhoods.md`).
+- This is a conservative diagnostic aid, not part of the default preflight path.
+
 ## 3. How to Read It
 
 A v1 summary has these top-level sections:

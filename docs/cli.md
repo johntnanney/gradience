@@ -13,7 +13,7 @@ Gradience provides two main CLI tools:
 
 ### Usage
 ```bash
-gradience [-h] {verify,report,check,audit,audit-adapter,merge-audit,explain,truncate,monitor} ...
+gradience [-h] {verify,report,check,audit,audit-adapter,merge-audit,summarize-inventory,suggest-neighborhoods,explain,truncate,monitor} ...
 ```
 
 **Description**: Spectral telemetry and restraint-first diagnostics for neural network training
@@ -28,6 +28,8 @@ gradience [-h] {verify,report,check,audit,audit-adapter,merge-audit,explain,trun
 | `audit` | Audit PEFT LoRA adapter for rank/utilization waste |
 | `audit-adapter` | Audit a single adapter and produce a QA eligibility artifact |
 | `merge-audit` | Audit spectral compatibility between two PEFT LoRA adapters |
+| `summarize-inventory` | Aggregate QA artifacts and merge reports into an inventory summary |
+| `suggest-neighborhoods` | Suggest conservative merge neighborhoods from preflight artifacts |
 | `explain` | Explain disagreement analysis for specific layer from audit JSON |
 | `truncate` | SVD truncate PEFT LoRA adapter to smaller rank |
 | `monitor` | Analyze vNext telemetry JSONL and emit alerts/recommendations |
@@ -273,6 +275,138 @@ report = merge_audit(
 When `--output-dir` is specified, writes:
 - **`merge_audit.json`** — Machine-readable report (schema `gradience.merge_audit/v1`)
 - **`merge_audit.md`** — Human-readable Markdown report with per-layer table and recommendations
+
+### gradience summarize-inventory
+
+**Aggregate adapter QA artifacts and pairwise merge reports into an inventory-level summary.**
+
+Scans directories for `gradience.adapter_qa/v1` and `gradience.merge_qa_report/v1` JSON files, counts status distributions, and identifies pairs that would be blocked under `--strict-qa`. The output is a `gradience.inventory_summary/v1` JSON artifact.
+
+```bash
+gradience summarize-inventory [OPTIONS]
+```
+
+#### Optional Arguments
+
+**Input:**
+- `--qa-dir DIR` - Directory to scan for QA artifact JSON files
+- `--report-dir DIR` - Directory to scan for merge report JSON files
+
+**Output:**
+- `--emit-report PATH` - Write inventory summary v1 JSON to this path (overwrites existing file)
+
+**Validation:**
+- `--strict-input` - Fail on first malformed file (default: skip with warning)
+
+#### Output Fields
+
+The inventory summary contains these count maps (only non-zero keys appear):
+
+| Section | Counts |
+|---------|--------|
+| `adapter_status_counts` | Distribution of eligibility statuses across QA artifacts |
+| `adapter_flag_counts` | Distribution of structural flags across QA artifacts |
+| `pair_risk_counts` | Distribution of risk levels across merge reports |
+| `recommended_strategy_counts` | Distribution of recommended strategies across merge reports |
+| `dominant_issue_counts` | Distribution of dominant issues across merge reports |
+| `strict_qa_block_candidates` | Number of pairs that would be blocked under `--strict-qa` |
+
+#### Examples
+
+```bash
+# Summarize an inventory of adapters and merge reports
+gradience summarize-inventory \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --emit-report inventory_summary.json
+
+# Strict mode: fail on any malformed input file
+gradience summarize-inventory \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --strict-input
+
+# Scan only QA artifacts (no merge reports)
+gradience summarize-inventory --qa-dir ./qa_artifacts/
+```
+
+#### Python API
+
+```python
+from gradience.api import summarize_inventory
+
+summary = summarize_inventory(
+    qa_dir="./qa_artifacts/",
+    report_dir="./merge_reports/",
+)
+
+print(summary.adapter_status_counts)     # e.g. {"eligible": 3, "flagged_weak": 1}
+print(summary.pair_risk_counts)          # e.g. {"low": 2, "high": 1}
+print(summary.strict_qa_block_candidates)  # e.g. 1
+```
+
+See **[Inventory Summary](inventory-summary.md)** for the full schema definition.
+
+### gradience suggest-neighborhoods
+
+**Suggest conservative merge neighborhoods from preflight artifacts.**
+
+Builds a `gradience.merge_neighborhoods/v1` artifact from adapter QA files and merge QA reports. This is an advanced, optional workflow extension and does not change default merge recommendation behavior.
+
+```bash
+gradience suggest-neighborhoods --report-dir REPORT_DIR [OPTIONS]
+```
+
+#### Required Arguments
+- `--report-dir DIR` - Directory to scan for merge report JSON files
+
+#### Optional Arguments
+
+**Input:**
+- `--qa-dir DIR` - Directory to scan for QA artifact JSON files
+- `--strict-input` - Fail on first malformed input file (default: skip with warning)
+
+**Policy / grouping controls:**
+- `--strict-qa` - Exclude adapters that fail strict QA eligibility policy
+- `--min-compatibility FLOAT` - Minimum compatibility score for non-incompatible edges (default: 0.0)
+- `--exclude-unknown` - Exclude unknown/missing QA adapters from grouping
+
+**Output:**
+- `--emit-report PATH` - Write merge neighborhoods v1 JSON to this path
+
+#### Examples
+
+```bash
+# Basic neighborhood suggestion
+gradience suggest-neighborhoods \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --emit-report neighborhoods.json
+
+# Strict QA / strict input mode
+gradience suggest-neighborhoods \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --strict-qa \
+    --strict-input
+```
+
+#### Python API
+
+```python
+from gradience.api import suggest_neighborhoods
+
+report = suggest_neighborhoods(
+    qa_dir="./qa_artifacts/",
+    report_dir="./merge_reports/",
+    strict_qa=False,
+)
+
+print(len(report.groups))
+print(len(report.excluded))
+```
+
+See **[Merge Neighborhoods](merge-neighborhoods.md)** for schema details and interpretation guidance.
 
 ### gradience monitor
 

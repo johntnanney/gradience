@@ -1,0 +1,8 @@
+{
+  "expected_groups": [["safe_a", "safe_b", "safe_c"]],
+  "expected_excluded": [],
+  "expected_boundary_warnings": [],
+  "expected_characterizations": [
+    {"members": ["safe_a", "safe_b", "safe_c"], "characterization": "caution neighborhood"}
+  ]
+}

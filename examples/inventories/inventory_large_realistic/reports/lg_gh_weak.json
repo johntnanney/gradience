@@ -1,0 +1,1 @@
+{"schema":"gradience.merge_qa_report/v1","adapter_a":{"path":"lg_g","rank":8,"eligibility_status":"unknown_no_behavioral_eval"},"adapter_b":{"path":"lg_h","rank":8,"eligibility_status":"flagged_weak"},"pair_risk":"medium","dominant_issue":"norm_imbalance","recommended_strategy":"norm_equalized","confidence":"low","compatibility_score":0.52}

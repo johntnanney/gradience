@@ -9,7 +9,10 @@ This document defines the **public API surface** that Gradience commits to stabi
 ### CLI Commands
 ```bash
 gradience audit        # Spectral audit of a LoRA adapter
+gradience audit-adapter
 gradience merge-audit  # Merge compatibility analysis between two adapters
+gradience summarize-inventory
+gradience suggest-neighborhoods   # Advanced optional inventory workflow
 gradience truncate     # SVD-based rank reduction of a LoRA adapter
 gradience check        # Config validation and recommendations
 gradience monitor      # Live training telemetry monitoring
@@ -64,6 +67,15 @@ from gradience.api import (
     audit,                   # Run spectral audit on a LoRA adapter
     monitor,                 # Monitor training telemetry
 
+    # Core preflight artifacts
+    audit_adapter,           # Build AdapterQAArtifact
+    merge_risk_report,       # Build MergeQAReport
+    summarize_inventory,     # Build InventorySummary
+
+    # Advanced optional wrappers
+    compute_core_space_diagnostic,  # Return optional core_space block
+    suggest_neighborhoods,          # Build MergeNeighborhoodReport
+
     # Artifact loaders
     load_bench_report,       # Load bench.json from an output directory
     load_bench_aggregate,    # Load bench_aggregate.json from an output directory
@@ -96,6 +108,21 @@ agg = aggregate_bench_runs(
     output="results/aggregate",
 )
 summary = load_bench_aggregate(agg.output_dir)
+```
+
+**Example: Advanced optional wrappers**
+```python
+from gradience.api import compute_core_space_diagnostic, suggest_neighborhoods
+
+core_space = compute_core_space_diagnostic(
+    adapter_a="./adapter_a",
+    adapter_b="./adapter_b",
+)
+
+neighborhoods = suggest_neighborhoods(
+    qa_dir="./qa",
+    report_dir="./reports",
+)
 ```
 
 ### Merge Audit (gradience.vnext.merge)

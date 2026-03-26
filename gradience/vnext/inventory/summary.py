@@ -228,41 +228,336 @@ _SECTION_DEFS: tuple[tuple[str, str], ...] = (
 )
 
 
+def _inventory_headline(summary: InventorySummary) -> str:
+    """Generate a one-line inventory headline for quick scanning."""
+    n_reports = summary.sources.get("merge_report_count", summary.sources.get("merge_reports", 0))
+    n_qa = summary.sources.get("qa_artifact_count", summary.sources.get("qa_artifacts", 0))
+
+    risk_counts = summary.pair_risk_counts or {}
+    high_risk = risk_counts.get("high", 0)
+    total_risk = sum(risk_counts.values()) if risk_counts else 0
+
+    status_counts = summary.adapter_status_counts or {}
+    weak = status_counts.get("flagged_weak", 0)
+    unknown = status_counts.get("unknown_no_behavioral_eval", 0)
+
+    if weak + unknown > 0:
+        return f"Mixed-quality inventory — {weak + unknown} weak/unknown source(s) identified"
+    if high_risk > total_risk // 2:
+        return f"{n_qa} adapters, {n_reports} pairs — high structural risk dominates"
+    return f"{n_qa} adapters, {n_reports} pairs"
+
+
 def format_inventory_summary(summary: InventorySummary) -> str:
     """Format an :class:`InventorySummary` as clean, human-readable text.
 
-    Sections whose count dicts are empty (all zeroes or no keys) are
-    omitted.  The SOURCES and STRICT-QA BLOCK CANDIDATES sections are
-    always shown.
+    Output uses standardized blocks in a fixed order:
+
+    1. INVENTORY OVERVIEW — headline and counts
+    2. SOURCE QA SNAPSHOT — provenance/trust and eligibility
+    3. STRUCTURAL DETAIL — pair risk, strategies, issues
+    4. INTERPRETATION — plain-language guidance
     """
     lines: list[str] = []
 
+    # ---------------------------------------------------------------
+    # 1. INVENTORY OVERVIEW
+    # ---------------------------------------------------------------
     lines.append("")
-    lines.append("  INVENTORY SUMMARY")
+    lines.append("  INVENTORY OVERVIEW")
     lines.append("  " + "=" * 60)
-
-    # --- SOURCES (always shown) ---
+    lines.append(f"  {_inventory_headline(summary)}")
     lines.append("")
-    lines.append("  SOURCES")
-    lines.append("  " + "-" * 40)
     for key in sorted(summary.sources):
         label = _SOURCE_LABELS.get(key, key + ":")
         lines.append(f"  {label:<20s}{summary.sources[key]}")
 
-    # --- Count-map sections (omitted when empty) ---
+    # ---------------------------------------------------------------
+    # 2. SOURCE QA SNAPSHOT
+    # ---------------------------------------------------------------
+    status_counts = summary.adapter_status_counts or {}
+    eligible = status_counts.get("eligible", 0)
+    uncertain = status_counts.get("uncertain", 0)
+    weak_count = status_counts.get("flagged_weak", 0)
+    unknown_count = status_counts.get("unknown_no_behavioral_eval", 0)
+
+    if any(v > 0 for v in status_counts.values()):
+        lines.append("")
+        lines.append("  SOURCE QA SNAPSHOT")
+        lines.append("  " + "-" * 40)
+        for key in sorted(status_counts):
+            if status_counts[key] > 0:
+                lines.append(f"  {key}:  {status_counts[key]}")
+
+        # Provenance note
+        if eligible + uncertain + weak_count + unknown_count > 0:
+            lines.append("")
+            if eligible > 0:
+                lines.append(f"  {eligible} source(s) with behavioral evidence (user-provided)")
+            if uncertain > 0:
+                lines.append(f"  {uncertain} source(s) with uncertain behavioral evidence")
+            if weak_count > 0:
+                lines.append(f"  {weak_count} source(s) flagged weak")
+            if unknown_count > 0:
+                lines.append(f"  {unknown_count} source(s) with missing behavioral evidence")
+            if weak_count + unknown_count > 0:
+                lines.append("  Note: behavioral scores are user-provided; Gradience does not")
+                lines.append("  independently verify claimed evaluation results.")
+
+        if summary.strict_qa_block_candidates > 0:
+            lines.append(f"  Strict-QA block candidates: {summary.strict_qa_block_candidates}")
+
+    # ---------------------------------------------------------------
+    # 3. STRUCTURAL DETAIL
+    # ---------------------------------------------------------------
+    has_structural = False
     for attr, header in _SECTION_DEFS:
+        if attr == "adapter_status_counts":
+            continue  # Already shown in SOURCE QA SNAPSHOT
         counts: dict[str, int] = getattr(summary, attr)
         if not counts or all(v == 0 for v in counts.values()):
             continue
-        lines.append("")
-        lines.append(f"  {header}")
-        lines.append("  " + "-" * 40)
-        for key in sorted(counts):
-            lines.append(f"  {key}:  {counts[key]}")
+        if not has_structural:
+            lines.append("")
+            lines.append("  STRUCTURAL DETAIL")
+            lines.append("  " + "-" * 40)
+            has_structural = True
+        label_map = {
+            "adapter_flag_counts": "Flags",
+            "pair_risk_counts": "Pair risk",
+            "recommended_strategy_counts": "Strategies",
+            "dominant_issue_counts": "Issues",
+        }
+        section_label = label_map.get(attr, header)
+        items = ", ".join(f"{k}: {counts[k]}" for k in sorted(counts) if counts[k] > 0)
+        lines.append(f"  {section_label}: {items}")
 
-    # --- STRICT-QA BLOCK CANDIDATES (always shown) ---
+    # ---------------------------------------------------------------
+    # 4. INTERPRETATION
+    # ---------------------------------------------------------------
+    risk_counts = summary.pair_risk_counts or {}
+    weak_total = weak_count + unknown_count
+    total_pairs = sum(risk_counts.values()) if risk_counts else 0
+    high_risk = risk_counts.get("high", 0)
+
     lines.append("")
-    lines.append(f"  STRICT-QA BLOCK CANDIDATES: {summary.strict_qa_block_candidates}")
+    lines.append("  INTERPRETATION")
+    lines.append("  " + "-" * 40)
+
+    if weak_total > 0:
+        lines.append(f"  {weak_total} adapter(s) have weak or missing behavioral evidence.")
+        lines.append("  Source QA is likely the main narrowing step for this inventory.")
+    elif total_pairs > 0 and high_risk > total_pairs // 2:
+        lines.append("  Most pairs show high structural risk.")
+        lines.append("  Check task-boundary advisories on individual pair reports to identify")
+        lines.append("  same-task safe pairs, if any exist.")
+    elif total_pairs > 0:
+        lines.append("  Check task-boundary advisories on individual pair reports to partition")
+        lines.append("  same-task safe pairs from cross-task caution pairs.")
+    else:
+        lines.append("  No pair reports available for interpretation.")
+
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Inventory action plan
+# ---------------------------------------------------------------------------
+
+_WEAK_STATUSES = frozenset({"flagged_weak", "unknown_no_behavioral_eval"})
+
+
+@dataclass(frozen=True)
+class InventoryActionPlan:
+    """Structured action plan derived from existing stable signals.
+
+    Presentation only — no new scoring or recommendation logic.
+    """
+
+    exclude: tuple[str, ...]
+    same_task_priority: tuple[str, ...]
+    cross_task_caution: tuple[str, ...]
+    evaluate_first: tuple[str, ...]
+    summary_line: str
+    total_pairs: int
+    retained_count: int
+
+
+def build_action_plan(
+    qa_artifacts: list[Any],
+    merge_reports: list[Any],
+) -> InventoryActionPlan:
+    """Build an action plan from raw QA artifacts and merge reports.
+
+    Uses only existing stable signals: source QA status, pair-risk,
+    and task-relationship advisory. No new logic or scoring.
+    """
+    from pathlib import PurePosixPath
+
+    # --- Build adapter info maps ---
+    adapter_status: dict[str, str] = {}  # name -> eligibility status
+    adapter_eval_ds: dict[str, str] = {}  # name -> eval_dataset
+
+    for qa in qa_artifacts:
+        name = qa.adapter_name if hasattr(qa, "adapter_name") else getattr(qa, "name", "?")
+        adapter_status[name] = qa.status.value if hasattr(qa.status, "value") else str(qa.status)
+        eval_ds = getattr(qa, "eval_dataset", None)
+        if eval_ds:
+            adapter_eval_ds[name] = eval_ds
+
+    # --- Classify sources ---
+    exclude_names: list[str] = []
+    for name, status in adapter_status.items():
+        if status in _WEAK_STATUSES:
+            if status == "flagged_weak":
+                label = "weak source — low confidence"
+            else:
+                label = "missing behavioral evidence — low confidence"
+            exclude_names.append(f"{name}: {label}")
+
+    # --- Classify pairs ---
+    same_task_pairs: list[str] = []
+    cross_task_pairs: list[str] = []
+    cross_task_regions: set[str] = set()
+
+    for report in merge_reports:
+        a_path = report.adapter_a.path if hasattr(report.adapter_a, "path") else ""
+        b_path = report.adapter_b.path if hasattr(report.adapter_b, "path") else ""
+        a_name = PurePosixPath(a_path).name if a_path else "?"
+        b_name = PurePosixPath(b_path).name if b_path else "?"
+        pair_label = f"{a_name} × {b_name}"
+
+        has_advisory = report.task_relationship_advisory is not None
+
+        # Check if either source is weak
+        a_elig = report.adapter_a.eligibility_status
+        b_elig = report.adapter_b.eligibility_status
+        has_weak = (a_elig in _WEAK_STATUSES) or (b_elig in _WEAK_STATUSES) if a_elig and b_elig else False
+
+        if has_weak:
+            continue  # Already handled by exclude
+
+        if has_advisory:
+            cross_task_pairs.append(pair_label)
+            # Extract task region names from eval_dataset
+            a_ds = adapter_eval_ds.get(a_name, "")
+            b_ds = adapter_eval_ds.get(b_name, "")
+            if a_ds and b_ds:
+                # Normalize: "qnli_dev" -> "QNLI", "sst2_dev" -> "SST-2"
+                a_task = a_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
+                b_task = b_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
+                region = f"{min(a_task, b_task)} × {max(a_task, b_task)} region"
+                cross_task_regions.add(region)
+        else:
+            same_task_pairs.append(pair_label)
+
+    # --- Build evaluate-first list (same-task pairs minus weak sources) ---
+    evaluate_first = same_task_pairs[:4]  # Cap at 4 for readability
+
+    # --- Build summary line ---
+    total_pairs = len(merge_reports)
+    retained = len(same_task_pairs)
+
+    if total_pairs == 0:
+        summary_line = "No pair reports available for interpretation."
+    elif retained == total_pairs:
+        summary_line = "This same-task inventory is mostly confirmatory."
+    elif retained == 0 and len(exclude_names) > 0:
+        summary_line = "QA dominates this inventory; no credible same-task candidates remain."
+    elif retained == 0:
+        summary_line = "All pairs are cross-task; no same-task safe region exists in this inventory."
+    elif len(exclude_names) > 0:
+        summary_line = (
+            f"QA and task boundary dominate this inventory. "
+            f"Candidate space reduced from {total_pairs} pairs to {retained}."
+        )
+    else:
+        pct = round(100 * (1 - retained / total_pairs)) if total_pairs > 0 else 0
+        summary_line = (
+            f"Inventory is mostly explained by task boundary. "
+            f"Candidate space reduced from {total_pairs} pairs to {retained} ({pct}% reduction)."
+        )
+
+    # --- Cross-task caution entries ---
+    caution_entries: list[str] = sorted(cross_task_regions)
+    if cross_task_pairs and not caution_entries:
+        caution_entries = ["cross-task pairs should not be prioritized for casual exploration"]
+
+    return InventoryActionPlan(
+        exclude=tuple(exclude_names),
+        same_task_priority=tuple(same_task_pairs),
+        cross_task_caution=tuple(caution_entries),
+        evaluate_first=tuple(evaluate_first),
+        summary_line=summary_line,
+        total_pairs=total_pairs,
+        retained_count=retained,
+    )
+
+
+def format_action_plan(plan: InventoryActionPlan) -> str:
+    """Format an action plan as clean, human-readable text."""
+    lines: list[str] = []
+
+    lines.append("")
+    lines.append("  INVENTORY ACTION PLAN")
+    lines.append("  " + "=" * 60)
+
+    # Reduced candidate set (visually primary)
+    lines.append("")
+    lines.append("  REDUCED CANDIDATE SET")
+    lines.append("  " + "-" * 40)
+    lines.append(f"  Starting pairs:      {plan.total_pairs}")
+    lines.append(f"  Retained candidates: {plan.retained_count}")
+    if plan.total_pairs > 0:
+        pct = round(100 * (1 - plan.retained_count / plan.total_pairs))
+        lines.append(f"  Reduction:           {pct}%")
+    lines.append("")
+    lines.append("  Evaluate first:")
+    if plan.evaluate_first:
+        for pair in plan.evaluate_first:
+            lines.append(f"    - {pair}")
+    else:
+        lines.append("    - no clear priority candidates identified")
+
+    # Exclude / deprioritize
+    lines.append("")
+    lines.append("  Exclude / deprioritize")
+    lines.append("  " + "-" * 40)
+    if plan.exclude:
+        for entry in plan.exclude:
+            lines.append(f"  - {entry}")
+    else:
+        lines.append("  - none")
+
+    # Same-task safe zone
+    lines.append("")
+    lines.append("  Same-task safe zone")
+    lines.append("  " + "-" * 40)
+    if plan.same_task_priority:
+        for pair in plan.same_task_priority:
+            lines.append(f"  - {pair}")
+    else:
+        lines.append("  - none")
+
+    # Cross-task caution zone
+    lines.append("")
+    lines.append("  Cross-task caution zone")
+    lines.append("  " + "-" * 40)
+    if plan.cross_task_caution:
+        for entry in plan.cross_task_caution:
+            lines.append(f"  - {entry}")
+        if plan.same_task_priority:
+            lines.append("  - do not prioritize these pairs for casual merge exploration")
+    else:
+        lines.append("  - none")
+
+    # Summary
+    lines.append("")
+    lines.append("  Summary")
+    lines.append("  " + "-" * 40)
+    lines.append(f"  {plan.summary_line}")
 
     lines.append("")
 

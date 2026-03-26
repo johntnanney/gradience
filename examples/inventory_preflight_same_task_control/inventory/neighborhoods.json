@@ -1,0 +1,56 @@
+{
+  "schema": "gradience.merge_neighborhoods/v1",
+  "groups": [
+    {
+      "group_id": "cluster_01",
+      "members": [
+        "results/adjudication_study/verified_adapters/qnli_r16_s123"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_02",
+      "members": [
+        "results/adjudication_study/verified_adapters/qnli_r16_s42"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_03",
+      "members": [
+        "results/adjudication_study/verified_adapters/qnli_r8_s42"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    }
+  ],
+  "excluded": [],
+  "boundary_warnings": [
+    {
+      "between": [
+        "cluster_01",
+        "cluster_02"
+      ],
+      "reason": "conditional cross-group merge risk (audit-aware checks recommended)"
+    },
+    {
+      "between": [
+        "cluster_01",
+        "cluster_03"
+      ],
+      "reason": "conditional cross-group merge risk (audit-aware checks recommended)"
+    },
+    {
+      "between": [
+        "cluster_02",
+        "cluster_03"
+      ],
+      "reason": "conditional cross-group merge risk (audit-aware checks recommended)"
+    }
+  ]
+}

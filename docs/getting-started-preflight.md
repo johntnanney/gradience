@@ -37,6 +37,18 @@ gradience merge-audit \
 
 Expected: exit code 0, JSON file written with `"schema": "gradience.merge_qa_report/v1"`.
 
+Optional diagnostic extension:
+
+```bash
+gradience merge-audit \
+  --adapter-a examples/adapters/tiny_lora \
+  --adapter-b examples/adapters/tiny_lora \
+  --compute-core-space \
+  --emit-report /tmp/gradience_preflight/merge_report_core_space.json
+```
+
+This adds an optional `core_space` section to the report; it does not change default recommendation logic.
+
 ## Step 3: Summarize the Inventory
 
 Produce an `InventorySummary` from the artifacts:
@@ -97,7 +109,13 @@ rm -rf /tmp/gradience_preflight
 The same workflow is available programmatically:
 
 ```python
-from gradience.api import audit_adapter, merge_risk_report, summarize_inventory
+from gradience.api import (
+    audit_adapter,
+    compute_core_space_diagnostic,  # advanced optional
+    merge_risk_report,
+    suggest_neighborhoods,  # advanced optional
+    summarize_inventory,
+)
 
 # Step 1: Audit
 qa = audit_adapter(peft_dir="examples/adapters/tiny_lora")
@@ -110,6 +128,15 @@ report = merge_risk_report(
 
 # Step 3: Summarize (direct aggregation from JSON files)
 summary = summarize_inventory(qa_dir="/tmp/gradience_preflight", report_dir="/tmp/gradience_preflight")
+
+# Advanced optional: pair-level shared-basis diagnostic
+core_space = compute_core_space_diagnostic(
+    adapter_a="examples/adapters/tiny_lora",
+    adapter_b="examples/adapters/tiny_lora",
+)
+
+# Advanced optional: inventory-level neighborhood suggestions
+neighborhoods = suggest_neighborhoods(report_dir="/tmp/gradience_preflight")
 ```
 
 ## Demo Bundle
@@ -121,4 +148,6 @@ For a pre-built set of artifacts covering all key cases (eligible, weak, and mis
 - See `docs/adapter-qa-artifact.md` for the adapter QA schema contract
 - See `docs/merge-risk-report.md` for the merge report schema contract
 - See `docs/inventory-summary.md` for the inventory summary schema contract
+- See `docs/advanced-workflows.md` for optional advanced workflows
+- See `docs/merge-neighborhoods.md` for advanced inventory neighborhood suggestions
 - See `docs/preflight-policy.md` for cross-artifact consistency rules

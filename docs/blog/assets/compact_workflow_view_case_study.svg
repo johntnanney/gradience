@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" role="img" aria-labelledby="title desc">
+  <title id="title">Compact workflow view</title>
+  <desc id="desc">Vertical six-stage workflow from starting adapter pool to a narrower, defensible neighborhood-first plan.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f7f7f5; }
+      .title { fill: #1f2933; font: 700 56px "Inter", "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif; }
+      .subtitle { fill: #5b6470; font: 400 26px "Inter", "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif; }
+      .card { fill: #fdfdfb; stroke: #8e98a3; stroke-width: 2; rx: 24; ry: 24; }
+      .card-accent { fill: #f2f7f4; stroke: #7f929e; stroke-width: 2; rx: 24; ry: 24; }
+      .card-head { fill: #1f2933; font: 600 34px "Inter", "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif; }
+      .card-body { fill: #2f3b45; font: 400 28px "Inter", "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif; }
+      .mono { font: 500 27px "IBM Plex Mono", "JetBrains Mono", ui-monospace, Menlo, Monaco, monospace; }
+      .tag { fill: #5a7a96; font: 500 20px "Inter", "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif; opacity: 0.85; }
+      .arrow { stroke: #8e98a3; stroke-width: 2.2; fill: none; marker-end: url(#arrowHead); }
+    </style>
+    <marker id="arrowHead" viewBox="0 0 10 10" refX="8.8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8e98a3"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="1800"/>
+
+  <text class="title" x="120" y="104">Compact workflow view</text>
+  <text class="subtitle" x="120" y="144">How one inventory was narrowed from a flat merge pool to a neighborhood-first plan</text>
+
+  <!-- Card geometry -->
+  <!-- x=120, w=960 -->
+  <!-- card h=180, gap=54 -->
+
+  <!-- Card 1 -->
+  <rect class="card" x="120" y="210" width="960" height="180"/>
+  <text class="card-head" x="170" y="278">Starting pool</text>
+  <text class="card-body" x="170" y="330">4 plausible adapters</text>
+
+  <!-- Arrow 1 -->
+  <line class="arrow" x1="600" y1="394" x2="600" y2="446"/>
+
+  <!-- Card 2 -->
+  <rect class="card" x="120" y="448" width="960" height="180"/>
+  <text class="card-head" x="170" y="516">After QA</text>
+  <text class="card-body" x="170" y="568"><tspan class="mono">qnli_uniform_weak</tspan> excluded</text>
+  <text class="tag" x="930" y="585">source screening</text>
+
+  <!-- Arrow 2 -->
+  <line class="arrow" x1="600" y1="632" x2="600" y2="684"/>
+
+  <!-- Card 3 -->
+  <rect class="card" x="120" y="686" width="960" height="220"/>
+  <text class="card-head" x="170" y="754">After pair audit</text>
+  <text class="card-body" x="170" y="806">Most remaining pairs look benign</text>
+  <text class="card-body" x="170" y="850"><tspan class="mono">qnli_probe_elig × qnli_per_layer_elig</tspan> stays ambiguous</text>
+
+  <!-- Arrow 3 -->
+  <line class="arrow" x1="600" y1="910" x2="600" y2="962"/>
+
+  <!-- Card 4 -->
+  <rect class="card-accent" x="120" y="964" width="960" height="180"/>
+  <text class="card-head" x="170" y="1032">After deeper inspection</text>
+  <text class="card-body" x="170" y="1084">That pair moves to a caution track</text>
+  <text class="tag" x="955" y="1101">advanced check</text>
+
+  <!-- Arrow 4 -->
+  <line class="arrow" x1="600" y1="1148" x2="600" y2="1200"/>
+
+  <!-- Card 5 -->
+  <rect class="card" x="120" y="1202" width="960" height="180"/>
+  <text class="card-head" x="170" y="1270">After neighborhoods</text>
+  <text class="card-body" x="170" y="1322">One local neighborhood becomes the best next exploration target</text>
+  <text class="tag" x="970" y="1339">inventory view</text>
+
+  <!-- Arrow 5 -->
+  <line class="arrow" x1="600" y1="1386" x2="600" y2="1438"/>
+
+  <!-- Card 6 -->
+  <rect class="card" x="120" y="1440" width="960" height="180"/>
+  <text class="card-head" x="170" y="1508">Net effect</text>
+  <text class="card-body" x="170" y="1560">Flat merge pool → narrower, more defensible plan</text>
+</svg>

@@ -25,6 +25,9 @@ Usage:
     # Audit merge compatibility between two PEFT LoRA adapters:
     gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b [--output-dir ./out]
 
+    # Suggest conservative inventory merge neighborhoods from existing reports:
+    gradience suggest-neighborhoods --report-dir ./reports [--qa-dir ./qa]
+
 Notes:
   * `check` consumes a Gradience vNext `ConfigSnapshot` (JSON/YAML) and emits
     `Recommendation[]` using the restraint-first policy.
@@ -2250,6 +2253,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             verbose=getattr(args, "verbose", False),
             source_qa_a=source_qa_a,
             source_qa_b=source_qa_b,
+            compute_core_space=bool(getattr(args, "compute_core_space", False)),
         )
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}")
@@ -2336,6 +2340,18 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         f"{agg['n_conflicting']} conflicting, "
         f"{agg['n_imbalanced']} imbalanced"
     )
+
+    if (
+        getattr(args, "compute_core_space", False)
+        and not getattr(args, "qa_report", False)
+        and getattr(report, "core_space", None) is not None
+    ):
+        core = report.core_space
+        print("\nCORE-SPACE DIAGNOSTIC")
+        print(f"- shared basis score: {core.shared_basis_score_mean:.2f}")
+        print(f"- basis distortion: {core.basis_distortion_mean:.2f}")
+        print(f"- effective shared rank: {core.effective_shared_rank_median}")
+        print(f"- status: {core.status}")
 
     # --- Strategy Recommendations ---
     user_strategy = getattr(args, "strategy", None)
@@ -3212,6 +3228,11 @@ def _setup_merge_audit_command(subparsers):
         action="store_true",
         help="Refuse to produce recommendations when source QA data is missing or shows weak adapters",
     )
+    merge_audit_parser.add_argument(
+        "--compute-core-space",
+        action="store_true",
+        help="Compute optional shared-basis diagnostics and include them in QA report output",
+    )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 
 
@@ -3373,6 +3394,35 @@ def _setup_summarize_inventory_command(subparsers):
     p.set_defaults(func=cmd_summarize_inventory)
 
 
+def _setup_suggest_neighborhoods_command(subparsers):
+    p = subparsers.add_parser(
+        "suggest-neighborhoods",
+        help="Suggest conservative merge neighborhoods from QA artifacts and merge reports",
+    )
+    p.add_argument("--qa-dir", type=str, default=None, help="Directory to scan for QA artifact JSON files")
+    p.add_argument("--report-dir", type=str, required=True, help="Directory to scan for merge report JSON files")
+    p.add_argument(
+        "--emit-report",
+        type=str,
+        default=None,
+        help="Write merge neighborhoods v1 JSON to this path (overwrites existing file)",
+    )
+    p.add_argument("--strict-qa", action="store_true", help="Exclude adapters that fail strict QA eligibility")
+    p.add_argument("--strict-input", action="store_true", help="Fail on first malformed input file")
+    p.add_argument(
+        "--min-compatibility",
+        type=float,
+        default=0.0,
+        help="Minimum compatibility score required for non-incompatible edges (default: 0.0)",
+    )
+    p.add_argument(
+        "--exclude-unknown",
+        action="store_true",
+        help="Exclude adapters with unknown or missing QA status from neighborhood construction",
+    )
+    p.set_defaults(func=cmd_suggest_neighborhoods)
+
+
 def cmd_summarize_inventory(args: argparse.Namespace) -> None:
     """Summarize an inventory of adapter QA artifacts and merge risk reports."""
     qa_dir = getattr(args, "qa_dir", None)
@@ -3386,7 +3436,11 @@ def cmd_summarize_inventory(args: argparse.Namespace) -> None:
 
     try:
         from gradience.api import summarize_inventory
-        from gradience.vnext.inventory.summary import format_inventory_summary
+        from gradience.vnext.inventory.summary import (
+            build_action_plan,
+            format_action_plan,
+            format_inventory_summary,
+        )
     except ImportError as e:
         print(f"Error: Failed to import inventory modules: {e}")
         sys.exit(1)
@@ -3399,10 +3453,130 @@ def cmd_summarize_inventory(args: argparse.Namespace) -> None:
 
     print(format_inventory_summary(summary))
 
+    # --- Action plan (derived from raw artifacts) ---
+    try:
+        from gradience.api import _load_schema_artifacts  # noqa: PLC0415
+        from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+        from gradience.vnext.merge.qa_report import MergeQAReport
+
+        qa_files = sorted(Path(qa_dir).glob("*.json")) if qa_dir else []
+        report_files = sorted(Path(report_dir).glob("*.json")) if report_dir else []
+
+        qa_artifacts = _load_schema_artifacts(
+            files=qa_files, schema_prefix="gradience.adapter_qa/",
+            from_dict=AdapterQAArtifact.from_dict, strict_input=strict_input,
+            malformed_label="QA artifact",
+        )
+        merge_reports = _load_schema_artifacts(
+            files=report_files, schema_prefix="gradience.merge_qa_report/",
+            from_dict=MergeQAReport.from_dict, strict_input=strict_input,
+            malformed_label="merge report",
+        )
+
+        action_plan = build_action_plan(qa_artifacts, merge_reports)
+        print(format_action_plan(action_plan))
+    except Exception:
+        pass  # Action plan is best-effort; summary is always shown
+
     if emit_path:
         try:
             summary.to_json(emit_path)
             print(f"Inventory summary written to {emit_path}")
+        except Exception as e:
+            print(f"Error: Failed to write report: {e}")
+            sys.exit(1)
+
+
+def cmd_suggest_neighborhoods(args: argparse.Namespace) -> None:
+    """Suggest conservative merge neighborhoods from preflight artifacts."""
+    import sys as _sys
+
+    qa_dir = getattr(args, "qa_dir", None)
+    report_dir = getattr(args, "report_dir", None)
+    strict_input = bool(getattr(args, "strict_input", False))
+    strict_qa = bool(getattr(args, "strict_qa", False))
+    min_compatibility = float(getattr(args, "min_compatibility", 0.0))
+    exclude_unknown = bool(getattr(args, "exclude_unknown", False))
+    emit_path = getattr(args, "emit_report", None)
+
+    if not report_dir:
+        print("Error: --report-dir is required")
+        sys.exit(1)
+
+    try:
+        from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+        from gradience.vnext.inventory.merge_neighborhood_report import format_merge_neighborhood_report
+        from gradience.vnext.inventory.neighborhoods import suggest_merge_neighborhoods
+        from gradience.vnext.merge.qa_report import MergeQAReport
+    except ImportError as e:
+        print(f"Error: Failed to import neighborhoods modules: {e}")
+        sys.exit(1)
+
+    qa_artifacts: list[Any] = []
+    merge_reports: list[Any] = []
+
+    qa_files = sorted(Path(qa_dir).glob("*.json")) if qa_dir else []
+    report_files = sorted(Path(report_dir).glob("*.json"))
+
+    for fp in qa_files:
+        try:
+            with open(fp) as f:
+                data = json.load(f)
+        except Exception as e:
+            if strict_input:
+                print(f"Error: unreadable file under --strict-input: {fp} ({e})")
+                sys.exit(1)
+            print(f"WARNING: skipping unreadable file: {fp}", file=_sys.stderr)
+            continue
+        schema = data.get("schema", "")
+        if not isinstance(schema, str) or not schema.startswith("gradience.adapter_qa/"):
+            continue
+        try:
+            qa_artifacts.append(AdapterQAArtifact.from_dict(data))
+        except Exception as e:
+            if strict_input:
+                print(f"Error: malformed QA artifact under --strict-input: {fp} ({e})")
+                sys.exit(1)
+            print(f"WARNING: skipping malformed QA artifact: {fp}", file=_sys.stderr)
+
+    for fp in report_files:
+        try:
+            with open(fp) as f:
+                data = json.load(f)
+        except Exception as e:
+            if strict_input:
+                print(f"Error: unreadable file under --strict-input: {fp} ({e})")
+                sys.exit(1)
+            print(f"WARNING: skipping unreadable file: {fp}", file=_sys.stderr)
+            continue
+        schema = data.get("schema", "")
+        if not isinstance(schema, str) or not schema.startswith("gradience.merge_qa_report/"):
+            continue
+        try:
+            merge_reports.append(MergeQAReport.from_dict(data))
+        except Exception as e:
+            if strict_input:
+                print(f"Error: malformed merge report under --strict-input: {fp} ({e})")
+                sys.exit(1)
+            print(f"WARNING: skipping malformed merge report: {fp}", file=_sys.stderr)
+
+    if not merge_reports:
+        print("Error: No valid merge reports were found in --report-dir")
+        sys.exit(1)
+
+    report = suggest_merge_neighborhoods(
+        qa_artifacts,
+        merge_reports,
+        strict_qa=strict_qa,
+        min_compatibility=min_compatibility,
+        exclude_unknown=exclude_unknown,
+    )
+    print(format_merge_neighborhood_report(report))
+
+    if emit_path:
+        try:
+            report.to_json(emit_path)
+            print(f"Merge neighborhoods report written to {emit_path}")
         except Exception as e:
             print(f"Error: Failed to write report: {e}")
             sys.exit(1)
@@ -3432,6 +3606,7 @@ def main() -> None:
     _setup_truncate_command(subparsers)
     _setup_monitor_command(subparsers)
     _setup_summarize_inventory_command(subparsers)
+    _setup_suggest_neighborhoods_command(subparsers)
 
     args = parser.parse_args()
     if args.command is None:

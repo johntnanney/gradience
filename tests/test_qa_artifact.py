@@ -658,6 +658,17 @@ class TestPublicAPI:
 
         assert hasattr(InventorySummary, "from_dict")
 
+    def test_merge_neighborhood_report_importable_from_gradience(self):
+        from gradience import MergeNeighborhoodReport
+
+        assert hasattr(MergeNeighborhoodReport, "from_dict")
+
+    def test_advanced_api_wrappers_importable(self):
+        from gradience.api import compute_core_space_diagnostic, suggest_neighborhoods
+
+        assert callable(compute_core_space_diagnostic)
+        assert callable(suggest_neighborhoods)
+
 
 # ---------------------------------------------------------------------------
 # Strict reload invariant

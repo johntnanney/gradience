@@ -1,0 +1,10 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {"path": "weak_b", "rank": 8, "eligibility_status": "eligible"},
+  "adapter_b": {"path": "weak_flagged", "rank": 8, "eligibility_status": "flagged_weak"},
+  "pair_risk": "medium",
+  "dominant_issue": "norm_imbalance",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "low",
+  "compatibility_score": 0.55
+}

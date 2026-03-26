@@ -380,6 +380,47 @@ class TestMergeAuditCommand:
         # Verbose output should mention loading
         assert "Loading" in p.stdout or "adapter" in p.stdout.lower()
 
+    def test_merge_audit_compute_core_space(self, tmp_path: Path):
+        adapter_a = _make_adapter_dir(tmp_path / "a")
+        adapter_b = _make_adapter_dir(tmp_path / "b")
+        emit_path = tmp_path / "merge_report.json"
+        p = run_cli(
+            "merge-audit",
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
+            "--compute-core-space",
+            "--emit-report",
+            str(emit_path),
+        )
+        assert p.returncode == 0
+        assert "CORE-SPACE DIAGNOSTIC" in p.stdout
+
+        with open(emit_path) as f:
+            data = json.load(f)
+        assert data["schema"] == "gradience.merge_qa_report/v1"
+        assert "core_space" in data
+        assert data["core_space"]["status"] in {"compatible", "marginal", "incompatible", "not_applicable"}
+
+    def test_merge_audit_core_space_not_duplicated_with_qa_report(self, tmp_path: Path):
+        adapter_a = _make_adapter_dir(tmp_path / "a")
+        adapter_b = _make_adapter_dir(tmp_path / "b")
+        p = run_cli(
+            "merge-audit",
+            "--adapter-a",
+            str(adapter_a),
+            "--adapter-b",
+            str(adapter_b),
+            "--compute-core-space",
+            "--qa-report",
+        )
+        assert p.returncode == 0
+        # Top-level CORE-SPACE block should be omitted when QA report is present.
+        assert p.stdout.count("CORE-SPACE DIAGNOSTIC") == 0
+        # QA report still includes one core-space section (now under ADVANCED DIAGNOSTIC DETAIL).
+        assert p.stdout.count("ADVANCED DIAGNOSTIC DETAIL") == 1
+
     def test_merge_audit_missing_adapter_a(self, tmp_path: Path):
         adapter_b = _make_adapter_dir(tmp_path / "b")
         p = run_cli(
@@ -404,6 +445,58 @@ class TestMergeAuditCommand:
 
     def test_merge_audit_no_args(self):
         p = run_cli("merge-audit")
+        assert p.returncode != 0
+
+
+# ===========================================================================
+# Tests: gradience suggest-neighborhoods
+# ===========================================================================
+
+
+class TestSuggestNeighborhoodsCommand:
+    """Tests for the `gradience suggest-neighborhoods` subcommand."""
+
+    def test_suggest_neighborhoods_basic(self):
+        p = run_cli(
+            "suggest-neighborhoods",
+            "--qa-dir",
+            "examples/qa",
+            "--report-dir",
+            "examples/reports",
+        )
+        assert p.returncode == 0
+        assert "MERGE NEIGHBORHOODS" in p.stdout
+
+    def test_suggest_neighborhoods_emit_report(self, tmp_path: Path):
+        out_path = tmp_path / "neighborhoods.json"
+        p = run_cli(
+            "suggest-neighborhoods",
+            "--qa-dir",
+            "examples/qa",
+            "--report-dir",
+            "examples/reports",
+            "--emit-report",
+            str(out_path),
+        )
+        assert p.returncode == 0
+        with open(out_path) as f:
+            data = json.load(f)
+        assert data["schema"] == "gradience.merge_neighborhoods/v1"
+        assert "groups" in data
+        assert "excluded" in data
+        assert "boundary_warnings" in data
+
+    def test_suggest_neighborhoods_strict_input_failure(self, tmp_path: Path):
+        report_dir = tmp_path / "reports"
+        report_dir.mkdir(parents=True)
+        # malformed JSON
+        (report_dir / "bad.json").write_text("{not-json")
+        p = run_cli(
+            "suggest-neighborhoods",
+            "--report-dir",
+            str(report_dir),
+            "--strict-input",
+        )
         assert p.returncode != 0
 
 

@@ -1,0 +1,11 @@
+{
+  "expected_groups": [["frag_a1", "frag_a2"], ["frag_b1", "frag_b2"]],
+  "expected_excluded": [],
+  "expected_boundary_warnings": [
+    [["frag_a1", "frag_a2"], ["frag_b1", "frag_b2"]]
+  ],
+  "expected_characterizations": [
+    {"members": ["frag_a1", "frag_a2"], "characterization": "likely-safe neighborhood"},
+    {"members": ["frag_b1", "frag_b2"], "characterization": "likely-safe neighborhood"}
+  ]
+}

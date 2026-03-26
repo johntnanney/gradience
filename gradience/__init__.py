@@ -15,7 +15,10 @@ CLI Commands:
     gradience check        # Config validation
     gradience monitor      # Training telemetry analysis
     gradience audit        # Spectral measurement of LoRA adapters
+    gradience audit-adapter
     gradience merge-audit  # Geometric compatibility between adapter pairs
+    gradience summarize-inventory
+    gradience suggest-neighborhoods   # Advanced optional inventory workflow
 
 HuggingFace Integration:
     from gradience.vnext.integrations.hf import GradienceCallback
@@ -69,6 +72,7 @@ from gradience import api
 # Exception hierarchy
 from gradience.exceptions import GradienceError
 from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+from gradience.vnext.inventory.merge_neighborhood_report import MergeNeighborhoodReport
 from gradience.vnext.inventory.summary import InventorySummary
 from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.merge.qa_report import MergeQAReport
@@ -110,6 +114,8 @@ __all__ = [
     "MergeQAReport",
     # Inventory summary
     "InventorySummary",
+    # Advanced inventory artifact
+    "MergeNeighborhoodReport",
     # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",

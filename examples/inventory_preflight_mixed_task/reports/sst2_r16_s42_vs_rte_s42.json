@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "results/adjudication_study/verified_adapters/sst2_r16_s42",
+    "rank": 16,
+    "alpha": 16.0,
+    "n_layers": 24,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "results/adjudication_study/ambiguous_relationship_regime/adapters/rte_s42",
+    "rank": 16,
+    "alpha": 16.0,
+    "n_layers": 24,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "subspace_conflict",
+  "dominant_issue_detail": "1 conflicting layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy (DARE-TIES on 1 conflicting layer(s)). Validate merged adapter on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.362) \u2014 both adapters have verified behavioral quality",
+  "caveats": [
+    "3 layer(s) are over-provisioned. Pre-compression before merging may improve results.",
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 21,
+    "redundant": 2,
+    "conflicting": 1,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.3625,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (sst2_dev vs rte_dev). Linear merges across task boundaries may degrade the weaker task's performance."
+}

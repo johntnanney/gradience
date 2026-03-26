@@ -1,0 +1,44 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "sst2_r16_s123",
+    "path": "results/adjudication_study/verified_adapters/sst2_r16_s123",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 16,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 0.0864022862639857,
+    "utilization_median": 0.0691165037150096,
+    "stable_rank_mean": 1.3824365802237712,
+    "effective_rank_90_median": 1.5,
+    "rank_waste_ratio": 0.9135977137360143,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "concentrated_spectrum",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "sst2_dev",
+    "metric_name": "accuracy",
+    "adapter_score": 0.82,
+    "base_score": 0.596,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (sst2_dev)",
+      "low utilization across layers",
+      "high rank waste",
+      "spectrum concentrated in very few singular values",
+      "stable rank far below nominal rank"
+    ]
+  },
+  "notes": []
+}

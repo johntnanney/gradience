@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 360" role="img" aria-labelledby="title desc">
+  <title id="title">Feature Promotion Path</title>
+  <desc id="desc">Implemented to Benchmarked to Realism pass to Corpus review to Outcome with options Promoted, Retained optional, Shelved.</desc>
+
+  <defs>
+    <style>
+      .bg { fill: #f7f7f4; }
+      .title { fill: #1f2937; font: 700 30px "Helvetica Neue", Arial, sans-serif; }
+      .subtitle { fill: #4b5563; font: 400 13px "Helvetica Neue", Arial, sans-serif; }
+      .step { fill: #fbfcfd; stroke: #6f7d8b; stroke-width: 1.4; rx: 12; ry: 12; }
+      .step-label { fill: #1f2937; font: 600 20px "Helvetica Neue", Arial, sans-serif; }
+      .connector { stroke: #6f7d8b; stroke-width: 1.6; fill: none; marker-end: url(#arrow); }
+      .outcome-box { fill: #fbfcfd; stroke: #6f7d8b; stroke-width: 1.4; rx: 12; ry: 12; }
+      .outcome-pill-text { font: 600 15px "Helvetica Neue", Arial, sans-serif; text-anchor: middle; dominant-baseline: middle; }
+      .caption { fill: #4b5563; font: 400 13px "Helvetica Neue", Arial, sans-serif; }
+    </style>
+
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6f7d8b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1500" height="360"/>
+
+  <text class="title" x="750" y="48" text-anchor="middle">Feature Promotion Path</text>
+  <text class="subtitle" x="750" y="72" text-anchor="middle">How Gradience decides whether a capability becomes advanced, stays optional, or is shelved.</text>
+
+  <!-- Step boxes -->
+  <rect class="step" x="50" y="112" width="210" height="86"/>
+  <rect class="step" x="300" y="112" width="210" height="86"/>
+  <rect class="step" x="550" y="112" width="210" height="86"/>
+  <rect class="step" x="800" y="112" width="210" height="86"/>
+  <rect class="outcome-box" x="1050" y="94" width="400" height="122"/>
+
+  <!-- Connectors -->
+  <line class="connector" x1="260" y1="155" x2="290" y2="155"/>
+  <line class="connector" x1="510" y1="155" x2="540" y2="155"/>
+  <line class="connector" x1="760" y1="155" x2="790" y2="155"/>
+  <line class="connector" x1="1010" y1="155" x2="1040" y2="155"/>
+
+  <!-- Step labels -->
+  <text class="step-label" x="155" y="163" text-anchor="middle">Implemented</text>
+  <text class="step-label" x="405" y="163" text-anchor="middle">Benchmarked</text>
+  <text class="step-label" x="655" y="163" text-anchor="middle">Realism pass</text>
+  <text class="step-label" x="905" y="163" text-anchor="middle">Corpus review</text>
+
+  <!-- Outcome -->
+  <text class="step-label" x="1250" y="130" text-anchor="middle">Outcome</text>
+
+  <rect x="1072" y="148" width="96" height="44" rx="10" ry="10" fill="#dbe7de" stroke="#6f8e76" stroke-width="1.2"/>
+  <rect x="1178" y="148" width="144" height="44" rx="10" ry="10" fill="#eee6d8" stroke="#9d8a5b" stroke-width="1.2"/>
+  <rect x="1332" y="148" width="96" height="44" rx="10" ry="10" fill="#e6e9ed" stroke="#7f8894" stroke-width="1.2"/>
+
+  <text class="outcome-pill-text" x="1120" y="170" fill="#2e4f37">Promoted</text>
+  <text class="outcome-pill-text" x="1250" y="170" fill="#5a4a2a">Retained optional</text>
+  <text class="outcome-pill-text" x="1380" y="170" fill="#374151">Shelved</text>
+
+  <text class="caption" x="750" y="320" text-anchor="middle">New capabilities are not promoted by implementation alone; they move through benchmark, realism, and review before entering the advanced tier.</text>
+</svg>

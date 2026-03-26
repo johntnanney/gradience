@@ -12,8 +12,8 @@ Schema identifier: `gradience.merge_qa_report/v1`
 
 ```bash
 gradience merge-audit \
-  --source-a ./adapters/adapter-a \
-  --source-b ./adapters/adapter-b \
+  --adapter-a ./adapters/adapter-a \
+  --adapter-b ./adapters/adapter-b \
   --source-a-qa qa_a.json \
   --source-b-qa qa_b.json \
   --qa-report \
@@ -24,16 +24,43 @@ gradience merge-audit \
 
 Source QA arguments are optional. Without them, `eligibility_status` will be `null` for the corresponding adapter.
 
+Optional core-space diagnostic:
+
+```bash
+gradience merge-audit \
+  --adapter-a ./adapters/adapter-a \
+  --adapter-b ./adapters/adapter-b \
+  --compute-core-space \
+  --emit-report report_with_core_space.json
+```
+
+`--compute-core-space` adds an optional `core_space` block to the emitted `MergeQAReport`.
+
+Current status: core-space is documented as an **advanced optional diagnostic**. It remains additive and does not change default merge recommendation behavior.
+
 ### Python API
 
 ```python
-from gradience.api import merge_risk_report
+from gradience.api import compute_core_space_diagnostic, merge_risk_report
 
 report = merge_risk_report(
     adapter_a="./adapters/adapter-a",
     adapter_b="./adapters/adapter-b",
     source_a_qa="qa_a.json",
     source_b_qa="qa_b.json",
+)
+
+# Optional advanced extension: include core_space in the report
+report_with_core_space = merge_risk_report(
+    adapter_a="./adapters/adapter-a",
+    adapter_b="./adapters/adapter-b",
+    compute_core_space=True,
+)
+
+# Optional advanced helper: return only the core_space diagnostic block
+core_space = compute_core_space_diagnostic(
+    adapter_a="./adapters/adapter-a",
+    adapter_b="./adapters/adapter-b",
 )
 
 # Serialize
@@ -43,6 +70,8 @@ with open("report.json", "w") as f:
 ```
 
 `merge_risk_report()` is a thin wrapper over the CLI -- it runs `merge-audit --qa-report --emit-report` via subprocess, then loads the resulting JSON through `MergeQAReport.from_dict()`. It is not an alternate implementation path.
+
+`compute_core_space_diagnostic()` is an advanced optional helper that enables core-space and returns the report's `core_space` block directly. It remains diagnostic-only.
 
 ## 3. How to Read It
 
@@ -57,6 +86,8 @@ A v1 report has these top-level sections:
 - **`caveats`** -- list of things the user should know before proceeding (eligibility warnings, structural concerns, compression advice).
 - **`verdict_distribution`** -- layer verdict counts: how many layers were classified as safe, redundant, conflicting, or imbalanced.
 - **`compatibility_score`** -- numeric score from 0 to 1. Higher means more compatible. Derived from the layer verdict distribution.
+- **`core_space`** *(optional)* -- shared-basis diagnostic summary (`shared_basis_score`, `basis_distortion`, `effective_shared_rank`, `status`) when `--compute-core-space` is enabled.
+- **`task_relationship_advisory`** *(optional)* -- present when source QA artifacts indicate the adapters were evaluated on different tasks. Part of the stable interpretive layer. Across 132+ checked pairs on two backbones, the advisory has 0% false positive rate on same-task pairs and 100% correct fire rate on different-task pairs. Most valuable for inventory-level partitioning of mixed-task pools — in observation testing, it collapsed 11 medium-risk candidates to 2 actionable pairs. Does not alter structural risk classification or recommendation logic. Note: in same-task/different-domain regimes with high cross-domain transfer (e.g., sentiment across review domains), the advisory may overcall — flagging merges that are actually safe. Treat as "worth checking" rather than "likely degraded" in such cases.
 
 ## 4. How to Consume It
 
@@ -121,6 +152,8 @@ if report.recommended_strategy == "linear":
 | `confidence_note` | `str` | `""` | Prose companion to `confidence` |
 | `caveats` | `list[str]` | `[]` | Warnings and advisories |
 | `verdict_distribution` | `dict[str, int]` | `{}` | Layer verdict counts (values must be integers) |
+| `core_space` | `dict` | omitted | Optional shared-basis diagnostic block (present only when computed) |
+| `task_relationship_advisory` | `str` | omitted | Advisory when adapters were evaluated on different tasks (present only when applicable) |
 
 Extra keys at any level are silently ignored (forward compatible).
 
@@ -132,7 +165,9 @@ Extra keys at any level are silently ignored (forward compatible).
 - `recommended_strategy` accepts any string (lenient for forward compatibility).
 - `caveats` must be `list[str]` if present.
 - `verdict_distribution` values must be integers if present.
+- If `core_space` is present, it must include numeric `shared_basis_score`, numeric `basis_distortion`, integer `effective_shared_rank`, and status in `{compatible, marginal, incompatible, not_applicable}`.
 - Numeric fields accept `int` or `float`, normalized to the declared type.
+- If `task_relationship_advisory` is present, it must be a string.
 
 ## 6. Decision Semantics
 

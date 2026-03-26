@@ -1,0 +1,31 @@
+{
+  "schema": "gradience.inventory_summary/v1",
+  "sources": {
+    "qa_artifact_count": 6,
+    "merge_report_count": 15
+  },
+  "adapter_status_counts": {
+    "eligible": 6
+  },
+  "adapter_flag_counts": {
+    "low_utilization": 6,
+    "high_rank_waste": 6,
+    "concentrated_spectrum": 3,
+    "underutilized_capacity": 6
+  },
+  "pair_risk_counts": {
+    "medium": 11,
+    "high": 4
+  },
+  "recommended_strategy_counts": {
+    "audit_aware": 15
+  },
+  "dominant_issue_counts": {
+    "partial_redundancy": 8,
+    "norm_imbalance": 5,
+    "subspace_conflict": 1,
+    "high_redundancy": 1
+  },
+  "strict_qa_block_candidates": 0,
+  "notes": []
+}

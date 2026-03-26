@@ -1,0 +1,22 @@
+{
+  "fixture_id": "realistic_ambiguous_pair",
+  "category": "real ambiguous pair",
+  "description": "Two real DistilBERT adapters from different benchmark pools that are plausible to merge but not trivially redundant.",
+  "evidence_tier": "realistic",
+  "seeds": [101, 202, 303],
+  "n_layers": 24,
+  "d_in": 768,
+  "d_out": 768,
+  "r_a": 16,
+  "r_b": 8,
+  "alpha_a": 16.0,
+  "alpha_b": 8.0,
+  "generator": {
+    "mode": "real_adapter_pair",
+    "adapter_a_dir": "results/core_space_benchmark/real_adapters/final_uniform_median_r16",
+    "adapter_b_dir": "results/core_space_benchmark/real_adapters/qnli_per_layer_r8",
+    "max_layers": 24
+  },
+  "expected_dominant_statuses": ["marginal", "compatible"],
+  "expected_trial_statuses": ["compatible", "marginal", "incompatible"]
+}

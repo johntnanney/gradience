@@ -1,0 +1,20 @@
+{
+  "fixture_id": "moderate_risk_pairs",
+  "category": "moderate-risk pairs",
+  "description": "Borderline structural relation intended to probe compatible vs marginal behavior.",
+  "evidence_tier": "synthetic",
+  "seeds": [101, 202, 303],
+  "n_layers": 10,
+  "d_in": 64,
+  "d_out": 64,
+  "r_a": 8,
+  "r_b": 8,
+  "alpha_a": 16.0,
+  "alpha_b": 16.0,
+  "generator": {
+    "mode": "blend_random",
+    "blend_weight": 0.44
+  },
+  "expected_dominant_statuses": ["marginal", "compatible"],
+  "expected_trial_statuses": ["compatible", "marginal", "incompatible"]
+}

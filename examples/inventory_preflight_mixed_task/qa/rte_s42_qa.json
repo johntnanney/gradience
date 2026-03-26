@@ -1,0 +1,42 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "rte_s42",
+    "path": "results/adjudication_study/ambiguous_relationship_regime/adapters/rte_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 16,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 0.13026281462290215,
+    "utilization_median": 0.10979238229255597,
+    "stable_rank_mean": 2.0842050339664344,
+    "effective_rank_90_median": 7.5,
+    "rank_waste_ratio": 0.8697371853770979,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "rte_dev",
+    "metric_name": "accuracy",
+    "adapter_score": 0.567,
+    "base_score": 0.516,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (rte_dev)",
+      "low utilization across layers",
+      "high rank waste",
+      "stable rank far below nominal rank"
+    ]
+  },
+  "notes": []
+}

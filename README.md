@@ -1,6 +1,6 @@
 # Gradience
 
-**Spectral metrics as empirical probes into the geometry of LoRA training.** Measure rank evolution, detect phase transitions, and study how spectral structure relates to generalization -- with reproducible, multi-seed experimental infrastructure.
+**Inventory preflight for LoRA adapter merging.** Reduce the search space, expose task-boundary risk, and turn a mixed adapter inventory into a smaller, more defensible evaluation plan -- before expensive merge testing begins.
 
 > If you use Gradience in your research, please cite:
 >
@@ -14,25 +14,30 @@
 > }
 > ```
 
-## Research questions Gradience helps you investigate
+## What Gradience does
 
-- **How does effective rank evolve during fine-tuning?** Track stable rank, energy concentration, and utilization ratios across layers and training steps.
-- **What geometric signatures distinguish runs that generalize from runs that don't?** Compare spectral profiles across seeds, hyperparameter sweeps, and task families.
-- **Can spectral metrics detect phase transitions in training dynamics?** Monitor when rank structure shifts abruptly and correlate with loss landscape changes.
-- **How much of the learned subspace is actually used?** Quantify per-layer rank waste and map the gap between allocated and effective dimensionality.
-- **When two adapters are merged, do their learned subspaces align or interfere?** Measure principal angles, directional agreement, and magnitude balance between adapter pairs.
+![Inventory preflight: before and after](assets/preflight_before_after.svg)
+
+Given a pool of LoRA adapters you might want to merge, Gradience runs a preflight pass that:
+
+1. **Screens source quality** -- identifies weak, under-evidenced, or ineligible adapters before they contaminate pairwise analysis
+2. **Assesses pairwise structural compatibility** -- per-layer spectral analysis with risk levels, dominant issues, and strategy recommendations
+3. **Detects task-boundary risk** -- flags cross-task pairs where structural similarity is misleading (validated across 132+ pairs, 0 false positives)
+4. **Compresses the inventory** -- neighborhoods partition a dense pair matrix into same-task safe zones and cross-task caution zones
+5. **Reduces the search space** -- in utility testing across 60 pairs and 5 inventories, the workflow eliminated 65-90% of candidate pairs in mixed-task pools before any behavioral evaluation
 
 ## Who it's for
 
-- **ML researchers studying training dynamics** -- Use spectral measurements to probe how low-rank structure emerges and evolves during fine-tuning
-- **Researchers comparing adaptation strategies** -- Generate reproducible, statistically rigorous evidence across seeds, ranks, and tasks
-- **Practitioners managing adapter inventories** -- Screen adapter quality, assess merge risk, and run preflight checks before deployment
+- **Practitioners managing adapter inventories** -- Run preflight before merge experiments to avoid wasting evaluation budget on pairs that will fail
+- **ML researchers studying merge behavior** -- Use spectral and task-boundary signals to understand why some merges work and others don't
+- **Teams with mixed-task adapter pools** -- Partition inventories into actionable regions before committing to expensive downstream evaluation
 
 ## What you get
 
-- **Adapter QA** -- Structural eligibility screening for individual LoRA adapters, with machine-readable artifacts
-- **Merge-risk reporting** -- Pairwise geometric compatibility analysis with per-layer verdicts, strategy recommendations, and risk levels
-- **Inventory preflight** -- Aggregated summary across adapters and merge pairs, with strict-QA gating for deployment workflows
+- **Source QA** -- Structural eligibility screening with machine-readable artifacts (`gradience.adapter_qa/v1`)
+- **Merge-risk reports** -- Pairwise compatibility analysis with task-relationship advisories (`gradience.merge_qa_report/v1`)
+- **Inventory summary** -- Aggregated view across adapters and pairs (`gradience.inventory_summary/v1`)
+- **Neighborhoods** -- Rule-based inventory grouping that compresses pair matrices into interpretable regions
 - **Spectral measurements** -- Per-layer SVD analysis yielding stable rank, energy concentration, utilization ratios, and rank waste quantification
 - **Training telemetry** -- Structured JSONL recording of spectral evolution across training steps
 - **Merge compatibility analysis** -- Principal angle and directional agreement measurements between adapter pairs, with per-layer geometric characterization
@@ -268,6 +273,22 @@ gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
 
 See **[Getting Started: Preflight](https://github.com/johntnanney/gradience/blob/main/docs/getting-started-preflight.md)** for the full walkthrough and **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** for interpretation examples.
 
+Optional diagnostic extensions (advanced, not part of the default workflow):
+
+```bash
+# Optional shared-basis diagnostic in merge report output
+gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b \
+    --compute-core-space --emit-report reports/ab_report_with_core_space.json
+
+# Optional rule-based inventory neighborhood suggestion
+gradience suggest-neighborhoods --qa-dir qa/ --report-dir reports/ \
+    --emit-report inventory/neighborhoods.json
+```
+
+On small encoder models, **task identity is the key regime boundary** for merge safety. Same-task pairs are broadly safe — confirmed across 45 pairs and 3 blind-spot studies with 0 material degradations. Cross-task pairs are where meaningful failure modes appear.
+
+Merge reports include a **task-relationship advisory** when source QA artifacts indicate different evaluation tasks. This is part of the stable interpretive layer, addressing the main cross-task blind spot where structural pair-risk alone is insufficient. Tested across 132+ pairs on two backbones with zero false positives. In mixed-task inventories, it partitions the pair matrix into same-task safe zones and cross-task caution zones. It does not alter structural risk classification. See [Merge Risk Report](https://github.com/johntnanney/gradience/blob/main/docs/merge-risk-report.md) for details.
+
 ## Experimental workflow
 
 For research into spectral training dynamics:
@@ -337,14 +358,26 @@ Every release is validated with comprehensive CI gates:
 
 ## What Gradience is
 
-Gradience is a **preflight QA and merge-risk layer** for LoRA adapter decisions, backed by spectral measurement:
+Gradience is an **inventory preflight system** for LoRA adapter merging:
 
+- **A search-space reducer** -- In mixed-task inventories, it typically eliminates 65-90% of candidate pairs before evaluation begins (81% average where the advisory is the main discriminator)
+- **A task-boundary detector** -- It partitions inventories into same-task safe zones and cross-task caution zones using validated metadata signals (0 false positives across 132+ pairs, 2 backbones)
 - **A structural screening tool** -- It audits individual adapters for spectral health and screens merge pairs for geometric compatibility
 - **A merge-risk reporting system** -- It produces machine-readable risk artifacts with per-layer verdicts, strategy recommendations, and strict-QA gating
-- **An inventory preflight layer** -- It aggregates adapter-level and pair-level judgments into deployment-ready summaries
-- **A research instrument** -- It computes spectral metrics (stable rank, energy concentration, utilization) from adapter weights for training dynamics research
-- **A companion to your training stack** -- It instruments and analyzes; it does not replace your trainer, optimizer, or evaluation pipeline
-- **A source of evidence, not prescriptions** -- Spectral measurements inform your analysis. The interpretation is yours
+- **A companion to your evaluation stack** -- It reduces what you need to evaluate; it does not replace your evaluation pipeline
+
+### What is established
+
+- Source QA as the first decision anchor
+- Pair-risk as the default structural layer
+- Task-relationship advisory as stable interpretive infrastructure (cross-task boundary detection)
+- Neighborhoods as inventory compression for pools of 6+ adapters
+- Same-task safety on small encoder models (49 pairs, 0 material degradations)
+
+### What is open research
+
+- Cross-task severity grading (no signal reliably predicts severity within cross-task pairs across backbones)
+- Extension to larger models and decoder-only architectures
 
 ## API Stability
 
@@ -355,11 +388,18 @@ Gradience is a **preflight QA and merge-risk layer** for LoRA adapter decisions,
 - Config schema (YAML structure)
 - Output artifacts (`audit.json`, `bench.json`, `bench.md`, `merge_audit.json`, `merge_audit.md`)
 
+**Advanced optional wrappers**:
+- `gradience.api.compute_core_space_diagnostic()` (diagnostic-only pair extension)
+- `gradience.api.suggest_neighborhoods()` (inventory workflow extension)
+
 **Experimental features** (including spectral compression) are clearly marked and may change.
 
 ## Examples
 
+- **[Mixed-task inventory walkthrough](https://github.com/johntnanney/gradience/blob/main/docs/examples/mixed-task-inventory-walkthrough.md)** -- Flagship example: 6 adapters, 4 tasks, 15 pairs reduced to 2 (87% search-space reduction)
+- **[Same-task control walkthrough](https://github.com/johntnanney/gradience/blob/main/docs/examples/same-task-control-walkthrough.md)** -- Contrast case: advisory silence, confirmatory workflow
 - **[Curated demo bundle](https://github.com/johntnanney/gradience/tree/main/examples/demo/)** -- Complete preflight artifacts: eligible, weak, and missing-QA adapters; safe and risky merge pairs; inventory summary
+- **[Advanced workflow assets](https://github.com/johntnanney/gradience/tree/main/examples/inventories/)** -- Fixture inventories and expected neighborhood outcomes
 - **[Minimal integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
 - **[HF Trainer integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
 - **[Experiment configs](https://github.com/johntnanney/gradience/tree/main/examples/configs/)** -- Define experimental protocols
@@ -368,6 +408,7 @@ Gradience is a **preflight QA and merge-risk layer** for LoRA adapter decisions,
 
 Complete documentation available on GitHub:
 
+- **[Inventory Preflight Workflow](https://github.com/johntnanney/gradience/blob/main/docs/inventory-preflight.md)** -- Main workflow guide: when to use, what to run, how to interpret
 - **[Theoretical Foundations](https://github.com/johntnanney/gradience/blob/main/docs/THEORY.md)** -- Mathematical framework and open questions
 - **[Empirical Findings](https://github.com/johntnanney/gradience/blob/main/docs/FINDINGS.md)** -- Results obtained with Gradience
 - **[Research Roadmap](https://github.com/johntnanney/gradience/blob/main/docs/ROADMAP.md)** -- Open questions and planned investigations
@@ -376,6 +417,9 @@ Complete documentation available on GitHub:
 - **[Spectral Analysis Policies](https://github.com/johntnanney/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
 - **[Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
 - **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** -- Assess adapter quality before merging
+- **[Advanced Workflows](https://github.com/johntnanney/gradience/blob/main/docs/advanced-workflows.md)** -- Optional advanced diagnostics and inventory workflows
+- **[Core-Space Audit](https://github.com/johntnanney/gradience/blob/main/docs/core-space-audit.md)** -- Optional shared-basis diagnostic for pair audits
+- **[Merge Neighborhoods](https://github.com/johntnanney/gradience/blob/main/docs/merge-neighborhoods.md)** -- Optional rule-based inventory grouping aid
 - **[CLI Reference](https://github.com/johntnanney/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
 - **[Configuration Reference](https://github.com/johntnanney/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
 - **[Artifacts & Evidence](https://github.com/johntnanney/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs

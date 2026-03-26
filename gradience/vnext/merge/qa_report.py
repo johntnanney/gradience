@@ -56,6 +56,14 @@ DOMINANT_ISSUE_LABELS = frozenset(
 
 PAIR_RISK_VALUES = frozenset({"low", "medium", "high"})
 CONFIDENCE_VALUES = frozenset({"high", "medium", "low"})
+CORE_SPACE_STATUS_VALUES = frozenset(
+    {
+        "compatible",
+        "marginal",
+        "incompatible",
+        "not_applicable",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Data structure
@@ -81,6 +89,24 @@ class AdapterSummary:
             "n_layers": self.n_layers,
             "base_model": self.base_model,
             "eligibility_status": self.eligibility_status,
+        }
+
+
+@dataclass(frozen=True)
+class CoreSpaceSummary:
+    """Optional pair-level core-space diagnostic block."""
+
+    shared_basis_score: float
+    basis_distortion: float
+    effective_shared_rank: int
+    status: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "shared_basis_score": float(self.shared_basis_score),
+            "basis_distortion": float(self.basis_distortion),
+            "effective_shared_rank": int(self.effective_shared_rank),
+            "status": self.status,
         }
 
 
@@ -144,6 +170,39 @@ def _validate_adapter_summary(raw: dict[str, Any], section_name: str) -> Adapter
     )
 
 
+def _validate_core_space_summary(raw: dict[str, Any]) -> CoreSpaceSummary:
+    """Validate optional core_space block when present."""
+    required = ("shared_basis_score", "basis_distortion", "effective_shared_rank", "status")
+    for field_name in required:
+        if field_name not in raw:
+            raise QASchemaError(f"Missing required field: core_space.{field_name}")
+
+    score = raw["shared_basis_score"]
+    if not isinstance(score, (int, float)):
+        raise QASchemaError(f"Field 'core_space.shared_basis_score' must be numeric, got {type(score).__name__}")
+
+    distortion = raw["basis_distortion"]
+    if not isinstance(distortion, (int, float)):
+        raise QASchemaError(f"Field 'core_space.basis_distortion' must be numeric, got {type(distortion).__name__}")
+
+    rank = raw["effective_shared_rank"]
+    if not isinstance(rank, int):
+        raise QASchemaError(f"Field 'core_space.effective_shared_rank' must be int, got {type(rank).__name__}")
+
+    status = str(raw["status"])
+    if status not in CORE_SPACE_STATUS_VALUES:
+        raise QASchemaError(
+            f"Invalid core_space.status '{status}'. Must be one of: {sorted(CORE_SPACE_STATUS_VALUES)}"
+        )
+
+    return CoreSpaceSummary(
+        shared_basis_score=float(score),
+        basis_distortion=float(distortion),
+        effective_shared_rank=int(rank),
+        status=status,
+    )
+
+
 @dataclass(frozen=True)
 class MergeQAReport:
     """Clean, practitioner-facing merge quality assessment.
@@ -164,9 +223,11 @@ class MergeQAReport:
     caveats: tuple[str, ...]  # things the user should know
     verdict_distribution: dict[str, int]  # {"safe": N, "redundant": N, ...}
     compatibility_score: float
+    core_space: CoreSpaceSummary | None = None
+    task_relationship_advisory: str | None = None  # additive advisory when adapters trained on different tasks
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = {
             "schema": "gradience.merge_qa_report/v1",
             "adapter_a": self.adapter_a.to_dict(),
             "adapter_b": self.adapter_b.to_dict(),
@@ -181,6 +242,11 @@ class MergeQAReport:
             "verdict_distribution": self.verdict_distribution,
             "compatibility_score": round(self.compatibility_score, 4),
         }
+        if self.core_space is not None:
+            d["core_space"] = self.core_space.to_dict()
+        if self.task_relationship_advisory is not None:
+            d["task_relationship_advisory"] = self.task_relationship_advisory
+        return d
 
     def to_json(self, path: Path | str) -> None:
         """Write QA report to a JSON file."""
@@ -251,6 +317,15 @@ class MergeQAReport:
             raise QASchemaError(f"Field 'compatibility_score' must be numeric, got {type(raw_score).__name__}")
         compatibility_score = float(raw_score)
 
+        # --- optional core_space block ---
+        raw_core_space = d.get("core_space")
+        if raw_core_space is None:
+            core_space = None
+        else:
+            if not isinstance(raw_core_space, dict):
+                raise QASchemaError("Field 'core_space' must be a dict when present")
+            core_space = _validate_core_space_summary(raw_core_space)
+
         # --- Optional string fields (backfill to "" if absent) ---
         dominant_issue_detail = str(d.get("dominant_issue_detail", ""))
         confidence_note = str(d.get("confidence_note", ""))
@@ -277,6 +352,10 @@ class MergeQAReport:
                     raise QASchemaError(f"verdict_distribution['{k}'] must be int, got {type(v).__name__}")
             verdict_distribution = raw_vd
 
+        # --- Optional task_relationship_advisory (str or None) ---
+        raw_advisory = d.get("task_relationship_advisory")
+        task_relationship_advisory = str(raw_advisory) if raw_advisory is not None else None
+
         return cls(
             adapter_a=adapter_a,
             adapter_b=adapter_b,
@@ -290,6 +369,8 @@ class MergeQAReport:
             caveats=caveats,
             verdict_distribution=verdict_distribution,
             compatibility_score=compatibility_score,
+            core_space=core_space,
+            task_relationship_advisory=task_relationship_advisory,
         )
 
 
@@ -468,6 +549,36 @@ def _derive_confidence(diag: PairDiagnosis, score: float) -> str:
     return "medium"
 
 
+def _task_relationship_advisory(report: Any) -> str | None:
+    """Build a task-relationship advisory if adapters were evaluated on different tasks.
+
+    Returns an advisory string when both adapters have QA data with
+    ``eval_dataset`` fields that differ, or None otherwise.  This is an
+    additive, metadata-driven signal — orthogonal to structural pair-risk.
+    """
+    source_qa = getattr(report, "source_qa", None)
+    if source_qa is None:
+        return None
+
+    qa_a = source_qa.get("adapter_a") if isinstance(source_qa, dict) else None
+    qa_b = source_qa.get("adapter_b") if isinstance(source_qa, dict) else None
+    if qa_a is None or qa_b is None:
+        return None
+
+    ds_a = qa_a.get("eval_dataset")
+    ds_b = qa_b.get("eval_dataset")
+    if ds_a is None or ds_b is None:
+        return None
+    if ds_a == ds_b:
+        return None
+
+    return (
+        f"Cross-task merge: adapters were evaluated on different tasks "
+        f"({ds_a} vs {ds_b}). Linear merges across task boundaries "
+        f"may degrade the weaker task's performance."
+    )
+
+
 def build_qa_report(report: Any) -> MergeQAReport:
     """Build a QA report from a MergeAuditReport.
 
@@ -520,6 +631,34 @@ def build_qa_report(report: Any) -> MergeQAReport:
     issue_label, issue_detail = _dominant_issue(diag, agg)
     confidence = _derive_confidence(diag, score)
 
+    core_space_summary = None
+    raw_core_space = getattr(report, "core_space", None)
+    if raw_core_space is not None:
+        # Accept either the typed internal aggregate object or a plain dict.
+        if hasattr(raw_core_space, "shared_basis_score_mean"):
+            core_space_summary = CoreSpaceSummary(
+                shared_basis_score=float(raw_core_space.shared_basis_score_mean),
+                basis_distortion=float(raw_core_space.basis_distortion_mean),
+                effective_shared_rank=int(raw_core_space.effective_shared_rank_median),
+                status=str(raw_core_space.status),
+            )
+        elif isinstance(raw_core_space, dict):
+            score_value = raw_core_space.get("shared_basis_score")
+            if score_value is None:
+                score_value = raw_core_space.get("shared_basis_score_mean", 0.0)
+            distortion_value = raw_core_space.get("basis_distortion")
+            if distortion_value is None:
+                distortion_value = raw_core_space.get("basis_distortion_mean", 0.0)
+            rank_value = raw_core_space.get("effective_shared_rank")
+            if rank_value is None:
+                rank_value = raw_core_space.get("effective_shared_rank_median", 0)
+            core_space_summary = CoreSpaceSummary(
+                shared_basis_score=float(score_value),
+                basis_distortion=float(distortion_value),
+                effective_shared_rank=int(rank_value),
+                status=str(raw_core_space.get("status", "not_applicable")),
+            )
+
     return MergeQAReport(
         adapter_a=adapter_a,
         adapter_b=adapter_b,
@@ -533,6 +672,8 @@ def build_qa_report(report: Any) -> MergeQAReport:
         caveats=_caveats(diag, rec),
         verdict_distribution=verdict_dist,
         compatibility_score=score,
+        core_space=core_space_summary,
+        task_relationship_advisory=_task_relationship_advisory(report),
     )
 
 
@@ -541,25 +682,74 @@ def build_qa_report(report: Any) -> MergeQAReport:
 # ---------------------------------------------------------------------------
 
 
+def _report_headline(qa: MergeQAReport) -> str:
+    """Generate a one-line report headline for quick scanning."""
+    has_advisory = qa.task_relationship_advisory is not None
+    has_weak = any(
+        s in (qa.adapter_a.eligibility_status, qa.adapter_b.eligibility_status)
+        for s in ("flagged_weak", "unknown_no_behavioral_eval")
+    )
+
+    if has_weak:
+        return "Weak-source pair — low-priority candidate"
+    if has_advisory and qa.pair_risk == "high":
+        return "Cross-task pair — high structural risk — caution region"
+    if has_advisory:
+        return "Cross-task pair — caution region"
+    if qa.pair_risk == "low":
+        return "Same-task pair — safe region"
+    return "Same-task pair — reasonable candidate"
+
+
+def _report_interpretation(qa: MergeQAReport) -> str:
+    """Generate a short interpretation line for the end of the report."""
+    has_advisory = qa.task_relationship_advisory is not None
+    has_weak = any(
+        s in (qa.adapter_a.eligibility_status, qa.adapter_b.eligibility_status)
+        for s in ("flagged_weak", "unknown_no_behavioral_eval")
+    )
+
+    if has_weak:
+        return "Weak-source influence likely dominates; low-value candidate."
+    if has_advisory:
+        return "Cross-task caution pair; do not prioritize for casual merge exploration."
+    return "Same-task pair; reasonable candidate to keep in the evaluation subset."
+
+
 def format_qa_report(qa: MergeQAReport) -> str:
     """Format a MergeQAReport as clean, human-readable text.
 
-    Output is organized into four explicit sections:
+    Output is organized for quick scanning and decision support:
 
-    1. **Structural Result** — spectral compatibility verdict, score,
-       layer distribution, dominant structural issue.
-    2. **Behavioral Status** — source adapter eligibility from QA data,
-       confidence note based on available evidence.
-    3. **Eligibility Warning** — warnings and caveats about data gaps
-       or weak adapters that affect recommendation reliability.
-    4. **Recommended Action** — concrete action and strategy, informed
-       by both structural and behavioral analysis.
+    - **Headline** — one-line summary of pair status
+    - **Task-boundary warning** (if cross-task) — visually primary
+    - **Structural result** — risk, compatibility, layer verdicts
+    - **Behavioral status** — source eligibility and confidence
+    - **Eligibility warnings** — caveats about data gaps
+    - **Recommended action** — strategy and next step
+    - **Interpretation** — plain-language summary
+    - **Advanced diagnostic detail** (if core-space present)
     """
     lines: list[str] = []
 
+    # ---------------------------------------------------------------
+    # Headline
+    # ---------------------------------------------------------------
     lines.append("")
     lines.append("  MERGE QA REPORT")
     lines.append("  " + "=" * 60)
+    lines.append(f"  {_report_headline(qa)}")
+
+    # ---------------------------------------------------------------
+    # Task-boundary warning (visually primary, before structural)
+    # ---------------------------------------------------------------
+    if qa.task_relationship_advisory is not None:
+        lines.append("")
+        lines.append("  TASK-BOUNDARY WARNING")
+        lines.append("  " + "-" * 40)
+        lines.append(f"  {qa.task_relationship_advisory}")
+        lines.append("  Action: Do not prioritize this pair unless you have a specific")
+        lines.append("          reason to merge across task boundaries.")
 
     # ---------------------------------------------------------------
     # Section 1: Structural Result
@@ -636,6 +826,26 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append("  " + "-" * 40)
     lines.append(f"  {qa.recommended_action}")
     lines.append(f"  Strategy: {qa.recommended_strategy}")
+
+    # ---------------------------------------------------------------
+    # Interpretation
+    # ---------------------------------------------------------------
+    lines.append("")
+    lines.append("  INTERPRETATION")
+    lines.append("  " + "-" * 40)
+    lines.append(f"  {_report_interpretation(qa)}")
+
+    # ---------------------------------------------------------------
+    # Advanced diagnostic detail (subordinate, at end)
+    # ---------------------------------------------------------------
+    if qa.core_space is not None:
+        lines.append("")
+        lines.append("  ADVANCED DIAGNOSTIC DETAIL")
+        lines.append("  " + "-" * 40)
+        lines.append(f"  Core-space shared basis: {qa.core_space.shared_basis_score:.3f}")
+        lines.append(f"  Basis distortion:        {qa.core_space.basis_distortion:.3f}")
+        lines.append(f"  Effective shared rank:    {qa.core_space.effective_shared_rank}")
+        lines.append(f"  Status:                  {qa.core_space.status}")
 
     lines.append("")
 

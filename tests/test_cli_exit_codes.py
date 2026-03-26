@@ -155,3 +155,46 @@ class TestMergeAuditExitCodes:
             "examples/adapters/tiny_lora",
         )
         assert result.returncode != 0
+
+
+# ---------------------------------------------------------------------------
+# suggest-neighborhoods
+# ---------------------------------------------------------------------------
+
+
+class TestSuggestNeighborhoodsExitCodes:
+    """Exit code tests for 'gradience suggest-neighborhoods'."""
+
+    def test_success_with_example_dirs(self) -> None:
+        result = _run_gradience(
+            "suggest-neighborhoods",
+            "--qa-dir",
+            "examples/qa",
+            "--report-dir",
+            "examples/reports",
+        )
+        assert result.returncode == 0
+
+    def test_emit_report_schema(self) -> None:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
+            out_path = tmp.name
+        try:
+            result = _run_gradience(
+                "suggest-neighborhoods",
+                "--qa-dir",
+                "examples/qa",
+                "--report-dir",
+                "examples/reports",
+                "--emit-report",
+                out_path,
+            )
+            assert result.returncode == 0
+            with open(out_path) as f:
+                data = json.load(f)
+            assert data["schema"] == "gradience.merge_neighborhoods/v1"
+        finally:
+            Path(out_path).unlink(missing_ok=True)
+
+    def test_missing_report_dir_fails(self) -> None:
+        result = _run_gradience("suggest-neighborhoods")
+        assert result.returncode != 0

@@ -1,0 +1,7 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {"name": "safe_c", "path": "safe_c", "base_model": "llama", "rank_nominal": 8, "n_layers": 8},
+  "structural_summary": {"utilization_mean": 0.51, "rank_waste_ratio": 0.46, "flags": []},
+  "behavioral_summary": {"eval_available": true},
+  "eligibility": {"status": "eligible"}
+}

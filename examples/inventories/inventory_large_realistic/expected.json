@@ -1,0 +1,17 @@
+{
+  "expected_groups": [
+    ["lg_a", "lg_b", "lg_c"],
+    ["lg_d", "lg_e", "lg_f"],
+    ["lg_g"]
+  ],
+  "expected_excluded": ["lg_h"],
+  "expected_boundary_warnings": [
+    [["lg_a", "lg_b", "lg_c"], ["lg_d", "lg_e", "lg_f"]],
+    [["lg_d", "lg_e", "lg_f"], ["lg_g"]]
+  ],
+  "expected_characterizations": [
+    {"members": ["lg_a", "lg_b", "lg_c"], "characterization": "caution neighborhood"},
+    {"members": ["lg_d", "lg_e", "lg_f"], "characterization": "caution neighborhood"},
+    {"members": ["lg_g"], "characterization": "caution neighborhood"}
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "gradience.merge_neighborhoods/v1",
+  "groups": [
+    {
+      "group_id": "cluster_01",
+      "members": [
+        "./adapters/code_lora",
+        "./adapters/sql_lora"
+      ],
+      "characterization": "likely-safe neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_02",
+      "members": [
+        "./adapters/chat_lora",
+        "./adapters/instruct_lora"
+      ],
+      "characterization": "audit-aware neighborhood",
+      "common_strategy": "audit_aware",
+      "dominant_issue": "norm_imbalance"
+    }
+  ],
+  "excluded": [
+    {
+      "adapter": "./adapters/btgenbot-r8",
+      "reason": "flagged_weak"
+    }
+  ],
+  "boundary_warnings": [
+    {
+      "between": [
+        "cluster_01",
+        "cluster_02"
+      ],
+      "reason": "high cross-group merge risk"
+    }
+  ]
+}

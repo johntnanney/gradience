@@ -22,6 +22,7 @@ from gradience.vnext.merge.containers import (
     AggregateResult,
     MatchingSummary,
 )
+from gradience.vnext.merge.core_space_types import CoreSpacePairDiagnostic
 from gradience.vnext.merge.verdicts import (
     CompatibilityVerdict,
     LayerVerdict,
@@ -59,6 +60,7 @@ class MergeAuditReport:
     timestamp: str = ""
     gradience_version: str = ""
     source_qa: dict[str, Any] | None = None  # eligibility screening results
+    core_space: CoreSpacePairDiagnostic | None = None  # optional shared-basis diagnostic
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +81,7 @@ def build_report(
     thresholds: VerdictThresholds,
     source_qa_a: Any | None = None,
     source_qa_b: Any | None = None,
+    core_space: CoreSpacePairDiagnostic | None = None,
 ) -> MergeAuditReport:
     """Assemble full report from analysis results."""
 
@@ -174,6 +177,7 @@ def build_report(
         timestamp=datetime.now(timezone.utc).isoformat(),
         gradience_version=grad_version,
         source_qa=source_qa,
+        core_space=core_space,
     )
 
 
@@ -207,6 +211,8 @@ def to_json(report: MergeAuditReport) -> dict[str, Any]:
     }
     if report.source_qa is not None:
         d["source_qa"] = report.source_qa
+    if report.core_space is not None:
+        d["core_space"] = _serialize(report.core_space)
     return d
 
 
@@ -295,6 +301,12 @@ def to_markdown(report: MergeAuditReport) -> str:
         f"{agg.n_conflicting} conflicting, "
         f"{agg.n_imbalanced} imbalanced"
     )
+    if report.core_space is not None:
+        lines.append("- Core-space diagnostic:")
+        lines.append(f"  - Shared basis score: {report.core_space.shared_basis_score_mean:.3f}")
+        lines.append(f"  - Basis distortion: {report.core_space.basis_distortion_mean:.3f}")
+        lines.append(f"  - Effective shared rank (median): {report.core_space.effective_shared_rank_median}")
+        lines.append(f"  - Status: {report.core_space.status}")
     lines.append("")
 
     # --- Per-layer analysis ---

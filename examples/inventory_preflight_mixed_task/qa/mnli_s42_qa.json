@@ -1,0 +1,44 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "mnli_s42",
+    "path": "results/adjudication_study/ambiguous_relationship_regime/adapters/mnli_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 16,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 0.08836622881388374,
+    "utilization_median": 0.07679631752042976,
+    "stable_rank_mean": 1.41385966102214,
+    "effective_rank_90_median": 2.0,
+    "rank_waste_ratio": 0.9116337711861162,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "concentrated_spectrum",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "mnli_dev",
+    "metric_name": "accuracy",
+    "adapter_score": 0.53,
+    "base_score": 0.352,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (mnli_dev)",
+      "low utilization across layers",
+      "high rank waste",
+      "spectrum concentrated in very few singular values",
+      "stable rank far below nominal rank"
+    ]
+  },
+  "notes": []
+}

@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+
+      .title { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 28px; fill: #1F2933; }
+      .panel-header { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 20px; fill: #1F2933; }
+      .panel-sub { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 14px; fill: #738091; }
+      .task-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 11px; fill: #52606D; }
+      .adapter-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 10px; fill: #3E4C59; }
+      .annotation { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 13px; fill: #52606D; }
+      .annotation-small { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 12px; fill: #7B8794; }
+      .center-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 16px; fill: #3E4C59; }
+      .center-sub { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 11px; fill: #9AA5B4; }
+      .footer { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 15px; fill: #3E4C59; }
+      .zone-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.05em; }
+      .retained-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 11px; fill: #2B6CB0; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1600" height="900" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text class="title" x="800" y="52" text-anchor="middle">Mixed-Task Inventory Preflight</text>
+
+  <!-- ================================================================ -->
+  <!-- LEFT PANEL — Before preflight -->
+  <!-- ================================================================ -->
+  <rect x="40" y="80" width="660" height="720" rx="12" fill="#FFFFFF" stroke="#E4E7EB" stroke-width="1"/>
+
+  <text class="panel-header" x="370" y="118" text-anchor="middle">Before preflight</text>
+  <text class="panel-sub" x="370" y="140" text-anchor="middle">Flat mixed-task candidate space</text>
+
+  <!-- Task groups — 2x2 grid of task clusters -->
+  <!-- QNLI group (top-left) -->
+  <rect x="120" y="200" width="160" height="90" rx="8" fill="#F7FAFC" stroke="#E2E8F0" stroke-width="0.8"/>
+  <text class="task-label" x="200" y="220" text-anchor="middle">QNLI</text>
+  <circle cx="165" cy="258" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="165" y="262" text-anchor="middle">s42</text>
+  <circle cx="235" cy="258" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="235" y="262" text-anchor="middle">s7</text>
+
+  <!-- RTE group (top-right) -->
+  <rect x="360" y="200" width="160" height="90" rx="8" fill="#F7FAFC" stroke="#E2E8F0" stroke-width="0.8"/>
+  <text class="task-label" x="440" y="220" text-anchor="middle">RTE</text>
+  <circle cx="405" cy="258" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="405" y="262" text-anchor="middle">s42</text>
+  <circle cx="475" cy="258" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="475" y="262" text-anchor="middle">s7</text>
+
+  <!-- MRPC group (bottom-left) -->
+  <rect x="120" y="380" width="160" height="90" rx="8" fill="#F7FAFC" stroke="#E2E8F0" stroke-width="0.8"/>
+  <text class="task-label" x="200" y="400" text-anchor="middle">MRPC</text>
+  <circle cx="165" cy="438" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="165" y="442" text-anchor="middle">s42</text>
+  <circle cx="235" cy="438" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="235" y="442" text-anchor="middle">s7</text>
+
+  <!-- SST-2 group (bottom-right) -->
+  <rect x="360" y="380" width="160" height="90" rx="8" fill="#F7FAFC" stroke="#E2E8F0" stroke-width="0.8"/>
+  <text class="task-label" x="440" y="400" text-anchor="middle">SST-2</text>
+  <circle cx="405" cy="438" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="405" y="442" text-anchor="middle">s42</text>
+  <circle cx="475" cy="438" r="18" fill="#E2E8F0" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="adapter-label" x="475" y="442" text-anchor="middle">s7</text>
+
+  <!-- Cross-group pair connections (dense, gray, undifferentiated) -->
+  <!-- QNLI-RTE connections -->
+  <line x1="235" y1="258" x2="405" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="258" x2="475" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="258" x2="405" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="258" x2="475" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- QNLI-MRPC connections -->
+  <line x1="165" y1="276" x2="165" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="276" x2="235" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="276" x2="235" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="276" x2="165" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- QNLI-SST2 connections -->
+  <line x1="165" y1="276" x2="405" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="276" x2="475" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="276" x2="475" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="276" x2="405" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- RTE-MRPC connections -->
+  <line x1="405" y1="276" x2="165" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="475" y1="276" x2="235" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="405" y1="276" x2="235" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="475" y1="276" x2="165" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- RTE-SST2 connections -->
+  <line x1="405" y1="276" x2="405" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="475" y1="276" x2="475" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="405" y1="276" x2="475" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="475" y1="276" x2="405" y2="420" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- MRPC-SST2 connections -->
+  <line x1="235" y1="438" x2="405" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="438" x2="475" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="438" x2="405" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="235" y1="438" x2="475" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- Within-group connections (also gray, undifferentiated) -->
+  <line x1="165" y1="258" x2="235" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="405" y1="258" x2="475" y2="258" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="165" y1="438" x2="235" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+  <line x1="405" y1="438" x2="475" y2="438" stroke="#CBD5E0" stroke-width="0.7" opacity="0.5"/>
+
+  <!-- Left panel annotations -->
+  <text class="annotation" x="370" y="560" text-anchor="middle">8 adapters · 28 possible pairs</text>
+  <text class="annotation-small" x="370" y="580" text-anchor="middle">All pairs look plausible from structural analysis alone</text>
+
+  <!-- ================================================================ -->
+  <!-- CENTER TRANSITION -->
+  <!-- ================================================================ -->
+  <line x1="740" y1="200" x2="740" y2="600" stroke="#E4E7EB" stroke-width="1" stroke-dasharray="4,4"/>
+  <rect x="712" y="370" width="176" height="60" rx="8" fill="#F0F4F8" stroke="#CBD5E0" stroke-width="1"/>
+  <text class="center-label" x="800" y="396" text-anchor="middle">Gradience preflight</text>
+  <text class="center-sub" x="800" y="414" text-anchor="middle">QA · pair reports · advisory · neighborhoods</text>
+
+  <!-- Arrow -->
+  <line x1="700" y1="400" x2="712" y2="400" stroke="#9AA5B4" stroke-width="1.5"/>
+  <line x1="888" y1="400" x2="900" y2="400" stroke="#9AA5B4" stroke-width="1.5"/>
+  <polygon points="896,396 904,400 896,404" fill="#9AA5B4"/>
+
+  <!-- ================================================================ -->
+  <!-- RIGHT PANEL — After preflight -->
+  <!-- ================================================================ -->
+  <rect x="900" y="80" width="660" height="720" rx="12" fill="#FFFFFF" stroke="#E4E7EB" stroke-width="1"/>
+
+  <text class="panel-header" x="1230" y="118" text-anchor="middle">After preflight</text>
+  <text class="panel-sub" x="1230" y="140" text-anchor="middle">Smaller, more defensible evaluation subset</text>
+
+  <!-- Same-task safe zones (highlighted grouping) -->
+  <!-- QNLI safe zone -->
+  <rect x="968" y="186" width="180" height="108" rx="10" fill="#EBF8FF" stroke="#90CDF4" stroke-width="1.2"/>
+  <text class="zone-label" x="1058" y="206" text-anchor="middle" fill="#2B6CB0">same-task safe zone</text>
+  <circle cx="1020" cy="252" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1020" y="256" text-anchor="middle">s42</text>
+  <circle cx="1096" cy="252" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1096" y="256" text-anchor="middle">s7</text>
+  <text class="task-label" x="1058" y="220" text-anchor="middle" style="fill:#2B6CB0">QNLI</text>
+  <!-- Retained pair link -->
+  <line x1="1038" y1="252" x2="1078" y2="252" stroke="#2B6CB0" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- RTE safe zone -->
+  <rect x="1208" y="186" width="180" height="108" rx="10" fill="#EBF8FF" stroke="#90CDF4" stroke-width="1.2"/>
+  <text class="zone-label" x="1298" y="206" text-anchor="middle" fill="#2B6CB0">same-task safe zone</text>
+  <circle cx="1260" cy="252" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1260" y="256" text-anchor="middle">s42</text>
+  <circle cx="1336" cy="252" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1336" y="256" text-anchor="middle">s7</text>
+  <text class="task-label" x="1298" y="220" text-anchor="middle" style="fill:#2B6CB0">RTE</text>
+  <!-- Retained pair link -->
+  <line x1="1278" y1="252" x2="1318" y2="252" stroke="#2B6CB0" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- MRPC safe zone -->
+  <rect x="968" y="366" width="180" height="108" rx="10" fill="#EBF8FF" stroke="#90CDF4" stroke-width="1.2"/>
+  <text class="zone-label" x="1058" y="386" text-anchor="middle" fill="#2B6CB0">same-task safe zone</text>
+  <circle cx="1020" cy="432" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1020" y="436" text-anchor="middle">s42</text>
+  <circle cx="1096" cy="432" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1096" y="436" text-anchor="middle">s7</text>
+  <text class="task-label" x="1058" y="400" text-anchor="middle" style="fill:#2B6CB0">MRPC</text>
+  <!-- Retained pair link -->
+  <line x1="1038" y1="432" x2="1078" y2="432" stroke="#2B6CB0" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- SST-2 safe zone -->
+  <rect x="1208" y="366" width="180" height="108" rx="10" fill="#EBF8FF" stroke="#90CDF4" stroke-width="1.2"/>
+  <text class="zone-label" x="1298" y="386" text-anchor="middle" fill="#2B6CB0">same-task safe zone</text>
+  <circle cx="1260" cy="432" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1260" y="436" text-anchor="middle">s42</text>
+  <circle cx="1336" cy="432" r="18" fill="#BEE3F8" stroke="#63B3ED" stroke-width="1.2"/>
+  <text class="adapter-label" x="1336" y="436" text-anchor="middle">s7</text>
+  <text class="task-label" x="1298" y="400" text-anchor="middle" style="fill:#2B6CB0">SST-2</text>
+  <!-- Retained pair link -->
+  <line x1="1278" y1="432" x2="1318" y2="432" stroke="#2B6CB0" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Cross-task caution connections (faded, dashed) -->
+  <!-- QNLI-RTE -->
+  <line x1="1096" y1="252" x2="1260" y2="252" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <!-- QNLI-MRPC -->
+  <line x1="1020" y1="270" x2="1020" y2="414" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <!-- QNLI-SST2 -->
+  <line x1="1096" y1="270" x2="1260" y2="414" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <!-- RTE-MRPC -->
+  <line x1="1260" y1="270" x2="1096" y2="414" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <!-- RTE-SST2 -->
+  <line x1="1336" y1="270" x2="1336" y2="414" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <!-- MRPC-SST2 -->
+  <line x1="1096" y1="432" x2="1260" y2="432" stroke="#ED8936" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+
+  <!-- Cross-task caution label -->
+  <text class="annotation-small" x="1230" y="328" text-anchor="middle" style="fill:#C05621; opacity:0.7">cross-task caution zone</text>
+
+  <!-- Right panel annotations -->
+  <text class="annotation" x="1230" y="540" text-anchor="middle">4 same-task pairs retained</text>
+  <text class="annotation-small" x="1230" y="560" text-anchor="middle">24 cross-task pairs deprioritized</text>
+
+  <!-- Retained legend -->
+  <line x1="1160" y1="590" x2="1185" y2="590" stroke="#2B6CB0" stroke-width="2.5" stroke-linecap="round"/>
+  <text class="retained-label" x="1192" y="594" text-anchor="start">retained candidate</text>
+
+  <!-- ================================================================ -->
+  <!-- FOOTER -->
+  <!-- ================================================================ -->
+  <text class="footer" x="800" y="856" text-anchor="middle">Example outcome: 28 possible pairs → 4 retained candidates (86% reduction)</text>
+
+</svg>

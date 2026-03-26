@@ -244,6 +244,7 @@ def merge_audit(
     verbose: bool = False,
     source_qa_a: AdapterQAResult | None = None,
     source_qa_b: AdapterQAResult | None = None,
+    compute_core_space: bool = False,
 ) -> MergeAuditReport:
     """Run a merge compatibility audit on two PEFT LoRA adapters.
 
@@ -259,6 +260,7 @@ def merge_audit(
     verbose : if True, print progress to stdout
     source_qa_a : optional AdapterQAResult for adapter A (eligibility screening)
     source_qa_b : optional AdapterQAResult for adapter B (eligibility screening)
+    compute_core_space : if True, compute optional shared-basis diagnostics
 
     Returns
     -------
@@ -319,6 +321,7 @@ def merge_audit(
 
     # --- Step 3: Per-layer analysis ---
     layer_verdicts = []
+    core_space_layer_diags = []
 
     for i, module_prefix in enumerate(shared):
         if verbose:
@@ -348,6 +351,24 @@ def merge_audit(
         lv = assess_layer(module_prefix, module_type, metrics, thresholds)
         layer_verdicts.append(lv)
 
+        if compute_core_space:
+            from gradience.vnext.merge.core_space import compute_core_space_layer_diagnostic
+
+            core_diag = compute_core_space_layer_diagnostic(
+                layer_name=module_prefix,
+                A_a=A_a,
+                B_a=B_a,
+                alpha_a=info_a.alpha,
+                r_a=r_a,
+                A_b=A_b,
+                B_b=B_b,
+                alpha_b=info_b.alpha,
+                r_b=r_b,
+                energy_threshold=energy_threshold,
+                compute_dtype=dtype,
+            )
+            core_space_layer_diags.append(core_diag)
+
         if verbose:
             print(f" {lv.verdict.value} (overlap={metrics.mean_overlap:.3f})")
 
@@ -363,6 +384,11 @@ def merge_audit(
 
     # --- Step 4: Aggregate ---
     overall_verdict, score, recommendations = assess_overall(layer_verdicts)
+    core_space_pair_diag = None
+    if compute_core_space:
+        from gradience.vnext.merge.core_space import aggregate_core_space_diagnostics
+
+        core_space_pair_diag = aggregate_core_space_diagnostics(core_space_layer_diags)
 
     if verbose:
         print(f"\nOverall verdict: {overall_verdict.value.upper()} (score={score:.3f})")
@@ -390,6 +416,7 @@ def merge_audit(
         thresholds=thresholds,
         source_qa_a=source_qa_a,
         source_qa_b=source_qa_b,
+        core_space=core_space_pair_diag,
     )
 
     # --- Step 6: Write output files ---

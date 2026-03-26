@@ -1,0 +1,42 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "qnli_r16_s42",
+    "path": "results/adjudication_study/verified_adapters/qnli_r16_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 16,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 0.12400993209438597,
+    "utilization_median": 0.10681871397132302,
+    "stable_rank_mean": 1.9841589135101756,
+    "effective_rank_90_median": 5.5,
+    "rank_waste_ratio": 0.8759900679056141,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "qnli_dev",
+    "metric_name": "accuracy",
+    "adapter_score": 0.492,
+    "base_score": 0.466,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (qnli_dev)",
+      "low utilization across layers",
+      "high rank waste",
+      "stable rank far below nominal rank"
+    ]
+  },
+  "notes": []
+}

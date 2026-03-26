@@ -1,6 +1,6 @@
 # Corpus Identity Hardening Note
 
-Status: planned  
+Status: implemented  
 Date: 2026-03-17
 
 ## Why this note exists
@@ -35,66 +35,48 @@ Out of scope:
 - any change to neighborhood/core-space algorithms
 - any feature expansion beyond corpus metadata contracts
 
-## Candidate design directions
+## Implemented approach (Cycle-03 hardening patch)
 
-### Option A — Add explicit `adapter_instance_ids`
+Implemented in `scripts/summarize_corpus.py`:
 
-Add a new manifest field with one unique id per QA artifact, generated from stable local evidence such as:
-- normalized adapter path
-- optional content hash fingerprint
+1. deterministic adapter-instance key resolution
+2. identity-safe unique counting across manifests
+3. separate human-readable display-name counting
 
-Pros:
-- clear separation of display name vs identity
-- additive field, easy to audit
+Identity source precedence (first available wins):
 
-Cons:
-- requires migration/compat handling in summary scripts
+1. manifest-level `adapter_instance_ids[index]` (future-compatible optional field)
+2. QA artifact-level `adapter.instance_id` (future-compatible optional field)
+3. canonicalized QA `adapter.path`
+4. canonicalized QA artifact reference path
+5. stable hash fallback of canonical QA path payload
 
-### Option B — Use QA artifact paths as canonical identity
+This keeps display labels (`adapter_names`) for readability while ensuring corpus counts do not depend on label uniqueness.
 
-Treat normalized `qa_artifact_paths` as the authoritative instance keys in `summarize_corpus.py`, while retaining `adapter_names` for display only.
+## Counting semantics
 
-Pros:
-- minimal schema churn
-- immediate counting fix at summary layer
+Corpus summary now uses:
 
-Cons:
-- identity is path-dependent
-- harder to compare moved/copied artifacts
+- `adapter_instance_count`: unique adapter instances across all manifests by identity key
+- `unique_adapter_count`: alias of the same identity-safe unique count (backward compatibility)
+- `unique_adapter_display_name_count`: unique human-readable adapter labels
 
-### Option C — Hybrid (`adapter_instance_id` + canonical path)
-
-Store both:
-- stable instance id
-- canonical artifact path
-
-Pros:
-- strongest long-term traceability
-
-Cons:
-- slightly more implementation overhead
-
-## Recommended near-term approach
-
-For the next hardening pass, prefer:
-
-1. implement Option B in summary logic first (low-risk correction),
-2. then add Option A additively in manifest schema handling when ready.
-
-This keeps current cycle momentum while preventing misleading adapter-instance counts.
+Deduplication rule:
+- if the same underlying instance key appears in multiple manifests, it counts once in corpus-level adapter-instance totals.
 
 ## Acceptance criteria (for future implementation)
 
-- corpus summary reports both:
-  - adapter display-name counts
-  - adapter instance counts from identity-safe keys
-- no change to existing policy semantics
-- existing manifests continue to load (or migrate with explicit tooling)
-- tests cover checkpoint-name collision cases
+Implemented and validated:
+
+- corpus summary reports both identity-safe instance counts and display-name counts
+- no change to strict-QA, recommendation logic, neighborhoods, or thresholds
+- existing manifests continue to strict-load without schema changes
+- regression tests cover duplicate display-name, repeated-reference dedupe, and mixed explicit/fallback identity scenarios
 
 ## Tracking
 
-- Suggested implementation window: after Cycle-02 review, before Cycle-03 collection.
+- Implementation window: completed during Cycle-03 review hardening.
 - Related docs:
-  - `docs/internal/corpus-review-memo-2026-03.md`
-  - `docs/internal/selective-calibration-decision-2026-03.md`
+  - `docs/internal/corpus.md`
+  - `docs/internal/corpus-review-memo-2026-05.md`
+  - `docs/internal/selective-calibration-decision-2026-05.md`

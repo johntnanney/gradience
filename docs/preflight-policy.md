@@ -54,3 +54,12 @@ The `recommended_action` field is explanatory prose and does not override `recom
 - `recommended_strategy_counts` sums to the number of merge reports
 - `strict_qa_block_candidates` is at most the number of merge reports
 - Count maps only include keys with non-zero values
+
+## Neighborhood Exclusion Alignment
+
+`suggest-neighborhoods` uses the same policy direction as strict-QA screening:
+
+- default exclusion includes `flagged_weak`
+- `--strict-qa` exclusion includes `flagged_weak`, `unknown_no_behavioral_eval`, and missing QA status (`null`)
+
+Neighborhood output is diagnostic inventory guidance, not a replacement for pair-level `MergeQAReport` decisions.

@@ -1,0 +1,8 @@
+{
+  "expected_groups": [["weak_a", "weak_b"]],
+  "expected_excluded": ["weak_flagged"],
+  "expected_boundary_warnings": [],
+  "expected_characterizations": [
+    {"members": ["weak_a", "weak_b"], "characterization": "likely-safe neighborhood"}
+  ]
+}

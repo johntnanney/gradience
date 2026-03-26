@@ -1,0 +1,42 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "./adapters/math_lora",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "./adapters/reasoning_lora",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 32,
+    "base_model": "meta-llama/Llama-2-7b",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "partial_redundancy",
+  "dominant_issue_detail": "4 redundant layer(s)",
+  "recommended_action": "Merge with audit-aware strategy. Consider norm-equalized as simpler alternative.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Moderate spectral compatibility (score=0.684) -- both adapters have verified behavioral quality",
+  "caveats": [
+    "Validate merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 18,
+    "redundant": 4,
+    "conflicting": 6,
+    "imbalanced": 4
+  },
+  "compatibility_score": 0.684,
+  "core_space": {
+    "shared_basis_score": 0.71,
+    "basis_distortion": 0.18,
+    "effective_shared_rank": 6,
+    "status": "compatible"
+  }
+}

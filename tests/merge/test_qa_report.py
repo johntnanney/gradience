@@ -12,9 +12,11 @@ import pytest
 from gradience.exceptions import QASchemaError
 from gradience.vnext.merge.containers import AdapterMetadata, AggregateResult
 from gradience.vnext.merge.qa_report import (
+    CORE_SPACE_STATUS_VALUES,
     DOMINANT_ISSUE_LABELS,
     SCHEMA_ID,
     AdapterSummary,
+    CoreSpaceSummary,
     MergeQAReport,
     build_qa_report,
     format_qa_report,
@@ -68,12 +70,29 @@ def _make_lv_dict(
     }
 
 
+class _FakeCoreSpace:
+    """Simple stand-in for core-space pair diagnostic."""
+
+    def __init__(
+        self,
+        shared_basis_score_mean: float = 0.72,
+        basis_distortion_mean: float = 0.18,
+        effective_shared_rank_median: int = 6,
+        status: str = "compatible",
+    ):
+        self.shared_basis_score_mean = shared_basis_score_mean
+        self.basis_distortion_mean = basis_distortion_mean
+        self.effective_shared_rank_median = effective_shared_rank_median
+        self.status = status
+
+
 class _FakeReport:
     """Minimal stand-in for MergeAuditReport."""
 
-    def __init__(self, layer_verdicts, source_qa=None, aggregate=None):
+    def __init__(self, layer_verdicts, source_qa=None, aggregate=None, core_space=None):
         self.layer_verdicts = layer_verdicts
         self.source_qa = source_qa
+        self.core_space = core_space
         n_safe = sum(1 for lv in layer_verdicts if lv["verdict"] == "safe")
         n_redundant = sum(1 for lv in layer_verdicts if lv["verdict"] == "redundant")
         n_conflicting = sum(1 for lv in layer_verdicts if lv["verdict"] == "conflicting")
@@ -280,6 +299,68 @@ class TestBuildQAReport:
         assert "reconsider" in qa.recommended_action.lower()
         assert any("both" in c.lower() and "weak" in c.lower() for c in qa.caveats)
 
+    def test_task_relationship_advisory_same_task(self):
+        """Same eval_dataset → no advisory."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "qnli_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        assert qa.task_relationship_advisory is None
+
+    def test_task_relationship_advisory_different_task(self):
+        """Different eval_dataset → advisory present."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "rte_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        assert qa.task_relationship_advisory is not None
+        assert "cross-task" in qa.task_relationship_advisory.lower()
+        assert "qnli_dev" in qa.task_relationship_advisory
+        assert "rte_dev" in qa.task_relationship_advisory
+
+    def test_task_relationship_advisory_no_qa(self):
+        """No source QA → no advisory."""
+        report = _FakeReport([_make_lv_dict("safe")])
+        qa = build_qa_report(report)
+        assert qa.task_relationship_advisory is None
+
+    def test_task_relationship_advisory_missing_eval_dataset(self):
+        """QA present but no eval_dataset → no advisory."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible"},
+                "adapter_b": {"status": "eligible"},
+            },
+        )
+        qa = build_qa_report(report)
+        assert qa.task_relationship_advisory is None
+
+    def test_core_space_summary_is_included_when_present(self):
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            core_space=_FakeCoreSpace(
+                shared_basis_score_mean=0.71,
+                basis_distortion_mean=0.18,
+                effective_shared_rank_median=6,
+                status="compatible",
+            ),
+        )
+        qa = build_qa_report(report)
+        assert qa.core_space is not None
+        assert qa.core_space.shared_basis_score == pytest.approx(0.71)
+        assert qa.core_space.basis_distortion == pytest.approx(0.18)
+        assert qa.core_space.effective_shared_rank == 6
+        assert qa.core_space.status == "compatible"
+
 
 # ---------------------------------------------------------------------------
 # Tests — format_qa_report
@@ -325,6 +406,92 @@ class TestFormatQAReport:
         assert "ELIGIBILITY WARNING" in text
         assert "source-eligibility" in text.lower() or "structural" in text.lower()
 
+    def test_task_relationship_advisory_in_output(self):
+        """Advisory appears in formatted output when present."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "sst2_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "TASK-BOUNDARY WARNING" in text
+        assert "Cross-task merge" in text
+
+    def test_task_relationship_advisory_absent_from_output(self):
+        """No advisory → no advisory section in output."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "qnli_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "TASK-BOUNDARY WARNING" not in text
+
+    def test_report_headline_cross_task(self):
+        """Cross-task pair report includes cross-task headline."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "sst2_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "Cross-task pair" in text
+        assert "caution region" in text
+
+    def test_report_headline_same_task(self):
+        """Same-task pair report includes same-task headline."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "qnli_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "Same-task pair" in text
+
+    def test_report_interpretation_line_present(self):
+        """Every formatted report includes an INTERPRETATION section."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "qnli_dev"},
+            },
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "INTERPRETATION" in text
+
+    def test_core_space_in_advanced_section(self):
+        """Core-space appears under ADVANCED DIAGNOSTIC DETAIL, not inline."""
+        report = _FakeReport(
+            [_make_lv_dict("safe")],
+            source_qa={
+                "adapter_a": {"status": "eligible", "eval_dataset": "qnli_dev"},
+                "adapter_b": {"status": "eligible", "eval_dataset": "qnli_dev"},
+            },
+            core_space={"shared_basis_score": 0.85, "basis_distortion": 0.05,
+                        "effective_shared_rank": 7, "status": "marginal"},
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "ADVANCED DIAGNOSTIC DETAIL" in text
+        # Core-space should appear after INTERPRETATION
+        interp_pos = text.index("INTERPRETATION")
+        advanced_pos = text.index("ADVANCED DIAGNOSTIC DETAIL")
+        assert advanced_pos > interp_pos
+
     def test_no_caveats_when_clean(self):
         """Low-risk pair with both eligible → minimal caveats."""
         report = _FakeReport(
@@ -362,6 +529,21 @@ class TestQAReportSerialization:
         assert "confidence" in d
         assert "confidence_note" in d
         assert "caveats" in d
+
+    def test_to_dict_emits_core_space_when_present(self):
+        qa = MergeQAReport.from_dict(
+            _minimal_report_dict(
+                core_space={
+                    "shared_basis_score": 0.71,
+                    "basis_distortion": 0.18,
+                    "effective_shared_rank": 6,
+                    "status": "compatible",
+                }
+            )
+        )
+        d = qa.to_dict()
+        assert "core_space" in d
+        assert d["core_space"]["status"] == "compatible"
 
     def test_json_roundtrip(self, tmp_path):
         report = _FakeReport(
@@ -569,6 +751,7 @@ class TestFromDictValidation:
         assert report.recommended_action == ""
         assert report.caveats == ()
         assert report.verdict_distribution == {}
+        assert report.core_space is None
 
     def test_numeric_rank_normalized_to_int(self):
         d = _minimal_report_dict()
@@ -577,11 +760,74 @@ class TestFromDictValidation:
         assert report.adapter_a.rank == 8
         assert isinstance(report.adapter_a.rank, int)
 
+    def test_task_relationship_advisory_roundtrip(self):
+        """Advisory survives serialization round-trip."""
+        d = _minimal_report_dict(
+            task_relationship_advisory="Cross-task merge: adapters were evaluated on different tasks (qnli vs rte)."
+        )
+        report = MergeQAReport.from_dict(d)
+        assert report.task_relationship_advisory is not None
+        assert "qnli" in report.task_relationship_advisory
+
+        d2 = report.to_dict()
+        assert d2["task_relationship_advisory"] == report.task_relationship_advisory
+        report2 = MergeQAReport.from_dict(d2)
+        assert report2.task_relationship_advisory == report.task_relationship_advisory
+
+    def test_task_relationship_advisory_absent_roundtrip(self):
+        """No advisory → not in serialized dict, round-trips as None."""
+        d = _minimal_report_dict()
+        report = MergeQAReport.from_dict(d)
+        assert report.task_relationship_advisory is None
+        d2 = report.to_dict()
+        assert "task_relationship_advisory" not in d2
+
     def test_unknown_strategy_accepted(self):
         """recommended_strategy is lenient for forward compatibility."""
         d = _minimal_report_dict(recommended_strategy="future_strategy_v3")
         report = MergeQAReport.from_dict(d)
         assert report.recommended_strategy == "future_strategy_v3"
+
+    def test_core_space_optional_block_validates(self):
+        d = _minimal_report_dict(
+            core_space={
+                "shared_basis_score": 0.66,
+                "basis_distortion": 0.20,
+                "effective_shared_rank": 5,
+                "status": "marginal",
+            }
+        )
+        report = MergeQAReport.from_dict(d)
+        assert report.core_space is not None
+        assert isinstance(report.core_space, CoreSpaceSummary)
+        assert report.core_space.status == "marginal"
+
+    def test_core_space_status_must_be_known(self):
+        d = _minimal_report_dict(
+            core_space={
+                "shared_basis_score": 0.66,
+                "basis_distortion": 0.20,
+                "effective_shared_rank": 5,
+                "status": "mystery",
+            }
+        )
+        with pytest.raises(QASchemaError, match="core_space.status"):
+            MergeQAReport.from_dict(d)
+
+    def test_core_space_rank_must_be_int(self):
+        d = _minimal_report_dict(
+            core_space={
+                "shared_basis_score": 0.66,
+                "basis_distortion": 0.20,
+                "effective_shared_rank": 5.0,
+                "status": "marginal",
+            }
+        )
+        with pytest.raises(QASchemaError, match="effective_shared_rank"):
+            MergeQAReport.from_dict(d)
+
+    def test_core_space_status_vocabulary_frozen(self):
+        assert CORE_SPACE_STATUS_VALUES == {"compatible", "marginal", "incompatible", "not_applicable"}
 
 
 # ---------------------------------------------------------------------------

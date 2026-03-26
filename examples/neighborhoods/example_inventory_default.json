@@ -1,0 +1,102 @@
+{
+  "schema": "gradience.merge_neighborhoods/v1",
+  "groups": [
+    {
+      "group_id": "cluster_01",
+      "members": [
+        "./adapters/chat-lora-r8"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_02",
+      "members": [
+        "./adapters/chat_lora"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_03",
+      "members": [
+        "./adapters/code_lora",
+        "./adapters/sql_lora"
+      ],
+      "characterization": "likely-safe neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_04",
+      "members": [
+        "./adapters/good-adapter-a"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_05",
+      "members": [
+        "./adapters/math_lora",
+        "./adapters/reasoning_lora"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "norm_equalized",
+      "dominant_issue": "partial_redundancy"
+    },
+    {
+      "group_id": "cluster_06",
+      "members": [
+        "./adapters/summarize_lora"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_07",
+      "members": [
+        "./adapters/translate_lora"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    },
+    {
+      "group_id": "cluster_08",
+      "members": [
+        "./adapters/unknown-adapter"
+      ],
+      "characterization": "caution neighborhood",
+      "common_strategy": "linear",
+      "dominant_issue": "none"
+    }
+  ],
+  "excluded": [
+    {
+      "adapter": "./adapters/btgenbot-r8",
+      "reason": "flagged_weak"
+    },
+    {
+      "adapter": "./adapters/catsubcat-r16",
+      "reason": "flagged_weak"
+    },
+    {
+      "adapter": "./adapters/instruct_lora",
+      "reason": "flagged_weak"
+    }
+  ],
+  "boundary_warnings": [
+    {
+      "between": [
+        "cluster_06",
+        "cluster_07"
+      ],
+      "reason": "high cross-group merge risk"
+    }
+  ]
+}

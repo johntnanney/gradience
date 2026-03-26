@@ -1,0 +1,37 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "results/adjudication_study/verified_adapters/qnli_r16_s42",
+    "rank": 16,
+    "alpha": 16.0,
+    "n_layers": 24,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "results/adjudication_study/ambiguous_relationship_regime/adapters/mnli_s42",
+    "rank": 16,
+    "alpha": 16.0,
+    "n_layers": 24,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "4.5x mean magnitude ratio across 2 layer(s)",
+  "recommended_action": "Pre-compress 2 over-provisioned layer(s), then merge with audit-aware strategy.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.402) \u2014 both adapters have verified behavioral quality",
+  "caveats": [
+    "2 layer(s) are over-provisioned. Pre-compression before merging may improve results."
+  ],
+  "verdict_distribution": {
+    "safe": 21,
+    "redundant": 1,
+    "conflicting": 0,
+    "imbalanced": 2
+  },
+  "compatibility_score": 0.4019,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (qnli_dev vs mnli_dev). Linear merges across task boundaries may degrade the weaker task's performance."
+}

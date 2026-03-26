@@ -1,0 +1,20 @@
+{
+  "fixture_id": "deliberately_mismatched_random",
+  "category": "deliberately mismatched/random",
+  "description": "Rank-mismatched random pair designed to trigger downgrade behavior.",
+  "evidence_tier": "synthetic",
+  "seeds": [101, 202, 303],
+  "n_layers": 10,
+  "d_in": 64,
+  "d_out": 64,
+  "r_a": 8,
+  "r_b": 4,
+  "alpha_a": 16.0,
+  "alpha_b": 8.0,
+  "generator": {
+    "mode": "rank_mismatch_random",
+    "scale": 1.0
+  },
+  "expected_dominant_statuses": ["incompatible", "marginal"],
+  "expected_trial_statuses": ["incompatible", "marginal"]
+}

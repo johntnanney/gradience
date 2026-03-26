@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1320" width="1000" height="1320">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap');
+
+      .title {
+        font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+        font-weight: 600;
+        font-size: 30px;
+        fill: #1F2933;
+      }
+      .subtitle {
+        font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: 16px;
+        fill: #738091;
+      }
+      .card-header {
+        font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+        font-weight: 600;
+        font-size: 17px;
+        fill: #1F2933;
+      }
+      .card-body {
+        font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: 15px;
+        fill: #24303A;
+      }
+      .mono {
+        font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
+        font-weight: 500;
+        font-size: 13.5px;
+        fill: #24303A;
+      }
+      .side-label {
+        font-family: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: 11.5px;
+        fill: #A7B0BA;
+        letter-spacing: 0.03em;
+      }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="1320" fill="#FAF9F6"/>
+
+  <!-- Title block -->
+  <text class="title" x="130" y="80">Compact workflow view</text>
+  <text class="subtitle" x="130" y="108">How one inventory moved from a flat merge pool to a neighborhood-first plan</text>
+
+  <!-- ============ CARD 1: Starting pool ============ -->
+  <rect x="130" y="148" width="520" height="90" rx="9" ry="9"
+        fill="#FFFFFF" stroke="#A7B0BA" stroke-width="1.1"/>
+  <text class="card-header" x="162" y="183">Starting pool</text>
+  <text class="card-body" x="162" y="212">4 plausible adapters</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="390" y1="238" x2="390" y2="282" stroke="#A7B0BA" stroke-width="1.1"/>
+  <polygon points="386,279 390,288 394,279" fill="#A7B0BA"/>
+
+  <!-- ============ CARD 2: After QA ============ -->
+  <rect x="130" y="292" width="520" height="96" rx="9" ry="9"
+        fill="#FFFFFF" stroke="#A7B0BA" stroke-width="1.1"/>
+  <text class="card-header" x="162" y="327">After QA</text>
+  <text class="card-body" x="162" y="360">
+    <tspan class="mono">qnli_uniform_weak</tspan>
+    <tspan class="card-body" dx="6">excluded</tspan>
+  </text>
+
+  <!-- Side label: source screening -->
+  <text class="side-label" x="664" y="350" text-anchor="start">source screening</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="390" y1="388" x2="390" y2="432" stroke="#A7B0BA" stroke-width="1.1"/>
+  <polygon points="386,429 390,438 394,429" fill="#A7B0BA"/>
+
+  <!-- ============ CARD 3: After pair audit ============ -->
+  <rect x="130" y="442" width="520" height="125" rx="9" ry="9"
+        fill="#FFFFFF" stroke="#A7B0BA" stroke-width="1.1"/>
+  <text class="card-header" x="162" y="477">After pair audit</text>
+  <text class="card-body" x="162" y="506">Most pairs look benign</text>
+  <text class="card-body" x="162" y="540">
+    <tspan class="mono">qnli_probe_elig × qnli_per_layer_elig</tspan>
+    <tspan class="card-body" dx="6">remains ambiguous</tspan>
+  </text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="390" y1="567" x2="390" y2="611" stroke="#A7B0BA" stroke-width="1.1"/>
+  <polygon points="386,608 390,617 394,608" fill="#A7B0BA"/>
+
+  <!-- ============ CARD 4: After deeper inspection (accented) ============ -->
+  <rect x="130" y="621" width="520" height="100" rx="9" ry="9"
+        fill="#F0F5F8" stroke="#5A7A96" stroke-width="1.4"/>
+  <text class="card-header" x="162" y="659">After deeper inspection</text>
+  <text class="card-body" x="162" y="691">That pair moves to a caution track</text>
+
+  <!-- Side label: advanced check -->
+  <text class="side-label" x="664" y="675" text-anchor="start">advanced check</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="390" y1="721" x2="390" y2="765" stroke="#A7B0BA" stroke-width="1.1"/>
+  <polygon points="386,762 390,771 394,762" fill="#A7B0BA"/>
+
+  <!-- ============ CARD 5: After neighborhoods ============ -->
+  <rect x="130" y="775" width="520" height="100" rx="9" ry="9"
+        fill="#FFFFFF" stroke="#A7B0BA" stroke-width="1.1"/>
+  <text class="card-header" x="162" y="813">After neighborhoods</text>
+  <text class="card-body" x="162" y="842">One local neighborhood becomes the best</text>
+  <text class="card-body" x="162" y="863">next exploration target</text>
+
+  <!-- Side label: inventory view -->
+  <text class="side-label" x="664" y="833" text-anchor="start">inventory view</text>
+
+  <!-- Arrow 5→6 -->
+  <line x1="390" y1="875" x2="390" y2="919" stroke="#A7B0BA" stroke-width="1.1"/>
+  <polygon points="386,916 390,925 394,916" fill="#A7B0BA"/>
+
+  <!-- ============ CARD 6: Net effect (subtle emphasis) ============ -->
+  <rect x="130" y="929" width="520" height="90" rx="9" ry="9"
+        fill="#FAFCFD" stroke="#8E98A3" stroke-width="1.4"/>
+  <text class="card-header" x="162" y="964">Net effect</text>
+  <text class="card-body" x="162" y="993">Flat merge pool → narrower, more defensible plan</text>
+
+</svg>

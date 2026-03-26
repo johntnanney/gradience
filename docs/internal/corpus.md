@@ -64,12 +64,33 @@ python3 scripts/summarize_corpus.py \
 
 The summary reports:
 - inventory count
-- adapter instance count and unique adapter count
+- adapter instance count (identity-safe unique across manifests)
+- unique adapter count (identity-safe alias for backward compatibility)
+- unique adapter display-name count (human-readable labels)
 - pair report count
 - strategy distribution
 - dominant issue distribution
 - strict block candidate pair count
 - neighborhood totals (groups, excluded, boundary warnings)
+
+### Adapter identity semantics
+
+`scripts/summarize_corpus.py` separates display names from instance identity:
+
+- display names (`adapter_names`) are retained for readability only
+- adapter-instance totals are computed from deterministic identity keys
+
+Identity key source order:
+
+1. optional explicit instance id (`adapter_instance_ids[index]` in manifest)
+2. optional explicit instance id in QA artifact (`adapter.instance_id`)
+3. canonicalized QA `adapter.path`
+4. canonicalized QA artifact path
+
+Dedupe semantics:
+
+- corpus-level adapter-instance totals dedupe by identity key across manifests
+- repeated references to the same adapter instance are counted once
 
 ## Valid Entry Contract
 

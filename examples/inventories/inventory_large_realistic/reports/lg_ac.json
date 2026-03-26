@@ -1,0 +1,1 @@
+{"schema":"gradience.merge_qa_report/v1","adapter_a":{"path":"lg_a","rank":8,"eligibility_status":"eligible"},"adapter_b":{"path":"lg_c","rank":8,"eligibility_status":"eligible"},"pair_risk":"low","dominant_issue":"none","recommended_strategy":"linear","confidence":"medium","compatibility_score":0.90}

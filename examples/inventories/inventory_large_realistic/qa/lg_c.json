@@ -1,0 +1,1 @@
+{"schema":"gradience.adapter_qa/v1","adapter":{"name":"lg_c","path":"lg_c","base_model":"llama","rank_nominal":8,"n_layers":8},"structural_summary":{"utilization_mean":0.52,"rank_waste_ratio":0.45,"flags":[]},"behavioral_summary":{"eval_available":true},"eligibility":{"status":"eligible"}}

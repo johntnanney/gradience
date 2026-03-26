@@ -1,0 +1,11 @@
+{
+  "expected_groups": [["mixed_a", "mixed_b"], ["mixed_c", "mixed_d"]],
+  "expected_excluded": [],
+  "expected_boundary_warnings": [
+    [["mixed_a", "mixed_b"], ["mixed_c", "mixed_d"]]
+  ],
+  "expected_characterizations": [
+    {"members": ["mixed_a", "mixed_b"], "characterization": "likely-safe neighborhood"},
+    {"members": ["mixed_c", "mixed_d"], "characterization": "likely-safe neighborhood"}
+  ]
+}

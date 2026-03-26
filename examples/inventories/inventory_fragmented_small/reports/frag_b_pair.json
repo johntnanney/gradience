@@ -1,0 +1,10 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {"path": "frag_b1", "rank": 8, "eligibility_status": "eligible"},
+  "adapter_b": {"path": "frag_b2", "rank": 8, "eligibility_status": "eligible"},
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "compatibility_score": 0.91
+}
