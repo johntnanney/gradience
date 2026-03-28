@@ -28,7 +28,13 @@ import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
+    from gradience.vnext.inventory.neighborhoods import MergeNeighborhoodReport
+    from gradience.vnext.inventory.summary import InventorySummary
+    from gradience.vnext.merge.qa_report import MergeQAReport
 
 logger = logging.getLogger(__name__)
 
@@ -373,7 +379,7 @@ def audit_adapter(
     adapter_weights_path: str | Path | None = None,
     base_norms_cache: str | Path | None = None,
     compute_udr: bool = True,
-) -> Any:
+) -> AdapterQAArtifact:
     """Produce an AdapterQAArtifact from a PEFT adapter directory.
 
     This is the preferred stable Python entry point for producing adapter
@@ -455,7 +461,7 @@ def merge_risk_report(
     env: Mapping[str, str] | None = None,
     log_path: str | Path | None = None,
     check: bool = True,
-) -> Any:
+) -> MergeQAReport:
     """Run merge-audit and return the pair-level MergeQAReport.
 
     This is the stable Python wrapper for the ``merge-audit --qa-report
@@ -574,7 +580,7 @@ def summarize_inventory(
     qa_paths: list[str | Path] | None = None,
     report_paths: list[str | Path] | None = None,
     strict_input: bool = False,
-) -> Any:
+) -> InventorySummary:
     """Build an :class:`~gradience.vnext.inventory.summary.InventorySummary`.
 
     Scans directories and/or explicit file paths for adapter QA artifacts
@@ -656,7 +662,7 @@ def suggest_neighborhoods(
     strict_qa: bool = False,
     min_compatibility: float = 0.0,
     exclude_unknown: bool = False,
-) -> Any:
+) -> MergeNeighborhoodReport:
     """Build a ``MergeNeighborhoodReport`` from QA artifacts and pair reports.
 
     This is the advanced inventory workflow wrapper for neighborhood

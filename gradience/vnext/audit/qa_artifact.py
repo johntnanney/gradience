@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from gradience.exceptions import QASchemaError
-from gradience.vnext.merge.eligibility import AdapterQAResult, EligibilityStatus
+from gradience.vnext.merge.eligibility import AdapterQAResult, ConfidenceLevel, EligibilityStatus
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -36,12 +36,13 @@ _UNDERUTILIZED_STABLE_RANK_RATIO = 0.2
 
 
 # ---------------------------------------------------------------------------
-# Confidence enum (kept as strings, not Enum, to stay lightweight)
+# Confidence level — re-exported from eligibility for convenience
 # ---------------------------------------------------------------------------
 
-CONFIDENCE_HIGH = "high"
-CONFIDENCE_MEDIUM = "medium"
-CONFIDENCE_LOW = "low"
+# Backward-compatible module-level aliases
+CONFIDENCE_HIGH = ConfidenceLevel.HIGH
+CONFIDENCE_MEDIUM = ConfidenceLevel.MEDIUM
+CONFIDENCE_LOW = ConfidenceLevel.LOW
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +100,7 @@ def derive_confidence(
     status: EligibilityStatus,
     margin: float = 0.0,
     delta: float | None = None,
-) -> str:
+) -> ConfidenceLevel:
     """Derive confidence level for the eligibility judgment.
 
     Key constraint: never assign ``high`` without behavioral evidence.
@@ -217,7 +218,7 @@ class AdapterQAArtifact:
 
     # Eligibility judgment
     status: EligibilityStatus = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
-    confidence: str = CONFIDENCE_LOW
+    confidence: ConfidenceLevel = ConfidenceLevel.LOW
     reasons: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
@@ -251,7 +252,7 @@ class AdapterQAArtifact:
             },
             "eligibility": {
                 "status": self.status.value,
-                "confidence": self.confidence,
+                "confidence": self.confidence.value,
                 "reasons": list(self.reasons),
             },
             "notes": list(self.notes),
@@ -313,9 +314,13 @@ class AdapterQAArtifact:
             ) from None
 
         # --- Optional fields with type validation ---
-        confidence = eligibility.get("confidence", CONFIDENCE_LOW)
-        if confidence not in (CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, CONFIDENCE_LOW):
-            raise QASchemaError(f"Invalid confidence '{confidence}'. Must be one of: high, medium, low")
+        _confidence_raw = eligibility.get("confidence", ConfidenceLevel.LOW.value)
+        try:
+            confidence = ConfidenceLevel(_confidence_raw)
+        except ValueError:
+            raise QASchemaError(
+                f"Invalid confidence '{_confidence_raw}'. Must be one of: {[c.value for c in ConfidenceLevel]}"
+            ) from None
 
         # list[str] fields — validate if present, backfill if absent
         raw_flags = structural.get("flags", [])
@@ -372,7 +377,7 @@ class AdapterQAArtifact:
             eval_dataset=self.eval_dataset,
             notes="; ".join(self.reasons) if self.reasons else None,
             evidence={
-                "confidence": self.confidence,
+                "confidence": self.confidence.value,
                 "structural_flags": list(self.structural_flags),
                 "rank_waste_ratio": self.rank_waste_ratio,
                 "utilization_mean": self.utilization_mean,

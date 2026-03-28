@@ -258,7 +258,7 @@ def rebalance_coefficients(magnitude_ratio: float) -> tuple[float, float]:
     """
     ratio = max(magnitude_ratio, 1.0)
     coeff_strong = round(1.0 / (1.0 + ratio), 4)
-    coeff_weak = round(ratio / (1.0 + ratio), 4)
+    coeff_weak = 1.0 - coeff_strong
     return (coeff_strong, coeff_weak)
 
 
@@ -657,33 +657,19 @@ def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
     """
     layer_recs = tuple(_apply_layer_policy(ld, pair_diag.eligibility) for ld in pair_diag.layer_diagnoses)
 
-    # Overall strategy: majority vote across layers
-    strategy_counts: dict[str, int] = {}
-    for lr in layer_recs:
-        strategy_counts[lr.strategy] = strategy_counts.get(lr.strategy, 0) + 1
-    overall_strategy = max(strategy_counts, key=lambda k: strategy_counts[k]) if strategy_counts else "linear"
-
-    # Fallback strategies
-    fallbacks: list[str] = []
-    # norm_equalized is always a strong baseline worth considering
-    fallbacks.append("norm_equalized")
-    if overall_strategy != "linear":
-        fallbacks.append("uniform_linear")
-    if overall_strategy != "dare_ties":
-        fallbacks.append("dare_ties")
-    if overall_strategy != "ties":
-        fallbacks.append("overlap_ties")
-
     # Hard warnings from eligibility screening
     hard_warnings = _eligibility_warnings(pair_diag.eligibility)
 
     return MergeRecommendation(
+        # Always "audit_aware": the per-layer recommendations carry the real
+        # strategy signal; the top-level field is a stable sentinel that
+        # downstream consumers can key on without inspecting every layer.
         overall_strategy="audit_aware",
         overall_risk=pair_diag.overall_risk,
         layer_recommendations=layer_recs,
         compression_needed=pair_diag.compression_needed,
         n_layers_needing_compression=pair_diag.n_layers_needing_compression,
-        fallback_strategies=tuple(fallbacks[:2]),
+        fallback_strategies=("norm_equalized", "uniform_linear"),
         warnings=tuple(hard_warnings),
     )
 
