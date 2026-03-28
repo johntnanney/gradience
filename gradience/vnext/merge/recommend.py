@@ -258,7 +258,7 @@ def rebalance_coefficients(magnitude_ratio: float) -> tuple[float, float]:
     """
     ratio = max(magnitude_ratio, 1.0)
     coeff_strong = round(1.0 / (1.0 + ratio), 4)
-    coeff_weak = round(ratio / (1.0 + ratio), 4)
+    coeff_weak = 1.0 - coeff_strong
     return (coeff_strong, coeff_weak)
 
 
