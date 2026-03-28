@@ -74,7 +74,7 @@ from gradience.exceptions import GradienceError
 from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
 from gradience.vnext.inventory.merge_neighborhood_report import MergeNeighborhoodReport
 from gradience.vnext.inventory.summary import InventorySummary
-from gradience.vnext.merge.eligibility import EligibilityStatus
+from gradience.vnext.merge.eligibility import ConfidenceLevel, EligibilityStatus
 from gradience.vnext.merge.qa_report import MergeQAReport
 from gradience.vnext.telemetry import TelemetryReader, TelemetryWriter
 
@@ -109,6 +109,7 @@ __all__ = [
     "GradienceError",
     # Adapter QA schema
     "AdapterQAArtifact",
+    "ConfidenceLevel",
     "EligibilityStatus",
     # Merge QA report
     "MergeQAReport",
