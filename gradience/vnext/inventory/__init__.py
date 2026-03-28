@@ -13,6 +13,13 @@ from gradience.vnext.inventory.neighborhoods import (
     build_compatibility_matrix,
     suggest_merge_neighborhoods,
 )
+from gradience.vnext.inventory.portfolio import (
+    PortfolioRow,
+    PortfolioView,
+    format_portfolio_html,
+    format_portfolio_table,
+    scan_portfolio,
+)
 from gradience.vnext.inventory.summary import (
     InventorySummary,
     build_inventory_summary,
@@ -21,6 +28,11 @@ from gradience.vnext.inventory.summary import (
 
 __all__ = [
     "CorpusManifest",
+    "PortfolioRow",
+    "PortfolioView",
+    "format_portfolio_html",
+    "format_portfolio_table",
+    "scan_portfolio",
     "InventorySummary",
     "build_inventory_summary",
     "format_inventory_summary",

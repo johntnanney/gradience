@@ -709,6 +709,31 @@ def suggest_neighborhoods(
     )
 
 
+def scan_portfolio(
+    directory: str | Path,
+    strict_input: bool = False,
+) -> Any:
+    """Scan *directory* for inventory summary artifacts and return a portfolio view.
+
+    Thin stable wrapper around
+    :func:`gradience.vnext.inventory.portfolio.scan_portfolio`.
+
+    Parameters
+    ----------
+    directory
+        Root directory to scan for ``gradience.inventory_summary/v1`` JSON files.
+    strict_input
+        When ``True``, re-raises on malformed artifacts instead of warning.
+
+    Returns
+    -------
+    PortfolioView
+    """
+    from gradience.vnext.inventory.portfolio import scan_portfolio as _scan_portfolio
+
+    return _scan_portfolio(directory, strict_input=strict_input)
+
+
 # -----------------------------
 # Convenience: load canonical artifacts
 # -----------------------------
