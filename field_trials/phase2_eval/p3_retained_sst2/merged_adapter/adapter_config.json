@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "distilbert-base-uncased",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "61ab2a9d-edad-4a44-ae92-c458034ba43e",
+    "strategy": "norm_equalized",
+    "adapter_a": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/NightPrince__peft-distilbert-sst2"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "pair_name": "p3_retained_sst2",
+  "role": "retained",
+  "strategy": "norm_equalized",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.25,
+  "mean_reconstruction_error": 0.1751,
+  "merged_accuracy": 0.82,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 7.9,
+  "notes": "Same-task, medium risk, norm_imbalance (r=16 vs r=8). norm_equalized recommended."
+}

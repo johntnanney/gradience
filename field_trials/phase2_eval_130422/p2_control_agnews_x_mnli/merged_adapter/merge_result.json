@@ -1,0 +1,230 @@
+{
+  "schema_version": "gradience.merge_result/v1",
+  "plan_id": "f5f756a3-b8ea-43cb-a569-7296dc4812fa",
+  "strategy_name": "audit_aware",
+  "output_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/phase2_eval_130422/p2_control_agnews_x_mnli/merged_adapter",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "n_layers": 24,
+  "total_time_seconds": 0.11,
+  "mean_reconstruction_error": 0.101023,
+  "max_reconstruction_error": 0.180861,
+  "per_layer": [
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.0643023972328145,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.606832265853882
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.18086089204943281,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 4.843456268310547
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.08024367113327102,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 1.8114815950393677
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.1434168570289647,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.1645405292510986
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.10.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.005036774407581063,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 5.542008399963379
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.10.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.04981823808856198,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.105316162109375
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.11.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.002293461887112493,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 6.6478962898254395
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.11.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.06232619687515214,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 4.436830997467041
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.09685308672422696,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.480628252029419
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.1498579004703385,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.126227617263794
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.11350709501059379,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.5050883293151855
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.15343760946147136,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 1.6271125078201294
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.15178336858899105,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.2443392276763916
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.15922174185233184,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.002828359603882
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.11715467712111394,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.0350735187530518
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.17291483054580017,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 1.8391226530075073
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.6.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.13378306819845148,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 4.013465881347656
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.6.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.17406320473471434,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.2697408199310303
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.7.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.07643090101786494,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.597670316696167
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.7.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.1362670097140605,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.1935648918151855
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.8.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.022277540675434384,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.2644386291503906
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.8.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.08848063549875154,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 2.146604299545288
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.9.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.009484068305285276,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 3.5297460556030273
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.9.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.08074330905607043,
+      "input_rank_a": 1,
+      "input_rank_b": 8,
+      "output_rank": 8,
+      "merged_frobenius": 1.971054196357727
+    }
+  ]
+}

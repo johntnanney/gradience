@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "vaariis/distilbert-base-uncased-finetuned-emotion",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "cambridgeltl/guardian_news_distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.100) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 12,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.1002,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/irony vs tweet_eval/emotion). Linear merges across task boundaries may degrade the weaker task's performance."
+}

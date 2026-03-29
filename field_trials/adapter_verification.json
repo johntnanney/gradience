@@ -1,0 +1,103 @@
+{
+  "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "distilbert-base-uncased",
+    "task_type": "SEQ_CLS",
+    "r": 4,
+    "lora_alpha": 32,
+    "target_modules": [
+      "pre_classifier",
+      "q_lin",
+      "lin2",
+      "classifier",
+      "out_lin",
+      "lin1",
+      "k_lin",
+      "v_lin"
+    ]
+  },
+  "jmeneu/distilbert-base-uncased-lora-text-classification": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "distilbert-base-uncased",
+    "task_type": "SEQ_CLS",
+    "r": 1,
+    "lora_alpha": 32,
+    "target_modules": [
+      "q_lin"
+    ]
+  },
+  "TransferGraph/roberta-base-finetuned-lora-tweet_eval_hate": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "roberta-base",
+    "task_type": "SEQ_CLS",
+    "r": 1,
+    "lora_alpha": 1,
+    "target_modules": [
+      "query",
+      "value"
+    ]
+  },
+  "TransferGraph/roberta-base-finetuned-lora-ag_news": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "roberta-base",
+    "task_type": "SEQ_CLS",
+    "r": 1,
+    "lora_alpha": 1,
+    "target_modules": [
+      "query",
+      "value"
+    ]
+  },
+  "yuuhan/roberta-base-mnli-lora": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "/home/sunyuhan/syh/sunyuhan/zju/roberta-base",
+    "task_type": "SEQ_CLS",
+    "r": 8,
+    "lora_alpha": 16,
+    "target_modules": [
+      "query",
+      "value"
+    ]
+  },
+  "myselfmankar/distilbert-base-sst2-lora": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "distilbert-base-uncased",
+    "task_type": "SEQ_CLS",
+    "r": 16,
+    "lora_alpha": 32,
+    "target_modules": [
+      "v_lin",
+      "q_lin"
+    ]
+  },
+  "NightPrince/peft-distilbert-sst2": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "distilbert-base-uncased",
+    "task_type": "SEQ_CLS",
+    "r": 8,
+    "lora_alpha": 32,
+    "target_modules": [
+      "v_lin",
+      "q_lin"
+    ]
+  },
+  "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news": {
+    "status": "ok",
+    "peft_type": "PeftType.LORA",
+    "base_model": "JB173/distilbert-base-uncased-finetuned-emotion",
+    "task_type": "SEQ_CLS",
+    "r": 1,
+    "lora_alpha": 1,
+    "target_modules": [
+      "v_lin",
+      "q_lin"
+    ]
+  }
+}

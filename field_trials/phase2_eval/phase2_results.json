@@ -1,0 +1,46 @@
+{
+  "pilot_2": [
+    {
+      "pair_name": "p2_retained_agnews",
+      "role": "retained",
+      "error": "'base_model.model.classifier.dense.weight'"
+    },
+    {
+      "pair_name": "p2_control_agnews_x_mnli",
+      "role": "control",
+      "error": "'base_model.model.classifier.dense.weight'"
+    },
+    {
+      "pair_name": "p2_control_hate_x_irony",
+      "role": "control",
+      "error": "Unknown plan strategy 'linear'. Available: ['audit_aware', 'dare_linear', 'dare_ties', 'norm_equalized', 'overlap_ties', 'uniform_linear']"
+    }
+  ],
+  "pilot_3": [
+    {
+      "pair_name": "p3_retained_agnews",
+      "role": "retained",
+      "error": "'base_model.model.pre_classifier.weight'"
+    },
+    {
+      "pair_name": "p3_retained_sst2",
+      "role": "retained",
+      "error": "'base_model.model.pre_classifier.weight'"
+    },
+    {
+      "pair_name": "p3_nearmiss_hate",
+      "role": "near-miss",
+      "error": "'base_model.model.pre_classifier.weight'"
+    },
+    {
+      "pair_name": "p3_control_agnews_x_emotion",
+      "role": "control",
+      "error": "'base_model.model.pre_classifier.weight'"
+    },
+    {
+      "pair_name": "p3_control_sst2_x_agnews",
+      "role": "control",
+      "error": "'base_model.model.pre_classifier.weight'"
+    }
+  ]
+}

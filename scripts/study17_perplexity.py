@@ -215,7 +215,9 @@ def format_gsm8k(example: dict) -> FormattedExample | None:
         return None
     prompt = f"Question: {q}\nAnswer:"
     completion = f" {a}"
-    return FormattedExample(full_text=prompt + completion, prompt_text=prompt, completion_text=completion, source_id=None)
+    return FormattedExample(
+        full_text=prompt + completion, prompt_text=prompt, completion_text=completion, source_id=None
+    )
 
 
 def format_mbpp(example: dict) -> FormattedExample | None:
@@ -224,7 +226,9 @@ def format_mbpp(example: dict) -> FormattedExample | None:
     if not desc or not code:
         return None
     prompt = f"{desc}\n\n"
-    return FormattedExample(full_text=prompt + code, prompt_text=prompt, completion_text=code, source_id=str(example.get("task_id")))
+    return FormattedExample(
+        full_text=prompt + code, prompt_text=prompt, completion_text=code, source_id=str(example.get("task_id"))
+    )
 
 
 def format_oasst2(example: dict) -> FormattedExample | None:
@@ -433,7 +437,9 @@ def run_merges(
         # Audit compressed
         audit_comp_dir = merge_dir / pair.pair_id / "audit_compressed"
         try:
-            compressed_report = merge_audit(str(compressed_a), str(compressed_b), output_dir=str(audit_comp_dir), verbose=verbose)
+            compressed_report = merge_audit(
+                str(compressed_a), str(compressed_b), output_dir=str(audit_comp_dir), verbose=verbose
+            )
         except Exception as e:
             logger.warning("Compressed audit failed for %s: %s", pair.pair_id, e)
             compressed_report = None
@@ -612,7 +618,9 @@ def evaluate_perplexity(model, tokenizer, examples: list[FormattedExample], max_
         total_tokens += seq_len
 
         if ex.prompt_text:
-            prompt_enc = tokenizer(ex.prompt_text, return_tensors="pt", truncation=True, max_length=max_length, add_special_tokens=False)
+            prompt_enc = tokenizer(
+                ex.prompt_text, return_tensors="pt", truncation=True, max_length=max_length, add_special_tokens=False
+            )
             prompt_len = prompt_enc["input_ids"].shape[1]
         else:
             prompt_len = 0
@@ -663,8 +671,12 @@ def evaluate_perplexity(model, tokenizer, examples: list[FormattedExample], max_
 
 
 def evaluate_with_adapter(
-    base_model_name: str, tokenizer, adapter_path: Path, examples: list[FormattedExample],
-    max_length: int = 512, dtype=None,
+    base_model_name: str,
+    tokenizer,
+    adapter_path: Path,
+    examples: list[FormattedExample],
+    max_length: int = 512,
+    dtype=None,
 ) -> dict[str, Any]:
     """Load fresh base + PEFT adapter, evaluate, discard."""
     import torch
@@ -721,7 +733,12 @@ def build_eval_schedule(
 
     # 1. Base model — one eval per unique eval set
     for es_id in EVAL_SETS:
-        add_job(es_id, EvalJob(adapter_label="base_model", adapter_type="base", pair_id=None, adapter_path=None, eval_set_id=es_id))
+        add_job(
+            es_id,
+            EvalJob(
+                adapter_label="base_model", adapter_type="base", pair_id=None, adapter_path=None, eval_set_id=es_id
+            ),
+        )
 
     # 2. Source adapters
     seen_source: set[tuple[str, str]] = set()
@@ -732,40 +749,70 @@ def build_eval_schedule(
             if key in seen_source or adapter.label not in source_adapter_dirs:
                 continue
             seen_source.add(key)
-            add_job(es_id, EvalJob(
-                adapter_label=adapter.label, adapter_type="source", pair_id=None,
-                adapter_path=source_adapter_dirs[adapter.label], eval_set_id=es_id,
-            ))
+            add_job(
+                es_id,
+                EvalJob(
+                    adapter_label=adapter.label,
+                    adapter_type="source",
+                    pair_id=None,
+                    adapter_path=source_adapter_dirs[adapter.label],
+                    eval_set_id=es_id,
+                ),
+            )
 
     # 3. Merged adapters — each condition on both eval sets
     for pair in pairs:
         if pair.pair_id not in merged_paths:
             continue
-        for cond_name in ["A_fullrank_naive", "B_fullrank_normeq", "C_fullrank_recommended", "D_compress_normeq", "E_compress_recommended"]:
+        for cond_name in [
+            "A_fullrank_naive",
+            "B_fullrank_normeq",
+            "C_fullrank_recommended",
+            "D_compress_normeq",
+            "E_compress_recommended",
+        ]:
             if cond_name not in merged_paths[pair.pair_id]:
                 continue
             adapter_path = merged_paths[pair.pair_id][cond_name]
             label = f"{pair.pair_id}_{cond_name}"
 
             # Eval on side a's eval set
-            add_job(pair.eval_sets[0], EvalJob(
-                adapter_label=label, adapter_type=cond_name, pair_id=pair.pair_id,
-                adapter_path=adapter_path, eval_set_id=pair.eval_sets[0], side="a",
-            ))
+            add_job(
+                pair.eval_sets[0],
+                EvalJob(
+                    adapter_label=label,
+                    adapter_type=cond_name,
+                    pair_id=pair.pair_id,
+                    adapter_path=adapter_path,
+                    eval_set_id=pair.eval_sets[0],
+                    side="a",
+                ),
+            )
             # Eval on side b's eval set
-            add_job(pair.eval_sets[1], EvalJob(
-                adapter_label=label, adapter_type=cond_name, pair_id=pair.pair_id,
-                adapter_path=adapter_path, eval_set_id=pair.eval_sets[1], side="b",
-            ))
+            add_job(
+                pair.eval_sets[1],
+                EvalJob(
+                    adapter_label=label,
+                    adapter_type=cond_name,
+                    pair_id=pair.pair_id,
+                    adapter_path=adapter_path,
+                    eval_set_id=pair.eval_sets[1],
+                    side="b",
+                ),
+            )
 
     return schedule
 
 
 def run_evaluation(
-    base_model, base_model_name: str, tokenizer,
+    base_model,
+    base_model_name: str,
+    tokenizer,
     schedule: dict[str, list[EvalJob]],
-    max_examples: int = 500, max_length: int = 512,
-    verbose: bool = False, dtype=None,
+    max_examples: int = 500,
+    max_length: int = 512,
+    verbose: bool = False,
+    dtype=None,
 ) -> list[EvalResult]:
     """Execute all evaluations, grouped by eval set."""
     all_results: list[EvalResult] = []
@@ -802,29 +849,46 @@ def run_evaluation(
                     if atype == "base":
                         metrics = evaluate_perplexity(base_model, tokenizer, examples, max_length)
                     else:
-                        metrics = evaluate_with_adapter(base_model_name, tokenizer, job.adapter_path, examples, max_length, dtype=dtype)
+                        metrics = evaluate_with_adapter(
+                            base_model_name, tokenizer, job.adapter_path, examples, max_length, dtype=dtype
+                        )
                     metrics["eval_time_s"] = round(time.time() - t0, 2)
                     seen_results[cache_key] = metrics
                 except Exception as e:
                     logger.error("Eval failed for %s on %s: %s", label, es_id, e, exc_info=True)
                     metrics = {
-                        "perplexity": float("nan"), "token_mean_loss": float("nan"),
-                        "example_mean_loss": float("nan"), "example_std_loss": float("nan"),
-                        "n_examples": 0, "total_tokens": 0, "scored_tokens": 0,
-                        "truncated_examples": 0, "per_example_losses": [],
-                        "per_example_tokens": [], "per_example_scored": [], "eval_time_s": 0.0,
+                        "perplexity": float("nan"),
+                        "token_mean_loss": float("nan"),
+                        "example_mean_loss": float("nan"),
+                        "example_std_loss": float("nan"),
+                        "n_examples": 0,
+                        "total_tokens": 0,
+                        "scored_tokens": 0,
+                        "truncated_examples": 0,
+                        "per_example_losses": [],
+                        "per_example_tokens": [],
+                        "per_example_scored": [],
+                        "eval_time_s": 0.0,
                     }
 
             if verbose and not np.isnan(metrics["perplexity"]):
                 print(f"    PPL: {metrics['perplexity']:.2f}  (loss: {metrics['token_mean_loss']:.4f})")
 
             result = EvalResult(
-                adapter_label=label, adapter_type=atype, pair_id=job.pair_id,
-                eval_set_id=es_id, eval_task=eval_set.task, side=job.side,
-                perplexity=metrics["perplexity"], token_mean_loss=metrics["token_mean_loss"],
-                example_mean_loss=metrics["example_mean_loss"], example_std_loss=metrics["example_std_loss"],
-                n_examples=metrics["n_examples"], total_tokens=metrics["total_tokens"],
-                scored_tokens=metrics["scored_tokens"], truncated_examples=metrics["truncated_examples"],
+                adapter_label=label,
+                adapter_type=atype,
+                pair_id=job.pair_id,
+                eval_set_id=es_id,
+                eval_task=eval_set.task,
+                side=job.side,
+                perplexity=metrics["perplexity"],
+                token_mean_loss=metrics["token_mean_loss"],
+                example_mean_loss=metrics["example_mean_loss"],
+                example_std_loss=metrics["example_std_loss"],
+                n_examples=metrics["n_examples"],
+                total_tokens=metrics["total_tokens"],
+                scored_tokens=metrics["scored_tokens"],
+                truncated_examples=metrics["truncated_examples"],
                 per_example_losses=metrics["per_example_losses"],
                 per_example_tokens=metrics["per_example_tokens"],
                 per_example_scored=metrics["per_example_scored"],
@@ -879,7 +943,13 @@ def print_behavioral_comparison(results: list[EvalResult], pairs: list[PairDef])
         print(f"  {'Condition':<28s}  {'Side A loss':>11s}  {'Side B loss':>11s}  {'Worst':>8s}")
         print(f"  {'-' * 65}")
 
-        for cond_name in ["A_fullrank_naive", "B_fullrank_normeq", "C_fullrank_recommended", "D_compress_normeq", "E_compress_recommended"]:
+        for cond_name in [
+            "A_fullrank_naive",
+            "B_fullrank_normeq",
+            "C_fullrank_recommended",
+            "D_compress_normeq",
+            "E_compress_recommended",
+        ]:
             cond_results = [r for r in pair_results if r.adapter_type == cond_name]
             loss_a = next((r.token_mean_loss for r in cond_results if r.side == "a"), float("nan"))
             loss_b = next((r.token_mean_loss for r in cond_results if r.side == "b"), float("nan"))
@@ -1003,9 +1073,14 @@ def main() -> None:
     print(f"\n  Total eval jobs: {total_evals}")
 
     results = run_evaluation(
-        base_model, args.base_model, tokenizer, schedule,
-        max_examples=args.max_examples, max_length=args.max_length,
-        verbose=args.verbose, dtype=dtype,
+        base_model,
+        args.base_model,
+        tokenizer,
+        schedule,
+        max_examples=args.max_examples,
+        max_length=args.max_length,
+        verbose=args.verbose,
+        dtype=dtype,
     )
 
     # ── Output ─────────────────────────────────────────────────────────
@@ -1022,7 +1097,13 @@ def main() -> None:
         "n_pairs": len(pairs_to_run),
         "n_evaluations": len(results),
         "total_time_s": round(total_time, 2),
-        "conditions": ["A_fullrank_naive", "B_fullrank_normeq", "C_fullrank_recommended", "D_compress_normeq", "E_compress_recommended"],
+        "conditions": [
+            "A_fullrank_naive",
+            "B_fullrank_normeq",
+            "C_fullrank_recommended",
+            "D_compress_normeq",
+            "E_compress_recommended",
+        ],
         "scoring": "completion-only token-weighted NLL",
     }
 

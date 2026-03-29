@@ -1,0 +1,39 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/NightPrince__peft-distilbert-sst2",
+    "rank": 8,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "Aureliano/distilbert-base-uncased-if",
+    "eligibility_status": "flagged_weak"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "22.7x mean magnitude ratio across 11 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.156) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter B underperforms the base model. Rebalancing may preserve a weak signal.",
+    "High structural risk. Always validate the merged adapter on your target task before deployment.",
+    "Structural rebalance may preserve a behaviorally weak adapter."
+  ],
+  "verdict_distribution": {
+    "safe": 1,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 11
+  },
+  "compatibility_score": 0.1564,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (sst2 vs tweet_eval/hate). Linear merges across task boundaries may degrade the weaker task's performance."
+}

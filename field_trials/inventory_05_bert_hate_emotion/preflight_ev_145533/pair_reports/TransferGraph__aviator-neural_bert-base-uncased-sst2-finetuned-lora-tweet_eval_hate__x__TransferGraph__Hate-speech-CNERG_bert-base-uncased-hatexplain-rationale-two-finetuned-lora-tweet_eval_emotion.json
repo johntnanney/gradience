@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "aviator-neural/bert-base-uncased-sst2",
+    "eligibility_status": "flagged_weak"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "Hate-speech-CNERG/bert-base-uncased-hatexplain-rationale-two",
+    "eligibility_status": "flagged_weak"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Reconsider merging: both adapters underperform the base model. Merge will produce a structurally valid but likely unhelpful result.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.086) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Both adapters underperform the base model. Merging two weak adapters rarely produces a strong one.",
+    "Both source adapters underperform base or lack eligibility evidence; merge recommendation is structurally valid but deployment value is uncertain."
+  ],
+  "verdict_distribution": {
+    "safe": 24,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.0857,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/hate vs tweet_eval/emotion). Linear merges across task boundaries may degrade the weaker task's performance."
+}

@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "ag_news",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.912,
+  "base_score": 0.218,
+  "beats_base": true,
+  "delta": 0.694,
+  "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+  "manifest_task": "news-topic-classification",
+  "elapsed_seconds": 44.3
+}

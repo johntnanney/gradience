@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "ag_news",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.884,
+  "base_score": 0.244,
+  "beats_base": true,
+  "delta": 0.64,
+  "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+  "manifest_task": "news-topic-classification",
+  "elapsed_seconds": 43.6
+}

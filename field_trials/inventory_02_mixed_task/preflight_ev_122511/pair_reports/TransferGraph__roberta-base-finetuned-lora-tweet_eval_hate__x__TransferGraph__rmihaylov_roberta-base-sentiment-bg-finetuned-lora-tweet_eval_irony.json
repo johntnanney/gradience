@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "roberta-base",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "rmihaylov/roberta-base-sentiment-bg",
+    "eligibility_status": "uncertain"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.018)",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 12,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.0176,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/hate vs tweet_eval/irony). Linear merges across task boundaries may degrade the weaker task's performance."
+}

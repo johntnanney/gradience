@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_01_same_task_control/adapter_cache/TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "rank_nominal": 1,
+    "n_layers": 12
+  },
+  "structural_summary": {
+    "utilization_mean": 1.0,
+    "utilization_median": 1.0,
+    "stable_rank_mean": 1.0,
+    "effective_rank_90_median": 1.0,
+    "rank_waste_ratio": 0.0,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": false,
+    "eval_dataset": "tweet_eval/emotion",
+    "metric_name": null,
+    "adapter_score": null,
+    "base_score": null,
+    "lower_is_better": null,
+    "beats_base": null
+  },
+  "eligibility": {
+    "status": "unknown_no_behavioral_eval",
+    "confidence": "low",
+    "reasons": [
+      "no behavioral evaluation available"
+    ]
+  },
+  "notes": []
+}

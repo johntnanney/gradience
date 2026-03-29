@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "query",
+    "value"
+  ],
+  "base_model_name_or_path": "fabriceyhc/bert-base-uncased-imdb",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "0efb72b1-f8de-4f7c-9c6d-67262d45ab0c",
+    "strategy": "uniform_linear",
+    "adapter_a": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion",
+    "adapter_b": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion"
+  }
+}

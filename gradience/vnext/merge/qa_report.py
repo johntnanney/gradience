@@ -478,7 +478,7 @@ def _confidence_note(diag: PairDiagnosis, score: float) -> str:
     elif diag.eligibility.any_weak:
         parts.append("— at least one adapter lacks behavioral evidence of quality")
     elif diag.eligibility.both_eligible:
-        parts.append("— both adapters have verified behavioral quality")
+        parts.append("— both adapters have user-reported behavioral quality")
 
     return ". ".join(p if p.startswith("—") or p.startswith("(") else p for p in parts[:1]) + " " + " ".join(parts[1:])
 

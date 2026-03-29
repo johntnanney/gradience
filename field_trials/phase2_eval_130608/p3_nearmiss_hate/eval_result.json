@@ -1,0 +1,15 @@
+{
+  "pair_name": "p3_nearmiss_hate",
+  "role": "near-miss",
+  "strategy": "uniform_linear",
+  "eval_dataset": "tweet_eval/hate",
+  "compatibility": "safe",
+  "compatibility_score": 0.211,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.598,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 13.5,
+  "notes": "Same-task, low structural risk, but Aureliano flagged_weak (underperforms base). Tests whether evidence gate is right to exclude."
+}

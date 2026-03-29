@@ -1,0 +1,39 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "aviator-neural/bert-base-uncased-sst2",
+    "eligibility_status": "flagged_weak"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-ag_news",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "aviator-neural/bert-base-uncased-sst2",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "5.4x mean magnitude ratio across 12 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.081) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter A underperforms the base model. Rebalancing may preserve a weak signal.",
+    "High structural risk. Always validate the merged adapter on your target task before deployment.",
+    "Structural rebalance may preserve a behaviorally weak adapter."
+  ],
+  "verdict_distribution": {
+    "safe": 12,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 12
+  },
+  "compatibility_score": 0.0814,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/hate vs ag_news). Linear merges across task boundaries may degrade the weaker task's performance."
+}

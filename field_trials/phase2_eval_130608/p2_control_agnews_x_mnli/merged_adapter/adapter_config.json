@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "query",
+    "value"
+  ],
+  "base_model_name_or_path": "roberta-base",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "939423b4-3a61-48d8-a0b7-fa5ad79a7f08",
+    "strategy": "audit_aware",
+    "adapter_a": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-ag_news",
+    "adapter_b": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora"
+  }
+}

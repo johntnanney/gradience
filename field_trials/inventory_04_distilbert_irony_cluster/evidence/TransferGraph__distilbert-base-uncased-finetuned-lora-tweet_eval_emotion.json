@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "tweet_eval/emotion",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.772,
+  "base_score": 0.226,
+  "beats_base": true,
+  "delta": 0.546,
+  "adapter_id": "TransferGraph/distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+  "manifest_task": "emotion-classification",
+  "elapsed_seconds": 14.2
+}

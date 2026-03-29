@@ -1,0 +1,15 @@
+{
+  "pair_name": "p2_control_agnews_x_mnli",
+  "role": "control",
+  "strategy": "audit_aware",
+  "eval_dataset": "ag_news",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.096,
+  "mean_reconstruction_error": 0.1013,
+  "merged_accuracy": 0.938,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 37.6,
+  "notes": "Cross-task, high risk, norm_imbalance. Eval on AG News (adapter A's task)."
+}

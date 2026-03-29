@@ -1,0 +1,37 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "Hate-speech-CNERG/bert-base-uncased-hatexplain-rationale-two",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "fabriceyhc/bert-base-uncased-imdb",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "3.9x mean magnitude ratio across 7 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.096) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 17,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 7
+  },
+  "compatibility_score": 0.0961,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/hate vs tweet_eval/emotion). Linear merges across task boundaries may degrade the weaker task's performance."
+}

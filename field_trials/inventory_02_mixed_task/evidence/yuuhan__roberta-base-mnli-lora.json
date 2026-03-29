@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora",
+  "base_model": "roberta-base",
+  "eval_dataset": "mnli",
+  "eval_split": "validation_matched",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.842,
+  "base_score": 0.35,
+  "beats_base": true,
+  "delta": 0.492,
+  "adapter_id": "yuuhan/roberta-base-mnli-lora",
+  "manifest_task": "natural-language-inference",
+  "elapsed_seconds": 85.2
+}

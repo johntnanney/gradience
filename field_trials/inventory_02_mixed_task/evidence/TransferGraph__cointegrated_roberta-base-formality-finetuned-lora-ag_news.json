@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+  "base_model": "FacebookAI/roberta-base",
+  "eval_dataset": "ag_news",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.902,
+  "base_score": 0.254,
+  "beats_base": true,
+  "delta": 0.648,
+  "adapter_id": "TransferGraph/cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+  "manifest_task": "news-topic-classification",
+  "elapsed_seconds": 83.1
+}

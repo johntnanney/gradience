@@ -1,0 +1,25 @@
+{
+  "inventory_id": "preflight",
+  "run_id": "run_20260328_165825",
+  "timestamp": "2026-03-28T16:58:25.625012+00:00",
+  "adapter_count": 4,
+  "pair_count": 6,
+  "excluded_sources": [
+    "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification: missing behavioral evidence \u2014 low confidence",
+    "TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion: missing behavioral evidence \u2014 low confidence",
+    "jmeneu__distilbert-base-uncased-lora-text-classification: missing behavioral evidence \u2014 low confidence",
+    "muneeb-ai__distilbert-base-uncased-lora-imdb-sentiment: missing behavioral evidence \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [],
+  "cross_task_caution_regions": [],
+  "reduced_candidate_subset": [],
+  "retained_candidate_count": 0,
+  "reduction_ratio": 1.0,
+  "advisory_pair_count": 5,
+  "qa_summary": {
+    "unknown_no_behavioral_eval": 4
+  },
+  "behavioral_evidence_count": 0,
+  "total_source_count": 4,
+  "summary_line": "QA dominates this inventory; no credible same-task candidates remain."
+}

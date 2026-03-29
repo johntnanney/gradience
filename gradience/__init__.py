@@ -73,7 +73,7 @@ from gradience import api
 from gradience.exceptions import GradienceError
 from gradience.vnext.audit.qa_artifact import AdapterQAArtifact
 from gradience.vnext.inventory.merge_neighborhood_report import MergeNeighborhoodReport
-from gradience.vnext.inventory.summary import InventorySummary
+from gradience.vnext.inventory.summary import InventoryActionPlan, InventorySummary
 from gradience.vnext.merge.eligibility import EligibilityStatus
 from gradience.vnext.merge.qa_report import MergeQAReport
 from gradience.vnext.telemetry import TelemetryReader, TelemetryWriter
@@ -112,8 +112,9 @@ __all__ = [
     "EligibilityStatus",
     # Merge QA report
     "MergeQAReport",
-    # Inventory summary
+    # Inventory summary and action plan
     "InventorySummary",
+    "InventoryActionPlan",
     # Advanced inventory artifact
     "MergeNeighborhoodReport",
     # vNext telemetry (canonical)

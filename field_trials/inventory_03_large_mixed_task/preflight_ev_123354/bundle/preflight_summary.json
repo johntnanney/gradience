@@ -1,0 +1,37 @@
+{
+  "inventory_id": "preflight_ev_123354",
+  "run_id": "run_20260328_173436",
+  "timestamp": "2026-03-28T17:34:36.798041+00:00",
+  "adapter_count": 8,
+  "pair_count": 28,
+  "excluded_sources": [
+    "TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate: weak source \u2014 low confidence",
+    "jmeneu__distilbert-base-uncased-lora-text-classification: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 NightPrince__peft-distilbert-sst2"
+  ],
+  "cross_task_caution_regions": [
+    "AG_NEWS \u00d7 SST-2 region",
+    "AG_NEWS \u00d7 TWEET_EVAL/EMOTION region",
+    "AG_NEWS \u00d7 TWEET_EVAL/HATE region",
+    "SST-2 \u00d7 TWEET_EVAL/EMOTION region",
+    "SST-2 \u00d7 TWEET_EVAL/HATE region",
+    "TWEET_EVAL/EMOTION \u00d7 TWEET_EVAL/HATE region"
+  ],
+  "reduced_candidate_subset": [
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 NightPrince__peft-distilbert-sst2"
+  ],
+  "retained_candidate_count": 2,
+  "reduction_ratio": 0.929,
+  "advisory_pair_count": 25,
+  "qa_summary": {
+    "eligible": 6,
+    "flagged_weak": 2
+  },
+  "behavioral_evidence_count": 8,
+  "total_source_count": 8,
+  "summary_line": "QA and task boundary dominate this inventory. Candidate space reduced from 28 pairs to 2."
+}

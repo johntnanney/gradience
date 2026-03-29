@@ -221,12 +221,14 @@ def compute_effective_rank_at_threshold(peft_dir: Path, threshold: float) -> tup
         else:
             k = int(S.shape[0])
 
-        per_layer.append({
-            "layer": base_key,
-            "nominal": int(S.shape[0]),
-            "effective": k,
-            "energy": float(cumulative[k - 1].item()),
-        })
+        per_layer.append(
+            {
+                "layer": base_key,
+                "nominal": int(S.shape[0]),
+                "effective": k,
+                "energy": float(cumulative[k - 1].item()),
+            }
+        )
         max_effective = max(max_effective, k)
 
     return max_effective, per_layer
@@ -694,11 +696,18 @@ def run_pair(
     conditions: list[tuple[str, str, Path, Path, Any, dict, bool, float | None]] = []
 
     # Full-rank NormEq baseline
-    conditions.append((
-        "full_normeq", "uniform_linear", dir_a, dir_b, report,
-        {"output_rank": output_rank, "output_alpha": output_alpha, "coefficients": (coeff_a_full, coeff_b_full)},
-        False, None,
-    ))
+    conditions.append(
+        (
+            "full_normeq",
+            "uniform_linear",
+            dir_a,
+            dir_b,
+            report,
+            {"output_rank": output_rank, "output_alpha": output_alpha, "coefficients": (coeff_a_full, coeff_b_full)},
+            False,
+            None,
+        )
+    )
 
     # Compressed NormEq at each threshold
     for threshold in thresholds:
@@ -710,19 +719,33 @@ def run_pair(
         ca, cb = compressed_coeffs.get(threshold, (0.5, 0.5))
         comp_rank = compressed_output_ranks.get(threshold, output_rank)
 
-        conditions.append((
-            f"comp{thr_pct}_normeq", "uniform_linear", ca_dir, cb_dir, comp_report,
-            {"output_rank": comp_rank, "output_alpha": output_alpha, "coefficients": (ca, cb)},
-            True, threshold,
-        ))
+        conditions.append(
+            (
+                f"comp{thr_pct}_normeq",
+                "uniform_linear",
+                ca_dir,
+                cb_dir,
+                comp_report,
+                {"output_rank": comp_rank, "output_alpha": output_alpha, "coefficients": (ca, cb)},
+                True,
+                threshold,
+            )
+        )
 
     # Secondary: recommended family
     if run_secondary:
-        conditions.append((
-            "full_recommended", "audit_aware", dir_a, dir_b, report,
-            {"output_rank": output_rank, "output_alpha": output_alpha},
-            False, None,
-        ))
+        conditions.append(
+            (
+                "full_recommended",
+                "audit_aware",
+                dir_a,
+                dir_b,
+                report,
+                {"output_rank": output_rank, "output_alpha": output_alpha},
+                False,
+                None,
+            )
+        )
 
         for threshold in thresholds:
             if threshold not in compressed_dirs:
@@ -732,11 +755,18 @@ def run_pair(
             comp_report = compressed_reports.get(threshold, report)
             comp_rank = compressed_output_ranks.get(threshold, output_rank)
 
-            conditions.append((
-                f"comp{thr_pct}_recommended", "audit_aware", ca_dir, cb_dir, comp_report,
-                {"output_rank": comp_rank, "output_alpha": output_alpha},
-                True, threshold,
-            ))
+            conditions.append(
+                (
+                    f"comp{thr_pct}_recommended",
+                    "audit_aware",
+                    ca_dir,
+                    cb_dir,
+                    comp_report,
+                    {"output_rank": comp_rank, "output_alpha": output_alpha},
+                    True,
+                    threshold,
+                )
+            )
 
     # --- Run conditions ---
     for cond_name, strategy, src_a, src_b, audit_report, plan_kwargs, is_compressed, threshold in conditions:
@@ -909,7 +939,9 @@ def print_threshold_comparison(results: list[PairResult], thresholds: list[float
 
     # --- Table 3: Compression intensity ---
     print("\n  Table 3: Compression Intensity")
-    print(f"  {'Pair':<38s}  {'Thr':>4s}  {'A nom>eff':>10s}  {'B nom>eff':>10s}  {'A %red':>7s}  {'B %red':>7s}  {'A dist':>7s}  {'B dist':>7s}")
+    print(
+        f"  {'Pair':<38s}  {'Thr':>4s}  {'A nom>eff':>10s}  {'B nom>eff':>10s}  {'A %red':>7s}  {'B %red':>7s}  {'A dist':>7s}  {'B dist':>7s}"
+    )
     print("  " + "-" * 100)
 
     for r in results:
@@ -938,8 +970,10 @@ def print_threshold_comparison(results: list[PairResult], thresholds: list[float
             a_dist = ca.get("reconstruction_error", 0.0)
             b_dist = cb.get("reconstruction_error", 0.0)
 
-            print(f"  {label:<38s}  {thr_pct:>3d}%  {a_nom:>4d}>{a_eff:<4d}  {b_nom:>4d}>{b_eff:<4d}  "
-                  f"{a_pct:>6.1f}%  {b_pct:>6.1f}%  {a_dist:>7.4f}  {b_dist:>7.4f}")
+            print(
+                f"  {label:<38s}  {thr_pct:>3d}%  {a_nom:>4d}>{a_eff:<4d}  {b_nom:>4d}>{b_eff:<4d}  "
+                f"{a_pct:>6.1f}%  {b_pct:>6.1f}%  {a_dist:>7.4f}  {b_dist:>7.4f}"
+            )
 
     print("=" * 120)
 
@@ -965,8 +999,10 @@ def print_threshold_comparison(results: list[PairResult], thresholds: list[float
             mean_dd = sum(deltas_d) / n
             wins_q = sum(1 for d in deltas_q if d > 0)
             wins_d = sum(1 for d in deltas_d if d > 0)
-            print(f"  comp@{thr_pct}% NormEq: mean dQ_min={mean_dq:+.4f} ({wins_q}/{n} improved)  "
-                  f"mean dD={mean_dd:+.4f} ({wins_d}/{n} improved)")
+            print(
+                f"  comp@{thr_pct}% NormEq: mean dQ_min={mean_dq:+.4f} ({wins_q}/{n} improved)  "
+                f"mean dD={mean_dd:+.4f} ({wins_d}/{n} improved)"
+            )
 
         print()
 
@@ -980,12 +1016,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Study 17B: Threshold Sensitivity (Phase 1 — CPU)")
     parser.add_argument("--output-dir", type=Path, default=Path("results/study17b"))
     parser.add_argument("--cache-dir", type=Path, default=Path.home() / ".cache" / "gradience" / "adapters")
-    parser.add_argument("--pairs", type=str, nargs="*", default=None,
-                        help="Specific pair IDs (default: pair_03, pair_04)")
-    parser.add_argument("--thresholds", type=float, nargs="*", default=None,
-                        help="Energy thresholds to test (default: 0.90 0.80)")
-    parser.add_argument("--secondary", action="store_true",
-                        help="Also run recommended strategy variants")
+    parser.add_argument(
+        "--pairs", type=str, nargs="*", default=None, help="Specific pair IDs (default: pair_03, pair_04)"
+    )
+    parser.add_argument(
+        "--thresholds", type=float, nargs="*", default=None, help="Energy thresholds to test (default: 0.90 0.80)"
+    )
+    parser.add_argument("--secondary", action="store_true", help="Also run recommended strategy variants")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -1012,9 +1049,9 @@ def main() -> None:
     print("Study 17B: Threshold Sensitivity — Phase 1 (CPU)")
     print(f"  Pairs: {len(pairs_to_run)} ({', '.join(p.pair_id for p in pairs_to_run)})")
     print(f"  Thresholds: {[f'{t:.0%}' for t in thresholds]}")
-    print("  Conditions: full_normeq" + "".join(f", comp{int(t*100)}_normeq" for t in thresholds))
+    print("  Conditions: full_normeq" + "".join(f", comp{int(t * 100)}_normeq" for t in thresholds))
     if args.secondary:
-        print("  Secondary:  full_recommended" + "".join(f", comp{int(t*100)}_recommended" for t in thresholds))
+        print("  Secondary:  full_recommended" + "".join(f", comp{int(t * 100)}_recommended" for t in thresholds))
     print(f"  Output: {args.output_dir}")
     print(f"  Cache:  {args.cache_dir}")
 

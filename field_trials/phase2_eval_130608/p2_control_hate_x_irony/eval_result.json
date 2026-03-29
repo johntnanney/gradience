@@ -1,0 +1,15 @@
+{
+  "pair_name": "p2_control_hate_x_irony",
+  "role": "control",
+  "strategy": "uniform_linear",
+  "eval_dataset": "tweet_eval/hate",
+  "compatibility": "safe",
+  "compatibility_score": 0.018,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.602,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 27.4,
+  "notes": "Cross-task but structurally compatible (low risk, no issues). Eval on hate (adapter A's task). Irony adapter is uncertain."
+}

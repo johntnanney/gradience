@@ -1,0 +1,23 @@
+{
+  "inventory_id": "preflight_v2",
+  "run_id": "run_20260328_171415",
+  "timestamp": "2026-03-28T17:14:15.988906+00:00",
+  "adapter_count": 3,
+  "pair_count": 0,
+  "excluded_sources": [
+    "jmeneu__distilbert-base-uncased-lora-text-classification: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [],
+  "cross_task_caution_regions": [],
+  "reduced_candidate_subset": [],
+  "retained_candidate_count": 0,
+  "reduction_ratio": 0.0,
+  "advisory_pair_count": 0,
+  "qa_summary": {
+    "eligible": 2,
+    "flagged_weak": 1
+  },
+  "behavioral_evidence_count": 3,
+  "total_source_count": 3,
+  "summary_line": "No pair reports available for interpretation."
+}

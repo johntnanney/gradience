@@ -1,0 +1,18 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate",
+  "base_model": "google-bert/bert-base-uncased",
+  "eval_dataset": "tweet_eval/hate",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.588,
+  "base_score": 0.428,
+  "beats_base": true,
+  "delta": 0.16,
+  "adapter_f1": 0.0804,
+  "base_f1": 0.5794,
+  "adapter_id": "TransferGraph/Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate",
+  "manifest_task": "hate-speech-detection",
+  "elapsed_seconds": 58.2
+}

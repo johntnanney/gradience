@@ -1,0 +1,87 @@
+{
+  "inventory_id": "pilot-04-distilbert-irony-cluster",
+  "description": "Deep irony same-task cluster (4 adapters) plus reused ag_news and emotion pairs. Designed to test near-miss frequency in a task where adapters are likely marginal.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "deep_cluster",
+  "pilot_phase": "2b",
+  "trial_purpose": "Generate near-miss pairs in the irony cluster (binary task, historically marginal deltas). AG News and emotion clusters serve as retained-pair baselines.",
+  "adapters": [
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "irony-detection",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Irony detection. Source model: JB173 emotion-finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "irony-detection",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Irony detection. Source model: vaariis emotion-finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "irony-detection",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Irony detection. Source model: phailyoor YAHD-finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "irony-detection",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Irony detection. Source model: neibla emotion-finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion. Reused from Pilot 3."
+    },
+    {
+      "adapter_id": "TransferGraph/cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion. Source model: guardian_news."
+    },
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "AG News 4-class. Reused from Pilot 3."
+    },
+    {
+      "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "AG News 4-class. Reused from Pilot 3."
+    }
+  ],
+  "task_summary": {
+    "irony-detection": ["TG/JB173 irony", "TG/vaariis irony", "TG/phailyoor irony", "TG/neibla irony"],
+    "emotion-classification": ["TG emotion (base)", "TG/cambridgeltl emotion"],
+    "news-topic-classification": ["TG/JB173 ag_news", "TG/phailyoor ag_news"]
+  }
+}

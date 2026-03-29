@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "yuuhan__roberta-base-mnli-lora",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora",
+    "base_model": "roberta-base",
+    "rank_nominal": 8,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 0.33407303000044414,
+    "utilization_median": 0.34411942779735544,
+    "stable_rank_mean": 2.672584240003553,
+    "effective_rank_90_median": 6.0,
+    "rank_waste_ratio": 0.6659269699995558,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "mnli",
+    "metric_name": "accuracy",
+    "adapter_score": 0.842,
+    "base_score": 0.35,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (mnli)"
+    ]
+  },
+  "notes": []
+}

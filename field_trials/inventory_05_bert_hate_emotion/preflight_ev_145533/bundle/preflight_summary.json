@@ -1,0 +1,42 @@
+{
+  "inventory_id": "preflight_ev_145533",
+  "run_id": "run_20260328_195623",
+  "timestamp": "2026-03-28T19:56:23.384301+00:00",
+  "adapter_count": 8,
+  "pair_count": 28,
+  "excluded_sources": [
+    "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion: weak source \u2014 low confidence",
+    "TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [
+    "TransferGraph__bert-base-uncased-finetuned-lora-ag_news \u00d7 TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-ag_news",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_hate \u00d7 TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate"
+  ],
+  "cross_task_caution_regions": [
+    "AG_NEWS \u00d7 TWEET_EVAL/EMOTION region",
+    "AG_NEWS \u00d7 TWEET_EVAL/HATE region",
+    "TWEET_EVAL/EMOTION \u00d7 TWEET_EVAL/HATE region"
+  ],
+  "reduced_candidate_subset": [
+    "TransferGraph__bert-base-uncased-finetuned-lora-ag_news \u00d7 TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-ag_news",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_hate \u00d7 TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate"
+  ],
+  "near_miss_candidates": [
+    "TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate \u00d7 TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion",
+    "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_hate \u00d7 TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate",
+    "TransferGraph__fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion"
+  ],
+  "retained_candidate_count": 3,
+  "reduction_ratio": 0.893,
+  "advisory_pair_count": 21,
+  "qa_summary": {
+    "flagged_weak": 2,
+    "eligible": 6
+  },
+  "behavioral_evidence_count": 8,
+  "total_source_count": 8,
+  "summary_line": "QA and task boundary dominate this inventory. Candidate space reduced from 28 pairs to 3."
+}

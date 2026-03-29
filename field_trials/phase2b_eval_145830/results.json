@@ -1,0 +1,57 @@
+[
+  {
+    "label": "irony_JB173_x_neibla",
+    "category": "retained",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "irony_vaariis_x_neibla",
+    "category": "retained",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_hate_TGbase_x_hatexplain",
+    "category": "retained",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_emotion_TGbase_x_fabriceyhc",
+    "category": "retained",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "irony_JB173_x_phailyoor_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "irony_vaariis_x_phailyoor_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_hate_TGbase_x_aviator_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_hate_hatexplain_x_aviator_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_emotion_TGbase_x_hatexplain_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_emotion_fabriceyhc_x_hatexplain_NM",
+    "category": "near_miss",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  },
+  {
+    "label": "bert_cross_agnews_x_aviator_hate_CTRL",
+    "category": "control",
+    "error": "No module named 'gradience.vnext.merge.audit'"
+  }
+]

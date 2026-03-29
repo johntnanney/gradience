@@ -1,0 +1,43 @@
+{
+  "inventory_id": "preflight_ev_145418",
+  "run_id": "run_20260328_195511",
+  "timestamp": "2026-03-28T19:55:11.033109+00:00",
+  "adapter_count": 8,
+  "pair_count": 28,
+  "excluded_sources": [
+    "TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony"
+  ],
+  "cross_task_caution_regions": [
+    "AG_NEWS \u00d7 TWEET_EVAL/EMOTION region",
+    "AG_NEWS \u00d7 TWEET_EVAL/IRONY region",
+    "TWEET_EVAL/EMOTION \u00d7 TWEET_EVAL/IRONY region"
+  ],
+  "reduced_candidate_subset": [
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion \u00d7 TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion"
+  ],
+  "near_miss_candidates": [
+    "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony \u00d7 TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony"
+  ],
+  "retained_candidate_count": 5,
+  "reduction_ratio": 0.821,
+  "advisory_pair_count": 20,
+  "qa_summary": {
+    "eligible": 7,
+    "flagged_weak": 1
+  },
+  "behavioral_evidence_count": 8,
+  "total_source_count": 8,
+  "summary_line": "QA and task boundary dominate this inventory. Candidate space reduced from 28 pairs to 5."
+}

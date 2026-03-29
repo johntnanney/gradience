@@ -1,0 +1,18 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/jmeneu__distilbert-base-uncased-lora-text-classification",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "imdb",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.836,
+  "base_score": 1.0,
+  "beats_base": false,
+  "delta": -0.164,
+  "adapter_f1": 0.0,
+  "base_f1": 0.0,
+  "adapter_id": "jmeneu/distilbert-base-uncased-lora-text-classification",
+  "manifest_task": "sentiment-binary",
+  "elapsed_seconds": 95.2
+}

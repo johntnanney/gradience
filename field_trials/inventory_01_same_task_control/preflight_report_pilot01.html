@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gradience Preflight — preflight</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --text-muted: #666666;
+  --accent: #2563eb;
+  --green: #16a34a;
+  --amber: #d97706;
+  --red: #dc2626;
+  --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+h2 {
+  font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem;
+  padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 0.95rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+
+.meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+.meta span { margin-right: 1.5rem; }
+
+/* Sticky jump-nav */
+.jump-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.45rem 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.8rem;
+}
+.jump-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.jump-nav a:hover { text-decoration: underline; }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Executive interpretation line */
+.exec-line {
+  font-size: 0.92rem;
+  color: var(--text);
+  margin: 0.5rem 0 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #f0f4ff;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Collapsible sections */
+details { margin-bottom: 0.5rem; }
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  list-style: none;
+  user-select: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: '\25B6';
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+  transition: transform 0.15s;
+  color: var(--text-muted);
+}
+details[open] summary::before { transform: rotate(90deg); }
+details[open] summary { border-radius: 6px 6px 0 0; margin-bottom: 0; }
+details .section-body {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 0.5rem 0;
+}
+th, td {
+  text-align: left;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  background: #f5f5f5;
+}
+tr:last-child td { border-bottom: none; }
+
+/* Group separator row */
+.group-header td {
+  font-weight: 600;
+  font-size: 0.82rem;
+  background: #f8f9fa;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-amber { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-gray { background: #f3f4f6; color: #374151; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+
+/* Stat grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+.stat-box .stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  line-height: 1.2;
+}
+.stat-box .stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.2rem;
+}
+.stat-box .stat-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+.stat-box.highlight { border-color: var(--accent); background: #f0f4ff; }
+.stat-box.highlight .stat-value { color: var(--accent); }
+
+/* Count bars */
+.count-bar {
+  display: flex;
+  align-items: center;
+  margin: 0.3rem 0;
+  font-size: 0.85rem;
+}
+.count-bar .bar-label { width: 180px; color: var(--text-muted); }
+.count-bar .bar-track {
+  flex: 1;
+  height: 18px;
+  background: #f3f4f6;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 0.5rem;
+}
+.count-bar .bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  min-width: 2px;
+}
+.count-bar .bar-value {
+  font-family: var(--mono);
+  font-weight: 600;
+  width: 36px;
+  text-align: right;
+}
+
+/* Action plan sections */
+.action-section {
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--border);
+  background: #fafafa;
+  border-radius: 0 4px 4px 0;
+}
+.action-section.exclude { border-left-color: var(--red); }
+.action-section.safe { border-left-color: var(--green); }
+.action-section.caution { border-left-color: var(--amber); }
+.action-section.evaluate { border-left-color: var(--accent); }
+
+.action-section h3 { margin-top: 0; }
+
+.action-item {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 0.2rem 0;
+}
+
+/* Summary line */
+.summary-line {
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Pair detail table */
+.pair-table td:nth-child(2),
+.pair-table td:nth-child(3) { font-family: var(--mono); font-size: 0.82rem; }
+
+/* Footer */
+.footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.footer-links {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.footer-links a:hover { text-decoration: underline; color: var(--accent); }
+
+</style>
+</head>
+<body>
+<h1>Preflight Report &mdash; preflight</h1><div class="meta"><span>Run: <code>run_20260328_165825</code></span><span>2026-03-28T16:58:25</span></div><div class="stat-grid"><div class="stat-box"><div class="stat-value">4</div><div class="stat-label">Adapters</div></div><div class="stat-box"><div class="stat-value">6</div><div class="stat-label">Pairs</div></div><div class="stat-box highlight"><div class="stat-value">0</div><div class="stat-label">Retained</div><div class="stat-subtitle">0 of 6 retained</div></div><div class="stat-box"><div class="stat-value">100%</div><div class="stat-label">Reduction</div></div></div><div class="exec-line">6 candidate pairs assessed; 4 sources excluded; 5 cross-task advisories.</div>
+<nav class="jump-nav"><a href="#sec-trust">Trust Snapshot</a> <a href="#sec-action">Action Plan</a></nav>
+<details open id="sec-trust"><summary>Source QA / Trust Snapshot</summary><div class="section-body"><h3>Eligibility Status</h3><table><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody><tr><td><span class="badge badge-gray">no behavioral eval</span></td><td>4</td></tr></tbody></table><h3 style="margin-top:1rem">Evidence Profile</h3><p style="font-size:0.88rem"><strong>0</strong> of <strong>4</strong> sources (0%) have behavioral evidence. <em>Scores are user-reported; Gradience does not independently verify.</em></p></div></details>
+<details open id="sec-action"><summary>Action Plan</summary><div class="section-body"><div class="action-section exclude"><h3>Exclude / deprioritize</h3><div class="action-item">RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification: missing behavioral evidence — low confidence</div><div class="action-item">TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion: missing behavioral evidence — low confidence</div><div class="action-item">jmeneu__distilbert-base-uncased-lora-text-classification: missing behavioral evidence — low confidence</div><div class="action-item">muneeb-ai__distilbert-base-uncased-lora-imdb-sentiment: missing behavioral evidence — low confidence</div></div><div class="action-section safe"><h3>Same-task safe zone</h3><div class="action-item" style="color:var(--text-muted)">none</div></div><div class="action-section caution"><h3>Cross-task caution</h3><div class="action-item" style="color:var(--text-muted)">none</div></div><div class="action-section evaluate"><h3>Evaluate first</h3><div class="action-item" style="color:var(--text-muted)">none</div></div><div class="summary-line">QA dominates this inventory; no credible same-task candidates remain.</div></div></details>
+<div class="footer">Generated by Gradience preflight-report &middot; 2026-03-28 16:58 UTC<div class="footer-links">Bundle artifacts: <a href="preflight_summary.json">Preflight JSON</a> <a href="review_packet.json">Review Packet</a> <a href="inventory_action_plan.md">Action Plan (Markdown)</a> <a href="preflight_summary.md">Preflight Summary (Markdown)</a></div></div>
+</body>
+</html>

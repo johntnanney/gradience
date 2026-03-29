@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.review_packet/v1",
+  "inventory_id": "preflight_ev_145533",
+  "run_id": "run_20260328_195623",
+  "timestamp": "2026-03-28T19:56:23.392448+00:00",
+  "sections_present": [
+    "header",
+    "trust_snapshot",
+    "action_plan",
+    "artifact_links"
+  ],
+  "adapter_count": 8,
+  "pair_count": 28,
+  "retained_candidate_count": 3,
+  "trust_snapshot": {
+    "qa_summary": {
+      "flagged_weak": 2,
+      "eligible": 6
+    },
+    "behavioral_evidence_count": 8,
+    "total_source_count": 8,
+    "excluded_source_count": 2
+  },
+  "action_plan_summary": {
+    "total_pairs": 28,
+    "retained_count": 3,
+    "cross_task_count": 12,
+    "evaluate_first_count": 3,
+    "summary_line": "QA and task boundary dominate this inventory. Candidate space reduced from 28 pairs to 3."
+  },
+  "policy_summary": null,
+  "drift_summary": null,
+  "large_inventory_region_summary": null,
+  "previous_run_id": null
+}

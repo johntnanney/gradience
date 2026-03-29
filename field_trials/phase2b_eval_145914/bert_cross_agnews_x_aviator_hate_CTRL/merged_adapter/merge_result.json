@@ -1,0 +1,230 @@
+{
+  "schema_version": "gradience.merge_result/v1",
+  "plan_id": "48fe1e71-fc5b-4a3c-9962-8cfeb419ede7",
+  "strategy_name": "audit_aware",
+  "output_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/phase2b_eval_145914/bert_cross_agnews_x_aviator_hate_CTRL/merged_adapter",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "n_layers": 24,
+  "total_time_seconds": 0.1,
+  "mean_reconstruction_error": 1e-06,
+  "max_reconstruction_error": 1e-06,
+  "per_layer": [
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.0.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.629012542720082e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.7972992658615112
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.0.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.988633913952176e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.3771286010742188
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.1.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 8.630329801563341e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.7059410810470581
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.1.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.170693412549291e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5864465832710266
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.10.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.133109730404255e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 2.254192590713501
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.10.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.96135927158893e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.3230575323104858
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.11.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.012791779934855e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 2.3896589279174805
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.11.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.618149899829658e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.8282647132873535
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.2.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.569049279705511e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 2.08272647857666
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.2.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.906903071120242e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.0180168151855469
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.3.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.236157453137921e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.8175935745239258
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.3.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 9.206939921265261e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.4622636139392853
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.4.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.546926591632874e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5985085368156433
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.4.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.885628689438894e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.2898505926132202
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.5.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.782660414740016e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.4456791579723358
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.5.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.196156193001682e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5201273560523987
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.6.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.702703621708953e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.7324561476707458
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.6.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.219092650274764e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.8769193887710571
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.7.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.533008010686975e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5575467944145203
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.7.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.640115484636812e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.9613670110702515
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.8.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.905030940684528e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.7106014490127563
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.8.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.040345670900225e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.028656244277954
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.9.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.893835139384787e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.1337742805480957
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.9.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.540653747949659e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.194694995880127
+    }
+  ]
+}

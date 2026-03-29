@@ -231,12 +231,14 @@ def compute_effective_rank_at_threshold(peft_dir: Path, threshold: float = 0.95)
         else:
             k = int(S.shape[0])
 
-        per_layer.append({
-            "layer": base_key,
-            "nominal": int(S.shape[0]),
-            "effective": k,
-            "energy": float(cumulative[k - 1].item()),
-        })
+        per_layer.append(
+            {
+                "layer": base_key,
+                "nominal": int(S.shape[0]),
+                "effective": k,
+                "energy": float(cumulative[k - 1].item()),
+            }
+        )
         max_effective = max(max_effective, k)
 
     return max_effective, per_layer
@@ -667,11 +669,55 @@ def run_pair(
     # --- Define conditions ---
     conditions = [
         # (name, strategy, adapter_a_dir, adapter_b_dir, report, extra_plan_kwargs, is_compressed)
-        ("A_fullrank_naive", "uniform_linear", dir_a, dir_b, report, {"output_rank": output_rank, "output_alpha": output_alpha}, False),
-        ("B_fullrank_normeq", "uniform_linear", dir_a, dir_b, report, {"output_rank": output_rank, "output_alpha": output_alpha, "coefficients": (coeff_a_orig, coeff_b_orig)}, False),
-        ("C_fullrank_recommended", "audit_aware", dir_a, dir_b, report, {"output_rank": output_rank, "output_alpha": output_alpha}, False),
-        ("D_compress_normeq", "uniform_linear", compressed_a, compressed_b, compressed_report or report, {"output_rank": comp_output_rank, "output_alpha": comp_output_alpha, "coefficients": (coeff_a_comp, coeff_b_comp)}, True),
-        ("E_compress_recommended", "audit_aware", compressed_a, compressed_b, compressed_report or report, {"output_rank": comp_output_rank, "output_alpha": comp_output_alpha}, True),
+        (
+            "A_fullrank_naive",
+            "uniform_linear",
+            dir_a,
+            dir_b,
+            report,
+            {"output_rank": output_rank, "output_alpha": output_alpha},
+            False,
+        ),
+        (
+            "B_fullrank_normeq",
+            "uniform_linear",
+            dir_a,
+            dir_b,
+            report,
+            {"output_rank": output_rank, "output_alpha": output_alpha, "coefficients": (coeff_a_orig, coeff_b_orig)},
+            False,
+        ),
+        (
+            "C_fullrank_recommended",
+            "audit_aware",
+            dir_a,
+            dir_b,
+            report,
+            {"output_rank": output_rank, "output_alpha": output_alpha},
+            False,
+        ),
+        (
+            "D_compress_normeq",
+            "uniform_linear",
+            compressed_a,
+            compressed_b,
+            compressed_report or report,
+            {
+                "output_rank": comp_output_rank,
+                "output_alpha": comp_output_alpha,
+                "coefficients": (coeff_a_comp, coeff_b_comp),
+            },
+            True,
+        ),
+        (
+            "E_compress_recommended",
+            "audit_aware",
+            compressed_a,
+            compressed_b,
+            compressed_report or report,
+            {"output_rank": comp_output_rank, "output_alpha": comp_output_alpha},
+            True,
+        ),
     ]
 
     # --- Run conditions ---
@@ -846,9 +892,11 @@ def print_comparison_table(rows: list[dict[str, Any]]) -> None:
 
     # Table 1: Structural comparison
     print("\n  Table 1: NormEq Full-Rank (B) vs Compress+NormEq (D)")
-    print(f"  {'Pair':<38s}  {'Verdict':<12s}  "
-          f"{'B Q_min':>8s}  {'D Q_min':>8s}  {'dQ':>7s}  "
-          f"{'B D':>6s}  {'D D':>6s}  {'dD':>6s}")
+    print(
+        f"  {'Pair':<38s}  {'Verdict':<12s}  "
+        f"{'B Q_min':>8s}  {'D Q_min':>8s}  {'dQ':>7s}  "
+        f"{'B D':>6s}  {'D D':>6s}  {'dD':>6s}"
+    )
     print("  " + "-" * 110)
 
     for row in rows:
@@ -856,36 +904,46 @@ def print_comparison_table(rows: list[dict[str, Any]]) -> None:
             print(f"  {row['label']:<38s}  ERROR: {row['error']}")
             continue
         flag = " *" if row.get("is_boundary") else ""
-        print(f"  {row['label']:<38s}  {row['actual_verdict']:<12s}  "
-              f"{row['B_Q_min']:>8.4f}  {row['D_Q_min']:>8.4f}  {row['delta_normeq_Q_min']:>+7.4f}  "
-              f"{row['B_D']:>6.4f}  {row['D_D']:>6.4f}  {row['delta_normeq_D']:>+6.4f}{flag}")
+        print(
+            f"  {row['label']:<38s}  {row['actual_verdict']:<12s}  "
+            f"{row['B_Q_min']:>8.4f}  {row['D_Q_min']:>8.4f}  {row['delta_normeq_Q_min']:>+7.4f}  "
+            f"{row['B_D']:>6.4f}  {row['D_D']:>6.4f}  {row['delta_normeq_D']:>+6.4f}{flag}"
+        )
 
     print("\n  Table 2: Recommended Full-Rank (C) vs Compress+Recommended (E)")
-    print(f"  {'Pair':<38s}  {'Verdict':<12s}  "
-          f"{'C Q_min':>8s}  {'E Q_min':>8s}  {'dQ':>7s}  "
-          f"{'C D':>6s}  {'E D':>6s}  {'dD':>6s}")
+    print(
+        f"  {'Pair':<38s}  {'Verdict':<12s}  "
+        f"{'C Q_min':>8s}  {'E Q_min':>8s}  {'dQ':>7s}  "
+        f"{'C D':>6s}  {'E D':>6s}  {'dD':>6s}"
+    )
     print("  " + "-" * 110)
 
     for row in rows:
         if "error" in row:
             continue
         flag = " *" if row.get("is_boundary") else ""
-        print(f"  {row['label']:<38s}  {row['actual_verdict']:<12s}  "
-              f"{row['C_Q_min']:>8.4f}  {row['E_Q_min']:>8.4f}  {row['delta_rec_Q_min']:>+7.4f}  "
-              f"{row['C_D']:>6.4f}  {row['E_D']:>6.4f}  {row['delta_rec_D']:>+6.4f}{flag}")
+        print(
+            f"  {row['label']:<38s}  {row['actual_verdict']:<12s}  "
+            f"{row['C_Q_min']:>8.4f}  {row['E_Q_min']:>8.4f}  {row['delta_rec_Q_min']:>+7.4f}  "
+            f"{row['C_D']:>6.4f}  {row['E_D']:>6.4f}  {row['delta_rec_D']:>+6.4f}{flag}"
+        )
 
     # Table 3: Compression summary
     print("\n  Table 3: Compression Summary")
-    print(f"  {'Pair':<38s}  {'A nom':>5s}  {'A eff':>5s}  {'A energy':>8s}  "
-          f"{'B nom':>5s}  {'B eff':>5s}  {'B energy':>8s}")
+    print(
+        f"  {'Pair':<38s}  {'A nom':>5s}  {'A eff':>5s}  {'A energy':>8s}  "
+        f"{'B nom':>5s}  {'B eff':>5s}  {'B energy':>8s}"
+    )
     print("  " + "-" * 80)
 
     for row in rows:
         if "error" in row:
             continue
-        print(f"  {row['label']:<38s}  "
-              f"{row['comp_a_nominal']:>5d}  {row['comp_a_target']:>5d}  {row['comp_a_energy']:>8.4f}  "
-              f"{row['comp_b_nominal']:>5d}  {row['comp_b_target']:>5d}  {row['comp_b_energy']:>8.4f}")
+        print(
+            f"  {row['label']:<38s}  "
+            f"{row['comp_a_nominal']:>5d}  {row['comp_a_target']:>5d}  {row['comp_a_energy']:>8.4f}  "
+            f"{row['comp_b_nominal']:>5d}  {row['comp_b_target']:>5d}  {row['comp_b_energy']:>8.4f}"
+        )
 
     print("=" * 120)
 
@@ -904,8 +962,12 @@ def print_comparison_table(rows: list[dict[str, Any]]) -> None:
 
         n = len(primary)
         print(f"\n  PRIMARY PAIRS ONLY ({n} pairs):")
-        print(f"  NormEq:      mean dQ_min={mean_dQ_ne:+.4f} ({wins_Q_ne}/{n} improved)  mean dD={mean_dD_ne:+.4f} ({wins_D_ne}/{n} improved)")
-        print(f"  Recommended: mean dQ_min={mean_dQ_r:+.4f} ({wins_Q_r}/{n} improved)  mean dD={mean_dD_r:+.4f} ({wins_D_r}/{n} improved)")
+        print(
+            f"  NormEq:      mean dQ_min={mean_dQ_ne:+.4f} ({wins_Q_ne}/{n} improved)  mean dD={mean_dD_ne:+.4f} ({wins_D_ne}/{n} improved)"
+        )
+        print(
+            f"  Recommended: mean dQ_min={mean_dQ_r:+.4f} ({wins_Q_r}/{n} improved)  mean dD={mean_dD_r:+.4f} ({wins_D_r}/{n} improved)"
+        )
         print()
 
 
@@ -972,7 +1034,13 @@ def main() -> None:
             "n_pairs": len(pairs_to_run),
             "n_primary_pairs": sum(1 for p in pairs_to_run if not p.is_boundary),
             "n_boundary_pairs": sum(1 for p in pairs_to_run if p.is_boundary),
-            "conditions": ["A_fullrank_naive", "B_fullrank_normeq", "C_fullrank_recommended", "D_compress_normeq", "E_compress_recommended"],
+            "conditions": [
+                "A_fullrank_naive",
+                "B_fullrank_normeq",
+                "C_fullrank_recommended",
+                "D_compress_normeq",
+                "E_compress_recommended",
+            ],
             "energy_threshold": ENERGY_THRESHOLD,
             "total_time_s": round(total_time, 2),
             "base_model": "meta-llama/Llama-2-7b-hf",
@@ -1001,7 +1069,9 @@ def main() -> None:
                 Dq = cD.get("spectral_outcomes", {}).get("Q_min_cosine", 0)
                 delta = Dq - Bq
                 emoji = "+" if delta > 0.001 else ("−" if delta < -0.001 else "=")
-                print(f"  {r.label_a} × {r.label_b}: NormEq Q_min {Bq:.4f} → Compress+NormEq {Dq:.4f}  ({emoji}{abs(delta):.4f})")
+                print(
+                    f"  {r.label_a} × {r.label_b}: NormEq Q_min {Bq:.4f} → Compress+NormEq {Dq:.4f}  ({emoji}{abs(delta):.4f})"
+                )
 
 
 if __name__ == "__main__":

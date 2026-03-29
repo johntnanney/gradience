@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+    "base_model": "FacebookAI/roberta-base",
+    "rank_nominal": 1,
+    "n_layers": 12
+  },
+  "structural_summary": {
+    "utilization_mean": 1.0,
+    "utilization_median": 1.0,
+    "stable_rank_mean": 1.0,
+    "effective_rank_90_median": 1.0,
+    "rank_waste_ratio": 0.0,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "tweet_eval/irony",
+    "metric_name": "accuracy",
+    "adapter_score": 0.622,
+    "base_score": 0.622,
+    "lower_is_better": false,
+    "beats_base": false
+  },
+  "eligibility": {
+    "status": "uncertain",
+    "confidence": "medium",
+    "reasons": [
+      "adapter performance within margin of base on accuracy (tweet_eval/irony)"
+    ]
+  },
+  "notes": []
+}

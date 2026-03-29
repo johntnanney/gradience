@@ -1,0 +1,34 @@
+{
+  "schema": "gradience.review_packet/v1",
+  "inventory_id": "preflight",
+  "run_id": "run_20260328_165825",
+  "timestamp": "2026-03-28T16:58:25.629328+00:00",
+  "sections_present": [
+    "header",
+    "trust_snapshot",
+    "action_plan",
+    "artifact_links"
+  ],
+  "adapter_count": 4,
+  "pair_count": 6,
+  "retained_candidate_count": 0,
+  "trust_snapshot": {
+    "qa_summary": {
+      "unknown_no_behavioral_eval": 4
+    },
+    "behavioral_evidence_count": 0,
+    "total_source_count": 4,
+    "excluded_source_count": 4
+  },
+  "action_plan_summary": {
+    "total_pairs": 6,
+    "retained_count": 0,
+    "cross_task_count": 0,
+    "evaluate_first_count": 0,
+    "summary_line": "QA dominates this inventory; no credible same-task candidates remain."
+  },
+  "policy_summary": null,
+  "drift_summary": null,
+  "large_inventory_region_summary": null,
+  "previous_run_id": null
+}

@@ -1,0 +1,122 @@
+{
+  "schema_version": "gradience.merge_result/v1",
+  "plan_id": "75188221-7f2e-4a74-b029-2344533a0beb",
+  "strategy_name": "uniform_linear",
+  "output_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/merged_adapter",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "n_layers": 12,
+  "total_time_seconds": 0.06,
+  "mean_reconstruction_error": 1e-06,
+  "max_reconstruction_error": 1e-06,
+  "per_layer": [
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.407853453033125e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.2018747478723526
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.691728613496414e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.2558227479457855
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.71673361479753e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.21601378917694092
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.75015236633098e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.3265500068664551
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 1.0022424670249594e-06,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.2289281189441681
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 9.022872365930503e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.2127166986465454
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.947668456548472e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.3029279112815857
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.99686306331686e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.4156475365161896
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.044427885634049e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.42671898007392883
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.230337462829349e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.407265305519104
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.query",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.461531437035006e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.42039811611175537
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.value",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.786651839577666e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.36603400111198425
+    }
+  ]
+}

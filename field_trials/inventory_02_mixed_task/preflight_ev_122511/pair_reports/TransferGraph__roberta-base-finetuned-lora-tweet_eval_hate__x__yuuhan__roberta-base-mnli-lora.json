@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "roberta-base",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora",
+    "rank": 8,
+    "alpha": 16.0,
+    "n_layers": 24,
+    "base_model": "/home/sunyuhan/syh/sunyuhan/zju/roberta-base",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "23.9x mean magnitude ratio across 24 layer(s)",
+  "recommended_action": "Merge with audit-aware strategy. Consider norm-equalized as simpler alternative.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.110) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 0,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 24
+  },
+  "compatibility_score": 0.1095,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/hate vs mnli). Linear merges across task boundaries may degrade the weaker task's performance."
+}

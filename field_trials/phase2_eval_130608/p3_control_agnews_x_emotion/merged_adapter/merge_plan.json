@@ -1,0 +1,140 @@
+{
+  "schema_version": "gradience.merge_plan/v1",
+  "plan_id": "309c1416-1beb-44fe-baff-2ea6700080ef",
+  "strategy_name": "audit_aware",
+  "adapter_a_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+  "adapter_b_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "layer_configs": [
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.07975396902623812,
+        0.9202460309737619
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.10128387061720705,
+        0.898716129382793
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.11137291426337181,
+        0.8886270857366283
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.14572468646787912,
+        0.8542753135321208
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.10471735572992377,
+        0.8952826442700762
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.14886838500511493,
+        0.8511316149948851
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.15595478341890975,
+        0.8440452165810902
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-03-28T18:08:45.035396+00:00",
+    "strategy": "audit_aware",
+    "source_audit": {
+      "overall_verdict": "imbalanced",
+      "compatibility_score": 0.0891,
+      "n_shared_layers": 12
+    }
+  }
+}

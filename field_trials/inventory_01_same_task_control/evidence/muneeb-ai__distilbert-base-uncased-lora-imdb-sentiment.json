@@ -1,0 +1,9 @@
+{
+  "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+  "error": "PEFT version incompatibility: adapter targets classifier/pre_classifier with LoRA but current PEFT cannot load these weights. Adapter was likely trained with an older PEFT version.",
+  "eval_dataset": "imdb",
+  "adapter_score": null,
+  "base_score": null,
+  "beats_base": null,
+  "note": "Non-loadable for inference. Still useful for spectral analysis (adapter weights can be read directly)."
+}

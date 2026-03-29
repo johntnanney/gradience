@@ -1,0 +1,42 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "jmeneu__distilbert-base-uncased-lora-text-classification",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_01_same_task_control/adapter_cache/jmeneu__distilbert-base-uncased-lora-text-classification",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "rank_nominal": 1,
+    "n_layers": 6
+  },
+  "structural_summary": {
+    "utilization_mean": 0.0,
+    "utilization_median": 0.0,
+    "stable_rank_mean": 0.0,
+    "effective_rank_90_median": 0.0,
+    "rank_waste_ratio": 1.0,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste",
+      "underutilized_capacity"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "imdb",
+    "metric_name": "accuracy",
+    "adapter_score": 0.836,
+    "base_score": 1.0,
+    "lower_is_better": false,
+    "beats_base": false
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "high",
+    "reasons": [
+      "adapter underperforms base on accuracy (imdb)",
+      "low utilization across layers",
+      "high rank waste",
+      "stable rank far below nominal rank"
+    ]
+  },
+  "notes": []
+}

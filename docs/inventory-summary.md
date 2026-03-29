@@ -52,7 +52,10 @@ A v1 summary has these top-level sections:
 - **`recommended_strategy_counts`** -- distribution of `recommended_strategy` values across all loaded merge reports. Only non-zero keys are present.
 - **`dominant_issue_counts`** -- distribution of `dominant_issue` labels across all loaded merge reports. Only non-zero keys are present.
 - **`strict_qa_block_candidates`** -- number of merge reports that would be blocked under `--strict-qa`. A report is a block candidate if either adapter has an eligibility status of `flagged_weak`, `unknown_no_behavioral_eval`, or `null` (no QA artifact provided).
+- **`evidence_tier_counts`** -- distribution of evidence tiers across all loaded QA artifacts. Keys are `behavioral_reported` (eval available + eligible/uncertain), `behavioral_weak` (eval available + flagged_weak), `behavioral_missing` (no eval data). Only non-zero keys are present. Additive field: old v1 dicts without this field are backfilled to `{}`.
 - **`notes`** -- optional list of caveats or annotations.
+
+**Trust language note:** Behavioral scores are user-reported; Gradience does not independently verify claimed evaluation results. The word "verified" is reserved for a future capability where Gradience could cross-check evaluation claims. Until then, all behavioral evidence is described as "reported."
 
 Count maps only include non-zero keys. An empty map (`{}`) is valid and means no items of that category were observed.
 
@@ -118,7 +121,53 @@ By default, files that fail to load are skipped with a warning to stderr. This i
 
 `--strict-input` (CLI) or `strict_input=True` (Python API) changes this behavior: the first malformed file raises an exception and halts the summary.
 
-## 7. Versioning Policy
+## 7. Inventory Action Plan
+
+The CLI also prints an **Inventory Action Plan** after the summary. This is a structured presentation of the same underlying data, organized for action:
+
+- **Reduced candidate set**: Starting pairs, retained candidates, reduction percentage
+- **Evaluate first**: Top same-task candidates with per-pair risk level and recommended strategy
+- **Exclude / deprioritize**: Sources with weak or missing behavioral evidence
+- **Same-task safe zone**: Retained same-task pairs (with risk and strategy)
+- **Cross-task caution zone**: Task regions that cross the task boundary
+- **Provenance**: How many sources have behavioral evidence
+- **Summary**: One-line interpretation
+
+The action plan uses only existing stable signals (source QA status, pair-risk, task-relationship advisory). It introduces no new scoring or recommendation logic.
+
+`InventoryActionPlan` is available as a public API export:
+
+```python
+from gradience import InventoryActionPlan
+from gradience.vnext.inventory.summary import build_action_plan
+```
+
+## 8. Preflight Run Bundle
+
+For repeated or hand-off workflows, `--emit-bundle <DIR>` writes a standardized run bundle:
+
+```bash
+gradience summarize-inventory \
+  --qa-dir ./qa/ --report-dir ./reports/ \
+  --emit-bundle ./runs/run_001 \
+  --previous-run ./runs/run_000
+```
+
+The bundle directory contains:
+
+| File | Description |
+|------|-------------|
+| `preflight_summary.md` | Human-readable top-level summary (start here) |
+| `preflight_summary.json` | Machine-readable summary for scripting |
+| `run_manifest.json` | Run metadata and provenance |
+| `inventory_action_plan.md` | Standalone action plan in markdown |
+| `compare_to_previous.md` | Change summary vs. previous run (if `--previous-run` provided) |
+
+Additional flags: `--inventory-id` (default: directory basename), `--run-id` (default: timestamp).
+
+A `latest/` symlink is maintained at the bundle's parent directory, pointing to the most recent run.
+
+## 9. Versioning Policy
 
 The schema identifier `gradience.inventory_summary/v1` is frozen.
 

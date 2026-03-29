@@ -1,0 +1,260 @@
+{
+  "schema_version": "gradience.merge_plan/v1",
+  "plan_id": "48fe1e71-fc5b-4a3c-9962-8cfeb419ede7",
+  "strategy_name": "audit_aware",
+  "adapter_a_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__bert-base-uncased-finetuned-lora-ag_news",
+  "adapter_b_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "layer_configs": [
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.0.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.0.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.1.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.13789637213836295,
+        0.8621036278616371
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.1.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.12666704757151087,
+        0.8733329524284891
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.10.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.10.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.11.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.11.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.2.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.2.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.3.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.14374717619934532,
+        0.8562528238006547
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.3.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.1502481297116994,
+        0.8497518702883006
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.4.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.10393981066286817,
+        0.8960601893371318
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.4.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.5.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.07150750937514072,
+        0.9284924906248593
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.5.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.13512189939707014,
+        0.8648781006029298
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.6.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.16121797021557102,
+        0.838782029784429
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.6.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.7.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.11417371539726245,
+        0.8858262846027375
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.7.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.8.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.8.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.9.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.16269285364171668,
+        0.8373071463582833
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.bert.encoder.layer.9.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-03-28T20:02:01.564424+00:00",
+    "strategy": "audit_aware",
+    "source_audit": {
+      "overall_verdict": "imbalanced",
+      "compatibility_score": 0.0507,
+      "n_shared_layers": 24
+    }
+  }
+}

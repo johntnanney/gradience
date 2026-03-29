@@ -1,0 +1,105 @@
+{
+  "inventory_id": "pilot-03-large-mixed-task",
+  "description": "Large mixed-task inventory: 9 DistilBERT LoRA adapters across 5 task types. Tests large-inventory mode, region summaries, candidate-space maps, and the HTML report at scale.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "large_mixed_task",
+  "pilot_phase": 1,
+  "trial_purpose": "Test large-inventory ergonomics. Region summaries, candidate-space maps, and the HTML report should help navigate a 9-adapter / 36-pair candidate space.",
+  "adapters": [
+    {
+      "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment."
+    },
+    {
+      "adapter_id": "jmeneu/distilbert-base-uncased-lora-text-classification",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment (different author)."
+    },
+    {
+      "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment. Same task family as IMDB but different dataset."
+    },
+    {
+      "adapter_id": "NightPrince/peft-distilbert-sst2",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment (different author from above)."
+    },
+    {
+      "adapter_id": "TransferGraph/distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion classification on tweets."
+    },
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class news topic classification. Source model had prior emotion training."
+    },
+    {
+      "adapter_id": "TransferGraph/jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary hate speech detection. Source model had prior CoLA training."
+    },
+    {
+      "adapter_id": "TransferGraph/Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary hate speech detection (different training lineage from above)."
+    },
+    {
+      "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class news topic classification. Source model had prior YAHD hate-detection training."
+    }
+  ],
+  "task_summary": {
+    "sentiment-binary": ["muneeb-ai (IMDB)", "jmeneu (IMDB)", "myselfmankar (SST-2)", "NightPrince (SST-2)"],
+    "emotion-classification": ["TransferGraph (tweet_eval/emotion)"],
+    "news-topic-classification": ["TransferGraph/JB173 (ag_news)", "TransferGraph/phailyoor (ag_news)"],
+    "hate-speech-detection": ["TransferGraph/jaesun (tweet_eval/hate)", "TransferGraph/Aureliano (tweet_eval/hate)"]
+  },
+  "selection_rationale": "9 adapters across 4 task types on a single backbone. Produces 36 candidate pairs — well into large-inventory territory. Includes natural same-task clusters (IMDB pair, SST-2 pair, AG News pair, hate-speech pair), a related-task group (sentiment/emotion), and genuinely cross-task pairs (sentiment × news, hate × news). TransferGraph adapters have varied training lineage (different source pretraining), which tests whether Gradience detects lineage effects.",
+  "expected_gradience_behavior": {
+    "regions": "Should produce 3-4 distinct regions (sentiment cluster, news cluster, hate cluster, cross-task)",
+    "same_task_safe_zones": "IMDB pair, SST-2 pair, AG News pair, hate-speech pair",
+    "cross_task_caution": "Sentiment × news, hate × news, emotion × news",
+    "large_inventory_mode": "Should trigger region summaries and candidate-space map",
+    "overall": "Substantial reduction from 36 pairs to a smaller evaluate-first subset. HTML report should be the natural entry point."
+  }
+}

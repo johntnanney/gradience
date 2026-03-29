@@ -145,9 +145,11 @@ For a pre-built set of artifacts covering all key cases (eligible, weak, and mis
 
 ## Next Steps
 
-- See `docs/adapter-qa-artifact.md` for the adapter QA schema contract
-- See `docs/merge-risk-report.md` for the merge report schema contract
-- See `docs/inventory-summary.md` for the inventory summary schema contract
-- See `docs/advanced-workflows.md` for optional advanced workflows
-- See `docs/merge-neighborhoods.md` for advanced inventory neighborhood suggestions
-- See `docs/preflight-policy.md` for cross-artifact consistency rules
+- **[Playbook](playbook.md)** — step-by-step for the five most common workflows (evidence bootstrap, HTML reports, portfolio view)
+- **[Example Gallery](example-gallery.md)** — five curated scenarios showing what each inventory type looks like
+- **[Inventory Preflight Workflow](inventory-preflight.md)** — the conceptual framework behind the workflow
+- [Adapter QA Artifact](adapter-qa-artifact.md) — schema contract
+- [Merge Risk Report](merge-risk-report.md) — schema contract
+- [Inventory Summary](inventory-summary.md) — schema contract
+- [Advanced Workflows](advanced-workflows.md) — optional diagnostics and inventory extensions
+- [Preflight Policy](preflight-policy.md) — cross-artifact consistency rules

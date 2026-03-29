@@ -1,0 +1,7 @@
+{
+  "error": "modules_to_save cannot be applied to modules of type <class 'peft.tuners.lora.layer.Linear'>",
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/muneeb-ai__distilbert-base-uncased-lora-imdb-sentiment",
+  "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+  "manifest_task": "sentiment-binary",
+  "elapsed_seconds": 43.3
+}

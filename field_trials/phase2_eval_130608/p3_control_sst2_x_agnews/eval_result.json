@@ -1,0 +1,15 @@
+{
+  "pair_name": "p3_control_sst2_x_agnews",
+  "role": "control",
+  "strategy": "audit_aware",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.111,
+  "mean_reconstruction_error": 0.0421,
+  "merged_accuracy": 0.838,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 7.8,
+  "notes": "Cross-task, high risk, r=16 vs r=1 mismatch. Eval on SST-2. Tests worst-case cross-task merge."
+}

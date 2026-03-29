@@ -1,0 +1,53 @@
+{
+  "inventory_id": "pilot-01-same-task-control",
+  "description": "Same-task control pool: multiple DistilBERT LoRA adapters fine-tuned on sentiment/emotion classification tasks. Tests whether Gradience stays appropriately conservative on a clean same-task pool.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "same_task_control",
+  "pilot_phase": 1,
+  "trial_purpose": "Confirm same-task safe zones feel useful and non-annoying. Gradience should not overcomplicate a clean pool.",
+  "adapters": [
+    {
+      "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Standard PEFT LoRA adapter."
+    },
+    {
+      "adapter_id": "jmeneu/distilbert-base-uncased-lora-text-classification",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Different author, same task+backbone."
+    },
+    {
+      "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "text-classification",
+      "dataset": "unknown",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Text classification LoRA. Task not specified — possible same-task or slight variation."
+    },
+    {
+      "adapter_id": "TransferGraph/distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Emotion classification (4-class). Related to sentiment but not identical."
+    }
+  ],
+  "selection_rationale": "All four share the same backbone (distilbert-base-uncased). Two are clearly same-task (IMDB sentiment, different authors). One is similar (text classification, possibly same dataset). One is adjacent (emotion classification). This pool should trigger same-task safe zones for the IMDB pair and provide a mild boundary test with the emotion adapter.",
+  "expected_gradience_behavior": {
+    "same_task_safe_zones": "IMDB pair should be in same-task safe zone",
+    "cross_task_caution": "Emotion adapter may trigger mild cross-task advisory",
+    "exclusions": "None expected — all adapters should be clean",
+    "overall": "Conservative posture, low reduction ratio, most pairs retained"
+  }
+}

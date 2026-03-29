@@ -1,0 +1,18 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+  "base_model": "FacebookAI/roberta-base",
+  "eval_dataset": "tweet_eval/hate",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.486,
+  "base_score": 0.426,
+  "beats_base": true,
+  "delta": 0.06,
+  "adapter_f1": 0.6028,
+  "base_f1": 0.5975,
+  "adapter_id": "TransferGraph/roberta-base-finetuned-lora-tweet_eval_hate",
+  "manifest_task": "hate-speech-detection",
+  "elapsed_seconds": 76.0
+}

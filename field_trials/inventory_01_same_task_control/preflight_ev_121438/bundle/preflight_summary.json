@@ -1,0 +1,25 @@
+{
+  "inventory_id": "preflight_ev_121438",
+  "run_id": "run_20260328_171445",
+  "timestamp": "2026-03-28T17:14:45.919393+00:00",
+  "adapter_count": 3,
+  "pair_count": 3,
+  "excluded_sources": [
+    "jmeneu__distilbert-base-uncased-lora-text-classification: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [],
+  "cross_task_caution_regions": [
+    "IMDB \u00d7 TWEET_EVAL/EMOTION region"
+  ],
+  "reduced_candidate_subset": [],
+  "retained_candidate_count": 0,
+  "reduction_ratio": 1.0,
+  "advisory_pair_count": 2,
+  "qa_summary": {
+    "eligible": 2,
+    "flagged_weak": 1
+  },
+  "behavioral_evidence_count": 3,
+  "total_source_count": 3,
+  "summary_line": "QA dominates this inventory; no credible same-task candidates remain."
+}

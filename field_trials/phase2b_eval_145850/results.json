@@ -1,0 +1,57 @@
+[
+  {
+    "label": "irony_JB173_x_neibla",
+    "category": "retained",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "irony_vaariis_x_neibla",
+    "category": "retained",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_hate_TGbase_x_hatexplain",
+    "category": "retained",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_emotion_TGbase_x_fabriceyhc",
+    "category": "retained",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "irony_JB173_x_phailyoor_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "irony_vaariis_x_phailyoor_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_hate_TGbase_x_aviator_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_hate_hatexplain_x_aviator_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_emotion_TGbase_x_hatexplain_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_emotion_fabriceyhc_x_hatexplain_NM",
+    "category": "near_miss",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  },
+  {
+    "label": "bert_cross_agnews_x_aviator_hate_CTRL",
+    "category": "control",
+    "error": "plan_from_audit() missing 3 required positional arguments: 'report', 'adapter_a_dir', and 'adapter_b_dir'"
+  }
+]

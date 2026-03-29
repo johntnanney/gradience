@@ -1,0 +1,18 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "tweet_eval/irony",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.618,
+  "base_score": 0.622,
+  "beats_base": false,
+  "delta": -0.004,
+  "adapter_f1": 0.611,
+  "base_f1": 0.0,
+  "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony",
+  "manifest_task": "irony-detection",
+  "elapsed_seconds": 13.3
+}

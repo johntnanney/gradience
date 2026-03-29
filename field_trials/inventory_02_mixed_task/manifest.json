@@ -1,0 +1,64 @@
+{
+  "inventory_id": "pilot-02-mixed-task",
+  "description": "Standard mixed-task inventory: RoBERTa-base LoRA adapters across distinct classification tasks (hate speech, news, sentiment, MNLI). Tests whether Gradience narrows mixed-task space sensibly.",
+  "backbone": "roberta-base",
+  "inventory_type": "standard_mixed_task",
+  "pilot_phase": 1,
+  "trial_purpose": "Test the core use case. See whether Gradience identifies meaningful task boundaries and narrows candidate pairs to a plausible evaluation subset.",
+  "adapters": [
+    {
+      "adapter_id": "TransferGraph/roberta-base-finetuned-lora-tweet_eval_hate",
+      "base_model": "FacebookAI/roberta-base",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "accuracy": 0.753,
+      "notes": "Binary hate speech detection on tweets."
+    },
+    {
+      "adapter_id": "TransferGraph/roberta-base-finetuned-lora-ag_news",
+      "base_model": "FacebookAI/roberta-base",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "accuracy": 0.9403,
+      "notes": "4-class news topic classification (World, Sports, Business, Sci/Tech)."
+    },
+    {
+      "adapter_id": "TransferGraph/rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+      "base_model": "FacebookAI/roberta-base",
+      "task": "irony-detection",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary irony detection on tweets. Source model had prior sentiment training."
+    },
+    {
+      "adapter_id": "yuuhan/roberta-base-mnli-lora",
+      "base_model": "roberta-base",
+      "task": "natural-language-inference",
+      "dataset": "mnli",
+      "method": "lora",
+      "format": "bin",
+      "notes": "MNLI 3-class NLI. Different label space from the binary classifiers. Older format (adapter_model.bin not safetensors)."
+    },
+    {
+      "adapter_id": "TransferGraph/cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+      "base_model": "FacebookAI/roberta-base",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "AG News adapter from a formality-pretrained source. Same task as the other AG News adapter but different training lineage."
+    }
+  ],
+  "selection_rationale": "Five adapters, four distinct tasks, all on roberta-base. Two share a task (ag_news) with different training lineage — tests same-task detection. Hate speech and irony are both tweet-domain binary classifiers — tests whether Gradience sees them as related or distinct. MNLI is structurally different (3-class NLI). This inventory should produce meaningful task-boundary signals and a non-trivial candidate space reduction.",
+  "expected_gradience_behavior": {
+    "same_task_safe_zones": "Two AG News adapters should be same-task safe",
+    "cross_task_caution": "MNLI adapter is structurally different — should trigger cross-task advisory. Hate/irony pair may show task-boundary signal.",
+    "exclusions": "Possibly the MNLI adapter if label-space mismatch is detected",
+    "overall": "Mixed posture, moderate reduction, 2-3 retained pairs"
+  }
+}

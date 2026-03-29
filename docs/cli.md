@@ -30,6 +30,7 @@ gradience [-h] {verify,report,check,audit,audit-adapter,merge-audit,summarize-in
 | `merge-audit` | Audit spectral compatibility between two PEFT LoRA adapters |
 | `summarize-inventory` | Aggregate QA artifacts and merge reports into an inventory summary |
 | `suggest-neighborhoods` | Suggest conservative merge neighborhoods from preflight artifacts |
+| `batch-summary` | Summarize multiple preflight runs into a cross-run comparison table |
 | `explain` | Explain disagreement analysis for specific layer from audit JSON |
 | `truncate` | SVD truncate PEFT LoRA adapter to smaller rank |
 | `monitor` | Analyze vNext telemetry JSONL and emit alerts/recommendations |
@@ -294,6 +295,10 @@ gradience summarize-inventory [OPTIONS]
 
 **Output:**
 - `--emit-report PATH` - Write inventory summary v1 JSON to this path (overwrites existing file)
+- `--emit-bundle DIR` - Emit a preflight run bundle (summary, manifest, action plan, comparison)
+- `--previous-run DIR` - Path to a previous run bundle for comparison (requires `--emit-bundle`)
+- `--inventory-id ID` - Inventory identifier for bundle metadata (default: directory basename)
+- `--run-id ID` - Run identifier for bundle metadata (default: timestamp)
 
 **Validation:**
 - `--strict-input` - Fail on first malformed file (default: skip with warning)
@@ -328,6 +333,26 @@ gradience summarize-inventory \
 
 # Scan only QA artifacts (no merge reports)
 gradience summarize-inventory --qa-dir ./qa_artifacts/
+
+# Emit a preflight run bundle
+gradience summarize-inventory \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --emit-bundle ./runs/run_001
+
+# Compare against a previous run
+gradience summarize-inventory \
+    --qa-dir ./qa_artifacts/ \
+    --report-dir ./merge_reports/ \
+    --emit-bundle ./runs/run_002 \
+    --previous-run ./runs/run_001
+
+# Auto-discover previous run (no --previous-run needed after first run)
+gradience summarize-inventory \
+    --qa-dir ./qa_artifacts_v2/ \
+    --report-dir ./merge_reports_v2/ \
+    --emit-bundle ./runs/run_003
+# → automatically finds ./runs/run_002 via the latest symlink
 ```
 
 #### Python API
@@ -346,6 +371,34 @@ print(summary.strict_qa_block_candidates)  # e.g. 1
 ```
 
 See **[Inventory Summary](inventory-summary.md)** for the full schema definition.
+
+### gradience batch-summary
+
+**Summarize multiple preflight runs into a cross-run comparison table.**
+
+Reads all `preflight_summary.json` files from subdirectories of the given run directory and produces a side-by-side comparison table showing key metrics across runs.
+
+```bash
+gradience batch-summary --run-dir RUNS_DIR [OPTIONS]
+```
+
+#### Required Arguments
+- `--run-dir DIR` - Directory containing preflight run bundle subdirectories
+
+#### Optional Arguments
+- `--emit-report DIR` - Write batch summary (JSON + markdown) to this directory
+
+#### Examples
+
+```bash
+# View all runs side-by-side
+gradience batch-summary --run-dir ./runs/
+
+# Save comparison table
+gradience batch-summary --run-dir ./runs/ --emit-report ./runs/batch/
+```
+
+The output table shows: run ID, adapter count, pair count, retained candidates, reduction percentage, and evidence ratio. A trend indicator (narrowing / broadening / stable) summarizes the direction of the candidate set across runs.
 
 ### gradience suggest-neighborhoods
 

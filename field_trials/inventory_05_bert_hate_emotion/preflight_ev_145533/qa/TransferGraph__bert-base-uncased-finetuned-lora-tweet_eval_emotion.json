@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "base_model": "google-bert/bert-base-uncased",
+    "rank_nominal": 1,
+    "n_layers": 24
+  },
+  "structural_summary": {
+    "utilization_mean": 1.0,
+    "utilization_median": 1.0,
+    "stable_rank_mean": 1.0,
+    "effective_rank_90_median": 1.0,
+    "rank_waste_ratio": 0.0,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "tweet_eval/emotion",
+    "metric_name": "accuracy",
+    "adapter_score": 0.752,
+    "base_score": 0.188,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (tweet_eval/emotion)"
+    ]
+  },
+  "notes": []
+}

@@ -189,9 +189,17 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - `gradience.api.summarize_inventory()` is the stable Python entry point (direct aggregation, not subprocess)
 - `from_dict()` is the single validation gatekeeper — raises `QASchemaError` on contract violations
 - Descriptive object, not decision-bearing — only aggregates existing judgments
-- Count maps: `adapter_status_counts`, `adapter_flag_counts`, `pair_risk_counts`, `recommended_strategy_counts`, `dominant_issue_counts`
+- Count maps: `adapter_status_counts`, `adapter_flag_counts`, `pair_risk_counts`, `recommended_strategy_counts`, `dominant_issue_counts`, `evidence_tier_counts`
+- `evidence_tier_counts`: additive field — `behavioral_reported`, `behavioral_weak`, `behavioral_missing`; old dicts without it backfill to `{}`
 - `strict_qa_block_candidates`: pair reports that would be blocked under `--strict-qa`
-- CLI: `gradience summarize-inventory --qa-dir ... --report-dir ... [--emit-report ...] [--strict-input]`
+- Trust language: all behavioral evidence is "user-reported" (not "verified"); Gradience does not independently verify claimed evaluation results
+- CLI: `gradience summarize-inventory --qa-dir ... --report-dir ... [--emit-report ...] [--emit-bundle ...] [--previous-run ...] [--strict-input]`
+- `--emit-bundle <DIR>` writes a preflight run bundle: `preflight_summary.md`, `preflight_summary.json`, `run_manifest.json`, `inventory_action_plan.md`, `compare_to_previous.md`
+- `--previous-run <DIR>` enables run-to-run comparison in the bundle; if omitted, auto-discovers previous run via `latest` symlink
+- `gradience batch-summary --run-dir <DIR>` produces cross-run comparison table from multiple preflight bundles
+- Batch summary module: `gradience.vnext.inventory.batch` — `discover_previous_run()`, `collect_run_summaries()`, `build_batch_summary()`, `format_batch_summary()`, `emit_batch_summary()`
+- `InventoryActionPlan` is stable public API (exported from `gradience.__init__`)
+- Action plan shows per-pair risk and recommended strategy in the evaluate-first and same-task sections
 - Malformed input: skip with warning by default, `--strict-input` fails hard
 - Canonical example in `examples/inventory/`
 - Definition doc: `docs/inventory-summary.md`

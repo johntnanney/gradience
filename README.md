@@ -32,6 +32,19 @@ Given a pool of LoRA adapters you might want to merge, Gradience runs a prefligh
 - **ML researchers studying merge behavior** -- Use spectral and task-boundary signals to understand why some merges work and others don't
 - **Teams with mixed-task adapter pools** -- Partition inventories into actionable regions before committing to expensive downstream evaluation
 
+## Start here
+
+| I want to... | Go to |
+|--------------|-------|
+| Run my first inventory preflight | **[Playbook](docs/playbook.md)** — step-by-step for the five most common workflows |
+| See what each scenario looks like | **[Example Gallery](docs/example-gallery.md)** — same-task, mixed-task, weak-evidence, near-miss |
+| Understand the conceptual framework | **[Inventory Preflight Workflow](docs/inventory-preflight.md)** — when to use, how to interpret |
+| Look up a specific command | **[CLI Reference](docs/cli.md)** — every flag and option |
+| Walk through a worked example | **[Mixed-Task Walkthrough](docs/examples/mixed-task-inventory-walkthrough.md)** — 15 pairs → 2 |
+| Set up behavioral evidence for hub adapters | **[Playbook §2: Evidence Bootstrap](docs/playbook.md#2-using-the-evidence-bootstrap)** |
+| Compare runs or build a portfolio view | **[Playbook §5: Portfolio View](docs/playbook.md#5-using-the-portfolio-view-across-inventories)** |
+| Understand the schema contracts | [Adapter QA](docs/adapter-qa-artifact.md) · [Merge Report](docs/merge-risk-report.md) · [Inventory Summary](docs/inventory-summary.md) |
+
 ## What you get
 
 - **Source QA** -- Structural eligibility screening with machine-readable artifacts (`gradience.adapter_qa/v1`)
@@ -396,34 +409,59 @@ Gradience is an **inventory preflight system** for LoRA adapter merging:
 
 ## Examples
 
-- **[Mixed-task inventory walkthrough](https://github.com/johntnanney/gradience/blob/main/docs/examples/mixed-task-inventory-walkthrough.md)** -- Flagship example: 6 adapters, 4 tasks, 15 pairs reduced to 2 (87% search-space reduction)
-- **[Same-task control walkthrough](https://github.com/johntnanney/gradience/blob/main/docs/examples/same-task-control-walkthrough.md)** -- Contrast case: advisory silence, confirmatory workflow
-- **[Curated demo bundle](https://github.com/johntnanney/gradience/tree/main/examples/demo/)** -- Complete preflight artifacts: eligible, weak, and missing-QA adapters; safe and risky merge pairs; inventory summary
-- **[Advanced workflow assets](https://github.com/johntnanney/gradience/tree/main/examples/inventories/)** -- Fixture inventories and expected neighborhood outcomes
-- **[Minimal integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
-- **[HF Trainer integration](https://github.com/johntnanney/gradience/blob/main/examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
-- **[Experiment configs](https://github.com/johntnanney/gradience/tree/main/examples/configs/)** -- Define experimental protocols
+- **[Example Gallery](docs/example-gallery.md)** -- Five curated scenarios covering same-task, mixed-task, weak-evidence, and near-miss inventories
+- **[Mixed-task inventory walkthrough](docs/examples/mixed-task-inventory-walkthrough.md)** -- Flagship: 6 adapters, 4 tasks, 15 pairs → 2 (87% reduction)
+- **[Same-task control walkthrough](docs/examples/same-task-control-walkthrough.md)** -- Contrast case: advisory silence, confirmatory workflow
+- **[Curated demo bundle](examples/demo/)** -- Complete preflight artifacts: eligible, weak, and missing-QA adapters
+- **[Fixture inventories](examples/inventories/)** -- Named inventories with expected neighborhood outcomes
+- **[Minimal integration](examples/vnext/toy_lora_run.py)** -- Add telemetry to any training script
+- **[HF Trainer integration](examples/vnext/hf_trainer_example.py)** -- End-to-end training with spectral telemetry
+- **[Experiment configs](examples/configs/)** -- Define experimental protocols
 
 ## Documentation
 
-Complete documentation available on GitHub:
+### Getting started
 
-- **[Inventory Preflight Workflow](https://github.com/johntnanney/gradience/blob/main/docs/inventory-preflight.md)** -- Main workflow guide: when to use, what to run, how to interpret
-- **[Theoretical Foundations](https://github.com/johntnanney/gradience/blob/main/docs/THEORY.md)** -- Mathematical framework and open questions
-- **[Empirical Findings](https://github.com/johntnanney/gradience/blob/main/docs/FINDINGS.md)** -- Results obtained with Gradience
-- **[Research Roadmap](https://github.com/johntnanney/gradience/blob/main/docs/ROADMAP.md)** -- Open questions and planned investigations
-- **[Experiment Guide](https://github.com/johntnanney/gradience/blob/main/docs/USER_MANUAL.md)** -- Designing and running spectral studies
-- **[Statistical Methodology](https://github.com/johntnanney/gradience/blob/main/docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
-- **[Spectral Analysis Policies](https://github.com/johntnanney/gradience/blob/main/docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
-- **[Installation Guide](https://github.com/johntnanney/gradience/blob/main/docs/install.md)** -- Complete setup guide with troubleshooting
-- **[Source QA Workflow](https://github.com/johntnanney/gradience/blob/main/docs/source_qa_workflow.md)** -- Assess adapter quality before merging
-- **[Advanced Workflows](https://github.com/johntnanney/gradience/blob/main/docs/advanced-workflows.md)** -- Optional advanced diagnostics and inventory workflows
-- **[Core-Space Audit](https://github.com/johntnanney/gradience/blob/main/docs/core-space-audit.md)** -- Optional shared-basis diagnostic for pair audits
-- **[Merge Neighborhoods](https://github.com/johntnanney/gradience/blob/main/docs/merge-neighborhoods.md)** -- Optional rule-based inventory grouping aid
-- **[CLI Reference](https://github.com/johntnanney/gradience/blob/main/docs/cli.md)** -- Complete command-line reference and examples
-- **[Configuration Reference](https://github.com/johntnanney/gradience/blob/main/docs/configs.md)** -- YAML config schema and examples
-- **[Artifacts & Evidence](https://github.com/johntnanney/gradience/blob/main/docs/artifacts.md)** -- Understanding experimental outputs
-- **[Troubleshooting](https://github.com/johntnanney/gradience/blob/main/docs/troubleshooting.md)** -- Common issues and solutions
+- **[Playbook](docs/playbook.md)** -- Step-by-step guide for the five most common workflows (start here)
+- **[Example Gallery](docs/example-gallery.md)** -- Five curated scenarios: same-task, mixed-task, large, weak-evidence, near-miss
+- **[Getting Started: Preflight](docs/getting-started-preflight.md)** -- Minimal walkthrough producing all three artifact types
+- **[Installation Guide](docs/install.md)** -- Complete setup guide with troubleshooting
+
+### Workflow and interpretation
+
+- **[Inventory Preflight Workflow](docs/inventory-preflight.md)** -- Conceptual framework: when to use, how to interpret
+- **[Source QA Workflow](docs/source_qa_workflow.md)** -- Assess adapter quality before merging
+- **[Advanced Workflows](docs/advanced-workflows.md)** -- Optional diagnostics and inventory workflows
+
+### Walkthroughs
+
+- **[Mixed-Task Inventory Walkthrough](docs/examples/mixed-task-inventory-walkthrough.md)** -- Flagship: 6 adapters, 15 pairs → 2
+- **[Same-Task Control Walkthrough](docs/examples/same-task-control-walkthrough.md)** -- Confirmatory: advisory silence, clean inventory
+
+### Schema and API
+
+- **[Adapter QA Artifact](docs/adapter-qa-artifact.md)** -- `gradience.adapter_qa/v1` schema contract
+- **[Merge Risk Report](docs/merge-risk-report.md)** -- `gradience.merge_qa_report/v1` schema contract
+- **[Inventory Summary](docs/inventory-summary.md)** -- `gradience.inventory_summary/v1` schema contract
+- **[CLI Reference](docs/cli.md)** -- Complete command-line reference and examples
+- **[Configuration Reference](docs/configs.md)** -- YAML config schema and examples
+- **[API Stability](docs/api_stability.md)** -- What is stable, what may change
+
+### Research and theory
+
+- **[Theoretical Foundations](docs/THEORY.md)** -- Mathematical framework and open questions
+- **[Empirical Findings](docs/FINDINGS.md)** -- Results obtained with Gradience
+- **[Research Roadmap](docs/ROADMAP.md)** -- Open questions and planned investigations
+- **[Experiment Guide](docs/USER_MANUAL.md)** -- Designing and running spectral studies
+- **[Statistical Methodology](docs/VALIDATION_POLICY.md)** -- Validation rigor requirements
+
+### Reference
+
+- **[Spectral Analysis Policies](docs/RANK_POLICIES_GUIDE.md)** -- Interpretive guide for rank metrics
+- **[Core-Space Audit](docs/core-space-audit.md)** -- Optional shared-basis diagnostic for pair audits
+- **[Merge Neighborhoods](docs/merge-neighborhoods.md)** -- Optional rule-based inventory grouping aid
+- **[Artifacts & Evidence](docs/artifacts.md)** -- Understanding experimental outputs
+- **[Troubleshooting](docs/troubleshooting.md)** -- Common issues and solutions
 
 ## License
 

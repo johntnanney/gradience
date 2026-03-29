@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/jmeneu__distilbert-base-uncased-lora-text-classification",
+    "rank": 1,
+    "alpha": 32.0,
+    "n_layers": 6,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "flagged_weak"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/NightPrince__peft-distilbert-sst2",
+    "rank": 8,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "infx mean magnitude ratio across 6 layer(s)",
+  "recommended_action": "Merge with audit-aware strategy. Consider norm-equalized as simpler alternative.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.084) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter A underperforms the base model. Rebalancing may preserve a weak signal.",
+    "Structural rebalance may preserve a behaviorally weak adapter."
+  ],
+  "verdict_distribution": {
+    "safe": 0,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 6
+  },
+  "compatibility_score": 0.0839,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (imdb vs sst2). Linear merges across task boundaries may degrade the weaker task's performance."
+}

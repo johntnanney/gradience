@@ -1,0 +1,260 @@
+{
+  "schema_version": "gradience.merge_plan/v1",
+  "plan_id": "f5f756a3-b8ea-43cb-a569-7296dc4812fa",
+  "strategy_name": "audit_aware",
+  "adapter_a_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-ag_news",
+  "adapter_b_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "layer_configs": [
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8471362668249375,
+        0.15286373317506258
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.0.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.915610070737922,
+        0.08438992926207799
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.1.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.8572896246971684,
+        0.14271037530283157
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.10.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8539745040090638,
+        0.14602549599093623
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.10.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.8726951828126218,
+        0.12730481718737816
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.11.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8375424529141895,
+        0.1624575470858105
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.11.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8800933555314951,
+        0.11990664446850484
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.2.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.870889259317477,
+        0.12911074068252307
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8898651591548289,
+        0.11013484084517113
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.3.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.9055848144547982,
+        0.09441518554520174
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8675116064228847,
+        0.13248839357711525
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.4.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.8874814811926629,
+        0.11251851880733703
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.872759126472283,
+        0.12724087352771696
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.5.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.9068894425616558,
+        0.09311055743834415
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.6.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8503409933078155,
+        0.1496590066921845
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.6.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.8942362166341952,
+        0.10576378336580484
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.7.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.8876461792536107,
+        0.11235382074638935
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.7.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.9004383664588115,
+        0.09956163354118856
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.8.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.9061352151408614,
+        0.09386478485913868
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.8.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.9003028820883666,
+        0.09969711791163344
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.9.attention.self.query",
+      "strategy": "linear",
+      "coefficients": [
+        0.9075006694084091,
+        0.0924993305915909
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.roberta.encoder.layer.9.attention.self.value",
+      "strategy": "linear",
+      "coefficients": [
+        0.8933813419119213,
+        0.10661865808807872
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-03-28T18:04:24.901653+00:00",
+    "strategy": "audit_aware",
+    "source_audit": {
+      "overall_verdict": "imbalanced",
+      "compatibility_score": 0.0963,
+      "n_shared_layers": 24
+    }
+  }
+}

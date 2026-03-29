@@ -64,6 +64,14 @@ This identifies weak, under-evidenced, or structurally problematic adapters. In 
 
 **What to look for:** `eligibility` status in the QA artifact. Adapters marked `flagged_weak` or `unknown_no_behavioral_eval` should be treated cautiously.
 
+**Evidence tiers.** Each adapter's behavioral evidence falls into one of three tiers:
+
+- **`behavioral_reported`** — evaluation data is present and the adapter is eligible or uncertain. This is the strongest tier, but "reported" means user-provided: Gradience does not independently verify claimed evaluation results.
+- **`behavioral_weak`** — evaluation data is present but the adapter underperforms its base model (`flagged_weak`). The evidence exists but points against the adapter.
+- **`behavioral_missing`** — no evaluation data was provided (`unknown_no_behavioral_eval`). Structural analysis is the only available signal.
+
+The distinction matters because "weak" and "missing" are different failure modes. A weak adapter has been tested and found wanting — you know what you're dealing with. A missing-evidence adapter is an unknown — the structural audit may look fine, but there is no behavioral ground truth to anchor the recommendation. The inventory summary and action plan both surface these tiers so you can calibrate trust accordingly.
+
 ### Step 2: Run pairwise merge reports
 
 ```bash
@@ -135,10 +143,12 @@ After a preflight pass, you should have:
 
 If the inventory is same-task and clean, the preflight will confirm that — and that confirmation is also useful, because it means no hidden task-boundary risk exists.
 
-## Walkthroughs
+## Further reading
 
-- **[Mixed-task inventory walkthrough](examples/mixed-task-inventory-walkthrough.md)** — the flagship example: 6 adapters, 4 tasks, 15 pairs reduced to 2
-- **[Same-task control walkthrough](examples/same-task-control-walkthrough.md)** — the contrast case: advisory silence, confirmatory behavior
+- **[Playbook](playbook.md)** — step-by-step instructions for the five most common workflows
+- **[Example Gallery](example-gallery.md)** — five curated scenarios: same-task, mixed-task, weak-evidence, near-miss
+- **[Mixed-task inventory walkthrough](examples/mixed-task-inventory-walkthrough.md)** — flagship: 6 adapters, 4 tasks, 15 pairs reduced to 2
+- **[Same-task control walkthrough](examples/same-task-control-walkthrough.md)** — contrast case: advisory silence, confirmatory behavior
 
 ## What Gradience will and will not tell you
 

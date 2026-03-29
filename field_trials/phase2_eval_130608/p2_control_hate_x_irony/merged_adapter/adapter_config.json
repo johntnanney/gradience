@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "query",
+    "value"
+  ],
+  "base_model_name_or_path": "roberta-base",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "75188221-7f2e-4a74-b029-2344533a0beb",
+    "strategy": "uniform_linear",
+    "adapter_a": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+    "adapter_b": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony"
+  }
+}

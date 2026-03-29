@@ -1,0 +1,32 @@
+{
+  "inventory_id": "preflight_ev_122511",
+  "run_id": "run_20260328_172528",
+  "timestamp": "2026-03-28T17:25:28.355075+00:00",
+  "adapter_count": 5,
+  "pair_count": 10,
+  "excluded_sources": [],
+  "same_task_priority_pairs": [
+    "TransferGraph__roberta-base-finetuned-lora-ag_news \u00d7 TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news"
+  ],
+  "cross_task_caution_regions": [
+    "AG_NEWS \u00d7 MNLI region",
+    "AG_NEWS \u00d7 TWEET_EVAL/HATE region",
+    "AG_NEWS \u00d7 TWEET_EVAL/IRONY region",
+    "MNLI \u00d7 TWEET_EVAL/HATE region",
+    "MNLI \u00d7 TWEET_EVAL/IRONY region",
+    "TWEET_EVAL/HATE \u00d7 TWEET_EVAL/IRONY region"
+  ],
+  "reduced_candidate_subset": [
+    "TransferGraph__roberta-base-finetuned-lora-ag_news \u00d7 TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news"
+  ],
+  "retained_candidate_count": 1,
+  "reduction_ratio": 0.9,
+  "advisory_pair_count": 9,
+  "qa_summary": {
+    "eligible": 4,
+    "uncertain": 1
+  },
+  "behavioral_evidence_count": 5,
+  "total_source_count": 5,
+  "summary_line": "Inventory is mostly explained by task boundary. Candidate space reduced from 10 pairs to 1 (90% reduction)."
+}

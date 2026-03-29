@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_01_same_task_control/adapter_cache/RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "rank_nominal": 4,
+    "n_layers": 6
+  },
+  "structural_summary": {
+    "utilization_mean": 0.3291048492819814,
+    "utilization_median": 0.3109370779602717,
+    "stable_rank_mean": 1.3164193971279257,
+    "effective_rank_90_median": 2.0,
+    "rank_waste_ratio": 0.6708951507180185,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "imdb",
+    "metric_name": "accuracy",
+    "adapter_score": 0.898,
+    "base_score": 0.846,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (imdb)"
+    ]
+  },
+  "notes": []
+}

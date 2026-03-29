@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "rank_nominal": 1,
+    "n_layers": 12
+  },
+  "structural_summary": {
+    "utilization_mean": 1.0,
+    "utilization_median": 1.0,
+    "stable_rank_mean": 1.0,
+    "effective_rank_90_median": 1.0,
+    "rank_waste_ratio": 0.0,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "tweet_eval/irony",
+    "metric_name": "accuracy",
+    "adapter_score": 0.62,
+    "base_score": 0.552,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (tweet_eval/irony)"
+    ]
+  },
+  "notes": []
+}

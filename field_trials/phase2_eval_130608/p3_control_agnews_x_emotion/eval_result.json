@@ -1,0 +1,15 @@
+{
+  "pair_name": "p3_control_agnews_x_emotion",
+  "role": "control",
+  "strategy": "audit_aware",
+  "eval_dataset": "ag_news",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.089,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.87,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 20.5,
+  "notes": "Cross-task, high risk. Eval on AG News. Should degrade if Gradience's caution is correct."
+}

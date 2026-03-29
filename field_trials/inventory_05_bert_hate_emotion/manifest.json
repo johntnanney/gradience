@@ -1,0 +1,87 @@
+{
+  "inventory_id": "pilot-05-bert-hate-emotion",
+  "description": "bert-base-uncased inventory with deep hate (3) and emotion (3) clusters plus ag_news pair. New backbone tests cross-backbone generalization of near-miss pattern.",
+  "backbone": "bert-base-uncased",
+  "inventory_type": "deep_cluster",
+  "pilot_phase": "2b",
+  "trial_purpose": "Test near-miss on a third backbone. Hate cluster (binary, historically marginal) is the primary near-miss target. Emotion and ag_news provide retained baselines.",
+  "adapters": [
+    {
+      "adapter_id": "TransferGraph/bert-base-uncased-finetuned-lora-tweet_eval_hate",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary hate speech. TG base adapter on bert-base-uncased."
+    },
+    {
+      "adapter_id": "TransferGraph/aviator-neural_bert-base-uncased-sst2-finetuned-lora-tweet_eval_hate",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary hate speech. Source model: aviator-neural SST-2 finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_hate",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "hate-speech-detection",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "Binary hate speech. Source model: HateXplain rationale model."
+    },
+    {
+      "adapter_id": "TransferGraph/bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion. TG base adapter on bert-base-uncased."
+    },
+    {
+      "adapter_id": "TransferGraph/fabriceyhc_bert-base-uncased-imdb-finetuned-lora-tweet_eval_emotion",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion. Source model: fabriceyhc IMDB-finetuned."
+    },
+    {
+      "adapter_id": "TransferGraph/Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "emotion-classification",
+      "dataset": "tweet_eval/emotion",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "4-class emotion. Source model: HateXplain rationale model."
+    },
+    {
+      "adapter_id": "TransferGraph/bert-base-uncased-finetuned-lora-ag_news",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "AG News 4-class. TG base adapter on bert-base-uncased."
+    },
+    {
+      "adapter_id": "TransferGraph/aviator-neural_bert-base-uncased-sst2-finetuned-lora-ag_news",
+      "base_model": "google-bert/bert-base-uncased",
+      "task": "news-topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "format": "safetensors",
+      "notes": "AG News 4-class. Source model: aviator-neural SST-2 finetuned."
+    }
+  ],
+  "task_summary": {
+    "hate-speech-detection": ["TG hate (base)", "TG/aviator-neural hate", "TG/HateXplain hate"],
+    "emotion-classification": ["TG emotion (base)", "TG/fabriceyhc emotion", "TG/HateXplain emotion"],
+    "news-topic-classification": ["TG ag_news (base)", "TG/aviator-neural ag_news"]
+  }
+}

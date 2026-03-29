@@ -1,0 +1,37 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "neibla/distilbert-base-uncased-finetuned-emotion",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "phailyoor/distilbert-base-uncased-finetuned-yahd",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "4.5x mean magnitude ratio across 2 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.044) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 10,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 2
+  },
+  "compatibility_score": 0.0442,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/irony vs ag_news). Linear merges across task boundaries may degrade the weaker task's performance."
+}

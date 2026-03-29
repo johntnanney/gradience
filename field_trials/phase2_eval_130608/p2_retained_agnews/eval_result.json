@@ -1,0 +1,15 @@
+{
+  "pair_name": "p2_retained_agnews",
+  "role": "retained",
+  "strategy": "norm_equalized",
+  "eval_dataset": "ag_news",
+  "compatibility": "redundant",
+  "compatibility_score": 0.42,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.944,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 36.9,
+  "notes": "Same-task pair. Gradience recommended: norm_equalized, medium risk, partial_redundancy."
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "bert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 24,
+    "base_model": "Hate-speech-CNERG/bert-base-uncased-hatexplain-rationale-two",
+    "eligibility_status": "flagged_weak"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "partial_redundancy",
+  "dominant_issue_detail": "1 redundant layer(s)",
+  "recommended_action": "Merge with audit-aware strategy. Consider norm-equalized as simpler alternative.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.284) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter B underperforms the base model. Rebalancing may preserve a weak signal.",
+    "Structural rebalance may preserve a behaviorally weak adapter."
+  ],
+  "verdict_distribution": {
+    "safe": 23,
+    "redundant": 1,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.2841
+}

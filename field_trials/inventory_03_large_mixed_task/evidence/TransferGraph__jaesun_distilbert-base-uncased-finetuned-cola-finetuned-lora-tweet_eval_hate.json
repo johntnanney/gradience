@@ -1,0 +1,18 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+  "base_model": "distilbert/distilbert-base-uncased",
+  "eval_dataset": "tweet_eval/hate",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.52,
+  "base_score": 0.472,
+  "beats_base": true,
+  "delta": 0.048,
+  "adapter_f1": 0.6117,
+  "base_f1": 0.3125,
+  "adapter_id": "TransferGraph/jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+  "manifest_task": "hate-speech-detection",
+  "elapsed_seconds": 29.7
+}
