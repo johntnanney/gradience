@@ -54,6 +54,24 @@ class EligibilityStatus(str, Enum):
 
 
 # ---------------------------------------------------------------------------
+# Confidence level enum
+# ---------------------------------------------------------------------------
+
+
+class ConfidenceLevel(str, Enum):
+    """Categorical confidence in an eligibility judgment.
+
+    Uses ``str`` mixin so values serialise as plain strings and comparisons
+    against literal strings continue to work (same pattern as
+    :class:`EligibilityStatus`).
+    """
+
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+# ---------------------------------------------------------------------------
 # QA result
 # ---------------------------------------------------------------------------
 

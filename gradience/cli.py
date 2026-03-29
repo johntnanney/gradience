@@ -3418,6 +3418,63 @@ def _setup_summarize_inventory_command(subparsers):
     p.set_defaults(func=cmd_summarize_inventory)
 
 
+def _setup_portfolio_command(subparsers: Any) -> None:
+    p = subparsers.add_parser(
+        "portfolio",
+        help="Scan a directory of inventory artifacts and display a cross-inventory portfolio table",
+    )
+    p.add_argument(
+        "directory",
+        type=str,
+        help="Directory to scan for gradience.inventory_summary/v1 JSON files",
+    )
+    p.add_argument(
+        "--html",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Write a standalone HTML portfolio page to this path instead of printing a table",
+    )
+    p.add_argument("--strict-input", action="store_true", help="Fail on first malformed file")
+    p.set_defaults(func=cmd_portfolio)
+
+
+def cmd_portfolio(args: argparse.Namespace) -> None:
+    """Display a cross-inventory portfolio table."""
+    directory = getattr(args, "directory", None)
+    html_path = getattr(args, "html", None)
+    strict_input = bool(getattr(args, "strict_input", False))
+
+    try:
+        from gradience.vnext.inventory.portfolio import (
+            format_portfolio_html,
+            format_portfolio_table,
+            scan_portfolio,
+        )
+    except ImportError as e:
+        print(f"Error: Failed to import portfolio module: {e}")
+        sys.exit(1)
+
+    try:
+        view = scan_portfolio(directory, strict_input=strict_input)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Portfolio scan failed: {e}")
+        sys.exit(1)
+
+    if html_path:
+        html = format_portfolio_html(view)
+        out = Path(html_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(html, encoding="utf-8")
+        print(f"Portfolio HTML written to {html_path}")
+        print(f"  {len(view.rows)} inventor{'y' if len(view.rows) == 1 else 'ies'} included")
+    else:
+        print(format_portfolio_table(view))
+
+
 def _setup_suggest_neighborhoods_command(subparsers):
     p = subparsers.add_parser(
         "suggest-neighborhoods",
@@ -3792,6 +3849,7 @@ def main() -> None:
     _setup_suggest_neighborhoods_command(subparsers)
     _setup_batch_summary_command(subparsers)
     _setup_preflight_report_command(subparsers)
+    _setup_portfolio_command(subparsers)
 
     args = parser.parse_args()
     if args.command is None:

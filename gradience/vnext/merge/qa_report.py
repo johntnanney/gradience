@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from gradience.exceptions import QASchemaError
-from gradience.vnext.merge.eligibility import EligibilityStatus
+from gradience.vnext.merge.eligibility import ConfidenceLevel, EligibilityStatus
 from gradience.vnext.merge.recommend import (
     MergeRecommendation,
     PairDiagnosis,
@@ -55,7 +55,6 @@ DOMINANT_ISSUE_LABELS = frozenset(
 )
 
 PAIR_RISK_VALUES = frozenset({"low", "medium", "high"})
-CONFIDENCE_VALUES = frozenset({"high", "medium", "low"})
 CORE_SPACE_STATUS_VALUES = frozenset(
     {
         "compatible",
@@ -218,7 +217,7 @@ class MergeQAReport:
     dominant_issue_detail: str  # human-readable explanation
     recommended_action: str  # one-sentence action
     recommended_strategy: str  # strategy name for the merge plan
-    confidence: str  # "high" | "medium" | "low"
+    confidence: ConfidenceLevel
     confidence_note: str  # how much to trust the recommendation
     caveats: tuple[str, ...]  # things the user should know
     verdict_distribution: dict[str, int]  # {"safe": N, "redundant": N, ...}
@@ -236,7 +235,7 @@ class MergeQAReport:
             "dominant_issue_detail": self.dominant_issue_detail,
             "recommended_action": self.recommended_action,
             "recommended_strategy": self.recommended_strategy,
-            "confidence": self.confidence,
+            "confidence": self.confidence.value,
             "confidence_note": self.confidence_note,
             "caveats": list(self.caveats),
             "verdict_distribution": self.verdict_distribution,
@@ -305,9 +304,12 @@ class MergeQAReport:
         # --- confidence ---
         if "confidence" not in d:
             raise QASchemaError("Missing required field: confidence")
-        confidence = d["confidence"]
-        if confidence not in CONFIDENCE_VALUES:
-            raise QASchemaError(f"Invalid confidence '{confidence}'. Must be one of: {sorted(CONFIDENCE_VALUES)}")
+        try:
+            confidence = ConfidenceLevel(d["confidence"])
+        except ValueError:
+            raise QASchemaError(
+                f"Invalid confidence '{d['confidence']}'. Must be one of: {[c.value for c in ConfidenceLevel]}"
+            ) from None
 
         # --- compatibility_score (numeric -> float) ---
         if "compatibility_score" not in d:
@@ -538,15 +540,15 @@ def _derive_strategy(diag: PairDiagnosis, rec: MergeRecommendation) -> str:
     return "audit_aware"
 
 
-def _derive_confidence(diag: PairDiagnosis, score: float) -> str:
+def _derive_confidence(diag: PairDiagnosis, score: float) -> ConfidenceLevel:
     """Derive categorical confidence level."""
     if not diag.eligibility.has_data:
-        return "low"
+        return ConfidenceLevel.LOW
     if diag.overall_risk == "high":
-        return "low"
+        return ConfidenceLevel.LOW
     if diag.eligibility.both_eligible and score >= 0.8 and diag.overall_risk == "low":
-        return "high"
-    return "medium"
+        return ConfidenceLevel.HIGH
+    return ConfidenceLevel.MEDIUM
 
 
 def _task_relationship_advisory(report: Any) -> str | None:
@@ -802,7 +804,7 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append(f"  Adapter B eligibility: {b_status}")
 
     lines.append("")
-    lines.append(f"  Confidence:      {qa.confidence}")
+    lines.append(f"  Confidence:      {qa.confidence.value}")
     lines.append(f"                   {qa.confidence_note}")
 
     # ---------------------------------------------------------------
