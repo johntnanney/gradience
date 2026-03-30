@@ -46,7 +46,7 @@ Documentation = "https://github.com/johntnanney/gradience#readme"
 # Benchmarking suite - for running compression validation benchmarks
 # Install with: pip install "gradience[bench]"
 bench = [
-  "transformers>=4.35.0,<5",
+  "transformers>=4.35.0,<6",
   "peft>=0.7.0,<1",
   "datasets>=2.14.0",
   "accelerate>=0.20.0",
@@ -61,7 +61,7 @@ bench = [
 # Hugging Face integration only (lighter than full bench)
 # Install with: pip install "gradience[hf]"
 hf = [
-  "transformers>=4.35.0,<5",
+  "transformers>=4.35.0,<6",
   "peft>=0.7.0,<1",
   "sentencepiece>=0.1.99",   # For tokenizers
   "protobuf>=3.20.0",        # For tokenizers
