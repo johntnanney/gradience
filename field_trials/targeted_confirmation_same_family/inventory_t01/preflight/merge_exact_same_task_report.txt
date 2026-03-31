@@ -1,0 +1,38 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Same-task pair — reasonable candidate
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       MEDIUM
+  Compat. score:   0.475
+  Dominant issue:  NORM IMBALANCE
+                   10.4x mean magnitude ratio across 7 layer(s)
+  Layer verdicts:  5 redundant, 7 imbalanced (12 total)
+
+  Adapter A:  rank=16, alpha=32.0, 12 layers (distilbert-base-uncased)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora
+  Adapter B:  rank=16, alpha=32.0, 12 layers (./distilbert-base-uncased)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: eligible
+
+  Confidence:      medium
+                   Low spectral compatibility (score=0.475) — both adapters have user-reported behavioral quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  1. 5 layer(s) are over-provisioned. Pre-compression before merging may improve results.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Pre-compress 5 over-provisioned layer(s), then merge with audit-aware strategy.
+  Strategy: audit_aware
+
+  INTERPRETATION
+  ----------------------------------------
+  Same-task pair; reasonable candidate to keep in the evaluation subset.

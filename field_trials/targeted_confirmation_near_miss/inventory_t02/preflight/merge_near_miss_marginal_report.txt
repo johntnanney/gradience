@@ -1,0 +1,38 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Same-task pair — safe region
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       LOW
+  Compat. score:   0.127
+  Dominant issue:  NONE
+                   adapters are spectrally compatible
+  Layer verdicts:  12 safe (12 total)
+
+  Adapter A:  rank=1, alpha=1.0, 12 layers (JB173/distilbert-base-uncased-finetuned-emotion)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony
+  Adapter B:  rank=1, alpha=1.0, 12 layers (phailyoor/distilbert-base-uncased-finetuned-yahd)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__phailyoor_irony
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: eligible
+
+  Confidence:      medium
+                   Low spectral compatibility (score=0.127) — both adapters have user-reported behavioral quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  No eligibility concerns detected.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Merge is safe. Use audit-aware strategy or norm-equalized baseline.
+  Strategy: linear
+
+  INTERPRETATION
+  ----------------------------------------
+  Same-task pair; reasonable candidate to keep in the evaluation subset.

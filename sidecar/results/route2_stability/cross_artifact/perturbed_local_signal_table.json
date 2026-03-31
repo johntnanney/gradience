@@ -1,0 +1,73 @@
+{
+  "schema": "route2_stability.cross_artifact.perturbed_local_signal_table/v1",
+  "generated_utc": "2026-03-31T21:32:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "source_panel": "sidecar/results/route2_stability/cross_artifact/perturbed_panel_table.json",
+  "signals": [
+    {
+      "signal_name": "factor_geometry_metrics",
+      "description": "Subspace overlap, principal-angle structure, factor-level diagnostics including V-module cues",
+      "artifact_classes_where_present": ["lora", "loha_shimmed"],
+      "artifact_classes_where_absent": ["checkpoint_delta"],
+      "portability": "local_only",
+      "perturbed_verdict": "unchanged_local_only",
+      "product_relevance": "research_only",
+      "notes": "Perturbation does not change locality; checkpoint summary path still lacks factor matrices."
+    },
+    {
+      "signal_name": "checkpoint_summary_profile_shape",
+      "description": "Layerwise summary-profile similarity and delta-spectrum shape",
+      "artifact_classes_where_present": ["checkpoint_delta"],
+      "artifact_classes_where_absent": ["lora", "loha_shimmed"],
+      "portability": "local_only",
+      "perturbed_verdict": "unchanged_local_only",
+      "product_relevance": "research_only",
+      "notes": "Still checkpoint-specific under Representation C."
+    },
+    {
+      "signal_name": "merge_strategy_recommendation_strings",
+      "description": "linear / ties / norm_equalized / audit_aware strategy outputs",
+      "artifact_classes_where_present": ["lora", "loha_shimmed"],
+      "artifact_classes_where_absent": ["checkpoint_delta"],
+      "portability": "local_only",
+      "perturbed_verdict": "unchanged_local_only",
+      "product_relevance": "research_only",
+      "notes": "Checkpoint delta merge execution remains out of scope."
+    },
+    {
+      "signal_name": "compatibility_score_numeric_scale",
+      "description": "Absolute numeric values of compatibility scores",
+      "artifact_classes_where_present": ["lora", "loha_shimmed", "checkpoint_delta"],
+      "artifact_classes_where_absent": [],
+      "portability": "partially_portable",
+      "perturbed_verdict": "still_partially_portable",
+      "product_relevance": "safe_with_scope_guardrail",
+      "notes": "Ordering tendencies can transfer, absolute scales still cannot be compared across representation families."
+    },
+    {
+      "signal_name": "pair_risk_label_calibration",
+      "description": "low / medium / high risk labels",
+      "artifact_classes_where_present": ["lora", "loha_shimmed", "checkpoint_delta"],
+      "artifact_classes_where_absent": [],
+      "portability": "partially_portable",
+      "perturbed_verdict": "still_partially_portable",
+      "product_relevance": "safe_with_scope_guardrail",
+      "notes": "Shared vocabulary remains useful locally but not calibrated cross-artifact."
+    },
+    {
+      "signal_name": "same_family_ordering_from_structural_score",
+      "description": "Using score ordering alone to assert same-family intermediate behavior",
+      "artifact_classes_where_present": ["lora", "checkpoint_delta"],
+      "artifact_classes_where_absent": ["loha_shimmed"],
+      "portability": "partially_portable",
+      "perturbed_verdict": "weakened_under_perturbation",
+      "product_relevance": "not_stable_enough",
+      "notes": "LoRA substitution shows ordering inversion under near-miss weak-source pressure; relation signal remains useful but strict numeric ordering is panel-sensitive."
+    }
+  ],
+  "summary": {
+    "local_only_count": 3,
+    "partially_portable_count": 3,
+    "key_result": "C1 remains stable: strongest structural metrics remain representation-local; perturbation did not produce any new cross-artifact structural invariant."
+  }
+}

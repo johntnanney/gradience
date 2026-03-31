@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "TransferGraph__Aureliano_hate",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate",
+    "base_model": "",
+    "rank_nominal": 1,
+    "n_layers": 12
+  },
+  "structural_summary": {
+    "utilization_mean": 1.0,
+    "utilization_median": 1.0,
+    "stable_rank_mean": 1.0,
+    "effective_rank_90_median": 1.0,
+    "rank_waste_ratio": 0.0,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "tweet_eval/hate",
+    "metric_name": "accuracy",
+    "adapter_score": 0.444,
+    "base_score": 0.556,
+    "lower_is_better": false,
+    "beats_base": false
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "high",
+    "reasons": [
+      "adapter underperforms base on accuracy (tweet_eval/hate)"
+    ]
+  },
+  "notes": []
+}

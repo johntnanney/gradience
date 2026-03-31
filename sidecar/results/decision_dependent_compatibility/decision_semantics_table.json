@@ -1,0 +1,136 @@
+{
+  "schema": "decision_dependent_semantics_table/v1",
+  "generated_utc": "2026-03-31T01:23:15.538095+00:00",
+  "rows": [
+    {
+      "profile_id": "P1_redundant_confusable",
+      "decision_semantics": {
+        "merge": "low incremental utility; redundancy dominates",
+        "routing": "high confusability implies source confusion risk without explicit signal",
+        "triage": "if QA is weak, block despite structural similarity"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "merge",
+          "signature": "safe/near-miss classes tend to preserve consensus when quality is adequate",
+          "evidence_path": "sidecar/notes/n61_example_behavior_findings.md",
+          "confidence": "medium"
+        },
+        {
+          "scenario": "routing",
+          "signature": "high confusability pairs flagged for dedup/disambiguation",
+          "evidence_path": "experiments/routing_pilot/routing_report.json",
+          "confidence": "high"
+        }
+      ],
+      "caveats": "Routing evidence is structural-operational, not example-level misroute logs."
+    },
+    {
+      "profile_id": "P2_overlap_needs_disambiguation",
+      "decision_semantics": {
+        "merge": "moderate overlap can still be merge-admissible",
+        "routing": "moderate confusability requires explicit disambiguation",
+        "triage": "review if source QA permits"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "routing",
+          "signature": "moderate confusability (needs_disambiguation) across NLI-family pairs",
+          "evidence_path": "experiments/routing_pilot/routing_report.json",
+          "confidence": "high"
+        },
+        {
+          "scenario": "triage",
+          "signature": "same-family probe can show asymmetric per-dataset outcomes",
+          "evidence_path": "field_trials/checkpoint_inventory_t02/eval_results.json",
+          "confidence": "medium"
+        }
+      ],
+      "caveats": "Same-family is a review relationship, not guaranteed interchangeability."
+    },
+    {
+      "profile_id": "P3_merge_ok_routing_separable",
+      "decision_semantics": {
+        "merge": "merge and routing objectives can decouple",
+        "routing": "low confusability supports easy separation",
+        "triage": "requires evidence context to prioritize"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "routing",
+          "signature": "easily_routed pairs despite nontrivial merge overlap",
+          "evidence_path": "experiments/routing_pilot/routing_report.json",
+          "confidence": "high"
+        }
+      ],
+      "caveats": "No direct example-level routing behavior capture yet."
+    },
+    {
+      "profile_id": "P4_qa_blocked_structurally_nontrivial",
+      "decision_semantics": {
+        "merge": "structural compatibility alone is insufficient",
+        "routing": "structural view may suggest action but QA can invalidate operational use",
+        "triage": "qa_blocked dominates"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "triage",
+          "signature": "no retained pairs under mixed-quality inventory despite informative pair structure",
+          "evidence_path": "field_trials/checkpoint_inventory_t02/preflight/preflight_results.json",
+          "confidence": "high"
+        }
+      ],
+      "caveats": "Current checkpoint panel is intentionally narrow and QA-heavy."
+    },
+    {
+      "profile_id": "P5_same_family_optional",
+      "decision_semantics": {
+        "merge": "same-family can perform near same-task in controlled settings",
+        "routing": "often moderate confusability",
+        "triage": "optional/review branch, not automatic retain"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "merge",
+          "signature": "same-family merge (SST-2 \u00d7 IMDB) matched same-task merge in T01",
+          "evidence_path": "field_trials/targeted_confirmation_same_family/inventory_t01/eval_results.json",
+          "confidence": "high"
+        },
+        {
+          "scenario": "triage",
+          "signature": "same-family checkpoint follow-through showed asymmetric deltas across datasets",
+          "evidence_path": "field_trials/checkpoint_inventory_t02/eval_results.json",
+          "confidence": "medium"
+        }
+      ],
+      "caveats": "Do not over-generalize one family branch to all same-family definitions."
+    },
+    {
+      "profile_id": "P6_cross_task_low_value_control",
+      "decision_semantics": {
+        "merge": "cross-task controls remain lower-priority baselines",
+        "routing": "often separable",
+        "triage": "caution/exclude unless evidence is unusually strong"
+      },
+      "behavioral_signatures": [
+        {
+          "scenario": "merge",
+          "signature": "cross-task control materially underperformed same-task and same-family in T01",
+          "evidence_path": "field_trials/targeted_confirmation_same_family/inventory_t01/eval_results.json",
+          "confidence": "high"
+        },
+        {
+          "scenario": "merge_behavioral",
+          "signature": "cross-task control can show high-confidence wrong predictions",
+          "evidence_path": "sidecar/notes/n61_example_behavior_findings.md",
+          "confidence": "medium"
+        }
+      ],
+      "caveats": "Behavioral signature based on one control class in example-level panel."
+    }
+  ],
+  "notes": [
+    "Semantics rows are evidence-linked and intentionally conservative.",
+    "Routing signatures are currently structural-operational, not user-traffic routing logs."
+  ]
+}

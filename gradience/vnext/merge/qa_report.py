@@ -224,6 +224,7 @@ class MergeQAReport:
     compatibility_score: float
     core_space: CoreSpaceSummary | None = None
     task_relationship_advisory: str | None = None  # additive advisory when adapters trained on different tasks
+    task_relationship: str | None = None  # machine-readable: "same_task", "same_family", "cross_task", or None
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -245,6 +246,8 @@ class MergeQAReport:
             d["core_space"] = self.core_space.to_dict()
         if self.task_relationship_advisory is not None:
             d["task_relationship_advisory"] = self.task_relationship_advisory
+        if self.task_relationship is not None:
+            d["task_relationship"] = self.task_relationship
         return d
 
     def to_json(self, path: Path | str) -> None:
@@ -358,6 +361,16 @@ class MergeQAReport:
         raw_advisory = d.get("task_relationship_advisory")
         task_relationship_advisory = str(raw_advisory) if raw_advisory is not None else None
 
+        # --- Optional task_relationship (str or None) ---
+        _VALID_TASK_RELATIONSHIPS = {"same_task", "same_family", "cross_task"}
+        raw_rel = d.get("task_relationship")
+        task_relationship: str | None = None
+        if raw_rel is not None:
+            raw_rel_str = str(raw_rel)
+            if raw_rel_str in _VALID_TASK_RELATIONSHIPS:
+                task_relationship = raw_rel_str
+            # silently ignore unknown values for forward compat
+
         return cls(
             adapter_a=adapter_a,
             adapter_b=adapter_b,
@@ -373,6 +386,7 @@ class MergeQAReport:
             compatibility_score=compatibility_score,
             core_space=core_space,
             task_relationship_advisory=task_relationship_advisory,
+            task_relationship=task_relationship,
         )
 
 
@@ -551,34 +565,49 @@ def _derive_confidence(diag: PairDiagnosis, score: float) -> ConfidenceLevel:
     return ConfidenceLevel.MEDIUM
 
 
-def _task_relationship_advisory(report: Any) -> str | None:
-    """Build a task-relationship advisory if adapters were evaluated on different tasks.
+def _task_relationship(report: Any) -> tuple[str | None, str | None]:
+    """Classify the task relationship and build an advisory if needed.
 
-    Returns an advisory string when both adapters have QA data with
-    ``eval_dataset`` fields that differ, or None otherwise.  This is an
-    additive, metadata-driven signal — orthogonal to structural pair-risk.
+    Returns (task_relationship, advisory_text):
+    - ("same_task", None) — exact same eval_dataset
+    - ("same_family", advisory_text) — different datasets, same validated family
+    - ("cross_task", advisory_text) — different datasets, different/unknown families
+    - (None, None) — insufficient metadata to classify
     """
+    from gradience.vnext.merge.task_families import family_label
+
     source_qa = getattr(report, "source_qa", None)
     if source_qa is None:
-        return None
+        return None, None
 
     qa_a = source_qa.get("adapter_a") if isinstance(source_qa, dict) else None
     qa_b = source_qa.get("adapter_b") if isinstance(source_qa, dict) else None
     if qa_a is None or qa_b is None:
-        return None
+        return None, None
 
     ds_a = qa_a.get("eval_dataset")
     ds_b = qa_b.get("eval_dataset")
     if ds_a is None or ds_b is None:
-        return None
+        return None, None
     if ds_a == ds_b:
-        return None
+        return "same_task", None
 
-    return (
+    # Different datasets — check family registry
+    fam = family_label(ds_a, ds_b)
+    if fam is not None:
+        advisory = (
+            f"Same-family merge: adapters were evaluated on different datasets "
+            f"({ds_a} vs {ds_b}) but both belong to the {fam} family. "
+            f"Similar tasks tend to merge well."
+        )
+        return "same_family", advisory
+
+    advisory = (
         f"Cross-task merge: adapters were evaluated on different tasks "
         f"({ds_a} vs {ds_b}). Linear merges across task boundaries "
         f"may degrade the weaker task's performance."
     )
+    return "cross_task", advisory
 
 
 def build_qa_report(report: Any) -> MergeQAReport:
@@ -661,6 +690,8 @@ def build_qa_report(report: Any) -> MergeQAReport:
                 status=str(raw_core_space.get("status", "not_applicable")),
             )
 
+    _task_rel = _task_relationship(report)
+
     return MergeQAReport(
         adapter_a=adapter_a,
         adapter_b=adapter_b,
@@ -675,7 +706,8 @@ def build_qa_report(report: Any) -> MergeQAReport:
         verdict_distribution=verdict_dist,
         compatibility_score=score,
         core_space=core_space_summary,
-        task_relationship_advisory=_task_relationship_advisory(report),
+        task_relationship_advisory=_task_rel[1],
+        task_relationship=_task_rel[0],
     )
 
 
@@ -694,9 +726,11 @@ def _report_headline(qa: MergeQAReport) -> str:
 
     if has_weak:
         return "Weak-source pair — low-priority candidate"
-    if has_advisory and qa.pair_risk == "high":
-        return "Cross-task pair — high structural risk — caution region"
     if has_advisory:
+        if qa.task_relationship == "same_family":
+            return "Same-family pair — plausible candidate"
+        if qa.pair_risk == "high":
+            return "Cross-task pair — high structural risk — caution region"
         return "Cross-task pair — caution region"
     if qa.pair_risk == "low":
         return "Same-task pair — safe region"
@@ -714,6 +748,8 @@ def _report_interpretation(qa: MergeQAReport) -> str:
     if has_weak:
         return "Weak-source influence likely dominates; low-value candidate."
     if has_advisory:
+        if qa.task_relationship == "same_family":
+            return "Same-family pair (different datasets); structurally similar tasks tend to merge well."
         return "Cross-task caution pair; do not prioritize for casual merge exploration."
     return "Same-task pair; reasonable candidate to keep in the evaluation subset."
 
@@ -743,15 +779,22 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append(f"  {_report_headline(qa)}")
 
     # ---------------------------------------------------------------
-    # Task-boundary warning (visually primary, before structural)
+    # Task-boundary section (visually primary, before structural)
     # ---------------------------------------------------------------
     if qa.task_relationship_advisory is not None:
         lines.append("")
-        lines.append("  TASK-BOUNDARY WARNING")
-        lines.append("  " + "-" * 40)
-        lines.append(f"  {qa.task_relationship_advisory}")
-        lines.append("  Action: Do not prioritize this pair unless you have a specific")
-        lines.append("          reason to merge across task boundaries.")
+        if qa.task_relationship == "same_family":
+            lines.append("  TASK-FAMILY NOTE")
+            lines.append("  " + "-" * 40)
+            lines.append(f"  {qa.task_relationship_advisory}")
+            lines.append("  Note: Different datasets but same validated task family.")
+            lines.append("        Treat this pair like a same-task candidate.")
+        else:
+            lines.append("  TASK-BOUNDARY WARNING")
+            lines.append("  " + "-" * 40)
+            lines.append(f"  {qa.task_relationship_advisory}")
+            lines.append("  Action: Do not prioritize this pair unless you have a specific")
+            lines.append("          reason to merge across task boundaries.")
 
     # ---------------------------------------------------------------
     # Section 1: Structural Result

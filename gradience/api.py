@@ -490,10 +490,12 @@ def merge_risk_report(
     adapter_a_p = Path(adapter_a)
     adapter_b_p = Path(adapter_b)
 
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
-        emit_path = Path(tmp.name)
+    # Use a private temporary directory (mode 0o700) instead of a
+    # world-readable NamedTemporaryFile to prevent other local users
+    # from reading or swapping the report file between write and read.
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        emit_path = Path(tmp_dir) / "report.json"
 
-    try:
         argv = [
             _pyexe(python),
             "-m",
@@ -527,8 +529,6 @@ def merge_risk_report(
         from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
 
         return _MergeQAReport.from_dict(report_data)
-    finally:
-        emit_path.unlink(missing_ok=True)
 
 
 def compute_core_space_diagnostic(

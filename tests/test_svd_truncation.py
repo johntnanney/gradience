@@ -418,7 +418,7 @@ class TestAdapterIO:
             except ImportError:
                 pytest.skip("safetensors not available")
         else:
-            state_dict = torch.load(weights_file, map_location="cpu")
+            state_dict = torch.load(weights_file, map_location="cpu", weights_only=True)
 
         # Verify LoRA matrices have correct shapes
         lora_a_keys = [k for k in state_dict if "lora_A" in k]

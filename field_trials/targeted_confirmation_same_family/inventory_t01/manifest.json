@@ -1,0 +1,73 @@
+{
+  "inventory_id": "targeted-confirmation-t01-same-family-routing",
+  "description": "Confirmation pass: verify that same-family routing distinguishes exact same-task from same-family cross-dataset and true cross-task. Binary sentiment family on distilbert-base-uncased.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "targeted_confirmation",
+  "confirmation_target": "same_family_routing",
+  "adapters": [
+    {
+      "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "strong SST-2 source",
+      "expected_status": "eligible",
+      "prior_delta": 0.382
+    },
+    {
+      "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "strong SST-2 source — exact same-task partner for myselfmankar",
+      "expected_status": "eligible",
+      "prior_delta": 0.424
+    },
+    {
+      "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 8,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "strong IMDB source — same-family cross-dataset partner",
+      "expected_status": "eligible",
+      "prior_delta": 0.398
+    },
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+      "base_model": "distilbert-base-uncased",
+      "task": "topic-classification",
+      "dataset": "ag_news",
+      "method": "lora",
+      "role": "strong ag_news source — true cross-task control",
+      "expected_status": "eligible",
+      "prior_delta": 0.694
+    }
+  ],
+  "planned_pairs": {
+    "exact_same_task": {
+      "description": "SST-2 x SST-2 — retained baseline",
+      "pair": ["myselfmankar/distilbert-base-sst2-lora", "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2"],
+      "expected_routing": "same_task_priority"
+    },
+    "same_family_cross_dataset": {
+      "description": "SST-2 x IMDB — KEY confirmation case",
+      "pair": ["myselfmankar/distilbert-base-sst2-lora", "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"],
+      "expected_routing": "same_task_priority (via same_family)"
+    },
+    "true_cross_task": {
+      "description": "SST-2 x ag_news — true cross-task control",
+      "pair": ["myselfmankar/distilbert-base-sst2-lora", "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news"],
+      "expected_routing": "cross_task_caution"
+    }
+  },
+  "data_note": "All four adapters were previously used in Campaign A / Phase 2 field trials. Evidence scores are from shuffled eval sets (seed=42)."
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "checkpoint_inventory_qa_summary/v1",
+  "inventory_id": "checkpoint_inventory_t01",
+  "timestamp_utc": "2026-03-31T00:26:16.053747+00:00",
+  "status_counts": {
+    "eligible": 1,
+    "uncertain": 0,
+    "flagged_weak": 3,
+    "unknown_no_behavioral_eval": 0
+  },
+  "checkpoints": [
+    {
+      "checkpoint_id": "sst2_s42",
+      "status": "flagged_weak",
+      "confidence": "medium",
+      "delta_vs_base": -0.08,
+      "structural_flags": []
+    },
+    {
+      "checkpoint_id": "sst2_s123",
+      "status": "flagged_weak",
+      "confidence": "medium",
+      "delta_vs_base": -0.08,
+      "structural_flags": []
+    },
+    {
+      "checkpoint_id": "mrpc_s42",
+      "status": "eligible",
+      "confidence": "high",
+      "delta_vs_base": 0.14,
+      "structural_flags": []
+    },
+    {
+      "checkpoint_id": "qnli_s42",
+      "status": "flagged_weak",
+      "confidence": "low",
+      "delta_vs_base": -0.01,
+      "structural_flags": [
+        "diffuse_delta_spectrum",
+        "high_effective_rank"
+      ]
+    }
+  ]
+}

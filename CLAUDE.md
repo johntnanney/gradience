@@ -176,7 +176,9 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - `recommended_strategy`: operational — `"linear"` (low risk), `"norm_equalized"` (medium), `"audit_aware"` (high/compression)
 - `recommended_action`: explanatory prose, does not override `recommended_strategy`
 - `confidence`: categorical (`"high"`, `"medium"`, `"low"`); `confidence_note` is prose companion
-- `task_relationship_advisory`: validated additive signal, present when source QA `eval_dataset` fields differ; cleanly separates same-task (safe) from different-task (caution) pairs; does not alter pair-risk or strategy
+- `task_relationship_advisory`: validated additive signal, present when source QA `eval_dataset` fields differ; does not alter pair-risk or strategy
+- `task_relationship`: three-way classification — `"same_task"`, `"same_family"`, `"cross_task"`; `same_family` downgrades advisory from caution to informational when both adapters belong to the same validated task family
+- Task-family registry: `vnext/merge/task_families.py` — static `TASK_FAMILY_REGISTRY` mapping dataset names to family labels; only empirically validated families (currently: `sentiment_binary` for sst2, imdb, yelp_polarity, amazon_polarity)
 - `--emit-report` writes v1 JSON; `--qa-report` prints 4-section terminal format (plus task-relationship advisory block when applicable)
 - `--strict-qa` blocks `flagged_weak`, `unknown_no_behavioral_eval`, and `null` eligibility
 - Canonical examples in `examples/reports/` — one per scenario (safe, high-risk warning, strict-blocked)
@@ -200,6 +202,8 @@ All exceptions inherit from `GradienceError`. Specific types: `ConfigError`, `Au
 - Batch summary module: `gradience.vnext.inventory.batch` — `discover_previous_run()`, `collect_run_summaries()`, `build_batch_summary()`, `format_batch_summary()`, `emit_batch_summary()`
 - `InventoryActionPlan` is stable public API (exported from `gradience.__init__`)
 - Action plan shows per-pair risk and recommended strategy in the evaluate-first and same-task sections
+- Near-miss severity: `near_miss_severity` field on `InventoryActionPlan` — classifies weak sources as `"marginal"` (delta > -0.010), `"moderate"` (-0.010 to -0.050), or `"substantial"` (< -0.050); near-miss pairs ordered by severity (best prospects first)
+- Same-family routing: pairs where `task_relationship == "same_family"` route to `same_task_priority` bucket (not `cross_task_caution`)
 - Malformed input: skip with warning by default, `--strict-input` fails hard
 - Canonical example in `examples/inventory/`
 - Definition doc: `docs/inventory-summary.md`

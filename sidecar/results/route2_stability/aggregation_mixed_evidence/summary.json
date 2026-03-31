@@ -1,0 +1,32 @@
+{
+  "schema": "route2_stability.aggregation_mixed_evidence.summary/v1",
+  "generated_utc": "2026-04-01T00:40:00Z",
+  "substudy": "Route2 Aggregation Mixed-Evidence Triage Perturbation",
+  "soft_middle_status": {
+    "qa_dominant_family_coherence": "coherent",
+    "same_family_optional_safe_likeness": "coherent_with_guardrails",
+    "taxonomy_usability": "coherent_with_guardrails",
+    "structural_nuance_in_mixed_review": "coherent_with_guardrails",
+    "review_vs_low_value_differentiation": "coherent_with_guardrails"
+  },
+  "route2_language_updates": {
+    "safe_to_say": [
+      "qa_dominant_remains_distinct_in_mixed_evidence_triage",
+      "same_family_optional_cases_tend_toward_review_or_clear_not_blocked",
+      "soft_middle_is_structured_but_guarded"
+    ],
+    "keep_guarded": [
+      "exact_review_thresholds",
+      "exact_pattern_counts",
+      "hard_numeric_cutpoints_inside_review_state"
+    ],
+    "sidecar_only_for_now": [
+      "fine_grained_secondary_review_priority_claims"
+    ]
+  },
+  "need_another_pass": {
+    "recommended": false,
+    "reason": "Current pass clarifies the soft-middle enough for guarded Route 2 language without further immediate perturbation."
+  },
+  "bottom_line": "The mixed-evidence triage middle remains coherent enough to support QA-dominant use and same-family optional review framing, with explicit guardrails on thresholds and fine-grained taxonomy boundaries."
+}

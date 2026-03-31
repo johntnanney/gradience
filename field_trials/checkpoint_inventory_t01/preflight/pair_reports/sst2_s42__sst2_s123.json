@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s42",
+    "rank": 0,
+    "alpha": 0.0,
+    "n_layers": 38,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "flagged_weak"
+  },
+  "adapter_b": {
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s123",
+    "rank": 0,
+    "alpha": 0.0,
+    "n_layers": 38,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "flagged_weak"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "high_redundancy",
+  "dominant_issue_detail": "Layer summary profiles are very close; pair appears structurally redundant.",
+  "recommended_action": "Plausible with caution; use conservative weighting and targeted validation.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Derived from summary-based checkpoint deltas; behavior-first confirmation recommended.",
+  "caveats": [
+    "Checkpoint inventory trial path (not merge execution).",
+    "Representation C structural summaries were used for pair scoring."
+  ],
+  "verdict_distribution": {
+    "conflicting": 0,
+    "safe": 0,
+    "redundant": 0,
+    "review": 1
+  },
+  "compatibility_score": 0.8922,
+  "task_relationship": "same_task"
+}

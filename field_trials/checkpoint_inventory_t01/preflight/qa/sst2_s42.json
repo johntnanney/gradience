@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "sst2_s42",
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 0,
+    "n_layers": 38
+  },
+  "structural_summary": {
+    "utilization_mean": 0.5834677258604452,
+    "utilization_median": 0.5834677258604452,
+    "stable_rank_mean": 4.196341026127997,
+    "effective_rank_90_median": null,
+    "rank_waste_ratio": 0.41653227413955485,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "sst2",
+    "metric_name": "accuracy",
+    "adapter_score": 0.48,
+    "base_score": 0.56,
+    "lower_is_better": false,
+    "beats_base": false,
+    "margin_confidence": 0.0
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "medium",
+    "reasons": [
+      "Adapter is worse than base by 0.0800 (accuracy).  Merging may not preserve useful signal."
+    ]
+  },
+  "notes": [
+    "Checkpoint QA derived from Ring 2 summary representation + bootstrap evidence."
+  ]
+}

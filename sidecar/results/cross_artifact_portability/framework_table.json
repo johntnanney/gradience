@@ -1,0 +1,122 @@
+{
+  "schema": "cross_artifact_portability_framework/v1",
+  "generated_utc": "2026-03-31T19:30:00.000000+00:00",
+  "program": "Cross-Artifact Compatibility Research Program (Route 2)",
+  "layers": [
+    {
+      "layer": 1,
+      "name": "artifact_invariant_compatibility_signals",
+      "description": "Signals that recur across artifact classes regardless of representation form",
+      "signals": [
+        {
+          "signal": "evidence_regime_gating",
+          "strength": "strong",
+          "mechanism": "Operates on evidence metadata (behavioral evaluation presence/absence, QA status), not on structural measurements. Representation-agnostic by design.",
+          "product_status": "safe_to_expose"
+        },
+        {
+          "signal": "conservative_candidate_narrowing",
+          "strength": "strong",
+          "mechanism": "Composite of QA gating + task-relation boundaries + structural risk. The narrowing logic (broad input -> narrow output) is preserved even when the structural risk computation differs by representation.",
+          "product_status": "safe_to_expose"
+        },
+        {
+          "signal": "task_relation_ordering",
+          "strength": "moderate",
+          "mechanism": "The ordering same_task > same_family > cross_task is upstream of representation form. It reflects task similarity, not factor geometry. Present in all classes where testable.",
+          "product_status": "safe_with_scope_guardrail"
+        },
+        {
+          "signal": "same_family_intermediate_status",
+          "strength": "moderate",
+          "mechanism": "Same-family pairs occupy a distinct middle ground. This follows from task-relation ordering. Confirmed in LoRA and checkpoint delta but not testable in LoHa.",
+          "product_status": "safe_with_scope_guardrail"
+        }
+      ]
+    },
+    {
+      "layer": 2,
+      "name": "representation_family_features",
+      "description": "Signals that are meaningful only within one representation family",
+      "families": [
+        {
+          "family": "factor_based",
+          "artifact_classes": ["lora", "loha_shimmed"],
+          "signals": [
+            {
+              "signal": "subspace_overlap_and_principal_angles",
+              "description": "Factor-level subspace geometry including the V-module dimensionality ratio",
+              "product_status": "research_only"
+            },
+            {
+              "signal": "merge_strategy_recommendation",
+              "description": "Strategy selection for factor-based merge execution",
+              "product_status": "research_only"
+            },
+            {
+              "signal": "spectral_audit_metrics",
+              "description": "Stable rank, utilization, energy rank from SVD of factor matrices",
+              "product_status": "research_only"
+            }
+          ]
+        },
+        {
+          "family": "summary_based",
+          "artifact_classes": ["checkpoint_delta"],
+          "signals": [
+            {
+              "signal": "summary_profile_cosine_similarity",
+              "description": "Pairwise comparison via cosine similarity of per-layer summary vectors",
+              "product_status": "research_only"
+            },
+            {
+              "signal": "delta_spectral_statistics",
+              "description": "Effective rank, stable rank, energy concentrations from full delta matrix SVD",
+              "product_status": "research_only"
+            }
+          ]
+        },
+        {
+          "family": "shimmed",
+          "artifact_classes": ["loha_shimmed"],
+          "signals": [
+            {
+              "signal": "shim_approximation_error",
+              "description": "Truncated SVD reconstruction error from materialized conversion",
+              "product_status": "research_only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layer": 3,
+      "name": "decision_dependent_interpretation",
+      "description": "How compatibility signals are interpreted depends on the decision scenario",
+      "scenarios": [
+        {
+          "scenario": "merge",
+          "interpretation": "Worst-case aggregation. Factor geometry matters. Strategy recommendation is actionable. Only available for LoRA (native) and LoHa (shimmed, unvalidated).",
+          "artifact_class_coverage": ["lora", "loha_shimmed"]
+        },
+        {
+          "scenario": "routing",
+          "interpretation": "Distributional aggregation. Confusability scoring. Task-family routing. Available for LoRA (routing pilot). Not tested for other classes.",
+          "artifact_class_coverage": ["lora"]
+        },
+        {
+          "scenario": "triage",
+          "interpretation": "QA-gate-first aggregation. Evidence status dominates. Available for all three classes. This is the only decision scenario with full cross-artifact coverage.",
+          "artifact_class_coverage": ["lora", "loha_shimmed", "checkpoint_delta"]
+        }
+      ]
+    }
+  ],
+  "interaction_rules": [
+    "Layer 1 signals (invariant) can be referenced across artifact classes without qualification.",
+    "Layer 2 signals (representation-local) must be qualified by artifact class when referenced.",
+    "Layer 3 scenarios determine which Layer 2 signals are relevant in a given decision context.",
+    "Only triage (Layer 3) has complete cross-artifact coverage. Merge and routing are artifact-local in practice.",
+    "Numeric compatibility scores from Layer 2 cannot be compared across representation families."
+  ]
+}

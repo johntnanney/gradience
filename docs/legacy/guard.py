@@ -589,7 +589,7 @@ class Guard:
 
     def _load_snapshot(self, snapshot: Snapshot):
         """Load model and optimizer state from snapshot."""
-        checkpoint = torch.load(snapshot.path)
+        checkpoint = torch.load(snapshot.path, weights_only=True)
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 

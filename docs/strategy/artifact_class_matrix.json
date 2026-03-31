@@ -1,0 +1,69 @@
+{
+  "schema": "route2.artifact_class_matrix/v1",
+  "generated_utc": "2026-03-31T00:00:00Z",
+  "rows": [
+    {
+      "artifact_class": "lora",
+      "representation_type": "native_low_rank_factors",
+      "support_level": "stable",
+      "single_artifact_qa": "yes",
+      "pairwise_comparison": "yes",
+      "inventory_triage": "yes",
+      "merge_execution": "yes",
+      "validation_basis": [
+        "field_trials/inventory_01_same_task_control",
+        "field_trials/inventory_02_mixed_task",
+        "field_trials/inventory_03_large_mixed_task",
+        "field_trials/inventory_04_distilbert_irony_cluster",
+        "field_trials/inventory_05_bert_hate_emotion"
+      ]
+    },
+    {
+      "artifact_class": "loha",
+      "representation_type": "shimmed_low_rank_factor_or_materialized_delta",
+      "support_level": "experimental_validated_for_audit_and_triage",
+      "single_artifact_qa": "yes_via_shim",
+      "pairwise_comparison": "yes_via_shim",
+      "inventory_triage": "yes_via_shim",
+      "merge_execution": "not_supported_as_native_loha_execution",
+      "validation_basis": [
+        "experiments/peft_ring1/measurement_compatibility_results.json",
+        "experiments/peft_ring1/inventory_pilot/run_001/preflight_summary.json",
+        "docs/strategy/ring1_peft_generalization_results.md"
+      ]
+    },
+    {
+      "artifact_class": "lokr",
+      "representation_type": "inferred_low_rank_component_or_materialized_kronecker_delta",
+      "support_level": "inferred_deferred",
+      "single_artifact_qa": "not_validated",
+      "pairwise_comparison": "not_validated",
+      "inventory_triage": "not_validated",
+      "merge_execution": "no",
+      "validation_basis": [
+        "experiments/peft_ring1/artifact_support_matrix.json"
+      ]
+    },
+    {
+      "artifact_class": "full_checkpoint_delta",
+      "representation_type": "layer_summary_representation_c",
+      "support_level": "bounded_supported_in_tested_settings_experimental_outside_scope",
+      "single_artifact_qa": "yes",
+      "pairwise_comparison": "yes",
+      "inventory_triage": "yes",
+      "merge_execution": "no",
+      "validation_basis": [
+        "experiments/ring2_checkpoint_delta/stage_a_representation_results.json",
+        "experiments/ring2_checkpoint_delta/stage_b_representation_c_results.json",
+        "experiments/ring2_checkpoint_delta/stage_c_inventory_results.json",
+        "field_trials/checkpoint_inventory_t01/trial_memo.md",
+        "field_trials/checkpoint_inventory_t02/trial_memo.md"
+      ]
+    }
+  ],
+  "boundaries": {
+    "ia3": "out_of_scope_measurement_redesign_required",
+    "decoder_models": "out_of_scope_for_current_route2_validation",
+    "checkpoint_merge_execution": "out_of_scope"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "rank": 4,
+    "alpha": 32.0,
+    "n_layers": 6,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "high",
+  "dominant_issue": "norm_imbalance",
+  "dominant_issue_detail": "10.0x mean magnitude ratio across 6 layer(s)",
+  "recommended_action": "Merge with caution using audit-aware strategy. Validate on downstream task.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "low",
+  "confidence_note": "Low spectral compatibility (score=0.193) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [
+    "High structural risk. Always validate the merged adapter on your target task before deployment."
+  ],
+  "verdict_distribution": {
+    "safe": 0,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 6
+  },
+  "compatibility_score": 0.1926,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (sst2 vs imdb). Linear merges across task boundaries may degrade the weaker task's performance."
+}

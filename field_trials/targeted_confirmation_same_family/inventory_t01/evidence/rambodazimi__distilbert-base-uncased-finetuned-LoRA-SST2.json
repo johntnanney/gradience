@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+  "base_model": "distilbert-base-uncased",
+  "eval_dataset": "sst2",
+  "eval_split": "validation",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.902,
+  "base_score": 0.508,
+  "beats_base": true,
+  "delta": 0.394,
+  "adapter_f1": 0.9074,
+  "base_f1": 0.5954,
+  "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2"
+}

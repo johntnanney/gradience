@@ -1,0 +1,129 @@
+{
+  "schema": "route2_stability.cross_artifact.perturbed_invariant_signal_matrix/v1",
+  "generated_utc": "2026-03-31T21:30:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "source_panel": "sidecar/results/route2_stability/cross_artifact/perturbed_panel_table.json",
+  "signal_families": [
+    {
+      "signal_family": "qa_evidence_regime",
+      "description": "Evidence bootstrap and QA gating remain operationally central",
+      "lora": {
+        "present": true,
+        "evidence": "Same-family T01 remains QA-clear with full behavioral evidence; near-miss substantial T02 remains evidence-constrained by weak-source severity.",
+        "dominant_in_triage": true
+      },
+      "loha": {
+        "present": true,
+        "evidence": "All three LoHa sources remain unknown_no_behavioral_eval in Ring 1 pilot; strict QA remains binding before execution claims.",
+        "dominant_in_triage": true
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "T02 policy remains source-QA dominant with weak/uncertain source counts; near-miss candidate remains evidence-constrained.",
+        "dominant_in_triage": true
+      },
+      "recurrence": "present_across_all_classes",
+      "strength": "strong",
+      "perturbation_effect": "none_material",
+      "notes": "Strongly stable. Substitutions did not change the dominance of evidence and QA gates."
+    },
+    {
+      "signal_family": "conservative_narrowing",
+      "description": "Workflow reduces broad candidate sets to narrower actionable subsets",
+      "lora": {
+        "present": true,
+        "evidence": "Same-family T01 reduces 3 pairs to 2 retained; near-miss T02 reduces 4 pairs to 2 retained with explicit weak-source deprioritization.",
+        "narrowing_ratio": "moderate_to_high"
+      },
+      "loha": {
+        "present": true,
+        "evidence": "Pilot remains structurally confirmatory but behaviorally blocked under strict QA assumptions.",
+        "narrowing_ratio": "qa_bound"
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "T02 remains narrow-posture and source-QA constrained (10 pairs, 0 retained, near-miss queue only).",
+        "narrowing_ratio": "high"
+      },
+      "recurrence": "present_across_all_classes",
+      "strength": "strong",
+      "perturbation_effect": "none_material",
+      "notes": "Strongly stable at workflow shape level."
+    },
+    {
+      "signal_family": "same_task_vs_cross_task_separation",
+      "description": "Same-task tends to score higher than cross-task where testable",
+      "lora": {
+        "present": true,
+        "evidence": "same_task near-miss substantial: 0.2115; cross_task control: 0.1114.",
+        "separation_observed": true
+      },
+      "loha": {
+        "present": "indeterminate",
+        "evidence": "No cross-task LoHa cases in panel.",
+        "separation_observed": null
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "same_task 0.8922 vs cross_task 0.4891 in perturbed checkpoint panel.",
+        "separation_observed": true
+      },
+      "recurrence": "present_across_tested_classes",
+      "strength": "moderate",
+      "perturbation_effect": "minor",
+      "notes": "Remains visible where testable, but still limited by LoHa coverage."
+    },
+    {
+      "signal_family": "same_family_intermediate_behavior",
+      "description": "Same-family behaves between same-task and cross-task",
+      "lora": {
+        "present": "mixed",
+        "evidence": "Perturbed LoRA values are same_family 0.314, same_task 0.2115, cross_task 0.1114; same-family remains distinct from cross-task but is not intermediate.",
+        "intermediate_position": false
+      },
+      "loha": {
+        "present": "not_testable",
+        "evidence": "No same-family LoHa cases.",
+        "intermediate_position": null
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "same_task 0.8922 > same_family 0.6410 > cross_task 0.4891.",
+        "intermediate_position": true
+      },
+      "recurrence": "mixed_across_tested_classes",
+      "strength": "weak",
+      "perturbation_effect": "meaningful",
+      "notes": "Panel-sensitive under local substitution. Same-family distinctness survives, but strict intermediate ordering does not hold uniformly."
+    },
+    {
+      "signal_family": "near_miss_middle_states",
+      "description": "Near-miss / optional middle categories recur beyond LoRA",
+      "lora": {
+        "present": true,
+        "evidence": "Near-miss substantial is explicitly present in perturbed LoRA panel.",
+        "distinct_category": true
+      },
+      "loha": {
+        "present": "not_observed",
+        "evidence": "Homogeneous same-task LoHa panel still shows no near-miss variety.",
+        "distinct_category": false
+      },
+      "checkpoint_delta": {
+        "present": "partial",
+        "evidence": "T02 still has near-miss candidate queue only; no confirmed near-miss category in cross-artifact portability panel framing.",
+        "distinct_category": false
+      },
+      "recurrence": "present_in_one_class_only",
+      "strength": "weak",
+      "perturbation_effect": "none_material",
+      "notes": "Still inconclusive cross-artifact."
+    }
+  ],
+  "summary": {
+    "strong_invariants": ["qa_evidence_regime", "conservative_narrowing"],
+    "moderate_invariants": ["same_task_vs_cross_task_separation"],
+    "weakened_or_panel_sensitive": ["same_family_intermediate_behavior"],
+    "still_inconclusive": ["near_miss_middle_states"]
+  }
+}

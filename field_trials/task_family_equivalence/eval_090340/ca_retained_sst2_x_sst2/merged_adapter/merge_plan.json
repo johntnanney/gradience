@@ -1,0 +1,140 @@
+{
+  "schema_version": "gradience.merge_plan/v1",
+  "plan_id": "5156e3b7-76d6-4f25-b6ba-d5dbf5eb285c",
+  "strategy_name": "audit_aware",
+  "adapter_a_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+  "adapter_b_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "layer_configs": [
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9541193633373691,
+        0.04588063666263083
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+      "strategy": "ties",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.176
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+      "strategy": "ties",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.107
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+      "strategy": "ties",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.138
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9495055792713095,
+        0.05049442072869048
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9316134310073291,
+        0.06838656899267097
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9187390188304001,
+        0.08126098116959993
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9346805565340921,
+        0.06531944346590787
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+      "strategy": "ties",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.164
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.9190264065753828,
+        0.08097359342461716
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+      "strategy": "ties",
+      "coefficients": [
+        0.5,
+        0.5
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.102
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+      "strategy": "linear",
+      "coefficients": [
+        0.8930602807603792,
+        0.10693971923962071
+      ],
+      "target_rank": 8,
+      "trim_fraction": 0.0
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-03-29T14:03:40.669393+00:00",
+    "strategy": "audit_aware",
+    "source_audit": {
+      "overall_verdict": "imbalanced",
+      "compatibility_score": 0.4748,
+      "n_shared_layers": 12
+    }
+  }
+}

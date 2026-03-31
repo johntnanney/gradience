@@ -1,0 +1,19 @@
+{
+  "schema": "checkpoint_triage_alpha_bundle_manifest/v1",
+  "generated_utc": "2026-03-31T02:29:03.658126+00:00",
+  "bundle_dir": "/Users/john/code/gradience/field_trials/checkpoint_inventory_t02/preflight/alpha_bundle",
+  "files": [
+    "alpha_summary.json",
+    "bundle_manifest.json",
+    "report.html"
+  ],
+  "source_artifacts": {
+    "preflight_results": "../preflight_results.json",
+    "inventory_summary": "../inventory/inventory_summary.json",
+    "inventory_action_plan": "../inventory/inventory_action_plan.json",
+    "qa_summary": "../../qa_artifacts/qa_summary.json",
+    "pairwise_results": "../../pairwise/pairwise_results.json",
+    "evidence_bootstrap": "../../evidence/bootstrap_results.json",
+    "eval_results": "../../eval_results.json"
+  }
+}

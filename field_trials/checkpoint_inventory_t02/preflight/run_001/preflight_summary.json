@@ -1,0 +1,37 @@
+{
+  "inventory_id": "checkpoint_inventory_t02",
+  "run_id": "run_001",
+  "timestamp": "2026-03-31T00:58:31.399765+00:00",
+  "adapter_count": 5,
+  "pair_count": 10,
+  "excluded_sources": [
+    "sst2_s42: weak source \u2014 low confidence",
+    "sst2_s123: weak source \u2014 low confidence",
+    "qnli_s42: weak source \u2014 low confidence"
+  ],
+  "same_task_priority_pairs": [],
+  "cross_task_caution_regions": [
+    "MRPC \u00d7 YELP_POLARITY region"
+  ],
+  "reduced_candidate_subset": [],
+  "near_miss_candidates": [
+    "sst2_s42 \u00d7 sst2_s123"
+  ],
+  "retained_candidate_count": 0,
+  "reduction_ratio": 1.0,
+  "advisory_pair_count": 9,
+  "qa_summary": {
+    "flagged_weak": 3,
+    "uncertain": 1,
+    "eligible": 1
+  },
+  "behavioral_evidence_count": 5,
+  "total_source_count": 5,
+  "summary_line": "QA dominates this inventory; no credible same-task candidates remain.",
+  "inventory_policy_summary": {
+    "inventory_type": "mixed_quality",
+    "dominant_driver": "source_qa",
+    "exploration_posture": "narrow",
+    "constraint": "Source QA is the binding constraint; resolve weak evidence before exploring merges."
+  }
+}

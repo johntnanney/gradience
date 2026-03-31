@@ -1,0 +1,90 @@
+{
+  "schema": "decision_dependent_profile_table/v1",
+  "generated_utc": "2026-03-31T01:23:15.537832+00:00",
+  "profile_count": 6,
+  "profiles": [
+    {
+      "profile_id": "P1_redundant_confusable",
+      "name": "Redundant / Routing-Confusable",
+      "definition": "Very high structural overlap creates low incremental merge value and high routing confusion.",
+      "scenario_signatures": {
+        "merge": "typically redundant; deduplicate unless constrained",
+        "routing": "consider_dedup or strong disambiguation",
+        "triage": "only actionable if source QA is clear"
+      },
+      "representative_case_ids": [
+        "rte_seed_pair_confusable",
+        "tri_same_task_near_miss_sst2_pair_t02"
+      ]
+    },
+    {
+      "profile_id": "P2_overlap_needs_disambiguation",
+      "name": "Overlap / Needs Disambiguation",
+      "definition": "Moderate overlap supports plausible merge use but routing requires task signal to avoid confusion.",
+      "scenario_signatures": {
+        "merge": "merge-compatible but not automatically high-value",
+        "routing": "needs_disambiguation",
+        "triage": "review candidate if QA is not weak"
+      },
+      "representative_case_ids": [
+        "mnli_qnli_moderate_confusable",
+        "tri_same_family_review_sst2_yelp_t02"
+      ]
+    },
+    {
+      "profile_id": "P3_merge_ok_routing_separable",
+      "name": "Merge-OK / Routing-Separable",
+      "definition": "Pair can look merge-acceptable while still being easy for routing separation.",
+      "scenario_signatures": {
+        "merge": "can be acceptable under merge lens",
+        "routing": "easily_routed",
+        "triage": "not necessarily prioritized without quality evidence"
+      },
+      "representative_case_ids": [
+        "qnli_rte_separable"
+      ]
+    },
+    {
+      "profile_id": "P4_qa_blocked_structurally_nontrivial",
+      "name": "QA-Blocked / Structurally Nontrivial",
+      "definition": "Structural compatibility is present, but weak-source evidence blocks action.",
+      "scenario_signatures": {
+        "merge": "defer despite structural plausibility",
+        "routing": "structural separability/confusability secondary to source quality",
+        "triage": "qa_blocked dominates"
+      },
+      "representative_case_ids": [
+        "tri_same_task_near_miss_sst2_pair_t02",
+        "tri_cross_task_weak_region_yelp_qnli_t02"
+      ]
+    },
+    {
+      "profile_id": "P5_same_family_optional",
+      "name": "Same-Family Optional",
+      "definition": "Same-family relation justifies cautious optional review, not automatic retention.",
+      "scenario_signatures": {
+        "merge": "can perform near same-task in validated examples",
+        "routing": "often moderate confusability, needs disambiguation",
+        "triage": "informational caution / optional probe"
+      },
+      "representative_case_ids": [
+        "mrg_safe_same_task_sst2_sst2_t01",
+        "tri_same_family_review_sst2_yelp_t02"
+      ]
+    },
+    {
+      "profile_id": "P6_cross_task_low_value_control",
+      "name": "Cross-Task Low-Value Control",
+      "definition": "Cross-task boundary plus weaker compatibility yields low priority under constrained budgets.",
+      "scenario_signatures": {
+        "merge": "control/risky; usually below same-task alternatives",
+        "routing": "often separable and not confusable",
+        "triage": "caution or exclusion unless strong contrary evidence"
+      },
+      "representative_case_ids": [
+        "mrg_cross_task_control_sst2_agnews_t01",
+        "tri_cross_task_weak_region_yelp_qnli_t02"
+      ]
+    }
+  ]
+}

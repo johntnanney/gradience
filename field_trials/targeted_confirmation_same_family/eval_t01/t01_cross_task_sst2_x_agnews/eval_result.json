@@ -1,0 +1,15 @@
+{
+  "pair_name": "t01_cross_task_sst2_x_agnews",
+  "role": "cross_task_control",
+  "strategy": "audit_aware",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.111,
+  "mean_reconstruction_error": 0.042,
+  "merged_accuracy": 0.842,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 6.1,
+  "notes": "True cross-task control (SST-2 x ag_news), eval on SST-2."
+}

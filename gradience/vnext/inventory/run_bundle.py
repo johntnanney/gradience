@@ -15,6 +15,7 @@ No new analysis logic. Presentation and packaging only.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1150,8 +1151,29 @@ def emit_run_bundle(
 
 
 def update_latest_pointer(inventory_root: Path, run_dir: Path) -> None:
-    """Update the latest/ symlink at the inventory root to point to the current run."""
+    """Update the latest/ symlink at the inventory root to point to the current run.
+
+    Uses atomic replacement via a temporary symlink + ``os.replace()``
+    to avoid a TOCTOU race between unlinking the old symlink and
+    creating the new one.
+    """
+    import os
+    import tempfile
+
     latest = inventory_root / "latest"
-    if latest.is_symlink() or latest.exists():
-        latest.unlink()
-    latest.symlink_to(run_dir.resolve(), target_is_directory=True)
+    target = run_dir.resolve()
+
+    # Create a temporary symlink next to the target, then atomically
+    # move it into place.  os.replace() is atomic on POSIX when source
+    # and destination are on the same filesystem.
+    fd, tmp_path = tempfile.mkstemp(dir=str(inventory_root), prefix=".latest_")
+    os.close(fd)
+    os.unlink(tmp_path)  # mkstemp creates a regular file; we need a symlink
+    os.symlink(str(target), tmp_path)
+    try:
+        os.replace(tmp_path, str(latest))
+    except OSError:
+        # Clean up the temp symlink on failure
+        with contextlib.suppress(OSError):
+            os.unlink(tmp_path)
+        raise

@@ -1,0 +1,26 @@
+{
+  "locked_at": "2026-03-29 09:55:35",
+  "same_task_priority": [
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment"
+  ],
+  "cross_task_caution": [
+    "AG_NEWS \u00d7 SST-2 region"
+  ],
+  "exclude": [],
+  "near_miss_candidates": [],
+  "near_miss_severity": [],
+  "retained_pair_detail": [
+    [
+      "myselfmankar__distilbert-base-sst2-lora \u00d7 rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "medium",
+      "audit_aware"
+    ],
+    [
+      "myselfmankar__distilbert-base-sst2-lora \u00d7 dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "medium",
+      "audit_aware"
+    ]
+  ],
+  "summary_line": "Inventory is mostly explained by task boundary. Candidate space reduced from 3 pairs to 2 (33% reduction)."
+}

@@ -698,6 +698,129 @@ class TestStrictReloadInvariant:
 
 
 # ---------------------------------------------------------------------------
+# Margin confidence
+# ---------------------------------------------------------------------------
+
+
+class TestMarginConfidence:
+    """Tests for the margin_confidence computed field."""
+
+    def test_none_when_no_eval(self):
+        """margin_confidence is None when no behavioral eval is available."""
+        art = _make_artifact(eval_available=False)
+        assert art.margin_confidence is None
+
+    def test_none_when_lower_is_better(self):
+        """margin_confidence is None for loss-like metrics (lower_is_better=True)."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=2.5,
+            base_score=3.0,
+            lower_is_better=True,
+            metric_name="perplexity",
+        )
+        assert art.margin_confidence is None
+
+    def test_basic_computation(self):
+        """margin_confidence = (adapter - base) / (1 - base)."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=0.85,
+            base_score=0.60,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        # (0.85 - 0.60) / (1.0 - 0.60) = 0.25 / 0.40 = 0.625
+        assert art.margin_confidence is not None
+        assert abs(art.margin_confidence - 0.625) < 1e-6
+
+    def test_marginal_adapter(self):
+        """Adapter barely beating base gets low margin_confidence."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=0.61,
+            base_score=0.60,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        # (0.61 - 0.60) / (1.0 - 0.60) = 0.01 / 0.40 = 0.025
+        assert art.margin_confidence is not None
+        assert abs(art.margin_confidence - 0.025) < 1e-6
+
+    def test_near_ceiling(self):
+        """Near-ceiling adapter on high-base task."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=0.96,
+            base_score=0.95,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        # (0.96 - 0.95) / (1.0 - 0.95) = 0.01 / 0.05 = 0.20
+        assert art.margin_confidence is not None
+        assert abs(art.margin_confidence - 0.20) < 1e-6
+
+    def test_below_base_clamped_to_zero(self):
+        """Adapter below base gets margin_confidence = 0."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=0.55,
+            base_score=0.60,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        assert art.margin_confidence == 0.0
+
+    def test_base_at_ceiling(self):
+        """Base at 1.0 → margin_confidence is None (no headroom)."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=1.0,
+            base_score=1.0,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        assert art.margin_confidence is None
+
+    def test_roundtrip_with_margin(self):
+        """margin_confidence survives to_dict → from_dict."""
+        audit = _StubAuditResult()
+        art = build_qa_artifact(
+            audit,
+            adapter_score=0.85,
+            base_score=0.60,
+            lower_is_better=False,
+            metric_name="accuracy",
+        )
+        d = art.to_dict()
+        assert d["behavioral_summary"]["margin_confidence"] is not None
+        restored = AdapterQAArtifact.from_dict(d)
+        assert restored.margin_confidence == art.margin_confidence
+
+    def test_roundtrip_none_margin(self):
+        """None margin_confidence survives to_dict → from_dict."""
+        art = _make_artifact()
+        d = art.to_dict()
+        assert d["behavioral_summary"]["margin_confidence"] is None
+        restored = AdapterQAArtifact.from_dict(d)
+        assert restored.margin_confidence is None
+
+    def test_old_json_without_margin(self):
+        """Old JSON without margin_confidence field deserialises cleanly."""
+        art = _make_artifact()
+        d = art.to_dict()
+        del d["behavioral_summary"]["margin_confidence"]
+        restored = AdapterQAArtifact.from_dict(d)
+        assert restored.margin_confidence is None
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 

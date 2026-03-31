@@ -1,0 +1,15 @@
+{
+  "pair_name": "ca_same_imdb_x_imdb",
+  "role": "retained",
+  "strategy": "uniform_linear",
+  "eval_dataset": "imdb",
+  "compatibility": "safe",
+  "compatibility_score": 0.265,
+  "mean_reconstruction_error": 0.0725,
+  "merged_accuracy": 0.868,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 49.3,
+  "notes": "Same-dataset (IMDB x IMDB). Low risk, linear. Second retained baseline."
+}

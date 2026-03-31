@@ -1,0 +1,44 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Cross-task pair — high structural risk — caution region
+
+  TASK-BOUNDARY WARNING
+  ----------------------------------------
+  Cross-task merge: adapters were evaluated on different tasks (sst2 vs ag_news). Linear merges across task boundaries may degrade the weaker task's performance.
+  Action: Do not prioritize this pair unless you have a specific
+          reason to merge across task boundaries.
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       HIGH
+  Compat. score:   0.111
+  Dominant issue:  NORM IMBALANCE
+                   4.0x mean magnitude ratio across 2 layer(s)
+  Layer verdicts:  10 safe, 2 imbalanced (12 total)
+
+  Adapter A:  rank=16, alpha=32.0, 12 layers (distilbert-base-uncased)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora
+  Adapter B:  rank=1, alpha=1.0, 12 layers (JB173/distilbert-base-uncased-finetuned-emotion)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: eligible
+
+  Confidence:      low
+                   Low spectral compatibility (score=0.111) — both adapters have user-reported behavioral quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  1. High structural risk. Always validate the merged adapter on your target task before deployment.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Merge with caution using audit-aware strategy. Validate on downstream task.
+  Strategy: audit_aware
+
+  INTERPRETATION
+  ----------------------------------------
+  Cross-task caution pair; do not prioritize for casual merge exploration.

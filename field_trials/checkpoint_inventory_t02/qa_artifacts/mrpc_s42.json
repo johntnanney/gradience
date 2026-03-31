@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "mrpc_s42",
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/mrpc_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 0,
+    "n_layers": 38
+  },
+  "structural_summary": {
+    "utilization_mean": 0.5738799026922176,
+    "utilization_median": 0.5738799026922176,
+    "stable_rank_mean": 4.857043940259352,
+    "effective_rank_90_median": null,
+    "rank_waste_ratio": 0.42612009730778244,
+    "flags": []
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "mrpc",
+    "metric_name": "accuracy",
+    "adapter_score": 0.665,
+    "base_score": 0.525,
+    "lower_is_better": false,
+    "beats_base": true,
+    "margin_confidence": 0.2947368421052632
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "Adapter beats base by 0.1400 (accuracy, higher is better)."
+    ]
+  },
+  "notes": [
+    "Checkpoint QA derived from summary-based full-checkpoint delta representation."
+  ]
+}

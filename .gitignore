@@ -86,6 +86,17 @@ logs/
 logs*/
 *.log
 wandb/
+# Canonical sidecar result directories (Route 2 record)
+!sidecar/results/
+sidecar/results/*
+!sidecar/results/decision_dependent_compatibility/
+!sidecar/results/decision_dependent_compatibility/**
+!sidecar/results/cross_artifact_compatibility/
+!sidecar/results/cross_artifact_compatibility/**
+!sidecar/results/cross_artifact_portability/
+!sidecar/results/cross_artifact_portability/**
+!sidecar/results/route2_stability/
+!sidecar/results/route2_stability/**
 # RunPod and nohup runner artifacts
 nohup.out
 nohup.log

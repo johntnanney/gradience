@@ -1,0 +1,127 @@
+{
+  "schema": "route2_stability.cross_artifact.original_panel_snapshot/v1",
+  "generated_utc": "2026-03-31T21:10:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "reference_program": "n76-n80 cross_artifact_portability",
+  "reference_panel_source": "sidecar/results/cross_artifact_portability/panel_table.json",
+  "panel": {
+    "panel_id": "cross_artifact_portability_original_9case",
+    "panel_size": 9,
+    "artifact_classes": {
+      "lora": 3,
+      "loha": 3,
+      "checkpoint_delta": 3
+    },
+    "task_relation_coverage": {
+      "same_task": ["lora", "loha", "checkpoint_delta"],
+      "same_family": ["lora", "checkpoint_delta"],
+      "cross_task": ["lora", "checkpoint_delta"]
+    },
+    "evidence_regime_snapshot": {
+      "lora": "mixed behavioral+structural",
+      "loha": "structural_only_unknown_behavior",
+      "checkpoint_delta": "structural_only_with_source_qa_constraints"
+    },
+    "scenario_coverage": {
+      "merge": ["lora"],
+      "routing": ["lora"],
+      "triage": ["lora", "loha", "checkpoint_delta"]
+    }
+  },
+  "cases": [
+    {
+      "case_id": "lora_same_task_sst2_pair",
+      "artifact_class": "lora",
+      "task_relation": "same_task",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01"
+    },
+    {
+      "case_id": "lora_same_family_mnli_qnli",
+      "artifact_class": "lora",
+      "task_relation": "same_family",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["merge", "routing"],
+      "source": "experiments/routing_pilot"
+    },
+    {
+      "case_id": "lora_cross_task_sst2_agnews",
+      "artifact_class": "lora",
+      "task_relation": "cross_task",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01"
+    },
+    {
+      "case_id": "loha_same_task_r4_r8",
+      "artifact_class": "loha",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1"
+    },
+    {
+      "case_id": "loha_same_task_r4_r16",
+      "artifact_class": "loha",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1"
+    },
+    {
+      "case_id": "loha_same_task_r8_r16",
+      "artifact_class": "loha",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1"
+    },
+    {
+      "case_id": "ckpt_same_task_sst2_seeds",
+      "artifact_class": "checkpoint_delta",
+      "task_relation": "same_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/ring2_checkpoint_delta"
+    },
+    {
+      "case_id": "ckpt_same_family_sst2_yelp",
+      "artifact_class": "checkpoint_delta",
+      "task_relation": "same_family",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "field_trials/checkpoint_inventory_t02"
+    },
+    {
+      "case_id": "ckpt_cross_task_sst2_qnli",
+      "artifact_class": "checkpoint_delta",
+      "task_relation": "cross_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/ring2_checkpoint_delta"
+    }
+  ],
+  "notes": [
+    "This is a frozen snapshot for stability comparison only.",
+    "No protocol changes are introduced in Stage A."
+  ]
+}

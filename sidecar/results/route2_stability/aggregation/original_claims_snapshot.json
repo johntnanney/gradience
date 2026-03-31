@@ -1,0 +1,56 @@
+{
+  "schema": "route2_stability.aggregation.original_claims_snapshot/v1",
+  "generated_utc": "2026-03-31T22:12:00Z",
+  "reference_sources": [
+    "sidecar/notes/n83_aggregation_comparison_analysis.md",
+    "sidecar/notes/n84_aggregation_sensitive_pattern_taxonomy.md",
+    "sidecar/notes/n85_aggregation_sensitive_operational_implications.md",
+    "sidecar/results/aggregation_sensitive_compatibility/aggregation_comparison.json",
+    "sidecar/results/aggregation_sensitive_compatibility/pattern_taxonomy.json",
+    "sidecar/results/aggregation_sensitive_compatibility/operational_implications.json"
+  ],
+  "claims": [
+    {
+      "claim_id": "A1",
+      "claim_text": "Aggregation is the first major decision seam in Route 2 compatibility interpretation.",
+      "original_verdict": "strong",
+      "support_summary": "n83 confirms aggregation changes operational truth, not wording, with strong divergence anchors."
+    },
+    {
+      "claim_id": "B1",
+      "claim_text": "Worst-case aggregation collapses cases that remain graded under distributional aggregation.",
+      "original_verdict": "strong",
+      "support_summary": "Routing gradient (confusable/moderate/separable) is flattened by worst-case in n83."
+    },
+    {
+      "claim_id": "B2",
+      "claim_text": "Distributional aggregation exposes gradation that worst-case erases in merge-like settings.",
+      "original_verdict": "strong",
+      "support_summary": "Separable routing case and near-miss distinctions require distributional lens."
+    },
+    {
+      "claim_id": "B3",
+      "claim_text": "QA-dominant aggregation is a distinct operational family, not a weaker structural variant.",
+      "original_verdict": "strong",
+      "support_summary": "tri_same_task_qa_blocked shows structural-best yet operationally blocked outcome."
+    },
+    {
+      "claim_id": "C1",
+      "claim_text": "A compact aggregation-sensitive pattern taxonomy is viable and interpretable.",
+      "original_verdict": "moderate",
+      "support_summary": "Five-pattern taxonomy covers all 12 cases with clear predictors, but remains single-panel validated."
+    },
+    {
+      "claim_id": "C2",
+      "claim_text": "Some cases are aggregation-invariant while others are aggregation-sensitive in interpretable ways.",
+      "original_verdict": "strong",
+      "support_summary": "n83 reports 2 full-agreement and 10 aggregation-sensitive cases with interpretable pattern types."
+    },
+    {
+      "claim_id": "D1",
+      "claim_text": "Route 2 workflow should treat aggregation as a design variable, not implementation detail.",
+      "original_verdict": "strong",
+      "support_summary": "n85 operational implications marks decision-context-dependent aggregation as safe_to_build_on."
+    }
+  ]
+}

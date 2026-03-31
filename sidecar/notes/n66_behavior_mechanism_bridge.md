@@ -100,4 +100,4 @@ The bridge from behavior to mechanism is interpretive, not causal. The example-l
 | This synthesis note | `sidecar/notes/n66_behavior_mechanism_bridge.md` |
 | Mechanism bridge table (JSON) | `sidecar/results/example_semantics/mechanism_bridge_table.json` |
 | Taxonomy findings (input) | `sidecar/notes/n63_failure_taxonomy_findings.md` |
-| Research synthesis (input) | `sidecar/notes/n51_research_synthesis.md` |
+| Research synthesis (input) | `sidecar/notes/n51_research_synthesis_memo.md` |

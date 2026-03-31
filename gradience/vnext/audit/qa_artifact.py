@@ -216,6 +216,9 @@ class AdapterQAArtifact:
     lower_is_better: bool | None = None
     beats_base: bool | None = None
 
+    # Margin confidence — normalised headroom fraction
+    margin_confidence: float | None = None
+
     # Eligibility judgment
     status: EligibilityStatus = EligibilityStatus.UNKNOWN_NO_BEHAVIORAL_EVAL
     confidence: ConfidenceLevel = ConfidenceLevel.LOW
@@ -249,6 +252,7 @@ class AdapterQAArtifact:
                 "base_score": self.base_score,
                 "lower_is_better": self.lower_is_better,
                 "beats_base": self.beats_base,
+                "margin_confidence": self.margin_confidence,
             },
             "eligibility": {
                 "status": self.status.value,
@@ -336,6 +340,9 @@ class AdapterQAArtifact:
             notes = _require_list_of_str(raw_notes, "notes")
 
         # --- Remaining optional fields (lenient) ---
+        margin_confidence_raw = behavioral.get("margin_confidence")
+        margin_confidence = float(margin_confidence_raw) if margin_confidence_raw is not None else None
+
         return AdapterQAArtifact(
             adapter_name=adapter_name,
             adapter_path=adapter_path,
@@ -355,6 +362,7 @@ class AdapterQAArtifact:
             base_score=behavioral.get("base_score"),
             lower_is_better=behavioral.get("lower_is_better"),
             beats_base=behavioral.get("beats_base"),
+            margin_confidence=margin_confidence,
             status=status,
             confidence=confidence,
             reasons=reasons,
@@ -499,6 +507,19 @@ def build_qa_artifact(
         structural_flags=structural_flags,
     )
 
+    # --- Margin confidence ---
+    margin_confidence: float | None = None
+    if (
+        eval_available
+        and adapter_score is not None
+        and base_score is not None
+        and lower_is_better is not True
+        and base_score < 1.0
+    ):
+        headroom = 1.0 - base_score
+        raw_mc = (adapter_score - base_score) / headroom
+        margin_confidence = max(0.0, min(1.0, raw_mc))
+
     # When no eval is available, use None for absent behavioral fields
     final_metric_name = metric_name if eval_available else None
     final_lower_is_better = lower_is_better if eval_available else None
@@ -522,6 +543,7 @@ def build_qa_artifact(
         base_score=base_score,
         lower_is_better=final_lower_is_better,
         beats_base=beats_base,
+        margin_confidence=margin_confidence,
         status=status,
         confidence=confidence,
         reasons=reasons,

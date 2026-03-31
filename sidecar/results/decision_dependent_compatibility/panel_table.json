@@ -1,0 +1,228 @@
+{
+  "schema": "decision_dependent_compatibility_panel/v1",
+  "generated_utc": "2026-03-31T01:23:15.533843+00:00",
+  "panel_size": 9,
+  "groups": {
+    "merge_sensitive": 3,
+    "routing_sensitive": 3,
+    "triage_sensitive": 3
+  },
+  "cases": [
+    {
+      "case_id": "mrg_safe_same_task_sst2_sst2_t01",
+      "group": "merge_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "scenarios_available": [
+        "merge",
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "summary": "Retained same-task anchor in targeted confirmation T01.",
+      "evidence_paths": [
+        "field_trials/targeted_confirmation_same_family/inventory_t01/eval_results.json",
+        "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/action_plan.txt"
+      ],
+      "metrics": {
+        "merge_accuracy": 0.876,
+        "merge_compatibility_score": 0.475,
+        "triage_role": "retained"
+      }
+    },
+    {
+      "case_id": "mrg_near_miss_substantial_hate_t02",
+      "group": "merge_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "scenarios_available": [
+        "merge",
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "summary": "Near-miss substantial case from targeted confirmation T02.",
+      "evidence_paths": [
+        "field_trials/targeted_confirmation_near_miss/inventory_t02/eval_results.json",
+        "field_trials/targeted_confirmation_near_miss/inventory_t02/preflight/action_plan.txt"
+      ],
+      "metrics": {
+        "merge_accuracy": 0.606,
+        "merge_compatibility_score": 0.211,
+        "triage_role": "near_miss_substantial"
+      }
+    },
+    {
+      "case_id": "mrg_cross_task_control_sst2_agnews_t01",
+      "group": "merge_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "scenarios_available": [
+        "merge",
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "summary": "Cross-task control in targeted confirmation T01.",
+      "evidence_paths": [
+        "field_trials/targeted_confirmation_same_family/inventory_t01/eval_results.json",
+        "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/action_plan.txt"
+      ],
+      "metrics": {
+        "merge_accuracy": 0.842,
+        "merge_compatibility_score": 0.111,
+        "triage_role": "cross_task_control"
+      }
+    },
+    {
+      "case_id": "rte_seed_pair_confusable",
+      "group": "routing_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "scenarios_available": [
+        "merge",
+        "routing"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "summary": "Same-task pair with highest routing confusability in pilot.",
+      "evidence_paths": [
+        "experiments/routing_pilot/routing_report.json",
+        "experiments/routing_pilot/routing_pilot_field_note.md"
+      ],
+      "metrics": {
+        "merge_verdict": "redundant",
+        "merge_compatibility_score": 0.4964,
+        "routing_confusability": "high",
+        "routing_score": 0.4813,
+        "routing_recommendation": "consider_dedup"
+      }
+    },
+    {
+      "case_id": "mnli_qnli_moderate_confusable",
+      "group": "routing_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "scenarios_available": [
+        "merge",
+        "routing"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "summary": "Same-family NLI pair with moderate routing confusability.",
+      "evidence_paths": [
+        "experiments/routing_pilot/routing_report.json",
+        "experiments/routing_pilot/routing_pilot_field_note.md"
+      ],
+      "metrics": {
+        "merge_verdict": "redundant",
+        "merge_compatibility_score": 0.431,
+        "routing_confusability": "moderate",
+        "routing_score": 0.3787,
+        "routing_recommendation": "needs_disambiguation"
+      }
+    },
+    {
+      "case_id": "qnli_rte_separable",
+      "group": "routing_sensitive",
+      "artifact_type": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "scenarios_available": [
+        "merge",
+        "routing"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "summary": "Clearly separable routing pair despite same NLI family.",
+      "evidence_paths": [
+        "experiments/routing_pilot/routing_report.json",
+        "experiments/routing_pilot/routing_pilot_field_note.md"
+      ],
+      "metrics": {
+        "merge_verdict": "redundant",
+        "merge_compatibility_score": 0.2759,
+        "routing_confusability": "low",
+        "routing_score": 0.2215,
+        "routing_recommendation": "easily_routed"
+      }
+    },
+    {
+      "case_id": "tri_same_task_near_miss_sst2_pair_t02",
+      "group": "triage_sensitive",
+      "artifact_type": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "scenarios_available": [
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "summary": "No retained pairs; strongest same-task near-miss probe.",
+      "evidence_paths": [
+        "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+        "field_trials/checkpoint_inventory_t02/preflight/preflight_results.json",
+        "field_trials/checkpoint_inventory_t02/eval_results.json"
+      ],
+      "metrics": {
+        "compatibility_score": 0.8921996270396138,
+        "pair_risk": "medium",
+        "triage_summary_line": "QA dominates this inventory; no credible same-task candidates remain.",
+        "follow_through_category": "same_task_near_miss_probe"
+      }
+    },
+    {
+      "case_id": "tri_same_family_review_sst2_yelp_t02",
+      "group": "triage_sensitive",
+      "artifact_type": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "scenarios_available": [
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "summary": "Same-family checkpoint pair routed to informational caution/review.",
+      "evidence_paths": [
+        "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+        "field_trials/checkpoint_inventory_t02/preflight/preflight_results.json",
+        "field_trials/checkpoint_inventory_t02/eval_results.json"
+      ],
+      "metrics": {
+        "compatibility_score": 0.6523148980220427,
+        "pair_risk": "high",
+        "pair_note": "same-family non-identical-task pair; compare with informational caution.",
+        "follow_through_category": "same_family_pair_probe"
+      }
+    },
+    {
+      "case_id": "tri_cross_task_weak_region_yelp_qnli_t02",
+      "group": "triage_sensitive",
+      "artifact_type": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "scenarios_available": [
+        "triage"
+      ],
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "summary": "Cross-task weak/risky region in checkpoint triage inventory.",
+      "evidence_paths": [
+        "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+        "field_trials/checkpoint_inventory_t02/preflight/preflight_results.json"
+      ],
+      "metrics": {
+        "compatibility_score": 0.4890848293805152,
+        "pair_risk": "high",
+        "action_plan_cross_task_caution": [
+          "MRPC \u00d7 YELP_POLARITY region"
+        ]
+      }
+    }
+  ]
+}

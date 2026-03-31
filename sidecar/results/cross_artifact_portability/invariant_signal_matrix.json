@@ -1,0 +1,125 @@
+{
+  "schema": "cross_artifact_portability_invariant_signal/v1",
+  "generated_utc": "2026-03-31T18:30:00.000000+00:00",
+  "program": "Cross-Artifact Compatibility Research Program (Route 2)",
+  "signal_families": [
+    {
+      "signal_family": "qa_evidence_regime",
+      "description": "Evidence bootstrap and QA gating remain operationally central",
+      "lora": {
+        "present": true,
+        "evidence": "Behavioral evidence (merge accuracy) available for 2/3 cases. QA gating dominates triage in all field trial inventories. Strict-QA blocks unknown/weak sources.",
+        "dominant_in_triage": true
+      },
+      "loha": {
+        "present": true,
+        "evidence": "All 3 adapters are unknown_no_behavioral_eval. Strict-QA blocks all 3 pairs. Evidence bootstrap remains binding constraint despite successful structural audit.",
+        "dominant_in_triage": true
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "4 sources, all behavioral_missing. QA flagged 1 source weak (qnli_s42: diffuse_delta_spectrum). Triage reduced 6 pairs to 1. Policy summary: 'Source QA is the binding constraint.'",
+        "dominant_in_triage": true
+      },
+      "recurrence": "present_across_all_classes",
+      "strength": "strong",
+      "notes": "QA/evidence gating is the single most portable signal. It operates identically across all three artifact classes: missing or weak behavioral evidence triggers the same triage narrowing regardless of representation form."
+    },
+    {
+      "signal_family": "same_task_vs_cross_task_separation",
+      "description": "Same-task pairs are more compatible than cross-task pairs",
+      "lora": {
+        "present": true,
+        "evidence": "Same-task SST-2 pair retained (merge acc 0.876). Cross-task SST-2 x AG News excluded as control (0.842 but low compatibility 0.111). Sidecar S01: same-task always safe, cross-task variable.",
+        "separation_observed": true
+      },
+      "loha": {
+        "present": "indeterminate",
+        "evidence": "All 3 pairs are same-task. No cross-task LoHa pairs exist. Cannot test separation.",
+        "separation_observed": null
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "Same-task compatibility 0.892 vs cross-task mean 0.704. Same-minus-cross separation = 0.188. Triage retained only same-task pair.",
+        "separation_observed": true
+      },
+      "recurrence": "present_across_tested_classes",
+      "strength": "moderate",
+      "notes": "Confirmed in LoRA and checkpoint delta. Cannot be tested in LoHa (same-task only panel). The ordering is consistent: same-task > cross-task in both classes where testable."
+    },
+    {
+      "signal_family": "same_family_intermediate_behavior",
+      "description": "Same-family pairs behave distinctly from both same-task and cross-task",
+      "lora": {
+        "present": true,
+        "evidence": "MNLI x QNLI (NLI family): moderate routing confusability (score 0.379), distinct from same-task (high confusability 0.481) and cross-task separable pairs (0.222). In merge: compatibility 0.431, between same-task 0.475 and cross-task 0.111.",
+        "intermediate_position": true
+      },
+      "loha": {
+        "present": "not_testable",
+        "evidence": "No same-family LoHa pairs exist.",
+        "intermediate_position": null
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "SST-2 x Yelp (sentiment_binary family): compatibility 0.652, between same-task 0.892 and cross-task 0.626. Risk high, but routed to same-family informational caution rather than exclusion.",
+        "intermediate_position": true
+      },
+      "recurrence": "present_across_tested_classes",
+      "strength": "moderate",
+      "notes": "Same-family occupies an intermediate position in both LoRA and checkpoint delta. The exact position varies (closer to cross-task in checkpoint deltas, more centered in LoRA), but the three-way ordering same_task > same_family > cross_task holds in both classes where testable."
+    },
+    {
+      "signal_family": "conservative_narrowing",
+      "description": "The workflow reduces candidate space to a smaller, useful subset",
+      "lora": {
+        "present": true,
+        "evidence": "Field trial inventories show 90%+ candidate reduction. Inventory 02: 10 pairs to 1 retained. Inventory 03: 36 pairs to 3 retained. Triage + evidence gating consistently reduces to actionable subset.",
+        "narrowing_ratio": "high (70-90% reduction)"
+      },
+      "loha": {
+        "present": true,
+        "evidence": "3 pairs retained from 3 (no exclusion by structural risk), but all 3 blocked by strict-QA (unknown behavioral evidence). Net result: 0 actionable without behavioral bootstrap. Narrowing is driven by evidence gating.",
+        "narrowing_ratio": "complete (100% blocked by QA)"
+      },
+      "checkpoint_delta": {
+        "present": true,
+        "evidence": "6 pairs reduced to 1 retained. 'Candidate space reduced from 6 pairs to 1.' Cross-task excluded, weak source excluded, only same-task seed pair survives.",
+        "narrowing_ratio": "high (83% reduction)"
+      },
+      "recurrence": "present_across_all_classes",
+      "strength": "strong",
+      "notes": "Conservative narrowing works across all three classes. The narrowing mechanism is consistent: QA evidence gating + task relation boundary + structural risk. The workflow shape (broad input -> narrow output) survives representation change."
+    },
+    {
+      "signal_family": "near_miss_middle_states",
+      "description": "Middle categories (near-miss, marginal) recur between retained and excluded",
+      "lora": {
+        "present": true,
+        "evidence": "Near-miss confirmed as distinct product category in field trials (7 pairs, avg delta vs best = -0.006). Near-miss substantial case in panel (merge acc 0.606, triage role near_miss_substantial). Behavioral data shows near-miss is safe, not fragile precursor.",
+        "distinct_category": true
+      },
+      "loha": {
+        "present": "not_observed",
+        "evidence": "All 3 pairs are low risk, all same-task. No near-miss or marginal cases emerged. Panel too homogeneous to produce middle states.",
+        "distinct_category": false
+      },
+      "checkpoint_delta": {
+        "present": "partial",
+        "evidence": "No pairs explicitly categorized as near-miss. The same-task pair (medium risk, 0.892 compatibility) is the closest to a near-miss probe, but QA dominance prevented the near-miss/retained distinction from emerging. Near-miss severity fields are empty in Stage C results.",
+        "distinct_category": false
+      },
+      "recurrence": "present_in_one_class_only",
+      "strength": "weak",
+      "notes": "Near-miss is well-validated in LoRA but has not yet emerged in LoHa or checkpoint delta panels. This may be a panel coverage gap (both non-LoRA panels are too small/homogeneous) rather than a representation-specific signal. The absence is inconclusive."
+    }
+  ],
+  "summary": {
+    "strong_invariants": ["qa_evidence_regime", "conservative_narrowing"],
+    "moderate_invariants": ["same_task_vs_cross_task_separation", "same_family_intermediate_behavior"],
+    "weak_or_inconclusive": ["near_miss_middle_states"],
+    "total_recurring_across_all_classes": 2,
+    "total_recurring_across_tested_classes": 4,
+    "total_inconclusive": 1
+  }
+}

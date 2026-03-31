@@ -1,9 +1,9 @@
 # n67 — Where the Research Stands
 
 **Type:** synthesis
-**Date:** 2026-03-28
+**Date:** 2026-03-31
 **Supersedes:** n51 (research synthesis memo), n25 (multiscale mechanism synthesis)
-**Depends on:** everything — this note integrates the full sidecar evidence base.
+**Depends on:** the mechanism-ladder evidence base (n01-n66, n68). Route 2 programs (n70-n92) are now consolidated in n93.
 **Status:** The single current-best account of the sidecar's theoretical picture.
 
 ---
@@ -166,6 +166,7 @@ This confirms a threshold model rather than a gradient model. The boundary betwe
 | Fragile and cross-task failure are qualitatively distinct at example level | Double dissociation: confidence collapse vs high-confidence wrong (n64) |
 | Near-miss is behaviorally safe, not a fragile precursor | Threshold confirmed on all discriminating metrics (n65) |
 | Near-miss is a useful product category | 7 pairs, 3 backbones, avg Δ = -0.006 |
+| Cross-artifact compatibility is workflow-level, not metric-level | 9-case panel, 3 artifact classes, 5 signal families audited (n76-n80) |
 
 ### Confirmed but thin (two backbones only)
 
@@ -226,17 +227,47 @@ The sidecar's theoretical picture is now a layered account with four levels:
 
 These four levels are not competing explanations. They are nested: instability describes the landscape, V-module pathology identifies the upstream cause, readout gating determines transmission, and the failure taxonomy reveals what reaches the output. Each level explains what the others cannot, and they are consistent with each other across every case in the evidence base.
 
-The program's intellectual trajectory has been from observation (something goes wrong in some merges) through phenomenology (instability captures which pairs are fragile) through mechanism (V-module pathology × readout gating) to behavioral confirmation (the mechanism's predictions are visible in individual predictions). That trajectory is not complete — the DeBERTa adjudication will test whether the mechanisms generalize — but the internal consistency of the picture, combined with the breadth of what has been ruled out, makes it the strongest account of LoRA merge failure dynamics currently available.
+A fifth consideration cuts across the four levels: **cross-artifact portability and decision-dependent broadening**. The mechanism ladder was developed on LoRA adapters in a merge-only context. Route 2 extended this to multiple artifact classes, decision contexts, aggregation strategies, and behavioral validation. That work is now substantial enough to have its own synthesis — see **n93 (Route 2 Synthesis)** for the complete account. The key conclusions:
+
+- The workflow (evidence gating, conservative narrowing, task-relation ordering) transfers across artifact classes; the mechanism-level signals (V-module dim ratio, subspace overlap) remain representation-locked to factorized artifacts.
+- Aggregation is a computational step, not a presentation layer — different rules produce genuinely different operational judgments from the same structural evidence.
+- Four of five Route 2 compatibility profiles have distinct behavioral signatures, grouping into three tiers: no pathology, localized pathology (with a collapse/contamination mode split), and stasis.
+- Decision-context-dependent aggregation is both structurally and behaviorally justified.
+
+The mechanism ladder (§§1-9 of this note) describes real structure within the factorized regime. The Route 2 synthesis (n93) describes what happens when that structure is projected through different decisions, representations, and aggregation strategies. Together they constitute the project's theoretical account.
+
+The program's intellectual trajectory has been from observation (something goes wrong in some merges) through phenomenology (instability) through mechanism (V-module pathology × readout gating) to behavioral confirmation (example-level signatures), and most recently through Route 2 broadening (decision-dependent, cross-artifact, aggregation-sensitive, behavioral bridge). That trajectory is not complete — the DeBERTa adjudication will test whether the mechanisms generalize across backbones — but the internal consistency of the picture, combined with the breadth of what has been ruled out and the clarity about what does and does not transfer, makes it the strongest account of LoRA compatibility dynamics currently available.
 
 ---
 
-## Deliverables
+## 11. Route 2 (n70-n92)
+
+The Route 2 research programs are now synthesized in a standalone companion note: **[n93 — Route 2 Synthesis: Decision-Dependent Compatibility Science](n93_route2_synthesis.md)**.
+
+n93 consolidates four completed programs:
+
+| Program | Notes | Central finding |
+|---------|-------|-----------------|
+| Decision-dependent compatibility | n70-n74 | Same structure means different things under merge, routing, triage. Aggregation is the first practical divergence. |
+| Cross-artifact compatibility | n76-n80 | Portable signals are workflow-level, not metric-level. No structural metric is fully portable. |
+| Aggregation-sensitive compatibility | n81-n85 | Aggregation is computational, not presentational. Five stable patterns. Decision-context-dependent family selection. |
+| Behavioral bridge | n86-n92 | Four of five profiles have distinct behavioral signatures. Three-tier model: no pathology / localized pathology / stasis. |
+
+The settled Route 2 claims, boundaries, and relationship to this synthesis are documented in n93 §§6-8. The per-program details, evidence, and deliverables are in n93 §§1-4 and §9.
+
+---
+
+## 12. Deliverables
 
 | Deliverable | Path |
 |------------|------|
-| This synthesis | `sidecar/notes/n67_where_the_research_stands.md` |
+| This synthesis (mechanism ladder) | `sidecar/notes/n67_where_the_research_stands.md` |
+| Route 2 synthesis | `sidecar/notes/n93_route2_synthesis.md` |
+| Route 2 programs | n70-n74, n76-n80, n81-n85, n86-n92 |
+| Route 2 structured outputs | `results/decision_dependent_compatibility/`, `results/cross_artifact_portability/`, `results/aggregation_sensitive_compatibility/`, `results/behavioral_route2_bridge/` |
+| Route 2 product summaries | `docs/strategy/{cross_artifact,aggregation_sensitive,behavioral}_route2_summary.md` |
 | Output Example Semantics program | n59–n66 |
 | Mechanism bridge table | `sidecar/results/example_semantics/mechanism_bridge_table.json` |
-| Ruled-out mechanisms | `sidecar/notes/n52_ruled_out_mechanisms_packet.md` |
+| Ruled-out mechanisms | `sidecar/notes/n68_ruled_out_mechanisms.md` |
 | DeBERTa adjudication protocol | `sidecar/notes/n07_deberta_adjudication_protocol.md` |
 | Executive summary | `sidecar/notes/n50_executive_research_summary.md` |

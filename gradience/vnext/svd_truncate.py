@@ -181,6 +181,14 @@ def _compute_svd_truncation(
     U_big = Qb @ U_small  # (d_out, r)
     V_big = Qa @ Vt_small.T  # (d_in, r)
 
+    # Detect NaN/Inf from ill-conditioned QR/SVD before they propagate.
+    if not torch.isfinite(S).all():
+        raise ValueError(
+            f"SVD produced non-finite singular values for layer with shapes "
+            f"A=({r}, {d_in}), B=({d_out}, {r_B}). "
+            "Input matrices may be ill-conditioned or contain non-finite values."
+        )
+
     # Truncate to target rank
     k = min(target_rank, len(S))
     S_trunc = S[:k]  # (k,)

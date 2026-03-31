@@ -1,0 +1,35 @@
+{
+  "schema": "route2.scenario_aggregation_matrix/v1",
+  "generated_utc": "2026-03-31T00:00:00Z",
+  "scenarios": [
+    {
+      "scenario": "merge",
+      "measurement_layer": "shared_structural_geometry",
+      "diagnosis_layer": "shared_with_translation",
+      "aggregation_rule": "worst_case_local_sensitivity",
+      "policy_layer": "retain_caution_exclude_with_merge_strategy",
+      "validation_status": "stable_for_adapter_workflows_checkpoint_merge_out_of_scope"
+    },
+    {
+      "scenario": "routing_confusability",
+      "measurement_layer": "shared_structural_geometry",
+      "diagnosis_layer": "shared_with_translation",
+      "aggregation_rule": "distributional_spread_sensitivity",
+      "policy_layer": "dedup_disambiguate_separable",
+      "validation_status": "pilot_validated_bounded_adapter_scope"
+    },
+    {
+      "scenario": "triage",
+      "measurement_layer": "pairwise_structure_plus_source_qa",
+      "diagnosis_layer": "shared_with_translation",
+      "aggregation_rule": "qa_gate_first",
+      "policy_layer": "evaluate_first_near_miss_optional_exclude",
+      "validation_status": "adapter_validated_checkpoint_bounded_supported_in_tested_settings"
+    }
+  ],
+  "cross_scenario_claim": {
+    "aggregation_is_first_divergence_layer": true,
+    "policy_is_second_divergence_layer": true,
+    "source": "sidecar/results/decision_dependent_compatibility/scenario_stack_matrix.json"
+  }
+}

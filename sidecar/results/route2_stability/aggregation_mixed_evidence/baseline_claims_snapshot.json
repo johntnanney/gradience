@@ -1,0 +1,48 @@
+{
+  "schema": "route2_stability.aggregation_mixed_evidence.baseline_claims/v1",
+  "generated_utc": "2026-03-31T23:55:00Z",
+  "substudy": "Route2 Aggregation Mixed-Evidence Triage Perturbation",
+  "baseline_sources": [
+    "sidecar/notes/n102_aggregation_stability_memo.md",
+    "sidecar/results/route2_stability/aggregation/stability_verdicts.json",
+    "docs/strategy/aggregation_stability_summary.md",
+    "sidecar/notes/n84_aggregation_sensitive_pattern_taxonomy.md"
+  ],
+  "baseline_claims": [
+    {
+      "claim_id": "A",
+      "claim_text": "QA-dominant aggregation is a distinct operational family.",
+      "baseline_status": "stable",
+      "note": "Stable in Substudy 2; now stress-tested on mixed-evidence triage middle."
+    },
+    {
+      "claim_id": "B",
+      "claim_text": "Same-family optional cases tend to be safe-like rather than collapse-like.",
+      "baseline_status": "moderate_to_guarded",
+      "note": "Behavioral bridge suggests safe-likeness; checkpoint mixed-evidence coverage remained thin."
+    },
+    {
+      "claim_id": "C",
+      "claim_text": "Aggregation-sensitive taxonomy remains usable with guardrails.",
+      "baseline_status": "moderately_stable",
+      "note": "Taxonomy viability held under local perturbation, but exact boundaries remained guarded."
+    },
+    {
+      "claim_id": "D",
+      "claim_text": "Structural nuance may re-enter inside mixed-evidence review states.",
+      "baseline_status": "open",
+      "note": "Explicit open question in n102 future-strengthening target."
+    }
+  ],
+  "stable_language_now": [
+    "aggregation_as_seam",
+    "qa_dominant_as_distinct_family",
+    "worst_case_collapse_as_stable_pattern"
+  ],
+  "guarded_language_now": [
+    "exact_taxonomy_boundaries",
+    "exact_distributional_cutpoints",
+    "fine_grained_review_state_thresholds"
+  ],
+  "target_question": "Does the framework stay coherent when the panel is intentionally weighted toward mixed-evidence review and same-family optional triage cases?"
+}

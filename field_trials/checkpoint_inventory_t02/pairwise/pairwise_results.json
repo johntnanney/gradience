@@ -1,0 +1,461 @@
+{
+  "schema": "checkpoint_inventory_pairwise/v1",
+  "inventory_id": "checkpoint_inventory_t02",
+  "timestamp_utc": "2026-03-31T00:58:31.397752+00:00",
+  "pairs": [
+    {
+      "pair_id": "sst2_s42::sst2_s123",
+      "checkpoint_a": "sst2_s42",
+      "checkpoint_b": "sst2_s123",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relationship": "same_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9985312223434448,
+      "mean_abs_energy_at_8_delta": 0.013840340470012865,
+      "mean_abs_stable_rank_delta": 0.5013169273005592,
+      "mean_abs_effective_rank_delta": 3.1357875019096,
+      "mean_abs_sv_decay_delta": 2.441346471278841,
+      "compatibility_score": 0.8921996270396138,
+      "pair_risk": "medium",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 6.916775340259917e-07,
+          "abs_delta_effective_rank": 0.00020209089905920408,
+          "abs_delta_sv_decay": 83.51013409581878,
+          "divergence_score": 41.755069850716644
+        },
+        {
+          "layer": "transformer.layer.1.attention.q_lin.weight",
+          "abs_delta_energy_at_8": 0.050068795680999756,
+          "abs_delta_stable_rank": 2.852743105632504,
+          "abs_delta_effective_rank": 7.622701627639572,
+          "abs_delta_sv_decay": 0.2501094826364505,
+          "divergence_score": 1.7786757179250527
+        },
+        {
+          "layer": "transformer.layer.0.attention.q_lin.weight",
+          "abs_delta_energy_at_8": 0.03703111410140991,
+          "abs_delta_stable_rank": 3.029231800676911,
+          "abs_delta_effective_rank": 2.2754294842080753,
+          "abs_delta_sv_decay": 0.19677893851512418,
+          "divergence_score": 1.6471176755926766
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "sst2_s42::yelp_s42",
+      "checkpoint_a": "sst2_s42",
+      "checkpoint_b": "yelp_s42",
+      "task_a": "sst2",
+      "task_b": "yelp_polarity",
+      "task_relationship": "same_family",
+      "task_family": "sentiment_binary",
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9890758991241455,
+      "mean_abs_energy_at_8_delta": 0.10974806468737752,
+      "mean_abs_stable_rank_delta": 0.6390983849570251,
+      "mean_abs_effective_rank_delta": 56.77096583758345,
+      "mean_abs_sv_decay_delta": 7.3337168184393775,
+      "compatibility_score": 0.6523148980220427,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 3.124859480063691e-07,
+          "abs_delta_effective_rank": 0.0005591042388524148,
+          "abs_delta_sv_decay": 251.15480935528376,
+          "divergence_score": 125.57741179143925
+        },
+        {
+          "layer": "transformer.layer.5.attention.out_lin.weight",
+          "abs_delta_energy_at_8": 0.1359851360321045,
+          "abs_delta_stable_rank": 0.13417015327019022,
+          "abs_delta_effective_rank": 111.01467856181551,
+          "abs_delta_sv_decay": 2.3424641377941064,
+          "divergence_score": 3.745793079162027
+        },
+        {
+          "layer": "transformer.layer.5.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.04047238826751709,
+          "abs_delta_stable_rank": 0.6453883698269256,
+          "abs_delta_effective_rank": 93.60330149882844,
+          "abs_delta_sv_decay": 3.4111366050232537,
+          "divergence_score": 3.471034821407062
+        }
+      ],
+      "notes": "same-family non-identical-task pair; compare with informational caution."
+    },
+    {
+      "pair_id": "sst2_s42::mrpc_s42",
+      "checkpoint_a": "sst2_s42",
+      "checkpoint_b": "mrpc_s42",
+      "task_a": "sst2",
+      "task_b": "mrpc",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9929219484329224,
+      "mean_abs_energy_at_8_delta": 0.04222451268058074,
+      "mean_abs_stable_rank_delta": 1.0126729578362403,
+      "mean_abs_effective_rank_delta": 13.872794129614206,
+      "mean_abs_sv_decay_delta": 14.74444350969738,
+      "compatibility_score": 0.7979854162833011,
+      "pair_risk": "medium",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 1.1540646460694859e-07,
+          "abs_delta_effective_rank": 0.001061747965562132,
+          "abs_delta_sv_decay": 543.0528001097373,
+          "divergence_score": 271.5264133728808
+        },
+        {
+          "layer": "transformer.layer.0.attention.q_lin.weight",
+          "abs_delta_energy_at_8": 0.09003056585788727,
+          "abs_delta_stable_rank": 9.833654888476643,
+          "abs_delta_effective_rank": 39.04255115109294,
+          "abs_delta_sv_decay": 0.2977479807086756,
+          "divergence_score": 5.320622550616051
+        },
+        {
+          "layer": "transformer.layer.0.attention.v_lin.weight",
+          "abs_delta_energy_at_8": 0.1768973171710968,
+          "abs_delta_stable_rank": 3.8924491106225774,
+          "abs_delta_effective_rank": 34.805173240074396,
+          "abs_delta_sv_decay": 0.9057857520529247,
+          "divergence_score": 3.9190814955355635
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "sst2_s42::qnli_s42",
+      "checkpoint_a": "sst2_s42",
+      "checkpoint_b": "qnli_s42",
+      "task_a": "sst2",
+      "task_b": "qnli",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.983991265296936,
+      "mean_abs_energy_at_8_delta": 0.09190517467887778,
+      "mean_abs_stable_rank_delta": 2.0334540713018048,
+      "mean_abs_effective_rank_delta": 32.698141206199864,
+      "mean_abs_sv_decay_delta": 15.233466897894761,
+      "compatibility_score": 0.625940420731147,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 3.8346164021874074e-07,
+          "abs_delta_effective_rank": 0.0019277517478253348,
+          "abs_delta_sv_decay": 537.813132602053,
+          "divergence_score": 268.906590551308
+        },
+        {
+          "layer": "transformer.layer.5.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.10898095369338989,
+          "abs_delta_stable_rank": 0.6331736630989655,
+          "abs_delta_effective_rank": 61.988681945014605,
+          "abs_delta_sv_decay": 5.51769169073317,
+          "divergence_score": 4.6951484490304365
+        },
+        {
+          "layer": "transformer.layer.0.attention.v_lin.weight",
+          "abs_delta_energy_at_8": 0.16974866390228271,
+          "abs_delta_stable_rank": 4.894921026082372,
+          "abs_delta_effective_rank": 43.215822022450084,
+          "abs_delta_sv_decay": 1.0072683723812916,
+          "divergence_score": 4.4163725710899095
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "sst2_s123::yelp_s42",
+      "checkpoint_a": "sst2_s123",
+      "checkpoint_b": "yelp_s42",
+      "task_a": "sst2",
+      "task_b": "yelp_polarity",
+      "task_relationship": "same_family",
+      "task_family": "sentiment_binary",
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.98811274766922,
+      "mean_abs_energy_at_8_delta": 0.11120328777714779,
+      "mean_abs_stable_rank_delta": 0.7639235388148053,
+      "mean_abs_effective_rank_delta": 57.54027160115312,
+      "mean_abs_sv_decay_delta": 5.132834411878235,
+      "compatibility_score": 0.6409568090423673,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 3.7919158601962266e-07,
+          "abs_delta_effective_rank": 0.0003570133397932107,
+          "abs_delta_sv_decay": 167.64467525946498,
+          "divergence_score": 83.82234224407587
+        },
+        {
+          "layer": "transformer.layer.5.attention.v_lin.weight",
+          "abs_delta_energy_at_8": 0.15713119506835938,
+          "abs_delta_stable_rank": 0.18863502164303037,
+          "abs_delta_effective_rank": 111.83539993310475,
+          "abs_delta_sv_decay": 2.0723681812716555,
+          "divergence_score": 3.8190072240265107
+        },
+        {
+          "layer": "transformer.layer.4.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.057570576667785645,
+          "abs_delta_stable_rank": 0.12305585023723653,
+          "abs_delta_effective_rank": 104.4189612271611,
+          "abs_delta_sv_decay": 3.170133885707245,
+          "divergence_score": 3.4192811038529114
+        }
+      ],
+      "notes": "same-family non-identical-task pair; compare with informational caution."
+    },
+    {
+      "pair_id": "sst2_s123::mrpc_s42",
+      "checkpoint_a": "sst2_s123",
+      "checkpoint_b": "mrpc_s42",
+      "task_a": "sst2",
+      "task_b": "mrpc",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9940181970596313,
+      "mean_abs_energy_at_8_delta": 0.038516593214712645,
+      "mean_abs_stable_rank_delta": 0.9453880110535621,
+      "mean_abs_effective_rank_delta": 13.195105830910393,
+      "mean_abs_sv_decay_delta": 12.5953418308114,
+      "compatibility_score": 0.8095976135534428,
+      "pair_risk": "medium",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 5.762710694190432e-07,
+          "abs_delta_effective_rank": 0.000859657066502928,
+          "abs_delta_sv_decay": 459.5426660139185,
+          "divergence_score": 229.77134398318103
+        },
+        {
+          "layer": "transformer.layer.0.attention.k_lin.weight",
+          "abs_delta_energy_at_8": 0.09904208779335022,
+          "abs_delta_stable_rank": 7.041555085587744,
+          "abs_delta_effective_rank": 40.10260858420082,
+          "abs_delta_sv_decay": 0.19187692040343896,
+          "divergence_score": 4.239193833350579
+        },
+        {
+          "layer": "transformer.layer.0.attention.q_lin.weight",
+          "abs_delta_energy_at_8": 0.052999451756477356,
+          "abs_delta_stable_rank": 6.804423087799732,
+          "abs_delta_effective_rank": 36.76712166688486,
+          "abs_delta_sv_decay": 0.1009690421935514,
+          "divergence_score": 3.673504875023373
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "sst2_s123::qnli_s42",
+      "checkpoint_a": "sst2_s123",
+      "checkpoint_b": "qnli_s42",
+      "task_a": "sst2",
+      "task_b": "qnli",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9850797057151794,
+      "mean_abs_energy_at_8_delta": 0.09044995158910751,
+      "mean_abs_stable_rank_delta": 1.819169683811713,
+      "mean_abs_effective_rank_delta": 31.92883544263019,
+      "mean_abs_sv_decay_delta": 17.47435679434514,
+      "compatibility_score": 0.64272870821042,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 1.0751391742447325e-06,
+          "abs_delta_effective_rank": 0.002129842646884539,
+          "abs_delta_sv_decay": 621.3232666978718,
+          "divergence_score": 310.6616604020246
+        },
+        {
+          "layer": "transformer.layer.0.attention.v_lin.weight",
+          "abs_delta_energy_at_8": 0.134101003408432,
+          "abs_delta_stable_rank": 4.542305522690956,
+          "abs_delta_effective_rank": 40.09785315052574,
+          "abs_delta_sv_decay": 1.1168842407149178,
+          "divergence_score": 3.9940958555523465
+        },
+        {
+          "layer": "transformer.layer.5.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.09727966785430908,
+          "abs_delta_stable_rank": 0.5780260621778355,
+          "abs_delta_effective_rank": 54.03389236138895,
+          "abs_delta_sv_decay": 4.449549141746339,
+          "divergence_score": 3.942072549047575
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "yelp_s42::mrpc_s42",
+      "checkpoint_a": "yelp_s42",
+      "checkpoint_b": "mrpc_s42",
+      "task_a": "yelp_polarity",
+      "task_b": "mrpc",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9803292751312256,
+      "mean_abs_energy_at_8_delta": 0.11933588785560507,
+      "mean_abs_stable_rank_delta": 1.2736002544119074,
+      "mean_abs_effective_rank_delta": 64.4427459199321,
+      "mean_abs_sv_decay_delta": 8.650370780206176,
+      "compatibility_score": 0.5843020434749748,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 1.970794833994205e-07,
+          "abs_delta_effective_rank": 0.0005026437267097172,
+          "abs_delta_sv_decay": 291.89799075445353,
+          "divergence_score": 145.94900173910514
+        },
+        {
+          "layer": "transformer.layer.0.attention.q_lin.weight",
+          "abs_delta_energy_at_8": 0.1538846343755722,
+          "abs_delta_stable_rank": 10.823424345499284,
+          "abs_delta_effective_rank": 42.27751622540569,
+          "abs_delta_sv_decay": 0.18344696979642605,
+          "divergence_score": 6.231934129045266
+        },
+        {
+          "layer": "transformer.layer.5.attention.k_lin.weight",
+          "abs_delta_energy_at_8": 0.19011151790618896,
+          "abs_delta_stable_rank": 4.644808877112233,
+          "abs_delta_effective_rank": 98.17257771256331,
+          "abs_delta_sv_decay": 1.0131464015927516,
+          "divergence_score": 5.175916622266551
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "yelp_s42::qnli_s42",
+      "checkpoint_a": "yelp_s42",
+      "checkpoint_b": "qnli_s42",
+      "task_a": "yelp_polarity",
+      "task_b": "qnli",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9606252908706665,
+      "mean_abs_energy_at_8_delta": 0.20165323936625532,
+      "mean_abs_stable_rank_delta": 2.353796934246968,
+      "mean_abs_effective_rank_delta": 89.46910704378331,
+      "mean_abs_sv_decay_delta": 21.769002068130295,
+      "compatibility_score": 0.4890848293805152,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 6.959475882251098e-07,
+          "abs_delta_effective_rank": 0.0024868559866777495,
+          "abs_delta_sv_decay": 788.9679419573367,
+          "divergence_score": 394.48400234274726
+        },
+        {
+          "layer": "transformer.layer.5.attention.out_lin.weight",
+          "abs_delta_energy_at_8": 0.2795819044113159,
+          "abs_delta_stable_rank": 1.2442090239860721,
+          "abs_delta_effective_rank": 144.9117308653348,
+          "abs_delta_sv_decay": 5.170347597613285,
+          "divergence_score": 7.224103247645389
+        },
+        {
+          "layer": "transformer.layer.5.ffn.lin1.weight",
+          "abs_delta_energy_at_8": 0.3162756562232971,
+          "abs_delta_stable_rank": 1.33203204049226,
+          "abs_delta_effective_rank": 160.74042121064366,
+          "abs_delta_sv_decay": 3.3697513297758026,
+          "divergence_score": 6.862574214745328
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    },
+    {
+      "pair_id": "mrpc_s42::qnli_s42",
+      "checkpoint_a": "mrpc_s42",
+      "checkpoint_b": "qnli_s42",
+      "task_a": "mrpc",
+      "task_b": "qnli",
+      "task_relationship": "cross_task",
+      "task_family": null,
+      "shared_layer_count": 38,
+      "cosine_similarity": 0.9846788644790649,
+      "mean_abs_energy_at_8_delta": 0.0874077834581074,
+      "mean_abs_stable_rank_delta": 2.0006146661781856,
+      "mean_abs_effective_rank_delta": 25.182618881587917,
+      "mean_abs_sv_decay_delta": 29.589516955052144,
+      "compatibility_score": 0.6451446395700108,
+      "pair_risk": "high",
+      "dominant_divergence_layers": [
+        {
+          "layer": "classifier.weight",
+          "abs_delta_energy_at_8": 0.0,
+          "abs_delta_stable_rank": 4.988681048256893e-07,
+          "abs_delta_effective_rank": 0.002989499713387467,
+          "abs_delta_sv_decay": 1080.8659327117903,
+          "divergence_score": 540.4330039241888
+        },
+        {
+          "layer": "transformer.layer.5.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.12070858478546143,
+          "abs_delta_stable_rank": 0.7349094000926943,
+          "abs_delta_effective_rank": 94.83853593985577,
+          "abs_delta_sv_decay": 7.160491703471561,
+          "divergence_score": 6.065596184233234
+        },
+        {
+          "layer": "transformer.layer.4.ffn.lin2.weight",
+          "abs_delta_energy_at_8": 0.1612061858177185,
+          "abs_delta_stable_rank": 0.6752665933379116,
+          "abs_delta_effective_rank": 96.60905638149592,
+          "abs_delta_sv_decay": 4.773829886965752,
+          "divergence_score": 5.208019667401061
+        }
+      ],
+      "notes": "pair risk and task relationship are directionally consistent"
+    }
+  ],
+  "summary": {
+    "pair_count": 10,
+    "risk_counts": {
+      "low": 0,
+      "medium": 3,
+      "high": 7
+    },
+    "relationship_counts": {
+      "same_task": 1,
+      "same_family": 2,
+      "cross_task": 7
+    },
+    "mean_compatibility": 0.678
+  }
+}

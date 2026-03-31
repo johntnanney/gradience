@@ -1,0 +1,29 @@
+{
+  "inventory_id": "preflight_ev_090044",
+  "run_id": "run_20260329_140056",
+  "timestamp": "2026-03-29T14:00:56.063603+00:00",
+  "adapter_count": 4,
+  "pair_count": 6,
+  "excluded_sources": [],
+  "same_task_priority_pairs": [
+    "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment \u00d7 wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2"
+  ],
+  "cross_task_caution_regions": [
+    "IMDB \u00d7 SST-2 region"
+  ],
+  "reduced_candidate_subset": [
+    "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment \u00d7 wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "myselfmankar__distilbert-base-sst2-lora \u00d7 rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2"
+  ],
+  "near_miss_candidates": [],
+  "retained_candidate_count": 2,
+  "reduction_ratio": 0.667,
+  "advisory_pair_count": 4,
+  "qa_summary": {
+    "eligible": 4
+  },
+  "behavioral_evidence_count": 4,
+  "total_source_count": 4,
+  "summary_line": "Inventory is mostly explained by task boundary. Candidate space reduced from 6 pairs to 2 (67% reduction)."
+}

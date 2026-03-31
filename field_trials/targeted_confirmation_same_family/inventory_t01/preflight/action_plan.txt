@@ -1,0 +1,36 @@
+
+  INVENTORY ACTION PLAN
+  ============================================================
+
+  REDUCED CANDIDATE SET
+  ----------------------------------------
+  Starting pairs:      3
+  Retained candidates: 2
+  Reduction:           33%
+  Cross-task excluded: 1
+
+  Evaluate first:
+    - myselfmankar__distilbert-base-sst2-lora × rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2  (medium risk, audit_aware)
+    - myselfmankar__distilbert-base-sst2-lora × dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment  (medium risk, audit_aware)
+
+  Exclude / deprioritize
+  ----------------------------------------
+  - none
+
+  Same-task safe zone
+  ----------------------------------------
+  - myselfmankar__distilbert-base-sst2-lora × rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2  (medium risk, audit_aware)
+  - myselfmankar__distilbert-base-sst2-lora × dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment  (medium risk, audit_aware)
+
+  Cross-task caution zone
+  ----------------------------------------
+  - AG_NEWS × SST-2 region
+  - do not prioritize these pairs for casual merge exploration
+
+  Provenance
+  ----------------------------------------
+  Sources with behavioral evidence: 4/4
+
+  Summary
+  ----------------------------------------
+  Inventory is mostly explained by task boundary. Candidate space reduced from 3 pairs to 2 (33% reduction).

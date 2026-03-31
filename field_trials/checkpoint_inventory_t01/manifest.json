@@ -1,0 +1,79 @@
+{
+  "schema": "checkpoint_inventory_manifest/v1",
+  "inventory_id": "checkpoint_inventory_t01",
+  "timestamp_utc": "2026-03-31T00:26:03.051902+00:00",
+  "base_model": "distilbert-base-uncased",
+  "checkpoint_count": 4,
+  "trial_scope": {
+    "cpu_only": true,
+    "model_family": "distilbert encoder",
+    "tasks": [
+      "mrpc",
+      "qnli",
+      "sst2"
+    ],
+    "notes": "Single shared base; classification-only panel."
+  },
+  "checkpoints": [
+    {
+      "checkpoint_id": "sst2_s42",
+      "path": "experiments/ring2_checkpoint_delta/checkpoints/sst2_s42",
+      "path_abs": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s42",
+      "shared_base_model": "distilbert-base-uncased",
+      "task_label": "sst2",
+      "task_family": "sentiment_binary",
+      "dataset": "sst2",
+      "metric_direction": "higher_is_better",
+      "provenance_notes": "Ring 2 local fine-tune checkpoint (seed 42).",
+      "expected_trial_role": [
+        "same_task",
+        "retained_candidate"
+      ]
+    },
+    {
+      "checkpoint_id": "sst2_s123",
+      "path": "experiments/ring2_checkpoint_delta/checkpoints/sst2_s123",
+      "path_abs": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s123",
+      "shared_base_model": "distilbert-base-uncased",
+      "task_label": "sst2",
+      "task_family": "sentiment_binary",
+      "dataset": "sst2",
+      "metric_direction": "higher_is_better",
+      "provenance_notes": "Ring 2 local fine-tune checkpoint (seed 123).",
+      "expected_trial_role": [
+        "same_task",
+        "retained_candidate"
+      ]
+    },
+    {
+      "checkpoint_id": "mrpc_s42",
+      "path": "experiments/ring2_checkpoint_delta/checkpoints/mrpc_s42",
+      "path_abs": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/mrpc_s42",
+      "shared_base_model": "distilbert-base-uncased",
+      "task_label": "mrpc",
+      "task_family": "unmapped",
+      "dataset": "mrpc",
+      "metric_direction": "higher_is_better",
+      "provenance_notes": "Ring 2 local fine-tune checkpoint (seed 42).",
+      "expected_trial_role": [
+        "cross_task",
+        "optional"
+      ]
+    },
+    {
+      "checkpoint_id": "qnli_s42",
+      "path": "experiments/ring2_checkpoint_delta/checkpoints/qnli_s42",
+      "path_abs": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/qnli_s42",
+      "shared_base_model": "distilbert-base-uncased",
+      "task_label": "qnli",
+      "task_family": "unmapped",
+      "dataset": "qnli",
+      "metric_direction": "higher_is_better",
+      "provenance_notes": "Ring 2 local fine-tune checkpoint (seed 42); structurally diffuse in Stage B.",
+      "expected_trial_role": [
+        "cross_task",
+        "marginal"
+      ]
+    }
+  ]
+}

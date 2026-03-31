@@ -1,0 +1,44 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Same-family pair — plausible candidate
+
+  TASK-FAMILY NOTE
+  ----------------------------------------
+  Same-family merge: adapters were evaluated on different datasets (sst2 vs imdb) but both belong to the sentiment_binary family. Similar tasks tend to merge well.
+  Note: Different datasets but same validated task family.
+        Treat this pair like a same-task candidate.
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       MEDIUM
+  Compat. score:   0.314
+  Dominant issue:  PARTIAL REDUNDANCY
+                   1 redundant layer(s)
+  Layer verdicts:  11 safe, 1 redundant (12 total)
+
+  Adapter A:  rank=16, alpha=32.0, 12 layers (distilbert-base-uncased)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora
+  Adapter B:  rank=8, alpha=32.0, 12 layers (distilbert/distilbert-base-uncased)
+              field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: eligible
+
+  Confidence:      medium
+                   Low spectral compatibility (score=0.314) — both adapters have user-reported behavioral quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  1. 1 layer(s) are over-provisioned. Pre-compression before merging may improve results.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Pre-compress 1 over-provisioned layer(s), then merge with audit-aware strategy.
+  Strategy: audit_aware
+
+  INTERPRETATION
+  ----------------------------------------
+  Same-family pair (different datasets); structurally similar tasks tend to merge well.

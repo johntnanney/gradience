@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__neibla_irony",
+  "base_model": "distilbert-base-uncased",
+  "eval_dataset": "tweet_eval/irony",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.6,
+  "base_score": 0.398,
+  "beats_base": true,
+  "delta": 0.202,
+  "adapter_f1": 0.0826,
+  "base_f1": 0.5694,
+  "adapter_id": "TransferGraph/neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony"
+}

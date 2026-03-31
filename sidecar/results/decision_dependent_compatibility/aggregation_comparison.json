@@ -1,0 +1,267 @@
+{
+  "schema": "decision_dependent_aggregation_comparison/v1",
+  "generated_utc": "2026-03-31T01:23:15.534924+00:00",
+  "source_panel": {
+    "inventory": "field_trials/checkpoint_inventory_t02",
+    "pair_count": 10,
+    "shared_structural_inputs": [
+      "compatibility_score",
+      "cosine_similarity",
+      "pair_risk",
+      "dominant_divergence_layers"
+    ]
+  },
+  "aggregation_families": {
+    "A_worst_case": "merge-like sensitivity to local catastrophic layers",
+    "B_distributional": "routing-like spread sensitivity",
+    "C_qa_gate_first": "triage-like source-quality-first narrowing"
+  },
+  "case_rows": [
+    {
+      "pair_id": "sst2_s42::sst2_s123",
+      "task_relationship": "same_task",
+      "structural_inputs": {
+        "compatibility_score": 0.8921996270396138,
+        "cosine_similarity": 0.9985312223434448,
+        "pair_risk": "medium",
+        "max_non_classifier_divergence": 1.7787
+      },
+      "source_status": {
+        "sst2_s42": "flagged_weak",
+        "sst2_s123": "flagged_weak"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_confusable",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s42::yelp_s42",
+      "task_relationship": "same_family",
+      "structural_inputs": {
+        "compatibility_score": 0.6523148980220427,
+        "cosine_similarity": 0.9890758991241455,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 3.7458
+      },
+      "source_status": {
+        "sst2_s42": "flagged_weak",
+        "yelp_s42": "uncertain"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s42::mrpc_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.7979854162833011,
+        "cosine_similarity": 0.9929219484329224,
+        "pair_risk": "medium",
+        "max_non_classifier_divergence": 5.3206
+      },
+      "source_status": {
+        "sst2_s42": "flagged_weak",
+        "mrpc_s42": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s42::qnli_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.625940420731147,
+        "cosine_similarity": 0.983991265296936,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 4.6951
+      },
+      "source_status": {
+        "sst2_s42": "flagged_weak",
+        "qnli_s42": "flagged_weak"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s123::yelp_s42",
+      "task_relationship": "same_family",
+      "structural_inputs": {
+        "compatibility_score": 0.6409568090423673,
+        "cosine_similarity": 0.98811274766922,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 3.819
+      },
+      "source_status": {
+        "sst2_s123": "flagged_weak",
+        "yelp_s42": "uncertain"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s123::mrpc_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.8095976135534428,
+        "cosine_similarity": 0.9940181970596313,
+        "pair_risk": "medium",
+        "max_non_classifier_divergence": 4.2392
+      },
+      "source_status": {
+        "sst2_s123": "flagged_weak",
+        "mrpc_s42": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "sst2_s123::qnli_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.64272870821042,
+        "cosine_similarity": 0.9850797057151794,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 3.9941
+      },
+      "source_status": {
+        "sst2_s123": "flagged_weak",
+        "qnli_s42": "flagged_weak"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "yelp_s42::mrpc_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.5843020434749748,
+        "cosine_similarity": 0.9803292751312256,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 6.2319
+      },
+      "source_status": {
+        "yelp_s42": "uncertain",
+        "mrpc_s42": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_separable",
+        "qa_gate_first_triage_like": "qa_review"
+      }
+    },
+    {
+      "pair_id": "yelp_s42::qnli_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.4890848293805152,
+        "cosine_similarity": 0.9606252908706665,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 7.2241
+      },
+      "source_status": {
+        "yelp_s42": "uncertain",
+        "qnli_s42": "flagged_weak"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_separable",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    },
+    {
+      "pair_id": "mrpc_s42::qnli_s42",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.6451446395700108,
+        "cosine_similarity": 0.9846788644790649,
+        "pair_risk": "high",
+        "max_non_classifier_divergence": 6.0656
+      },
+      "source_status": {
+        "mrpc_s42": "eligible",
+        "qnli_s42": "flagged_weak"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_blocked"
+      }
+    }
+  ],
+  "summary": {
+    "worst_case_label_counts": {
+      "merge_caution": 2,
+      "merge_risky": 8
+    },
+    "distributional_label_counts": {
+      "routing_confusable": 1,
+      "routing_needs_disambiguation": 7,
+      "routing_separable": 2
+    },
+    "qa_gate_label_counts": {
+      "qa_blocked": 9,
+      "qa_review": 1
+    },
+    "collapsed_under_worst_case_but_separated_distributional": [
+      {
+        "merge_label": "merge_caution",
+        "pair_ids": [
+          "sst2_s42::sst2_s123",
+          "sst2_s123::mrpc_s42"
+        ],
+        "routing_labels_present": [
+          "routing_confusable",
+          "routing_needs_disambiguation"
+        ]
+      },
+      {
+        "merge_label": "merge_risky",
+        "pair_ids": [
+          "sst2_s42::yelp_s42",
+          "sst2_s42::mrpc_s42",
+          "sst2_s42::qnli_s42",
+          "sst2_s123::yelp_s42",
+          "sst2_s123::qnli_s42",
+          "yelp_s42::mrpc_s42",
+          "yelp_s42::qnli_s42",
+          "mrpc_s42::qnli_s42"
+        ],
+        "routing_labels_present": [
+          "routing_needs_disambiguation",
+          "routing_separable"
+        ]
+      }
+    ],
+    "qa_gate_overrides_nonseparable_structural_cases": [
+      "sst2_s42::sst2_s123",
+      "sst2_s42::yelp_s42",
+      "sst2_s42::mrpc_s42",
+      "sst2_s42::qnli_s42",
+      "sst2_s123::yelp_s42",
+      "sst2_s123::mrpc_s42",
+      "sst2_s123::qnli_s42",
+      "mrpc_s42::qnli_s42"
+    ],
+    "qa_dominance_ratio": 1.0
+  }
+}

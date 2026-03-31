@@ -1,0 +1,16 @@
+{
+  "inventory_id": "checkpoint_inventory_t01",
+  "run_id": "run_001",
+  "timestamp": "2026-03-31T00:26:16.057004+00:00",
+  "base_model": "distilbert-base-uncased",
+  "adapter_count": 4,
+  "pair_count": 6,
+  "qa_ran": false,
+  "pair_reports_ran": false,
+  "inventory_summary_ran": false,
+  "neighborhoods_ran": false,
+  "advisory_pair_count": 5,
+  "primary_summary_path": "preflight_summary.md",
+  "action_plan_path": "inventory_action_plan.md",
+  "previous_run_id": null
+}

@@ -1,0 +1,81 @@
+{
+  "inventory_id": "targeted-confirmation-t02-near-miss-severity",
+  "description": "Confirmation pass: verify that near-miss severity ordering makes the optional-evaluation section more practically useful. Mixed inventory with retained, marginal near-miss, substantial near-miss, and excluded control.",
+  "backbone": "distilbert-base-uncased (derivatives)",
+  "inventory_type": "targeted_confirmation",
+  "confirmation_target": "near_miss_severity_ordering",
+  "adapters": [
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "lora_r": 1,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "strong irony source",
+      "expected_status": "eligible",
+      "prior_delta": 0.202
+    },
+    {
+      "adapter_id": "TransferGraph/neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "lora_r": 1,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "secondary strong irony source — retained pair partner",
+      "expected_status": "eligible",
+      "prior_delta": 0.068
+    },
+    {
+      "adapter_id": "TransferGraph/phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "method": "lora",
+      "lora_r": 1,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "barely-weak irony source (delta -0.004) — marginal near-miss",
+      "expected_status": "flagged_weak",
+      "prior_delta": -0.004
+    },
+    {
+      "adapter_id": "TransferGraph/jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "lora_r": 1,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "barely-strong hate source (delta +0.048) — retained partner for near-miss substantial pair",
+      "expected_status": "eligible",
+      "prior_delta": 0.048
+    },
+    {
+      "adapter_id": "TransferGraph/Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+      "dataset": "tweet_eval/hate",
+      "method": "lora",
+      "lora_r": 1,
+      "target_modules": ["q_lin", "v_lin"],
+      "role": "deeply-weak hate source (delta -0.15) — substantial near-miss + excluded control contributor",
+      "expected_status": "flagged_weak",
+      "prior_delta": -0.15
+    }
+  ],
+  "planned_pairs": {
+    "retained_same_task": {
+      "description": "irony x irony — both eligible, baseline retained pair",
+      "pair": ["JB173_irony", "neibla_irony"],
+      "expected_routing": "same_task_priority"
+    },
+    "near_miss_marginal": {
+      "description": "irony x irony — one barely-weak (delta -0.004), marginal severity",
+      "pair": ["JB173_irony", "phailyoor_irony"],
+      "expected_routing": "near_miss, severity=marginal"
+    },
+    "near_miss_substantial": {
+      "description": "hate x hate — one deeply-weak (delta -0.15), substantial severity",
+      "pair": ["jaesun_hate", "Aureliano_hate"],
+      "expected_routing": "near_miss, severity=substantial"
+    },
+    "excluded_control": {
+      "description": "irony x hate — cross-task + weak source → fully excluded",
+      "pair": ["JB173_irony", "Aureliano_hate"],
+      "expected_routing": "excluded (weak + cross-task)"
+    }
+  }
+}

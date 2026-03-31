@@ -1,0 +1,26 @@
+{
+  "schema": "route2_stability.cross_artifact.summary/v1",
+  "generated_utc": "2026-03-31T21:45:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "claim_status": {
+    "stable": ["A1", "A2", "C1"],
+    "moderately_stable": ["B1"],
+    "panel_sensitive": ["B2"],
+    "still_inconclusive": ["D1"]
+  },
+  "route2_implications": {
+    "safe_to_treat_as_stable": [
+      "evidence_gating_cross_artifact",
+      "conservative_narrowing_cross_artifact",
+      "representation_locality_of_strong_structural_metrics"
+    ],
+    "needs_guarded_language": [
+      "task_relation_ordering_beyond_same_task_vs_cross_task",
+      "same_family_intermediate_ordering"
+    ],
+    "still_thin": [
+      "near_miss_or_optional_portability_beyond_lora"
+    ]
+  },
+  "bottom_line": "The cross-artifact portability story remains valid but narrow: workflow-level invariants are sturdy, structural metrics remain representation-local, and same-family/optional middle-state claims require cautious wording."
+}

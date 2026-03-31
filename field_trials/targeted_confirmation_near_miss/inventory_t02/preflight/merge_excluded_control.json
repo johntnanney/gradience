@@ -1,0 +1,39 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "JB173/distilbert-base-uncased-finetuned-emotion",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate",
+    "rank": 1,
+    "alpha": 1.0,
+    "n_layers": 12,
+    "base_model": "Aureliano/distilbert-base-uncased-if",
+    "eligibility_status": "flagged_weak"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.082) \u2014 at least one adapter lacks behavioral evidence of quality",
+  "caveats": [
+    "Adapter B underperforms the base model. Rebalancing may preserve a weak signal.",
+    "Structural rebalance may preserve a behaviorally weak adapter."
+  ],
+  "verdict_distribution": {
+    "safe": 12,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.0824,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (tweet_eval/irony vs tweet_eval/hate). Linear merges across task boundaries may degrade the weaker task's performance.",
+  "task_relationship": "cross_task"
+}

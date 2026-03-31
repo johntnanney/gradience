@@ -1,0 +1,44 @@
+{
+  "schema": "route2_stability.aggregation_mixed_evidence.soft_middle_verdicts/v1",
+  "generated_utc": "2026-04-01T00:32:00Z",
+  "substudy": "Route2 Aggregation Mixed-Evidence Triage Perturbation",
+  "verdicts": [
+    {
+      "target": "qa_dominant_family_coherence",
+      "verdict": "coherent",
+      "evidence_summary": "QA-dominant cleanly partitions soft-middle panel into qa_clear (2), qa_review (4), qa_blocked (2).",
+      "interpretation_note": "Distinct QA-dominant family behavior survives mixed-evidence weighting."
+    },
+    {
+      "target": "same_family_optional_safe_likeness",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Clear-evidence same-family optional case remains safe-like in follow-through; mixed same-family optional cases remain review rather than blocked.",
+      "interpretation_note": "Optional same-family remains closer to review/safe lanes than collapse lanes, with checkpoint mixed cases still evidence-limited."
+    },
+    {
+      "target": "taxonomy_usability_in_soft_middle",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Panel remains interpretable with anchors, blocked controls, mixed review, and optional roles; no collapse into undifferentiated ambiguity.",
+      "interpretation_note": "Taxonomy remains usable, but fine boundaries should stay guarded."
+    },
+    {
+      "target": "structural_nuance_inside_mixed_evidence",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Mixed-evidence cases share qa_review primary state but split under structural lenses (needs_disambiguation vs separable; medium vs high risk).",
+      "interpretation_note": "Structural nuance re-enters as secondary prioritization, not as a replacement for QA-dominant primary classification."
+    },
+    {
+      "target": "review_worthy_vs_low_value_mixed_distinction",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Mixed cases separate into higher-priority review (sst2-mrpc) versus lower-priority review (yelp-mrpc) while both remain non-clear, non-blocked.",
+      "interpretation_note": "Useful triage differentiation exists inside review state, but requires explicit guardrails on threshold claims."
+    }
+  ],
+  "summary": {
+    "coherent": 1,
+    "coherent_with_guardrails": 4,
+    "ambiguous": 0,
+    "weakened": 0,
+    "bottom_line": "Soft-middle triage remains structured and interpretable, but fine-grained boundaries stay guarded."
+  }
+}

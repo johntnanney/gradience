@@ -1,0 +1,125 @@
+{
+  "schema": "checkpoint_inventory_eval_results/v1",
+  "timestamp_utc": "2026-03-31T00:59:03.302534+00:00",
+  "inventory_id": "checkpoint_inventory_t02",
+  "follow_through": {
+    "schema": "checkpoint_inventory_follow_through/v1",
+    "inventory_id": "checkpoint_inventory_t02",
+    "timestamp_utc": "2026-03-31T00:59:03.302509+00:00",
+    "records": [
+      {
+        "category": "same_task_near_miss_probe",
+        "checkpoints": [
+          "sst2_s42",
+          "sst2_s123"
+        ],
+        "task": "sst2",
+        "sample_size": 300,
+        "sample_seed": 123,
+        "scores": {
+          "sst2_s42": 0.5067,
+          "sst2_s123": 0.5067,
+          "base": 0.5167
+        },
+        "strongest_source_score": 0.5067,
+        "delta_vs_strongest_source": {
+          "sst2_s42": 0.0,
+          "sst2_s123": 0.0
+        },
+        "interpretation": "No retained pair remained; probing the strongest same-task near-miss candidate."
+      },
+      {
+        "category": "same_family_pair_probe",
+        "checkpoints": [
+          "sst2_s42",
+          "yelp_s42"
+        ],
+        "task": "same_family_cross_dataset",
+        "sample_size": 300,
+        "sample_seed": 123,
+        "scores": {
+          "sst2_s42_on_sst2": 0.5067,
+          "base_on_sst2": 0.5167,
+          "yelp_s42_on_yelp_polarity": 0.8767,
+          "base_on_yelp_polarity": 0.58
+        },
+        "delta_vs_base": {
+          "sst2_s42": -0.01,
+          "yelp_s42": 0.2967
+        },
+        "interpretation": "Same-family non-identical-task branch probe (task-family equivalence sanity check)."
+      },
+      {
+        "category": "optional_single_checkpoint",
+        "checkpoints": [
+          "mrpc_s42"
+        ],
+        "task": "mrpc",
+        "sample_size": 300,
+        "sample_seed": 123,
+        "scores": {
+          "mrpc_s42": 0.6767,
+          "base": 0.4933
+        },
+        "delta_vs_base": 0.1833,
+        "interpretation": "Optional same-inventory checkpoint sanity check."
+      },
+      {
+        "category": "lower_priority_control_checkpoint",
+        "checkpoints": [
+          "qnli_s42"
+        ],
+        "task": "qnli",
+        "sample_size": 300,
+        "sample_seed": 123,
+        "scores": {
+          "qnli_s42": 0.5167,
+          "base": 0.49
+        },
+        "delta_vs_base": 0.0267,
+        "interpretation": "Lower-priority control checkpoint; used to sanity-check weak/risky region."
+      }
+    ],
+    "summary": {
+      "evaluation_count": 4,
+      "retained_or_evaluate_first_count": 0,
+      "same_family_probe_count": 1,
+      "control_count": 1
+    }
+  },
+  "measurement_schema": {
+    "product_behavior": {
+      "inventory_type": "mixed_quality",
+      "dominant_driver": "source_qa",
+      "exploration_posture": "narrow",
+      "checkpoint_count": 5,
+      "pair_count": 10,
+      "retained_count": 0,
+      "candidate_reduction": 1.0,
+      "relationship_counts": {
+        "same_task": 1,
+        "same_family": 2,
+        "cross_task": 7
+      }
+    },
+    "evidence_behavior": {
+      "eligible_count": 1,
+      "uncertain_count": 1,
+      "weak_count": 3,
+      "evidence_gate_dominated_decisions": true
+    },
+    "follow_through_behavior": {
+      "evaluation_count": 4,
+      "retained_or_evaluate_first_count": 0,
+      "same_family_probe_count": 1,
+      "control_count": 1
+    },
+    "workflow_usefulness": {
+      "qa_usefulness": "high",
+      "pairwise_comparison_usefulness": "high",
+      "action_plan_usefulness": "high",
+      "report_clarity": "high",
+      "broader_use_case_plausibility": "high"
+    }
+  }
+}

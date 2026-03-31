@@ -1,0 +1,40 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "base_model": "",
+    "rank_nominal": 8,
+    "n_layers": 12
+  },
+  "structural_summary": {
+    "utilization_mean": 0.21607143331408848,
+    "utilization_median": 0.21053541447669993,
+    "stable_rank_mean": 1.7285714665127079,
+    "effective_rank_90_median": 4.0,
+    "rank_waste_ratio": 0.7839285666859115,
+    "flags": [
+      "low_utilization",
+      "high_rank_waste"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "imdb",
+    "metric_name": "accuracy",
+    "adapter_score": 0.876,
+    "base_score": 0.502,
+    "lower_is_better": false,
+    "beats_base": true
+  },
+  "eligibility": {
+    "status": "eligible",
+    "confidence": "high",
+    "reasons": [
+      "adapter outperforms base on accuracy (imdb)",
+      "low utilization across layers",
+      "high rank waste"
+    ]
+  },
+  "notes": []
+}

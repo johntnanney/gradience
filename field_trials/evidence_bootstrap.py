@@ -106,6 +106,24 @@ DATASET_REGISTRY: dict[str, dict] = {
         "num_labels": 3,
         "metric": "accuracy",
     },
+    "yelp_polarity": {
+        "hf_name": "yelp_polarity",
+        "hf_config": None,
+        "split": "test",
+        "text_col": "text",
+        "label_col": "label",
+        "num_labels": 2,
+        "metric": "accuracy",
+    },
+    "amazon_polarity": {
+        "hf_name": "amazon_polarity",
+        "hf_config": None,
+        "split": "test",
+        "text_col": "content",
+        "label_col": "label",
+        "num_labels": 2,
+        "metric": "accuracy",
+    },
 }
 
 # Map manifest dataset names to registry keys
@@ -122,10 +140,14 @@ def resolve_dataset(manifest_dataset: str) -> str:
 
 
 def load_eval_data(ds_key: str, max_samples: int = MAX_SAMPLES) -> tuple:
-    """Load a small eval slice. Returns (texts, labels, ds_info)."""
+    """Load a small eval slice. Returns (texts, labels, ds_info).
+
+    Uses shuffling with a fixed seed to avoid label-sorted splits
+    (e.g., IMDB test[:500] is all label 0).
+    """
     info = DATASET_REGISTRY[ds_key]
-    slice_spec = f"{info['split']}[:{max_samples}]"
-    ds = load_dataset(info["hf_name"], info["hf_config"], split=slice_spec)
+    ds = load_dataset(info["hf_name"], info["hf_config"], split=info["split"])
+    ds = ds.shuffle(seed=42).select(range(min(max_samples, len(ds))))
 
     texts = ds[info["text_col"]]
     if "text_col_b" in info:

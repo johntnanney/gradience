@@ -1,0 +1,48 @@
+{
+  "schema": "route2_stability.cross_artifact.original_claims_snapshot/v1",
+  "generated_utc": "2026-03-31T21:10:00Z",
+  "reference_sources": [
+    "sidecar/results/cross_artifact_portability/invariant_signal_matrix.json",
+    "sidecar/results/cross_artifact_portability/local_signal_table.json",
+    "sidecar/results/cross_artifact_portability/product_relevance_filter.json",
+    "sidecar/notes/n80_cross_artifact_product_relevance.md"
+  ],
+  "claims": [
+    {
+      "claim_id": "A1",
+      "claim_text": "QA / evidence gating is a strong cross-artifact invariant.",
+      "original_verdict": "strong",
+      "support_summary": "Present across LoRA, LoHa, and checkpoint delta; explicitly dominant in triage policy summaries."
+    },
+    {
+      "claim_id": "A2",
+      "claim_text": "Conservative narrowing is a strong cross-artifact invariant.",
+      "original_verdict": "strong",
+      "support_summary": "Observed as workflow-level narrowing in all classes (high reduction or hard QA block)."
+    },
+    {
+      "claim_id": "B1",
+      "claim_text": "Task-relation ordering is moderately portable across artifact classes.",
+      "original_verdict": "moderate",
+      "support_summary": "Observed where testable (LoRA, checkpoint delta), indeterminate in LoHa due same-task-only coverage."
+    },
+    {
+      "claim_id": "B2",
+      "claim_text": "Same-family intermediate status is moderately portable across artifact classes.",
+      "original_verdict": "moderate",
+      "support_summary": "Observed in LoRA and checkpoint delta; not testable in LoHa panel."
+    },
+    {
+      "claim_id": "C1",
+      "claim_text": "Strongest structural metrics are representation-local rather than cross-artifact invariant.",
+      "original_verdict": "local_only",
+      "support_summary": "Factor-geometry metrics (including V-module ratio) do not transfer to checkpoint summary path."
+    },
+    {
+      "claim_id": "D1",
+      "claim_text": "Near-miss / optional middle-state portability remains inconclusive across artifact classes.",
+      "original_verdict": "inconclusive",
+      "support_summary": "Validated in LoRA; absent in LoHa and checkpoint panels under current coverage."
+    }
+  ]
+}

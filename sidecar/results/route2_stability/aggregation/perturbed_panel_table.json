@@ -1,0 +1,210 @@
+{
+  "schema": "route2_stability.aggregation.perturbed_panel/v1",
+  "generated_utc": "2026-03-31T22:20:00Z",
+  "substudy": "Route2 Substudy 2 - Aggregation-Sensitive Compatibility Stability Check",
+  "perturbation_policy": {
+    "preserve_structure": true,
+    "max_replacements_applied": 3,
+    "rule_note": "One local substitution per scenario family (merge, routing, triage)."
+  },
+  "panel_size": 12,
+  "groups": {
+    "merge_facing": 3,
+    "routing_facing": 3,
+    "triage_facing_qa_blocked": 3,
+    "triage_facing_qa_clear": 3
+  },
+  "substitutions": [
+    {
+      "scenario_family": "merge",
+      "replaced_case_id": "mrg_near_miss_substantial",
+      "new_case_id": "mrg_near_miss_marginal",
+      "reason": "Nearby same-task near-miss variant from the same targeted_confirmation_near_miss inventory (T02)."
+    },
+    {
+      "scenario_family": "routing",
+      "replaced_case_id": "mnli_qnli_moderate",
+      "new_case_id": "mnli_rte_moderate_alt",
+      "reason": "Nearby moderate confusable routing case from the same routing pilot panel."
+    },
+    {
+      "scenario_family": "triage",
+      "replaced_case_id": "tri_cross_task_qa_review",
+      "new_case_id": "tri_cross_task_qa_review_alt",
+      "reason": "Nearby mixed-QA cross-task checkpoint case from the same T02 pairwise/preflight set."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "mrg_safe_same_task",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "metrics": {
+        "compatibility_score": 0.475,
+        "pair_risk": "medium",
+        "merge_accuracy": 0.876
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "mrg_near_miss_marginal",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t02",
+      "metrics": {
+        "compatibility_score": 0.1272,
+        "pair_risk": "low",
+        "merge_accuracy": 0.606
+      },
+      "replaced_from": "mrg_near_miss_substantial"
+    },
+    {
+      "case_id": "mrg_cross_task_control",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "metrics": {
+        "compatibility_score": 0.111,
+        "pair_risk": "high",
+        "merge_accuracy": 0.842
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "rte_same_task_confusable",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "metrics": {
+        "routing_confusability": "high",
+        "routing_score": 0.4813
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "mnli_rte_moderate_alt",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "metrics": {
+        "routing_confusability": "moderate",
+        "routing_score": 0.2615
+      },
+      "replaced_from": "mnli_qnli_moderate"
+    },
+    {
+      "case_id": "qnli_rte_separable",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "metrics": {
+        "routing_confusability": "low",
+        "routing_score": 0.2215
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "tri_same_task_qa_blocked",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "same_task",
+      "qa_regime": "blocked",
+      "source": "checkpoint_t02",
+      "metrics": {
+        "compatibility_score": 0.892,
+        "pair_risk": "medium",
+        "source_status": {
+          "sst2_s42": "flagged_weak",
+          "sst2_s123": "flagged_weak"
+        }
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "tri_same_family_qa_blocked",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "same_family",
+      "qa_regime": "blocked",
+      "source": "checkpoint_t02",
+      "metrics": {
+        "compatibility_score": 0.652,
+        "pair_risk": "high",
+        "source_status": {
+          "sst2_s42": "flagged_weak",
+          "yelp_s42": "uncertain"
+        }
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "tri_cross_task_qa_review_alt",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "mixed",
+      "source": "checkpoint_t02",
+      "metrics": {
+        "compatibility_score": 0.798,
+        "pair_risk": "medium",
+        "source_status": {
+          "sst2_s42": "flagged_weak",
+          "mrpc_s42": "eligible"
+        }
+      },
+      "replaced_from": "tri_cross_task_qa_review"
+    },
+    {
+      "case_id": "tri_same_task_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "metrics": {
+        "compatibility_score": 0.475,
+        "pair_risk": "medium"
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "tri_same_family_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "metrics": {
+        "compatibility_score": 0.314,
+        "pair_risk": "medium"
+      },
+      "replaced_from": null
+    },
+    {
+      "case_id": "tri_cross_task_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "metrics": {
+        "compatibility_score": 0.111,
+        "pair_risk": "high"
+      },
+      "replaced_from": null
+    }
+  ]
+}

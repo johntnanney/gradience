@@ -1,0 +1,199 @@
+{
+  "schema": "route2_stability.aggregation_mixed_evidence.panel/v1",
+  "generated_utc": "2026-04-01T00:05:00Z",
+  "substudy": "Route2 Aggregation Mixed-Evidence Triage Perturbation",
+  "panel_size": 8,
+  "design_intent": "soft_middle_weighted",
+  "composition": {
+    "anchor_clear": 1,
+    "anchor_blocked": 2,
+    "mixed_review": 2,
+    "same_family_optional": 3
+  },
+  "cases": [
+    {
+      "case_id": "anchor_clear_retained_irony",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "evidence_regime": "clear",
+      "prior_route2_profile": "aggregation_invariant_safe",
+      "panel_role": "anchor",
+      "reason_included": "Clear retained same-task anchor with strong evidence; calibrates non-middle behavior.",
+      "evidence_status": {
+        "adapter_a": "eligible",
+        "adapter_b": "eligible"
+      },
+      "metrics": {
+        "pair_risk": "medium",
+        "compatibility_score": 0.3682,
+        "merged_accuracy": 0.606
+      },
+      "source_paths": [
+        "field_trials/targeted_confirmation_near_miss/inventory_t02/preflight/merge_retained_irony.json",
+        "field_trials/targeted_confirmation_near_miss/inventory_t02/eval_results.json"
+      ]
+    },
+    {
+      "case_id": "anchor_blocked_same_task_checkpoint",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "evidence_regime": "blocked",
+      "prior_route2_profile": "qa_dominance_override",
+      "panel_role": "blocked",
+      "reason_included": "Blocked same-task anchor with high structural compatibility; stress-tests QA override in soft middle.",
+      "evidence_status": {
+        "checkpoint_a": "flagged_weak",
+        "checkpoint_b": "flagged_weak"
+      },
+      "metrics": {
+        "pair_risk": "medium",
+        "compatibility_score": 0.8922
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/sst2_s42__sst2_s123.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s123.json"
+      ]
+    },
+    {
+      "case_id": "anchor_blocked_cross_task_checkpoint",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "blocked",
+      "prior_route2_profile": "weak_low_value_blocked",
+      "panel_role": "blocked",
+      "reason_included": "Clearly blocked weak cross-task control; anchors low-value blocked region.",
+      "evidence_status": {
+        "checkpoint_a": "flagged_weak",
+        "checkpoint_b": "flagged_weak"
+      },
+      "metrics": {
+        "pair_risk": "high",
+        "compatibility_score": 0.6259
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/sst2_s42__qnli_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/qnli_s42.json"
+      ]
+    },
+    {
+      "case_id": "review_mixed_cross_task_sst2_mrpc",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "mixed_evidence_review_high_structure",
+      "panel_role": "review",
+      "reason_included": "Mixed-evidence review case with stronger structure; probes review-worthy middle.",
+      "evidence_status": {
+        "checkpoint_a": "flagged_weak",
+        "checkpoint_b": "eligible"
+      },
+      "metrics": {
+        "pair_risk": "medium",
+        "compatibility_score": 0.798
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/sst2_s42__mrpc_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/mrpc_s42.json"
+      ]
+    },
+    {
+      "case_id": "review_mixed_cross_task_yelp_mrpc",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "mixed_evidence_review_lower_structure",
+      "panel_role": "review",
+      "reason_included": "Mixed-evidence review case with weaker structure; tests internal middle gradation.",
+      "evidence_status": {
+        "checkpoint_a": "uncertain",
+        "checkpoint_b": "eligible"
+      },
+      "metrics": {
+        "pair_risk": "high",
+        "compatibility_score": 0.5843
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/yelp_s42__mrpc_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/yelp_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/mrpc_s42.json"
+      ]
+    },
+    {
+      "case_id": "optional_same_family_clear_sst2_imdb",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "clear",
+      "prior_route2_profile": "same_family_optional_safe_like",
+      "panel_role": "optional",
+      "reason_included": "Same-family optional case with clear evidence and safe-like follow-through behavior.",
+      "evidence_status": {
+        "adapter_a": "eligible",
+        "adapter_b": "eligible"
+      },
+      "metrics": {
+        "pair_risk": "medium",
+        "compatibility_score": 0.314,
+        "merged_accuracy": 0.878
+      },
+      "source_paths": [
+        "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/merge_same_family_cross_dataset.json",
+        "field_trials/targeted_confirmation_same_family/inventory_t01/eval_results.json"
+      ]
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_a",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "same_family_optional_review",
+      "panel_role": "optional",
+      "reason_included": "Same-family optional mixed-evidence case; checks whether optionality remains review-like under QA dominance.",
+      "evidence_status": {
+        "checkpoint_a": "flagged_weak",
+        "checkpoint_b": "uncertain"
+      },
+      "metrics": {
+        "pair_risk": "high",
+        "compatibility_score": 0.6523
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/sst2_s42__yelp_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/yelp_s42.json"
+      ]
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_b",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "same_family_optional_review_weaker",
+      "panel_role": "optional",
+      "reason_included": "Second same-family optional mixed case; tests whether optional middle remains structured rather than collapsing.",
+      "evidence_status": {
+        "checkpoint_a": "flagged_weak",
+        "checkpoint_b": "uncertain"
+      },
+      "metrics": {
+        "pair_risk": "high",
+        "compatibility_score": 0.641
+      },
+      "source_paths": [
+        "field_trials/checkpoint_inventory_t02/preflight/pair_reports/sst2_s123__yelp_s42.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/sst2_s123.json",
+        "field_trials/checkpoint_inventory_t02/preflight/qa/yelp_s42.json"
+      ]
+    }
+  ]
+}

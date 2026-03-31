@@ -1,0 +1,90 @@
+{
+  "schema": "checkpoint_inventory_preflight/v1",
+  "timestamp_utc": "2026-03-31T00:58:31.401444+00:00",
+  "inventory_id": "checkpoint_inventory_t02",
+  "run_id": "run_001",
+  "policy_summary": {
+    "inventory_type": "mixed_quality",
+    "dominant_driver": "source_qa",
+    "exploration_posture": "narrow",
+    "constraint": "Source QA is the binding constraint; resolve weak evidence before exploring merges."
+  },
+  "inventory_summary": {
+    "schema": "gradience.inventory_summary/v1",
+    "sources": {
+      "qa_artifact_count": 5,
+      "merge_report_count": 10
+    },
+    "adapter_status_counts": {
+      "flagged_weak": 3,
+      "uncertain": 1,
+      "eligible": 1
+    },
+    "adapter_flag_counts": {
+      "steep_core_singular_decay": 1,
+      "diffuse_delta_spectrum": 1,
+      "high_effective_rank": 1
+    },
+    "pair_risk_counts": {
+      "medium": 3,
+      "high": 7
+    },
+    "recommended_strategy_counts": {
+      "norm_equalized": 3,
+      "audit_aware": 7
+    },
+    "dominant_issue_counts": {
+      "high_redundancy": 1,
+      "subspace_conflict": 7,
+      "partial_redundancy": 2
+    },
+    "strict_qa_block_candidates": 9,
+    "evidence_tier_counts": {
+      "behavioral_weak": 3,
+      "behavioral_reported": 2
+    },
+    "notes": []
+  },
+  "action_plan": {
+    "exclude": [
+      "sst2_s42: weak source \u2014 low confidence",
+      "sst2_s123: weak source \u2014 low confidence",
+      "qnli_s42: weak source \u2014 low confidence"
+    ],
+    "same_task_priority": [],
+    "cross_task_caution": [
+      "MRPC \u00d7 YELP_POLARITY region"
+    ],
+    "evaluate_first": [],
+    "summary_line": "QA dominates this inventory; no credible same-task candidates remain.",
+    "total_pairs": 10,
+    "retained_count": 0,
+    "cross_task_count": 1,
+    "behavioral_evidence_count": 5,
+    "total_source_count": 5,
+    "retained_pair_detail": [],
+    "near_miss_candidates": [
+      "sst2_s42 \u00d7 sst2_s123"
+    ],
+    "near_miss_detail": [
+      [
+        "sst2_s42 \u00d7 sst2_s123",
+        "medium",
+        "norm_equalized",
+        "sst2_s42, sst2_s123 are evidence-constrained"
+      ]
+    ],
+    "near_miss_severity": [
+      [
+        "sst2_s42 \u00d7 sst2_s123",
+        "substantial"
+      ]
+    ]
+  },
+  "paths": {
+    "qa_dir": "/Users/john/code/gradience/field_trials/checkpoint_inventory_t02/preflight/qa",
+    "pair_reports_dir": "/Users/john/code/gradience/field_trials/checkpoint_inventory_t02/preflight/pair_reports",
+    "inventory_dir": "/Users/john/code/gradience/field_trials/checkpoint_inventory_t02/preflight/inventory",
+    "run_bundle_dir": "/Users/john/code/gradience/field_trials/checkpoint_inventory_t02/preflight/run_001"
+  }
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "pair_name": "t01_retained_sst2_x_sst2",
+    "role": "retained",
+    "strategy": "audit_aware",
+    "eval_dataset": "sst2",
+    "compatibility": "imbalanced",
+    "compatibility_score": 0.475,
+    "mean_reconstruction_error": 0.2684,
+    "merged_accuracy": 0.876,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.3,
+    "notes": "Exact same-task baseline (SST-2 x SST-2)."
+  },
+  {
+    "pair_name": "t01_same_family_sst2_x_imdb",
+    "role": "same_family",
+    "strategy": "audit_aware",
+    "eval_dataset": "sst2",
+    "compatibility": "redundant",
+    "compatibility_score": 0.314,
+    "mean_reconstruction_error": 0.1495,
+    "merged_accuracy": 0.878,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.0,
+    "notes": "KEY: Same-family cross-dataset (SST-2 x IMDB), eval on SST-2."
+  },
+  {
+    "pair_name": "t01_cross_task_sst2_x_agnews",
+    "role": "cross_task_control",
+    "strategy": "audit_aware",
+    "eval_dataset": "sst2",
+    "compatibility": "imbalanced",
+    "compatibility_score": 0.111,
+    "mean_reconstruction_error": 0.042,
+    "merged_accuracy": 0.842,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.0,
+    "eval_time_s": 6.1,
+    "notes": "True cross-task control (SST-2 x ag_news), eval on SST-2."
+  }
+]

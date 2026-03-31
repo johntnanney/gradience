@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkpoint Triage Alpha Workflow Report (T02)</title>
+  <style>
+    :root {
+      --bg: #f7f8f4;
+      --ink: #1f2a37;
+      --muted: #5f6b78;
+      --card: #ffffff;
+      --accent: #0f766e;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --line: #dce2e8;
+    }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: var(--bg); color: var(--ink); }
+    .wrap { max-width: 1080px; margin: 24px auto; padding: 0 16px 40px; }
+    .hero { background: linear-gradient(135deg, #0f766e, #155e75); color: #fff; border-radius: 14px; padding: 20px; }
+    .hero h1 { margin: 0 0 6px; font-size: 1.6rem; }
+    .hero p { margin: 0; opacity: 0.95; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+    .k { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .v { font-size: 1.2rem; font-weight: 700; margin-top: 4px; }
+    h2 { margin-top: 26px; margin-bottom: 10px; }
+    p { line-height: 1.45; }
+    .scope { border-left: 4px solid var(--accent); padding-left: 10px; }
+    ul { margin-top: 6px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; font-size: 0.92rem; }
+    th { background: #edf2f7; font-weight: 700; }
+    tr:last-child td { border-bottom: none; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; }
+    .pill.good { background: #dcfce7; color: #166534; }
+    .pill.warn { background: #fef3c7; color: #92400e; }
+    .pill.bad { background: #fee2e2; color: #991b1b; }
+    .links code { font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Checkpoint Triage Alpha Workflow Report</h1>
+      <p>Canonical example: <code>field_trials/checkpoint_inventory_t02</code> (generated 2026-03-31T02:29:03.658126+00:00)</p>
+      <div class="grid">
+        <div class="card"><div class="k">Inventory Type</div><div class="v">mixed_quality</div></div>
+        <div class="card"><div class="k">Dominant Driver</div><div class="v">source_qa</div></div>
+        <div class="card"><div class="k">Checkpoints</div><div class="v">5</div></div>
+        <div class="card"><div class="k">Pairs</div><div class="v">10</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Scope (Alpha Contract)</h2>
+      <p class="scope">This workflow is intentionally bounded: shared base only, small encoders only, classification only, and evidence bootstrap is required before triage decisions.</p>
+      <ul>
+        <li><span class="pill good">shared_base_only</span></li>
+        <li><span class="pill good">small_encoder_only</span></li>
+        <li><span class="pill good">classification_only</span></li>
+        <li><span class="pill warn">evidence_bootstrap_required</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Step 1 — Evidence Bootstrap (First-Class Gate)</h2>
+      <p>Evidence status counts: eligible=2, uncertain=0, flagged_weak=3.</p>
+      <table><thead><tr><th>checkpoint</th><th>task</th><th>checkpoint_score</th><th>base_score</th><th>delta_vs_base</th><th>status</th></tr></thead><tbody><tr><td>sst2_s42</td><td>sst2</td><td>0.4800</td><td>0.5600</td><td>-0.0800</td><td>flagged_weak</td></tr><tr><td>sst2_s123</td><td>sst2</td><td>0.4800</td><td>0.5600</td><td>-0.0800</td><td>flagged_weak</td></tr><tr><td>yelp_s42</td><td>yelp_polarity</td><td>0.9250</td><td>0.5750</td><td>+0.3500</td><td>eligible</td></tr><tr><td>mrpc_s42</td><td>mrpc</td><td>0.6650</td><td>0.5250</td><td>+0.1400</td><td>eligible</td></tr><tr><td>qnli_s42</td><td>qnli</td><td>0.5300</td><td>0.5400</td><td>-0.0100</td><td>flagged_weak</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Step 2 — QA Snapshot</h2>
+      <p>QA status counts: eligible=1, uncertain=1, flagged_weak=3.</p>
+      <p>Source QA is the binding constraint; resolve weak evidence before exploring merges.</p>
+    </section>
+
+    <section>
+      <h2>Step 3 — Pairwise Compatibility</h2>
+      <p>Pair risk counts: medium=3, high=7.</p>
+      <table><thead><tr><th>pair</th><th>relationship</th><th>compatibility</th><th>risk</th></tr></thead><tbody><tr><td>sst2_s42::sst2_s123</td><td>same_task</td><td>0.8922</td><td>medium</td></tr><tr><td>sst2_s42::yelp_s42</td><td>same_family</td><td>0.6523</td><td>high</td></tr><tr><td>sst2_s42::mrpc_s42</td><td>cross_task</td><td>0.7980</td><td>medium</td></tr><tr><td>sst2_s42::qnli_s42</td><td>cross_task</td><td>0.6259</td><td>high</td></tr><tr><td>sst2_s123::yelp_s42</td><td>same_family</td><td>0.6410</td><td>high</td></tr><tr><td>sst2_s123::mrpc_s42</td><td>cross_task</td><td>0.8096</td><td>medium</td></tr><tr><td>sst2_s123::qnli_s42</td><td>cross_task</td><td>0.6427</td><td>high</td></tr><tr><td>yelp_s42::mrpc_s42</td><td>cross_task</td><td>0.5843</td><td>high</td></tr><tr><td>yelp_s42::qnli_s42</td><td>cross_task</td><td>0.4891</td><td>high</td></tr><tr><td>mrpc_s42::qnli_s42</td><td>cross_task</td><td>0.6451</td><td>high</td></tr></tbody></table>
+    </section>
+
+    <section>
+      <h2>Step 4 — Action Plan</h2>
+      <p><strong>Summary:</strong> QA dominates this inventory; no credible same-task candidates remain.</p>
+      <ul>
+        <li>Retained candidates: 0</li>
+        <li>Near-miss candidates: 1</li>
+        <li>Cross-task caution entries: 1</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Step 5 — Tiny Follow-through</h2>
+      <table><thead><tr><th>category</th><th>checkpoint(s)</th><th>task</th><th>interpretation</th></tr></thead><tbody><tr><td>same_task_near_miss_probe</td><td>sst2_s42, sst2_s123</td><td>sst2</td><td>No retained pair remained; probing the strongest same-task near-miss candidate.</td></tr><tr><td>same_family_pair_probe</td><td>sst2_s42, yelp_s42</td><td>same_family_cross_dataset</td><td>Same-family non-identical-task branch probe (task-family equivalence sanity check).</td></tr><tr><td>optional_single_checkpoint</td><td>mrpc_s42</td><td>mrpc</td><td>Optional same-inventory checkpoint sanity check.</td></tr><tr><td>lower_priority_control_checkpoint</td><td>qnli_s42</td><td>qnli</td><td>Lower-priority control checkpoint; used to sanity-check weak/risky region.</td></tr></tbody></table>
+      <p>Workflow usefulness: QA=high, pairwise=high, action plan=high, report clarity=high.</p>
+    </section>
+
+    <section class="links">
+      <h2>Source Artifacts</h2>
+      <ul>
+        <li><code>../preflight_results.json</code></li>
+        <li><code>../inventory/inventory_summary.json</code></li>
+        <li><code>../inventory/inventory_action_plan.json</code></li>
+        <li><code>../../evidence/bootstrap_results.json</code></li>
+        <li><code>../../qa_artifacts/qa_summary.json</code></li>
+        <li><code>../../pairwise/pairwise_results.json</code></li>
+        <li><code>../../eval_results.json</code></li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

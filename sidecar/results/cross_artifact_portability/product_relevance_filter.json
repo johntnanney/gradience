@@ -1,0 +1,91 @@
+{
+  "schema": "cross_artifact_portability_product_relevance/v1",
+  "generated_utc": "2026-03-31T20:00:00.000000+00:00",
+  "program": "Cross-Artifact Compatibility Research Program (Route 2)",
+  "categories": [
+    {
+      "distinction": "Evidence bootstrap and QA gating as first-class triage steps",
+      "category": "safe_to_expose",
+      "rationale": "Recurs across all three artifact classes. Operates on metadata, not structural measurements. Already the dominant practical signal in every tested inventory. Representation-agnostic by design.",
+      "framework_layer": 1,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Conservative candidate narrowing (broad input to narrow output)",
+      "category": "safe_to_expose",
+      "rationale": "Workflow shape survives representation change in all three classes. The narrowing logic is the same everywhere: QA first, task boundaries second, structural risk third.",
+      "framework_layer": 1,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Same-task vs cross-task ordering",
+      "category": "safe_with_scope_guardrail",
+      "rationale": "Confirmed in LoRA and checkpoint delta. Not testable in LoHa (same-task only panel). Guardrail: state that cross-artifact task-relation ordering is observed where testable but not exhaustively validated across all representation forms.",
+      "framework_layer": 1,
+      "confidence": "moderate"
+    },
+    {
+      "distinction": "Same-family intermediate status",
+      "category": "safe_with_scope_guardrail",
+      "rationale": "Confirmed in LoRA and checkpoint delta. The three-way ordering holds where testable. Guardrail: same-family behavior depends on the task-family registry, which is still small (sentiment_binary, NLI).",
+      "framework_layer": 1,
+      "confidence": "moderate"
+    },
+    {
+      "distinction": "Triage as the cross-artifact decision scenario",
+      "category": "safe_with_scope_guardrail",
+      "rationale": "Only triage has complete coverage across LoRA, LoHa, and checkpoint delta. Safe to describe triage as a broader workflow. Guardrail: do not imply merge or routing work across artifact classes.",
+      "framework_layer": 3,
+      "confidence": "moderate"
+    },
+    {
+      "distinction": "Near-miss as a product category",
+      "category": "not_stable_enough",
+      "rationale": "Well-validated in LoRA but not observed in LoHa or checkpoint delta. May be a panel coverage gap rather than a real limitation, but cannot be claimed as cross-artifact until confirmed elsewhere.",
+      "framework_layer": 1,
+      "confidence": "low"
+    },
+    {
+      "distinction": "Factor-geometry-specific structural cues (subspace overlap, V-module ratio)",
+      "category": "research_only",
+      "rationale": "Representation-locked to factorized artifacts. Cannot be computed from checkpoint summary representation. The strongest sidecar signal but not portable.",
+      "framework_layer": 2,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Merge strategy recommendations across artifact classes",
+      "category": "research_only",
+      "rationale": "Merge execution is operationally restricted to native LoRA. LoHa merge is unvalidated. Checkpoint delta merge is out of scope. Do not surface strategy strings for non-LoRA artifacts.",
+      "framework_layer": 2,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Numeric compatibility scores as cross-artifact comparisons",
+      "category": "not_stable_enough",
+      "rationale": "Scores exist in all classes but use different scales. LoRA same-task 0.475 vs checkpoint delta same-task 0.892 are not comparable. Ordinal ranking may transfer; absolute values do not.",
+      "framework_layer": 2,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Summary-profile-specific checkpoint cues",
+      "category": "research_only",
+      "rationale": "Unique to checkpoint delta Representation C. No analog in factor-based pipeline. Product-facing descriptions should not reference summary-profile-specific comparison metrics.",
+      "framework_layer": 2,
+      "confidence": "high"
+    },
+    {
+      "distinction": "Pair risk labels as cross-artifact comparison",
+      "category": "not_stable_enough",
+      "rationale": "Same vocabulary (low/medium/high) but different calibration per representation family. LoHa same-task 'low' and checkpoint delta same-task 'medium' do not mean the same thing.",
+      "framework_layer": 2,
+      "confidence": "high"
+    }
+  ],
+  "summary": {
+    "safe_to_expose": 2,
+    "safe_with_scope_guardrail": 3,
+    "research_only": 3,
+    "not_stable_enough": 3,
+    "bottom_line": "The cross-artifact substrate is real but narrow. It consists of workflow-level signals (evidence gating, narrowing) and task-relational ordering, not structural metrics. Product language can safely reference the workflow shape and evidence-gating pattern across artifact classes. It should not reference structural measurements, numeric scores, or merge strategies as cross-artifact primitives."
+  }
+}

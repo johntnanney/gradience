@@ -254,3 +254,59 @@ def compute_subspace_metrics(
         stable_rank_a=_stable_rank(S_a, eps),
         stable_rank_b=_stable_rank(S_b, eps),
     )
+
+
+# ---------------------------------------------------------------------------
+# Aggregate overlap utilities
+# ---------------------------------------------------------------------------
+
+
+def overlap_score(metrics: SubspaceMetrics) -> float:
+    """Squared-Frobenius overlap from existing principal angle cosines.
+
+    Computes ``sum(cos²(θ_i)) / min(eff_rank_a, eff_rank_b)`` using the
+    principal angle cosines already stored on the metrics object.  This is
+    a normalised measure of shared subspace volume: 0.0 for orthogonal
+    subspaces, 1.0 for identical subspaces, independent of rank.
+    """
+    cosines = metrics.principal_angle_cosines
+    if not cosines:
+        return 0.0
+    k = min(metrics.effective_rank_a, metrics.effective_rank_b)
+    if k <= 0:
+        return 0.0
+    return sum(c * c for c in cosines) / k
+
+
+def aggregate_overlap(
+    layer_metrics: list[tuple[str, SubspaceMetrics]],
+) -> float:
+    """Parameter-weighted aggregate overlap across layers.
+
+    Each layer's contribution is weighted by the larger of its two
+    Frobenius norms (same weighting used by ``assess_overall`` for
+    the aggregate compatibility score).
+
+    Parameters
+    ----------
+    layer_metrics
+        List of ``(layer_name, SubspaceMetrics)`` tuples.
+
+    Returns
+    -------
+    Weighted mean overlap score in ``[0, 1]``.  Returns 0.0 for an
+    empty list.
+    """
+    if not layer_metrics:
+        return 0.0
+
+    total_weight = 0.0
+    weighted_sum = 0.0
+    for _name, m in layer_metrics:
+        weight = max(m.frobenius_norm_a, m.frobenius_norm_b)
+        total_weight += weight
+        weighted_sum += weight * overlap_score(m)
+
+    if total_weight <= 0.0:
+        return 0.0
+    return weighted_sum / total_weight

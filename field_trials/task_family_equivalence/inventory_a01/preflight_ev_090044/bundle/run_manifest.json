@@ -1,0 +1,16 @@
+{
+  "inventory_id": "preflight_ev_090044",
+  "run_id": "run_20260329_140056",
+  "timestamp": "2026-03-29T14:00:56.064062+00:00",
+  "base_model": null,
+  "adapter_count": 4,
+  "pair_count": 6,
+  "qa_ran": false,
+  "pair_reports_ran": false,
+  "inventory_summary_ran": false,
+  "neighborhoods_ran": false,
+  "advisory_pair_count": 4,
+  "primary_summary_path": "preflight_summary.md",
+  "action_plan_path": "inventory_action_plan.md",
+  "previous_run_id": null
+}

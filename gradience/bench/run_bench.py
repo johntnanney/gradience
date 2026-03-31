@@ -236,12 +236,13 @@ def main() -> int:
                 config_data["runtime"] = {}
             config_data["runtime"]["device"] = args.device
 
-            # Write temporary config
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-                yaml.safe_dump(config_data, f)
-                temp_config_path = f.name
+            # Write temporary config inside a private directory (mode 0o700)
+            # to avoid exposing config contents in world-readable /tmp.
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                temp_config_path = os.path.join(tmp_dir, "config.yaml")
+                with open(temp_config_path, "w") as f:
+                    yaml.safe_dump(config_data, f)
 
-            try:
                 # Run with temporary config
                 report = run_bench_protocol(
                     config_path=temp_config_path,
@@ -252,9 +253,6 @@ def main() -> int:
                     max_candidates=args.max_candidates,
                     resume=args.resume,
                 )
-            finally:
-                # Clean up temporary config
-                os.unlink(temp_config_path)
         else:
             # Run with original config
             report = run_bench_protocol(

@@ -161,7 +161,7 @@ class GradienceCallback:
 
                         state_dict = load_file(filepath)
                     else:
-                        state_dict = torch.load(filepath, map_location="cpu")
+                        state_dict = torch.load(filepath, map_location="cpu", weights_only=True)
                     unwrapped.load_state_dict(state_dict)
                     return
 

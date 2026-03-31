@@ -1,0 +1,38 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Same-task pair — reasonable candidate
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       MEDIUM
+  Compat. score:   0.368
+  Dominant issue:  PARTIAL REDUNDANCY
+                   3 redundant layer(s)
+  Layer verdicts:  9 safe, 3 redundant (12 total)
+
+  Adapter A:  rank=1, alpha=1.0, 12 layers (JB173/distilbert-base-uncased-finetuned-emotion)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony
+  Adapter B:  rank=1, alpha=1.0, 12 layers (neibla/distilbert-base-uncased-finetuned-emotion)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__neibla_irony
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: eligible
+
+  Confidence:      medium
+                   Low spectral compatibility (score=0.368) — both adapters have user-reported behavioral quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  No eligibility concerns detected.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Merge with audit-aware strategy. Consider norm-equalized as simpler alternative.
+  Strategy: norm_equalized
+
+  INTERPRETATION
+  ----------------------------------------
+  Same-task pair; reasonable candidate to keep in the evaluation subset.

@@ -1,0 +1,15 @@
+{
+  "pair_name": "t02_near_miss_substantial_hate",
+  "role": "near_miss_substantial",
+  "strategy": "audit_aware",
+  "eval_dataset": "tweet_eval/hate",
+  "compatibility": "safe",
+  "compatibility_score": 0.211,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.606,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 13.8,
+  "notes": "Near-miss substantial: Aureliano delta=-0.15 (deeply weak)."
+}

@@ -1,0 +1,228 @@
+{
+  "schema": "route2_stability.cross_artifact.perturbed_panel/v1",
+  "generated_utc": "2026-03-31T21:20:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "perturbation_policy": {
+    "preserve_structure": true,
+    "max_substitutions_per_class": 2,
+    "artifact_classes": ["lora", "loha", "checkpoint_delta"],
+    "rule_note": "Local substitutions only; no new artifact class or representation family introduced."
+  },
+  "panel_size": 9,
+  "substitution_summary": {
+    "lora": {
+      "substitutions": 2,
+      "kept": 1
+    },
+    "loha": {
+      "substitutions": 0,
+      "kept": 3,
+      "fallback_reason": "No nearby non-same-task LoHa cases exist in the current Ring 1 pilot; substituting would require scope expansion."
+    },
+    "checkpoint_delta": {
+      "substitutions": 2,
+      "kept": 1
+    }
+  },
+  "task_relation_coverage": {
+    "same_task": ["lora", "loha", "checkpoint_delta"],
+    "same_family": ["lora", "checkpoint_delta"],
+    "cross_task": ["lora", "checkpoint_delta"]
+  },
+  "cases": [
+    {
+      "case_id": "lora_same_task_near_miss_substantial_hate",
+      "artifact_class": "lora",
+      "pair_description": "Same-task hate pair in near-miss substantial region",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "tweet_eval_hate",
+      "task_b": "tweet_eval_hate",
+      "task_relation": "same_task",
+      "evidence_status": "behavioral_reported_with_weak_source_caveat",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_near_miss/inventory_t02",
+      "metrics": {
+        "compatibility_score": 0.2115,
+        "pair_risk": "low",
+        "merged_accuracy": 0.606,
+        "triage_role": "near_miss_substantial"
+      },
+      "notes": "Chosen as same-task perturbation to stress optional/near-miss handling under weak-source pressure."
+    },
+    {
+      "case_id": "lora_same_family_sst2_imdb",
+      "artifact_class": "lora",
+      "pair_description": "SST-2 x IMDB same-family sentiment pair",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "imdb",
+      "task_relation": "same_family",
+      "task_family": "sentiment_binary",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01",
+      "metrics": {
+        "compatibility_score": 0.314,
+        "pair_risk": "medium",
+        "merged_accuracy": 0.878,
+        "triage_role": "same_family"
+      },
+      "notes": "Nearby same-family replacement for the original MNLI x QNLI routing case; keeps relation type while adding behavioral confirmation."
+    },
+    {
+      "case_id": "lora_cross_task_sst2_agnews",
+      "artifact_class": "lora",
+      "pair_description": "SST-2 x AG News cross-task control",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "ag_news",
+      "task_relation": "cross_task",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01",
+      "metrics": {
+        "compatibility_score": 0.1114,
+        "pair_risk": "high",
+        "merged_accuracy": 0.842,
+        "triage_role": "cross_task_control"
+      },
+      "notes": "Kept unchanged as anchor cross-task control."
+    },
+    {
+      "case_id": "loha_same_task_r4_r8",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r4 x r8 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1/inventory_pilot",
+      "metrics": {
+        "compatibility_score": 0.1018,
+        "pair_risk": "low"
+      },
+      "notes": "Unchanged (no nearby replacement without scope expansion)."
+    },
+    {
+      "case_id": "loha_same_task_r4_r16",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r4 x r16 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1/inventory_pilot",
+      "metrics": {
+        "compatibility_score": 0.1418,
+        "pair_risk": "low"
+      },
+      "notes": "Unchanged (no nearby replacement without scope expansion)."
+    },
+    {
+      "case_id": "loha_same_task_r8_r16",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r8 x r16 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1/inventory_pilot",
+      "metrics": {
+        "compatibility_score": 0.1452,
+        "pair_risk": "low"
+      },
+      "notes": "Unchanged (no nearby replacement without scope expansion)."
+    },
+    {
+      "case_id": "ckpt_same_task_sst2_seeds",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "SST-2 seed 42 x seed 123 checkpoint deltas",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.8921996270396138,
+        "pair_risk": "medium",
+        "cosine_similarity": 0.9985312223434448
+      },
+      "notes": "Kept unchanged as same-task checkpoint anchor."
+    },
+    {
+      "case_id": "ckpt_same_family_sst2s123_yelp",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "SST-2 seed123 x Yelp same-family checkpoint pair",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "yelp_polarity",
+      "task_relation": "same_family",
+      "task_family": "sentiment_binary",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.6409568090423673,
+        "pair_risk": "high",
+        "cosine_similarity": 0.98811274766922
+      },
+      "notes": "Nearby same-family substitution within the same T02 inventory and representation path."
+    },
+    {
+      "case_id": "ckpt_cross_task_yelp_qnli",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "Yelp x QNLI cross-task checkpoint pair",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "yelp_polarity",
+      "task_b": "qnli",
+      "task_relation": "cross_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "field_trials/checkpoint_inventory_t02/pairwise/pairwise_results.json",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.4890848293805152,
+        "pair_risk": "high",
+        "cosine_similarity": 0.9606252908706665
+      },
+      "notes": "Nearby cross-task substitution from the same checkpoint inventory; chosen to stress the low-compatibility region."
+    }
+  ]
+}

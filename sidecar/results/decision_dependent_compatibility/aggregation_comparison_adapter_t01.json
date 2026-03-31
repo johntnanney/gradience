@@ -1,0 +1,114 @@
+{
+  "schema": "decision_dependent_aggregation_comparison_adapter_t01/v1",
+  "generated_utc": "2026-03-31T01:23:15.537343+00:00",
+  "source_panel": {
+    "inventory": "field_trials/targeted_confirmation_same_family/inventory_t01/preflight",
+    "pair_count": 3,
+    "shared_structural_inputs": [
+      "compatibility_score",
+      "pair_risk",
+      "dominant_issue",
+      "task_relationship"
+    ],
+    "note": "Narrow stress test to check profile stability on adapter triage substrate."
+  },
+  "aggregation_families": {
+    "A_worst_case": "merge-like local sensitivity (risk-first)",
+    "B_distributional": "routing-like separability tiers from compatibility scores",
+    "C_qa_gate_first": "triage gate status using adapter eligibility"
+  },
+  "case_rows": [
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora::rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "source_file": "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/merge_exact_same_task.json",
+      "task_relationship": "same_task",
+      "structural_inputs": {
+        "compatibility_score": 0.4748,
+        "pair_risk": "medium",
+        "dominant_issue": "norm_imbalance",
+        "recommended_strategy": "audit_aware"
+      },
+      "source_status": {
+        "myselfmankar__distilbert-base-sst2-lora": "eligible",
+        "rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_confusable",
+        "qa_gate_first_triage_like": "qa_clear"
+      }
+    },
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora::dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "source_file": "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/merge_same_family_cross_dataset.json",
+      "task_relationship": "same_family",
+      "structural_inputs": {
+        "compatibility_score": 0.314,
+        "pair_risk": "medium",
+        "dominant_issue": "partial_redundancy",
+        "recommended_strategy": "audit_aware"
+      },
+      "source_status": {
+        "myselfmankar__distilbert-base-sst2-lora": "eligible",
+        "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_clear"
+      }
+    },
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora::TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+      "source_file": "field_trials/targeted_confirmation_same_family/inventory_t01/preflight/merge_true_cross_task.json",
+      "task_relationship": "cross_task",
+      "structural_inputs": {
+        "compatibility_score": 0.1114,
+        "pair_risk": "high",
+        "dominant_issue": "norm_imbalance",
+        "recommended_strategy": "audit_aware"
+      },
+      "source_status": {
+        "myselfmankar__distilbert-base-sst2-lora": "eligible",
+        "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news": "eligible"
+      },
+      "aggregation_outputs": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_separable",
+        "qa_gate_first_triage_like": "qa_clear"
+      }
+    }
+  ],
+  "summary": {
+    "worst_case_label_counts": {
+      "merge_caution": 2,
+      "merge_risky": 1
+    },
+    "distributional_label_counts": {
+      "routing_confusable": 1,
+      "routing_needs_disambiguation": 1,
+      "routing_separable": 1
+    },
+    "qa_gate_label_counts": {
+      "qa_clear": 3
+    },
+    "profile_stability_signal": {
+      "same_task_pair": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_confusable",
+        "qa_gate_first_triage_like": "qa_clear"
+      },
+      "same_family_pair": {
+        "worst_case_merge_like": "merge_caution",
+        "distributional_routing_like": "routing_needs_disambiguation",
+        "qa_gate_first_triage_like": "qa_clear"
+      },
+      "cross_task_pair": {
+        "worst_case_merge_like": "merge_risky",
+        "distributional_routing_like": "routing_separable",
+        "qa_gate_first_triage_like": "qa_clear"
+      }
+    },
+    "qa_dominance_ratio": 0.0
+  }
+}

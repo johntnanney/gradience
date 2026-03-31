@@ -1,0 +1,231 @@
+{
+  "schema": "route2_stability.aggregation.original_panel_snapshot/v1",
+  "generated_utc": "2026-03-31T22:10:00Z",
+  "substudy": "Route2 Substudy 2 - Aggregation-Sensitive Compatibility Stability Check",
+  "reference_program": "n81-n85 aggregation_sensitive_compatibility",
+  "original_panel": {
+    "panel_size": 12,
+    "groups": {
+      "merge_facing": 3,
+      "routing_facing": 3,
+      "triage_facing_qa_blocked": 3,
+      "triage_facing_qa_clear": 3
+    },
+    "aggregation_families": [
+      "worst_case",
+      "distributional",
+      "qa_dominant",
+      "qa_gated_distributional"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "mrg_safe_same_task",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_confusable",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "confusable"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "mrg_near_miss_substantial",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t02",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_needs_disambiguation",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "needs_disambiguation"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "mrg_cross_task_control",
+      "group": "merge_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_risky",
+        "distributional": "routing_separable",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "separable"
+      },
+      "agreement_pattern": "full_agreement"
+    },
+    {
+      "case_id": "rte_same_task_confusable",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_confusable",
+        "qa_dominant": "qa_unclear",
+        "qa_gated_distributional": "qa_unclear"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "mnli_qnli_moderate",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_needs_disambiguation",
+        "qa_dominant": "qa_unclear",
+        "qa_gated_distributional": "qa_unclear"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "qnli_rte_separable",
+      "group": "routing_facing",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "structural_only",
+      "source": "routing_pilot",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_separable",
+        "qa_dominant": "qa_unclear",
+        "qa_gated_distributional": "qa_unclear"
+      },
+      "agreement_pattern": "strong_divergence"
+    },
+    {
+      "case_id": "tri_same_task_qa_blocked",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "same_task",
+      "qa_regime": "blocked",
+      "source": "checkpoint_t02",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_confusable",
+        "qa_dominant": "qa_blocked",
+        "qa_gated_distributional": "qa_blocked"
+      },
+      "agreement_pattern": "strong_divergence"
+    },
+    {
+      "case_id": "tri_same_family_qa_blocked",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "same_family",
+      "qa_regime": "blocked",
+      "source": "checkpoint_t02",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_risky",
+        "distributional": "routing_needs_disambiguation",
+        "qa_dominant": "qa_blocked",
+        "qa_gated_distributional": "qa_blocked"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "tri_cross_task_qa_review",
+      "group": "triage_facing_qa_blocked",
+      "artifact_class": "full_checkpoint_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "mixed",
+      "source": "checkpoint_t02",
+      "structural_available": true,
+      "behavioral_available": false,
+      "aggregation_outputs": {
+        "worst_case": "merge_risky",
+        "distributional": "routing_separable",
+        "qa_dominant": "qa_review",
+        "qa_gated_distributional": "qa_review"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "tri_same_task_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_confusable",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "confusable"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "tri_same_family_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "same_family",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_caution",
+        "distributional": "routing_needs_disambiguation",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "needs_disambiguation"
+      },
+      "agreement_pattern": "partial_agreement"
+    },
+    {
+      "case_id": "tri_cross_task_qa_clear",
+      "group": "triage_facing_qa_clear",
+      "artifact_class": "lora_adapter_pair",
+      "task_relation": "cross_task",
+      "qa_regime": "clear",
+      "source": "adapter_t01",
+      "structural_available": true,
+      "behavioral_available": true,
+      "aggregation_outputs": {
+        "worst_case": "merge_risky",
+        "distributional": "routing_separable",
+        "qa_dominant": "qa_clear",
+        "qa_gated_distributional": "separable"
+      },
+      "agreement_pattern": "full_agreement"
+    }
+  ],
+  "notes": [
+    "Frozen baseline for Substudy 2. No aggregation definitions changed in Stage A.",
+    "Original outputs come from aggregation_sensitive_compatibility/aggregation_comparison.json."
+  ]
+}

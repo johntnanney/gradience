@@ -1,0 +1,68 @@
+[
+  {
+    "pair_name": "ca_retained_sst2_x_sst2",
+    "role": "retained",
+    "strategy": "audit_aware",
+    "eval_dataset": "sst2",
+    "compatibility": "imbalanced",
+    "compatibility_score": 0.475,
+    "mean_reconstruction_error": 0.2684,
+    "merged_accuracy": 0.876,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.2,
+    "notes": "Same-task baseline. SST-2 x SST-2 (r=16 x r=16). Medium risk, norm_imbalance."
+  },
+  {
+    "pair_name": "ca_family_sst2xIMDB_eval_sst2",
+    "role": "family_test",
+    "strategy": "audit_aware",
+    "eval_dataset": "sst2",
+    "compatibility": "redundant",
+    "compatibility_score": 0.314,
+    "mean_reconstruction_error": 0.1485,
+    "merged_accuracy": 0.876,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.0,
+    "notes": "KEY TEST. SST-2 x IMDB, eval on SST-2. Does cross-dataset same-family merge preserve SST-2 performance?"
+  },
+  {
+    "pair_name": "ca_family_sst2xIMDB_eval_imdb",
+    "role": "family_test",
+    "strategy": "audit_aware",
+    "eval_dataset": "imdb",
+    "compatibility": "redundant",
+    "compatibility_score": 0.314,
+    "mean_reconstruction_error": 0.1506,
+    "merged_accuracy": 0.87,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 42.7,
+    "notes": "KEY TEST. SST-2 x IMDB, eval on IMDB. Does cross-dataset same-family merge preserve IMDB performance?"
+  },
+  {
+    "pair_name": "ca_family_sst2xIMDB_v2_eval_sst2",
+    "role": "family_test",
+    "error": "Unknown plan strategy 'linear'. Available: ['audit_aware', 'dare_linear', 'dare_ties', 'norm_equalized', 'overlap_ties', 'uniform_linear']",
+    "eval_dataset": "sst2",
+    "strategy": "linear"
+  },
+  {
+    "pair_name": "ca_family_sst2xIMDB_v2_eval_imdb",
+    "role": "family_test",
+    "error": "Unknown plan strategy 'linear'. Available: ['audit_aware', 'dare_linear', 'dare_ties', 'norm_equalized', 'overlap_ties', 'uniform_linear']",
+    "eval_dataset": "imdb",
+    "strategy": "linear"
+  },
+  {
+    "pair_name": "ca_same_imdb_x_imdb",
+    "role": "retained",
+    "error": "Unknown plan strategy 'linear'. Available: ['audit_aware', 'dare_linear', 'dare_ties', 'norm_equalized', 'overlap_ties', 'uniform_linear']",
+    "eval_dataset": "imdb",
+    "strategy": "linear"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "pair_name": "t02_near_miss_marginal_irony",
+  "role": "near_miss_marginal",
+  "strategy": "audit_aware",
+  "eval_dataset": "tweet_eval/irony",
+  "compatibility": "safe",
+  "compatibility_score": 0.127,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.606,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 6.7,
+  "notes": "Near-miss marginal: phailyoor delta=-0.004 (barely weak)."
+}

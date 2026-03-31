@@ -1,0 +1,15 @@
+{
+  "pair_name": "ca_family_sst2xIMDB_v2_eval_sst2",
+  "role": "family_test",
+  "strategy": "uniform_linear",
+  "eval_dataset": "sst2",
+  "compatibility": "safe",
+  "compatibility_score": 0.137,
+  "mean_reconstruction_error": 0.1503,
+  "merged_accuracy": 0.852,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 7.3,
+  "notes": "KEY TEST v2. SST-2 x IMDB (low risk pair), eval on SST-2."
+}

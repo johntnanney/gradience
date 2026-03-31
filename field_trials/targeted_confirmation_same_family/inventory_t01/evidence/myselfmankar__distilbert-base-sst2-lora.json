@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+  "base_model": "distilbert-base-uncased",
+  "eval_dataset": "sst2",
+  "eval_split": "validation",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.884,
+  "base_score": 0.534,
+  "beats_base": true,
+  "delta": 0.35,
+  "adapter_f1": 0.8897,
+  "base_f1": 0.574,
+  "adapter_id": "myselfmankar/distilbert-base-sst2-lora"
+}

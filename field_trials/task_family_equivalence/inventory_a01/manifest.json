@@ -1,0 +1,92 @@
+{
+  "inventory_id": "campaign-a01-sentiment-family-distilbert",
+  "description": "Task-family equivalence test: SST-2 vs IMDB sentiment on DistilBERT. Tests whether Gradience's strict task-identity boundary is correct or too conservative for practically similar tasks within the same sentiment family.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "task_family_equivalence",
+  "campaign": "A",
+  "campaign_question": "Is exact task identity too strict for practically similar sentiment tasks?",
+  "adapters": [
+    {
+      "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment. Standard q_lin+v_lin LoRA."
+    },
+    {
+      "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment. Same config as myselfmankar. Provides exact same-task pair."
+    },
+    {
+      "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 8,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Same target modules as SST-2 adapters. Primary cross-dataset test partner."
+    },
+    {
+      "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 4,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin"],
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Q-only LoRA (single target module). Trained on 1k samples — may be weaker."
+    }
+  ],
+  "dropped_adapters": [
+    {
+      "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+      "reason": "modules_to_save incompatibility — all 8 modules targeted including classifier/pre_classifier causes PEFT loading error"
+    }
+  ],
+  "pair_classes": {
+    "exact_same_task": {
+      "description": "SST-2 x SST-2 — baseline for retained same-task pairs",
+      "pairs": [
+        ["myselfmankar/distilbert-base-sst2-lora", "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2"]
+      ]
+    },
+    "same_family_cross_dataset": {
+      "description": "SST-2 x IMDB — the key test. Same sentiment family, different dataset.",
+      "pairs": [
+        ["myselfmankar/distilbert-base-sst2-lora", "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"],
+        ["rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2", "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"],
+        ["myselfmankar/distilbert-base-sst2-lora", "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k"],
+        ["rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2", "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k"]
+      ]
+    },
+    "same_dataset": {
+      "description": "IMDB x IMDB — secondary same-task reference",
+      "pairs": [
+        ["dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment", "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k"]
+      ]
+    },
+    "cross_task_control": {
+      "description": "Reuse Phase 2 cross-task control data (sentiment x emotion/ag_news) as anchor"
+    }
+  },
+  "data_note": "Evidence bootstrap uses shuffled sampling (seed=42) to avoid label-sorted split artifacts. The IMDB test split is sorted by label (first 12500 negative, then 12500 positive).",
+  "selection_rationale": "4 adapters on distilbert-base-uncased: 2 SST-2 + 2 IMDB. Generates 6 pairs. 1 exact same-task (SST-2 x SST-2), 4 same-family cross-dataset (SST-2 x IMDB), 1 same-dataset (IMDB x IMDB). No Yelp/Amazon DistilBERT LoRA adapters available on Hub."
+}

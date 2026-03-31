@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "jaesun/distilbert-base-uncased-finetuned-cola",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "7a25d881-fe23-482a-8ab7-7d8088445a31",
+    "strategy": "audit_aware",
+    "adapter_a": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__jaesun_hate",
+    "adapter_b": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate"
+  }
+}

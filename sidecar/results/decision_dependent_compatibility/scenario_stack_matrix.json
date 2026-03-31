@@ -1,0 +1,147 @@
+{
+  "schema": "decision_dependent_scenario_stack/v1",
+  "generated_utc": "2026-03-31T01:23:15.534449+00:00",
+  "layers": [
+    "measurement",
+    "diagnosis",
+    "aggregation",
+    "policy"
+  ],
+  "scenario_stack": {
+    "merge": {
+      "measurement": {
+        "classification": "shared unchanged",
+        "objects": [
+          "layerwise subspace geometry (LoRA factors) or checkpoint delta summaries",
+          "pairwise compatibility primitives (overlap/alignment-derived scores)"
+        ]
+      },
+      "diagnosis": {
+        "classification": "shared with translation",
+        "objects": [
+          "pair-level risk or redundancy descriptors",
+          "task relationship tags (same_task / same_family / cross_task)"
+        ]
+      },
+      "aggregation": {
+        "classification": "scenario-specific",
+        "objects": [
+          "worst-case prioritization across layers",
+          "single adverse layer can dominate pair verdict"
+        ]
+      },
+      "policy": {
+        "classification": "scenario-specific",
+        "objects": [
+          "retained / near-miss / caution / exclude",
+          "merge strategy selection for retained candidates"
+        ]
+      }
+    },
+    "routing": {
+      "measurement": {
+        "classification": "shared unchanged",
+        "objects": [
+          "SubspaceMetrics from merge substrate (same extraction + per-layer geometry)"
+        ]
+      },
+      "diagnosis": {
+        "classification": "shared with translation",
+        "objects": [
+          "layer confusability estimates from overlap + directional agreement"
+        ]
+      },
+      "aggregation": {
+        "classification": "scenario-specific",
+        "objects": [
+          "distributional aggregation (mean confusability + high-confusability fraction)"
+        ]
+      },
+      "policy": {
+        "classification": "scenario-specific",
+        "objects": [
+          "consider_dedup / needs_disambiguation / easily_routed"
+        ]
+      }
+    },
+    "triage": {
+      "measurement": {
+        "classification": "shared with translation",
+        "objects": [
+          "pairwise structural summaries",
+          "single-artifact QA statuses from behavioral evidence bootstrap"
+        ]
+      },
+      "diagnosis": {
+        "classification": "shared with translation",
+        "objects": [
+          "pair compatibility descriptors plus source-quality status"
+        ]
+      },
+      "aggregation": {
+        "classification": "scenario-specific",
+        "objects": [
+          "gate-first aggregation (source QA can dominate and override pair structure)"
+        ]
+      },
+      "policy": {
+        "classification": "scenario-specific",
+        "objects": [
+          "evaluate-first / near-miss review / cross-task caution / exclusion"
+        ]
+      }
+    }
+  },
+  "scenario_pair_audit": [
+    {
+      "scenario_pair": [
+        "merge",
+        "routing"
+      ],
+      "shared_measurement_objects": [
+        "LoRA extraction pipeline",
+        "per-layer subspace geometry"
+      ],
+      "shared_diagnosis_objects": [
+        "pair-level overlap/alignment judgments"
+      ],
+      "aggregation_divergence": "worst-case (merge) vs distributional (routing)",
+      "policy_divergence": "merge admissibility vs routing confusability handling",
+      "first_divergence_layer": "aggregation",
+      "notes": "Observed directly in routing pilot: same measurements, different fleet guidance."
+    },
+    {
+      "scenario_pair": [
+        "merge",
+        "triage"
+      ],
+      "shared_measurement_objects": [
+        "pairwise compatibility summaries"
+      ],
+      "shared_diagnosis_objects": [
+        "same_task/same_family/cross_task boundary handling"
+      ],
+      "aggregation_divergence": "worst-case pair risk vs gate-first source QA",
+      "policy_divergence": "merge candidate retention vs evaluation-budget prioritization",
+      "first_divergence_layer": "aggregation",
+      "notes": "Checkpoint T02 shows QA dominance overriding structurally plausible pairs."
+    },
+    {
+      "scenario_pair": [
+        "routing",
+        "triage"
+      ],
+      "shared_measurement_objects": [
+        "pairwise structural similarity signals"
+      ],
+      "shared_diagnosis_objects": [
+        "relation-aware pair interpretation"
+      ],
+      "aggregation_divergence": "distributional separability vs QA gate-first narrowing",
+      "policy_divergence": "router disambiguation vs triage review/exclusion actions",
+      "first_divergence_layer": "aggregation",
+      "notes": "Same-family can require routing disambiguation yet still be triage-blocked by weak sources."
+    }
+  ],
+  "aggregation_first_divergence_supported": true
+}

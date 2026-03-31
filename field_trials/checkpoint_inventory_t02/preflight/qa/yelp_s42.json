@@ -1,0 +1,42 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "yelp_s42",
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/yelp_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 0,
+    "n_layers": 38
+  },
+  "structural_summary": {
+    "utilization_mean": 0.6932157905478227,
+    "utilization_median": 0.6932157905478227,
+    "stable_rank_mean": 3.876641042484305,
+    "effective_rank_90_median": null,
+    "rank_waste_ratio": 0.3067842094521773,
+    "flags": [
+      "steep_core_singular_decay"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "yelp_polarity",
+    "metric_name": "accuracy",
+    "adapter_score": 0.925,
+    "base_score": 0.575,
+    "lower_is_better": false,
+    "beats_base": true,
+    "margin_confidence": 0.823529411764706
+  },
+  "eligibility": {
+    "status": "uncertain",
+    "confidence": "low",
+    "reasons": [
+      "Adapter beats base by 0.3500 (accuracy, higher is better).",
+      "Structural summary marked this checkpoint for review.",
+      "Structural flags: steep_core_singular_decay"
+    ]
+  },
+  "notes": [
+    "Checkpoint QA derived from summary-based full-checkpoint delta representation."
+  ]
+}

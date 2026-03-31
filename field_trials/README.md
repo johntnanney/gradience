@@ -35,6 +35,14 @@ Evaluation report: `phase2_evaluation_report.md`
 Validation memo: `near_miss_validation.md`
 Full confirmation data: `phase2b_confirmation_memo.md`
 
+**Route 2 — Checkpoint triage alpha** (bounded)
+
+- Canonical trial: `checkpoint_inventory_t02/`
+- Alpha bundle builder: `checkpoint_inventory_t02/build_alpha_bundle.py`
+- Polished report bundle: `checkpoint_inventory_t02/preflight/alpha_bundle/`
+- Workflow guide: `../docs/examples/checkpoint-triage-alpha-workflow.md`
+- Scope contract: `../docs/strategy/checkpoint_triage_alpha_scope.md`
+
 ## Per-inventory artifacts
 
 Each inventory directory should contain:

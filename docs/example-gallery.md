@@ -1,6 +1,6 @@
 # Example Gallery
 
-Five curated scenarios covering the situations practitioners encounter most often. Each example describes what the inventory looks like, what happens when you run preflight, and what the action plan tells you to do. They are ordered from simplest to most subtle.
+Six canonical scenarios covering the situations practitioners encounter most often. Each example has a one-sentence purpose, the key outputs to inspect, and what it demonstrates about the preflight workflow. Ordered from simplest to most subtle.
 
 For command-level detail, see the [Playbook](playbook.md). For full walkthroughs with pair matrices and terminal output, see the [Mixed-Task Walkthrough](examples/mixed-task-inventory-walkthrough.md) and [Same-Task Control Walkthrough](examples/same-task-control-walkthrough.md).
 
@@ -8,9 +8,9 @@ For command-level detail, see the [Playbook](playbook.md). For full walkthroughs
 
 ## 1. Same-Task Control
 
-**What it is:** 3–4 adapters, all trained on the same task, all with behavioral evidence showing they beat the base model. This is the simplest and most common scenario.
+**Purpose:** Confirm that a pool of same-task adapters is clean and all pairs are reasonable merge candidates.
 
-**Inventory shape:**
+**Setup:** 3 QNLI adapters (rank 16 × 2 seeds + rank 8), all eligible.
 
 | Adapter | Task | Eligibility |
 |---------|------|-------------|
@@ -18,26 +18,23 @@ For command-level detail, see the [Playbook](playbook.md). For full walkthroughs
 | qnli_r16_s123 | QNLI | eligible |
 | qnli_r8_s42 | QNLI | eligible |
 
-**What preflight does:**
+**Key outputs to open:**
 
-- All adapters pass QA. No exclusions.
-- All pairs are same-task. The task-relationship advisory is silent on every pair.
-- Pair-risk is medium (typical for same-task pairs showing partial or high redundancy).
-- The action plan lists all 3 pairs in the "evaluate first" section.
+- `examples/inventory_preflight_same_task_control/inventory/` — preflight summary and action plan
+- `examples/inventory_preflight_same_task_control/reports/` — 3 pair reports, all medium risk
+- `examples/inventories/same_task_control_example.md` — annotated walkthrough
 
-**What this tells you:** The inventory is clean. Preflight confirms what you already suspected — these are all reasonable merge candidates. The workflow is confirmatory, and that confirmation is useful: it means no hidden task-boundary risk exists.
+**What it demonstrates:** The confirmatory workflow. Advisory is silent on all 3 pairs. Candidate set is not reduced because there is nothing to remove. The value is the explicit QA record — confirmation that no hidden task-boundary risk exists.
 
-**Expected outcome:** Candidate set is not reduced (there is nothing to remove). All pairs are retained.
-
-**Full walkthrough:** [Same-Task Control Walkthrough](examples/same-task-control-walkthrough.md)
+**Reduction:** 3 → 3 (none needed).
 
 ---
 
 ## 2. Mixed-Task Inventory
 
-**What it is:** 5–8 adapters drawn from 2–4 different tasks. This is the scenario where Gradience provides the most value, because the pair matrix contains a mix of safe same-task pairs and risky cross-task pairs that look similar on structural metrics alone.
+**Purpose:** Show how task-boundary detection reduces a mixed-task candidate set by 87%.
 
-**Inventory shape:**
+**Setup:** 6 adapters across 4 tasks (SST-2, QNLI, MNLI, RTE), all eligible. 15 possible pairs.
 
 | Adapter | Task | Eligibility |
 |---------|------|-------------|
@@ -48,51 +45,32 @@ For command-level detail, see the [Playbook](playbook.md). For full walkthroughs
 | mnli_s42 | MNLI | eligible |
 | rte_s42 | RTE | eligible |
 
-**What preflight does:**
+**Key outputs to open:**
 
-- All 6 adapters pass QA.
-- 15 possible pairs. Of these, 2 are same-task (sst2×sst2, qnli×qnli). The remaining 13 are cross-task.
-- The task-relationship advisory fires on all 13 cross-task pairs.
-- The action plan retains the 2 same-task pairs in "evaluate first" and moves the 13 cross-task pairs to the caution zone.
-- **Candidate reduction: 87% (15 → 2).**
+- `examples/inventory_preflight_mixed_task/inventory/` — summary showing 15 → 2 reduction
+- `examples/inventory_preflight_mixed_task/reports/` — 15 pair reports (compare same-task vs cross-task advisories)
+- `examples/inventories/mixed_task_preflight_example.md` — annotated walkthrough with commands
 
-**What this tells you:** Task identity is the dominant signal. Without preflight, you might have evaluated all 15 pairs. With it, you know that 13 of them cross a task boundary and should be deprioritized. The 2 same-task pairs are your best candidates.
+**What it demonstrates:** Task identity as the dominant signal. Without preflight, 11 of 15 pairs look structurally plausible (medium risk). The advisory separates the 2 same-task safe pairs from 13 cross-task caution pairs that structural metrics alone cannot distinguish.
 
-**Expected outcome:** 65–90% candidate reduction, depending on the task composition. The higher the task diversity, the more pairs are cross-task, and the larger the reduction.
-
-**Full walkthrough:** [Mixed-Task Inventory Walkthrough](examples/mixed-task-inventory-walkthrough.md)
+**Reduction:** 15 → 2 (87%).
 
 ---
 
 ## 3. Large Mixed-Task Inventory
 
-**What it is:** 8–12 adapters from 3+ task families, producing 28–66 candidate pairs. This is where neighborhoods become useful for visual organization in addition to the pair-level analysis.
+**Purpose:** Show how neighborhoods organize a dense pair matrix at scale.
 
-**Inventory shape (example with 8 adapters, 4 tasks):**
+**Setup:** 8–12 adapters from 3+ task families, producing 28–66 candidate pairs. This is where the pair table alone becomes hard to read and neighborhoods add value.
 
-| Adapter | Task | Eligibility |
-|---------|------|-------------|
-| sst2_a | SST-2 | eligible |
-| sst2_b | SST-2 | eligible |
-| sst2_c | SST-2 | eligible |
-| qnli_a | QNLI | eligible |
-| qnli_b | QNLI | eligible |
-| mnli_a | MNLI | eligible |
-| rte_a | RTE | eligible |
-| rte_b | RTE | eligible |
+**Key outputs to open:**
 
-**What preflight does:**
+- `examples/inventories/inventory_large_realistic/` — fixture with 12 adapters, 3 tasks
+- `examples/inventories/inventory_large_realistic/expected_notes.md` — expected grouping behavior
 
-- 28 possible pairs. 5 are same-task (3 SST-2 pairs, 1 QNLI pair, 1 RTE pair). 23 are cross-task.
-- The advisory fires on all 23 cross-task pairs.
-- Neighborhoods partition the pair matrix into 4 same-task groups and a cross-task boundary zone.
-- **Candidate reduction: ~82% (28 → 5).**
+**What it demonstrates:** Neighborhoods partition the pair matrix into same-task clusters and a cross-task boundary zone. The action plan's "evaluate first" section lists only the within-cluster pairs. At 6+ adapters, visual grouping aids interpretation beyond what the flat pair table provides.
 
-**What the action plan looks like:**
-
-- "Evaluate first" lists 5 same-task pairs, each with its risk level and recommended strategy.
-- "Cross-task caution zone" lists the 4 task-boundary crossings (SST-2↔QNLI, SST-2↔MNLI, SST-2↔RTE, QNLI↔MNLI, etc.).
-- The reduction summary shows the narrowing from 28 to 5.
+**Reduction:** ~82% (28 → 5 in the 8-adapter, 4-task case).
 
 **When to add neighborhoods:**
 
@@ -102,72 +80,106 @@ gradience suggest-neighborhoods \
   --emit-report inventory/neighborhoods.json
 ```
 
-Neighborhoods are most useful at 6+ adapters, where the pair matrix becomes dense enough that visual grouping aids interpretation. Below 6 adapters, the pair table itself is readable enough.
-
-**Fixture inventories:** The `examples/inventories/` directory contains fixture inventories for testing neighborhood behavior at various scales, including `inventory_large_realistic` (12 adapters, 3 tasks).
-
 ---
 
 ## 4. Weak-Evidence Inventory
 
-**What it is:** An inventory where some adapters lack behavioral evidence or underperform the base model. This is the common real-world case when you have pulled adapters from a public hub and have not yet evaluated all of them.
+**Purpose:** Show how the evidence gate catches adapters that underperform the base model before they contaminate pairwise analysis.
 
-**Inventory shape:**
+**Setup:** 6 adapters (hate + emotion), 2 flagged_weak (perform worse than base), 1 marginal (barely beats base).
 
-| Adapter | Task | Score | Base | Delta | Eligibility |
-|---------|------|-------|------|-------|-------------|
-| hate_tg_base | hate | 0.514 | 0.502 | +0.012 | eligible (marginal) |
-| hate_aviator | hate | 0.498 | 0.502 | -0.004 | flagged_weak |
-| hate_hatexplain | hate | 0.588 | 0.502 | +0.086 | eligible |
-| emotion_tg_base | emotion | 0.752 | 0.286 | +0.466 | eligible |
-| emotion_fabriceyhc | emotion | 0.204 | 0.286 | -0.082 | eligible (very low) |
-| emotion_hatexplain | emotion | 0.136 | 0.286 | -0.150 | flagged_weak |
+| Adapter | Task | Delta vs base | Eligibility |
+|---------|------|---------------|-------------|
+| hate_tg_base | hate | +0.012 | eligible (marginal) |
+| hate_aviator | hate | -0.004 | flagged_weak |
+| hate_hatexplain | hate | +0.086 | eligible |
+| emotion_tg_base | emotion | +0.466 | eligible |
+| emotion_fabriceyhc | emotion | -0.082 | eligible (very low) |
+| emotion_hatexplain | emotion | -0.150 | flagged_weak |
 
-**What preflight does:**
+**Key outputs to open:**
 
-- 2 adapters are `flagged_weak`. They are listed in the "exclude/deprioritize" section.
-- The hate_tg_base adapter is technically `eligible` but barely beats the base (+0.012). It passes the gate but is a marginal contributor.
-- Pairs involving `flagged_weak` adapters are candidate near-miss pairs (not excluded outright — see Section 5 below).
-- The action plan separates fully eligible pairs from evidence-constrained pairs.
+- `examples/inventories/inventory_with_weak_sources/` — fixture with weak-source patterns
+- `examples/inventories/inventory_with_weak_sources/expected_notes.md` — expected exclusion behavior
+- `examples/qa/` — canonical QA artifacts showing eligible, uncertain, and flagged_weak statuses
 
-**What this tells you:** The evidence gate is doing its job. Without QA screening, you might merge a `flagged_weak` adapter (one that actually performs worse than the base model) with a strong adapter and wonder why the merge degraded. The QA layer catches this before pairwise analysis begins.
+**What it demonstrates:** The three-way eligibility classification (eligible / uncertain / flagged_weak) is the most impactful single feature. Without it, you might merge a below-base adapter with a strong one and wonder why the result degraded. The gate catches this before pairwise analysis begins.
 
-**What to do:** For `flagged_weak` adapters you believe might be salvageable: run the evidence bootstrap with a larger sample, try different hyperparameters, or verify the adapter was loaded correctly (wrong label mapping is a common cause of below-base performance on hub adapters). Then re-run preflight with updated scores.
-
-**Fixture inventory:** `examples/inventories/inventory_with_weak_sources/` contains a fixture with weak-source patterns for testing.
+**What to do:** For flagged_weak adapters you believe are salvageable — re-evaluate with larger sample, check label mapping, try different hyperparameters, then re-run preflight.
 
 ---
 
-## 5. Near-Miss Inventory
+## 5. Near-Miss Case
 
-**What it is:** An inventory where some pairs are structurally plausible (same task, low-to-medium risk, no task-boundary advisory) but excluded from the "evaluate first" list because one source has weak or missing evidence. These are the near-miss candidates — the second tier after retained pairs.
+**Purpose:** Show what happens when structurally plausible pairs are excluded only because one source has weak evidence — and why that exclusion is well-calibrated.
 
-**Inventory shape:**
+**Setup:** 4 irony adapters, 3 eligible + 1 flagged_weak (delta -0.004 vs base). 6 pairs total: 3 retained, 3 near-miss.
 
-| Adapter | Task | Eligibility | Notes |
+| Adapter | Task | Eligibility | Delta |
 |---------|------|-------------|-------|
-| irony_JB173 | irony | eligible | delta +0.202 |
-| irony_vaariis | irony | eligible | delta +0.060 |
-| irony_neibla | irony | eligible | delta +0.068 |
-| irony_phailyoor | irony | flagged_weak | delta -0.004 |
+| irony_JB173 | irony | eligible | +0.202 |
+| irony_vaariis | irony | eligible | +0.060 |
+| irony_neibla | irony | eligible | +0.068 |
+| irony_phailyoor | irony | flagged_weak | -0.004 |
 
-**What preflight does:**
+**Key outputs to open:**
 
-- 3 eligible adapters, 1 `flagged_weak`.
-- 6 possible pairs. 3 involve only eligible adapters → retained. 3 involve the `flagged_weak` adapter → near-miss candidates.
-- The action plan lists the 3 retained pairs in "evaluate first" and the 3 near-miss pairs in a separate "near-miss candidates" section.
+- `examples/inventories/inventory_fragmented_small/` — fixture with near-miss grouping patterns
+- `examples/inventories/inventory_fragmented_small/expected_notes.md` — expected near-miss separation
 
-**What the action plan tells you about near-miss pairs:**
+**What it demonstrates:** Near-miss pairs are a structured second tier, not rejects. Field trial validation across 3 backbones and 3 task families shows near-miss avg Δ = -0.006 (comparable to retained at -0.024), while cross-task controls average -0.047 (5× worse). The evidence gate is well-calibrated: adapters that barely miss (delta -0.002 to -0.004) produce merges indistinguishable from retained. Deeply weak sources introduce more variance.
 
-Each near-miss entry identifies which source is evidence-constrained and what the pair's structural risk level is. The section heading makes clear that these are structurally plausible pairs excluded only because of the evidence gap — not because of a structural problem.
+**What to do:** If retained pairs are few, near-miss pairs expand the candidate set with known risk profile. Consider strengthening the weak source's evidence to promote the pair on the next run.
 
-**Field trial evidence:** Near-miss pairs were validated across 3 backbones (DistilBERT, BERT, RoBERTa) and 3 task families (irony, hate, ag_news). Key findings:
+---
 
-- Near-miss average delta: -0.006 (comparable to retained pairs at -0.024)
-- Cross-task control average delta: -0.047 (5× worse)
-- Weak-source severity modulates the outcome: adapters that barely miss the evidence threshold (delta -0.002 to -0.004 vs base) produce merges indistinguishable from retained pairs; deeply weak adapters (delta -0.150) introduce more variance.
+## 6. Retained vs Control — Evaluation Outcome
 
-**What to do with near-miss pairs:** Treat them as a structured second tier. If your retained pairs are few, near-miss pairs expand the candidate set with a known risk profile. If the weak source is barely below threshold, consider strengthening its evidence (re-evaluate with more data) and promoting the pair to retained status on the next preflight run.
+**Purpose:** Show what actually happens when you evaluate retained pairs versus cross-task controls, confirming the preflight narrowing was correct.
+
+**Setup:** This uses real field trial data from Phase 2 evaluation. 16 merges evaluated across 3 categories: retained same-task, near-miss, and cross-task control.
+
+| Category | Pairs | Avg Δ vs best source | Improvers |
+|----------|-------|----------------------|-----------|
+| Retained same-task | 7 | -0.024 | 2/7 (29%) |
+| Near-miss | 7 | -0.006 | 1/7 (14%) |
+| Cross-task control | 4 | -0.047 | 0/4 (0%) |
+
+**Key outputs to open:**
+
+- `field_trials/phase2_eval_130608/phase2_results.json` — raw evaluation results for all 16 merges
+- `field_trials/product_validation_memo.md` — analysis of what the pipeline got right and where limits are
+- `field_trials/near_miss_validation.md` — detailed near-miss evaluation across backbones
+- `field_trials/phase2_evaluation_report.md` — full Phase 2 evaluation narrative
+
+**Representative cases from the results:**
+
+| Pair | Role | Merged acc | Notes |
+|------|------|-----------|-------|
+| p2_retained_agnews | retained | 0.944 | Same-task, norm_equalized. Gradience recommended correctly. |
+| p3_retained_sst2 | retained | 0.820 | Same-task with rank mismatch (r=16 vs r=8). Modest degradation. |
+| p3_nearmiss_hate | near-miss | 0.598 | One source flagged_weak. Merge outcome comparable to retained. |
+| p2_control_agnews×mnli | control | 0.938 | Cross-task, high risk. Advisory fired correctly. |
+| p3_control_sst2×agnews | control | 0.838 | Cross-task, r=16 vs r=1 mismatch. Degraded as predicted. |
+
+**What it demonstrates:** The narrowing logic works. Retained pairs are the right first choices — they either improve over both sources or degrade modestly. Cross-task controls degrade substantially more, confirming the advisory signal. Near-miss pairs perform comparably to retained, validating the evidence gate's calibration. Zero false positives across 5 inventories and 53+ pairs.
+
+---
+
+## 7. Checkpoint Triage Alpha (Route 2)
+
+**Purpose:** Show the first polished broadened workflow beyond adapter merge preflight.
+
+**Setup:** Canonical checkpoint inventory trial `field_trials/checkpoint_inventory_t02/` (same-task + same-family + cross-task, shared base model, CPU-only).
+
+**Key outputs to open:**
+
+- `field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/report.html` — clean alpha HTML report
+- `field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/alpha_summary.json` — compact machine-readable summary
+- `docs/examples/checkpoint-triage-alpha-workflow.md` — short usage walkthrough
+- `docs/strategy/checkpoint_triage_alpha_scope.md` — explicit alpha scope contract
+
+**What it demonstrates:** Evidence bootstrap remains the first-class gate, pairwise structure remains useful, and the workflow produces conservative narrowing with clear same-task/same-family/cross-task distinctions in a real checkpoint-inventory triage setting.
 
 ---
 
@@ -179,5 +191,6 @@ Each near-miss entry identifies which source is evidence-constrained and what th
 | Mixed tasks, all adapters well-evidenced | [Mixed-Task Inventory](#2-mixed-task-inventory) |
 | Large pool, multiple task families | [Large Mixed-Task Inventory](#3-large-mixed-task-inventory) |
 | Some adapters have weak or missing evidence | [Weak-Evidence Inventory](#4-weak-evidence-inventory) |
-| Structurally good pairs excluded by the evidence gate | [Near-Miss Inventory](#5-near-miss-inventory) |
-| You want the detailed pair-by-pair walkthrough | [Mixed-Task Walkthrough](examples/mixed-task-inventory-walkthrough.md) |
+| Structurally good pairs excluded by the evidence gate | [Near-Miss Case](#5-near-miss-case) |
+| Want to see whether preflight predictions hold up | [Retained vs Control](#6-retained-vs-control--evaluation-outcome) |
+| Want the detailed pair-by-pair walkthrough | [Mixed-Task Walkthrough](examples/mixed-task-inventory-walkthrough.md) |

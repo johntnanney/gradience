@@ -1,0 +1,40 @@
+
+  INVENTORY ACTION PLAN
+  ============================================================
+
+  REDUCED CANDIDATE SET
+  ----------------------------------------
+  Starting pairs:      4
+  Retained candidates: 2
+  Reduction:           50%
+
+  Evaluate first:
+    - TransferGraph__JB173_irony × TransferGraph__neibla_irony  (medium risk, norm_equalized)
+    - TransferGraph__JB173_irony × TransferGraph__phailyoor_irony  (low risk, linear)
+
+  Exclude / deprioritize
+  ----------------------------------------
+  - TransferGraph__Aureliano_hate: weak source — low confidence
+
+  Same-task safe zone
+  ----------------------------------------
+  - TransferGraph__JB173_irony × TransferGraph__neibla_irony  (medium risk, norm_equalized)
+  - TransferGraph__JB173_irony × TransferGraph__phailyoor_irony  (low risk, linear)
+
+  Near-miss candidates
+  ----------------------------------------
+  Structurally plausible, evidence-constrained.
+  Ordered by weak-source severity (best prospects first).
+  - TransferGraph__jaesun_hate × TransferGraph__Aureliano_hate  (low risk, linear — TransferGraph__Aureliano_hate is evidence-constrained; deeply weak)
+
+  Cross-task caution zone
+  ----------------------------------------
+  - none
+
+  Provenance
+  ----------------------------------------
+  Sources with behavioral evidence: 5/5
+
+  Summary
+  ----------------------------------------
+  QA and task boundary dominate this inventory. Candidate space reduced from 4 pairs to 2.

@@ -1,0 +1,96 @@
+{
+  "inventory_id": "campaign-a-01-sentiment-family",
+  "description": "Task-family equivalence test: SST-2 vs IMDB sentiment on DistilBERT. Tests whether Gradience's strict task-identity boundary is correct or too conservative for practically similar tasks within the same sentiment family.",
+  "backbone": "distilbert-base-uncased",
+  "inventory_type": "task_family_equivalence",
+  "campaign": "A",
+  "campaign_question": "Is exact task identity too strict for practically similar sentiment tasks?",
+  "adapters": [
+    {
+      "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment. Standard q_lin+v_lin LoRA."
+    },
+    {
+      "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "sst2",
+      "method": "lora",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "SST-2 binary sentiment. Same config as myselfmankar. Provides exact same-task pair."
+    },
+    {
+      "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 8,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin"],
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Same target modules as SST-2 adapters. Primary cross-dataset test partner."
+    },
+    {
+      "adapter_id": "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 4,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin", "v_lin", "k_lin", "out_lin", "lin1", "lin2", "pre_classifier", "classifier"],
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. All-module LoRA (8 targets). Tests cross-dataset with structural mismatch."
+    },
+    {
+      "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "base_model": "distilbert-base-uncased",
+      "task": "sentiment-binary",
+      "dataset": "imdb",
+      "method": "lora",
+      "lora_r": 4,
+      "lora_alpha": 32,
+      "target_modules": ["q_lin"],
+      "format": "safetensors",
+      "notes": "IMDB binary sentiment. Q-only LoRA (single target module). Trained on 1k samples — may be weaker."
+    }
+  ],
+  "pair_classes": {
+    "exact_same_task": {
+      "description": "SST-2 x SST-2 — baseline for retained same-task pairs",
+      "example_pairs": [
+        ["myselfmankar/distilbert-base-sst2-lora", "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2"]
+      ]
+    },
+    "same_family_cross_dataset": {
+      "description": "SST-2 x IMDB — the key test. Same sentiment family, different dataset. Does this behave like retained or like cross-task?",
+      "example_pairs": [
+        ["myselfmankar/distilbert-base-sst2-lora", "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"],
+        ["rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2", "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"],
+        ["myselfmankar/distilbert-base-sst2-lora", "muneeb-ai/distilbert-base-uncased-lora-imdb-sentiment"]
+      ]
+    },
+    "cross_task_control": {
+      "description": "Sentiment x non-sentiment — anchor from Phase 2 data. Reuse existing cross-task control scores if backbones match.",
+      "notes": "Use inventory_01/02 cross-task data from Phase 2 (sentiment x emotion/ag_news) as control comparison."
+    }
+  },
+  "selection_rationale": "5 adapters on distilbert-base-uncased: 2 SST-2 + 3 IMDB. Generates 10 pairs total. 1 exact same-task pair (SST-2 x SST-2), 6 same-family cross-dataset pairs (SST-2 x IMDB), 3 same-dataset pairs (IMDB x IMDB). No Yelp/Amazon DistilBERT LoRA adapters available on Hub. SST-2 vs IMDB is the strongest available test of task-family equivalence.",
+  "expected_gradience_behavior": {
+    "task_boundary": "Gradience should flag SST-2 x IMDB as cross-task (different eval_dataset strings). The question is whether this advisory is too conservative.",
+    "structural_compatibility": "myselfmankar x dipanjanS should be structurally compatible (same target_modules). muneeb-ai has a wider module set — may show structural mismatch.",
+    "evidence_gate": "All adapters expected to pass evidence bootstrap as eligible or uncertain."
+  }
+}

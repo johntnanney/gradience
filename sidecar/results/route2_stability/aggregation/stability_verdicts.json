@@ -1,0 +1,69 @@
+{
+  "schema": "route2_stability.aggregation.stability_verdicts/v1",
+  "generated_utc": "2026-03-31T23:10:00Z",
+  "substudy": "Route2 Substudy 2 - Aggregation-Sensitive Compatibility Stability Check",
+  "claims": [
+    {
+      "claim_id": "A1",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "Agreement distribution and divergence structure remained 2 full, 8 partial, 2 strong-divergence under local perturbation.",
+      "interpretation_note": "Aggregation remains the first major decision seam in this bounded Route 2 scope."
+    },
+    {
+      "claim_id": "B1",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "Worst-case still assigns coarse merge-caution labels to routing-facing cases that distributional separates.",
+      "interpretation_note": "Worst-case collapse behavior is robust under nearby panel substitutions."
+    },
+    {
+      "claim_id": "B2",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong_with_caveat",
+      "stability_verdict": "moderately_stable",
+      "evidence_summary": "Distributional still exposes confusable/needs_disambiguation/separable structure, including the perturbed moderate routing case.",
+      "interpretation_note": "Distributional gradation remains clear, but exact tier thresholds are still panel-dependent."
+    },
+    {
+      "claim_id": "B3",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "QA-blocked and mixed-QA triage cases continue to override structurally positive outcomes under QA-dominant aggregation.",
+      "interpretation_note": "QA-dominant remains a distinct operational family, not a weaker structural lens."
+    },
+    {
+      "claim_id": "C1",
+      "original_verdict": "moderate",
+      "perturbed_verdict": "moderate_confirmed",
+      "stability_verdict": "moderately_stable",
+      "evidence_summary": "The perturbed panel remains interpretable with the same compact pattern set and predictor logic (QA regime + task relation).",
+      "interpretation_note": "Taxonomy viability survives this perturbation but should remain guarded as single-perturbation evidence."
+    },
+    {
+      "claim_id": "C2",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "Both aggregation-invariant and aggregation-sensitive case types remain present (2 invariant, 10 sensitive).",
+      "interpretation_note": "The invariant-versus-sensitive split remains interpretable and reusable."
+    },
+    {
+      "claim_id": "D1",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "Operational guidance remains unchanged: scenario-appropriate aggregation families produce better decision-relevant outputs.",
+      "interpretation_note": "Aggregation should continue to be treated as a workflow design variable in Route 2."
+    }
+  ],
+  "summary": {
+    "stable": ["A1", "B1", "B3", "C2", "D1"],
+    "moderately_stable": ["B2", "C1"],
+    "panel_sensitive": [],
+    "still_thin": []
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "cross_artifact_portability_local_signal/v1",
+  "generated_utc": "2026-03-31T19:00:00.000000+00:00",
+  "program": "Cross-Artifact Compatibility Research Program (Route 2)",
+  "local_signals": [
+    {
+      "signal_name": "factor_subspace_overlap",
+      "description": "Principal angle and subspace overlap between low-rank A/B factor pairs across adapters",
+      "local_type": "factor_geometry_specific",
+      "artifact_classes_where_present": ["lora", "loha_shimmed"],
+      "artifact_classes_where_absent": ["checkpoint_delta"],
+      "why_present": "Requires explicit low-rank factorization (native A/B matrices or shimmed equivalents). The subspace overlap computation operates on factor columns directly.",
+      "why_absent_elsewhere": "Checkpoint delta Representation C is a layerwise summary (scalar statistics per layer). No factor matrices are available for subspace angle computation. Raw delta matrices (Repr A) could in principle be SVD-factored, but this was rejected at Stage A for fidelity reasons.",
+      "portability": "local_only",
+      "product_relevance": "research_only",
+      "notes": "Core sidecar signal (V-module dimensionality ratio, d=3.36) depends on this. The V-module signal is scientifically strong but representation-locked to factorized artifacts."
+    },
+    {
+      "signal_name": "merge_strategy_recommendation",
+      "description": "Specific merge strategy strings (linear, ties, dare_ties, norm_equalized, audit_aware)",
+      "local_type": "execution_context_local",
+      "artifact_classes_where_present": ["lora", "loha_shimmed"],
+      "artifact_classes_where_absent": ["checkpoint_delta"],
+      "why_present": "Merge strategy selection requires factor-based diagnosis (redundancy, conflict, imbalance) which operates on A/B pair geometry.",
+      "why_absent_elsewhere": "Checkpoint delta triage does not produce merge strategies because merge execution is out of scope for summary-based representations. Ring 2 Stage D explicitly states merge execution remains out of scope.",
+      "portability": "local_only",
+      "product_relevance": "research_only",
+      "notes": "The strategy strings are operationally meaningful only for native LoRA merge. LoHa shimmed pairs receive strategy recommendations through the pipeline but merge execution has not been validated. Checkpoint deltas cannot use them at all."
+    },
+    {
+      "signal_name": "compatibility_score_numeric_scale",
+      "description": "The specific numeric compatibility score produced by merge-audit vs summary-based pairwise comparison",
+      "local_type": "extraction_artifact_specific",
+      "artifact_classes_where_present": ["lora", "loha_shimmed", "checkpoint_delta"],
+      "artifact_classes_where_absent": [],
+      "why_present": "All three classes produce a numeric compatibility score, but the computation differs: LoRA/LoHa use factor-based spectral compatibility from merge-audit; checkpoint deltas use cosine similarity and energy-delta-based scoring from summary profiles.",
+      "why_absent_elsewhere": "N/A -- present everywhere but not comparable.",
+      "portability": "partially_portable",
+      "product_relevance": "safe_with_scope_guardrail",
+      "notes": "The scores all express 'how compatible are these two artifacts?' but the scales and semantics differ. LoRA same-task: 0.475. Checkpoint delta same-task: 0.892. These cannot be compared numerically. The ordinal ranking (same_task > cross_task) may be portable but the absolute values are not."
+    },
+    {
+      "signal_name": "stable_rank_and_energy_concentration",
+      "description": "Per-layer stable rank, energy rank, utilization metrics from spectral audit",
+      "local_type": "factor_geometry_specific",
+      "artifact_classes_where_present": ["lora", "loha_shimmed"],
+      "artifact_classes_where_absent": ["checkpoint_delta"],
+      "why_present": "Spectral audit computes SVD of factor matrices to derive stable rank, energy rank, utilization. These require matrix-level access to adapter weights.",
+      "why_absent_elsewhere": "Checkpoint delta Representation C stores pre-computed summary statistics (effective rank, stable rank, energy concentrations) but these are computed from the full delta matrix SVD during extraction, not from low-rank factors. The metrics have analogous names but different semantic content: LoRA stable rank measures factor utilization, checkpoint delta stable rank measures delta spectrum shape.",
+      "portability": "partially_portable",
+      "product_relevance": "research_only",
+      "notes": "Analogous metrics exist in both worlds but mean different things. LoRA stable rank of 2.6 (loha_r4) vs checkpoint delta stable rank of 4.2 (sst2_s42) are not measuring the same quantity. The names overlap but the underlying populations differ."
+    },
+    {
+      "signal_name": "shim_extraction_artifacts",
+      "description": "Artifacts introduced by the representation conversion shim itself",
+      "local_type": "extraction_artifact_specific",
+      "artifact_classes_where_present": ["loha_shimmed"],
+      "artifact_classes_where_absent": ["lora", "checkpoint_delta"],
+      "why_present": "The materialized shim applies truncated SVD to the Hadamard product of LoHa factor pairs. This introduces approximation error proportional to the discarded singular values. The shimmed adapter is not exactly equivalent to the LoHa original.",
+      "why_absent_elsewhere": "Native LoRA has no extraction shim. Checkpoint deltas have their own extraction process but it is not a factorization shim -- it is a measurement summary.",
+      "portability": "local_only",
+      "product_relevance": "research_only",
+      "notes": "Any signal unique to shimmed LoHa (e.g., unusually low compatibility scores compared to native LoRA for similar rank/task) may be partially caused by the shim itself rather than by the underlying adapter compatibility."
+    },
+    {
+      "signal_name": "checkpoint_summary_profile_shape",
+      "description": "The overall spectral profile shape across layers in checkpoint summary representation",
+      "local_type": "summary_profile_specific",
+      "artifact_classes_where_present": ["checkpoint_delta"],
+      "artifact_classes_where_absent": ["lora", "loha_shimmed"],
+      "why_present": "Representation C aggregates per-layer statistics (effective rank, stable rank, energy at k, spectral decay rate) into a compact profile. The pairwise comparison operates on these profiles directly via cosine similarity and delta metrics.",
+      "why_absent_elsewhere": "LoRA and LoHa pairwise comparison operates on factor matrices, not on aggregated per-layer profiles. While one could compute summary profiles from LoRA audits, this is not the current comparison path.",
+      "portability": "local_only",
+      "product_relevance": "research_only",
+      "notes": "The summary-profile comparison (cosine similarity 0.998, mean energy delta 0.014 for same-task) uses a fundamentally different comparison geometry than factor-based merge-audit. High cosine similarity in summary space does not imply low subspace conflict in factor space."
+    },
+    {
+      "signal_name": "pair_risk_categorical",
+      "description": "Categorical risk label (low, medium, high) from pairwise analysis",
+      "local_type": "extraction_artifact_specific",
+      "artifact_classes_where_present": ["lora", "loha_shimmed", "checkpoint_delta"],
+      "artifact_classes_where_absent": [],
+      "why_present": "All three pipelines produce a categorical risk label, but the thresholds and derivation differ. LoRA/LoHa: derived from factor-based diagnosis. Checkpoint delta: derived from summary-based compatibility scoring.",
+      "why_absent_elsewhere": "N/A -- present everywhere but calibrated differently.",
+      "portability": "partially_portable",
+      "product_relevance": "safe_with_scope_guardrail",
+      "notes": "The label vocabulary is shared but the calibration is representation-specific. LoHa same-task pairs are 'low' risk. Checkpoint delta same-task pair is 'medium' risk. These are not comparable in severity -- the label reflects the local scoring system's thresholds."
+    }
+  ],
+  "summary": {
+    "local_only": ["factor_subspace_overlap", "merge_strategy_recommendation", "shim_extraction_artifacts", "checkpoint_summary_profile_shape"],
+    "partially_portable": ["compatibility_score_numeric_scale", "stable_rank_and_energy_concentration", "pair_risk_categorical"],
+    "key_finding": "The strongest sidecar signal (V-module dimensionality ratio) is representation-locked to factorized artifacts. The most portable signals are workflow-level (QA, narrowing, task relations) not structural-metric-level."
+  }
+}

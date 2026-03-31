@@ -1,0 +1,61 @@
+{
+  "schema": "route2_stability.cross_artifact.stability_verdicts/v1",
+  "generated_utc": "2026-03-31T21:40:00Z",
+  "substudy": "Route2 Substudy 1 - Cross-Artifact Portability Stability Check",
+  "claims": [
+    {
+      "claim_id": "A1",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "QA/evidence gating remains dominant in LoRA, LoHa, and checkpoint delta under perturbed panel composition.",
+      "interpretation_note": "Workflow-level evidence gating is robust to local panel substitutions."
+    },
+    {
+      "claim_id": "A2",
+      "original_verdict": "strong",
+      "perturbed_verdict": "strong",
+      "stability_verdict": "stable",
+      "evidence_summary": "Conservative narrowing remains visible across classes (retained subset reduction or QA-bound suppression).",
+      "interpretation_note": "Broad-to-narrow workflow shape remains a sturdy cross-artifact invariant."
+    },
+    {
+      "claim_id": "B1",
+      "original_verdict": "moderate",
+      "perturbed_verdict": "moderate_with_caveat",
+      "stability_verdict": "moderately_stable",
+      "evidence_summary": "Same-task vs cross-task separation still holds where testable (LoRA, checkpoint delta), but LoHa remains indeterminate.",
+      "interpretation_note": "Task-relation ordering remains directionally useful but still coverage-limited."
+    },
+    {
+      "claim_id": "B2",
+      "original_verdict": "moderate",
+      "perturbed_verdict": "mixed_weakened",
+      "stability_verdict": "panel_sensitive",
+      "evidence_summary": "Checkpoint delta preserves same-family intermediate ordering, but perturbed LoRA does not show strict intermediate placement.",
+      "interpretation_note": "Same-family distinctness survives, but strict intermediate ordering is sensitive to local case substitutions and evidence regime."
+    },
+    {
+      "claim_id": "C1",
+      "original_verdict": "local_only",
+      "perturbed_verdict": "local_only",
+      "stability_verdict": "stable",
+      "evidence_summary": "No new cross-artifact structural metric emerges; factor geometry remains unavailable on checkpoint summary representation.",
+      "interpretation_note": "Representation locality of strongest structural metrics remains stable."
+    },
+    {
+      "claim_id": "D1",
+      "original_verdict": "inconclusive",
+      "perturbed_verdict": "inconclusive",
+      "stability_verdict": "still_inconclusive",
+      "evidence_summary": "Near-miss remains explicit in LoRA and only partial/queued in checkpoint triage, absent in LoHa panel.",
+      "interpretation_note": "Perturbation does not resolve optional/near-miss portability across artifact classes."
+    }
+  ],
+  "summary": {
+    "stable": ["A1", "A2", "C1"],
+    "moderately_stable": ["B1"],
+    "panel_sensitive": ["B2"],
+    "still_inconclusive": ["D1"]
+  }
+}

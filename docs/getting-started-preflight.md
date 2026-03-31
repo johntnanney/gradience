@@ -146,7 +146,8 @@ For a pre-built set of artifacts covering all key cases (eligible, weak, and mis
 ## Next Steps
 
 - **[Playbook](playbook.md)** — step-by-step for the five most common workflows (evidence bootstrap, HTML reports, portfolio view)
-- **[Example Gallery](example-gallery.md)** — five curated scenarios showing what each inventory type looks like
+- **[Example Gallery](example-gallery.md)** — six canonical scenarios showing what each inventory type looks like, including evaluation outcomes
+- **[Product Validation](product-validation.md)** — what the field trials proved: evidence gate lesson, retained-vs-control outcomes, near-miss confirmation, product strengths and limitations
 - **[Inventory Preflight Workflow](inventory-preflight.md)** — the conceptual framework behind the workflow
 - [Adapter QA Artifact](adapter-qa-artifact.md) — schema contract
 - [Merge Risk Report](merge-risk-report.md) — schema contract

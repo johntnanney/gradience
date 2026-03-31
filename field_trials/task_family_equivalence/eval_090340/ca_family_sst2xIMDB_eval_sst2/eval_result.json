@@ -1,0 +1,15 @@
+{
+  "pair_name": "ca_family_sst2xIMDB_eval_sst2",
+  "role": "family_test",
+  "strategy": "audit_aware",
+  "eval_dataset": "sst2",
+  "compatibility": "redundant",
+  "compatibility_score": 0.314,
+  "mean_reconstruction_error": 0.1496,
+  "merged_accuracy": 0.88,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 6.7,
+  "notes": "KEY TEST. SST-2 x IMDB, eval on SST-2. Does cross-dataset same-family merge preserve SST-2 performance?"
+}

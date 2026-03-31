@@ -1,0 +1,38 @@
+{
+  "schema": "checkpoint_triage_alpha_bundle/v1",
+  "generated_utc": "2026-03-31T02:29:03.658126+00:00",
+  "source_trial": "checkpoint_inventory_t02",
+  "policy_summary": {
+    "inventory_type": "mixed_quality",
+    "dominant_driver": "source_qa",
+    "exploration_posture": "narrow",
+    "constraint": "Source QA is the binding constraint; resolve weak evidence before exploring merges."
+  },
+  "inventory_snapshot": {
+    "checkpoint_count": 5,
+    "pair_count": 10,
+    "retained_count": 0,
+    "near_miss_count": 1,
+    "status_counts": {
+      "eligible": 1,
+      "uncertain": 1,
+      "flagged_weak": 3,
+      "unknown_no_behavioral_eval": 0
+    }
+  },
+  "scope_statement": {
+    "shared_base_only": true,
+    "small_encoder_only": true,
+    "classification_only": true,
+    "evidence_bootstrap_required": true
+  },
+  "artifact_links": {
+    "preflight_results": "../preflight_results.json",
+    "inventory_summary": "../inventory/inventory_summary.json",
+    "inventory_action_plan": "../inventory/inventory_action_plan.json",
+    "qa_summary": "../../qa_artifacts/qa_summary.json",
+    "pairwise_results": "../../pairwise/pairwise_results.json",
+    "evidence_bootstrap": "../../evidence/bootstrap_results.json",
+    "eval_results": "../../eval_results.json"
+  }
+}

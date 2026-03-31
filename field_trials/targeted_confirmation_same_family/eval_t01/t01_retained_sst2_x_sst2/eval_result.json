@@ -1,0 +1,15 @@
+{
+  "pair_name": "t01_retained_sst2_x_sst2",
+  "role": "retained",
+  "strategy": "audit_aware",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.475,
+  "mean_reconstruction_error": 0.2684,
+  "merged_accuracy": 0.876,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 6.3,
+  "notes": "Exact same-task baseline (SST-2 x SST-2)."
+}

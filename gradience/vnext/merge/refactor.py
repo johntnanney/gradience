@@ -86,6 +86,11 @@ def refactor_to_lora(
         raise MergeError(f"Unsupported compute_dtype '{compute_dtype}'. Choose from: {sorted(_DTYPE_MAP.keys())}")
 
     scaling = alpha / max(target_rank, 1)
+    if abs(scaling) < 1e-12:
+        raise MergeError(
+            f"LoRA scaling factor is effectively zero (alpha={alpha}, target_rank={target_rank}). "
+            "Cannot factor ΔW into B @ A when scaling ≈ 0."
+        )
 
     # Compute SVD in requested precision
     orig_dtype = dW.dtype

@@ -1,0 +1,38 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "rank": 16,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "rank": 8,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "distilbert/distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "partial_redundancy",
+  "dominant_issue_detail": "1 redundant layer(s)",
+  "recommended_action": "Pre-compress 1 over-provisioned layer(s), then merge with audit-aware strategy.",
+  "recommended_strategy": "audit_aware",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.314) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [
+    "1 layer(s) are over-provisioned. Pre-compression before merging may improve results."
+  ],
+  "verdict_distribution": {
+    "safe": 11,
+    "redundant": 1,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.314,
+  "task_relationship_advisory": "Same-family merge: adapters were evaluated on different datasets (sst2 vs imdb) but both belong to the sentiment_binary family. Similar tasks tend to merge well.",
+  "task_relationship": "same_family"
+}

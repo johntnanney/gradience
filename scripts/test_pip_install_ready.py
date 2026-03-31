@@ -19,12 +19,20 @@ from pathlib import Path
 
 
 def run_cmd(cmd, description, cwd=None, timeout=30):
-    """Run command and return success status."""
+    """Run command and return success status.
+
+    *cmd* is either a list (executed directly, no shell) or a string
+    (executed via ``bash -c``, required for ``source … && …`` chains).
+    """
     print(f"\n🔧 {description}")
     print(f"   Running: {cmd}")
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd, timeout=timeout)
+        if isinstance(cmd, str):
+            argv = ["bash", "-c", cmd]
+        else:
+            argv = cmd
+        result = subprocess.run(argv, capture_output=True, text=True, cwd=cwd, timeout=timeout)
 
         if result.returncode == 0:
             print("   ✅ Success")
@@ -55,7 +63,7 @@ def test_base_install():
         venv_path = Path(temp_dir) / "test_venv"
 
         # Create virtual environment
-        if not run_cmd(f"python3 -m venv {venv_path}", "Creating virtual environment"):
+        if not run_cmd(["python3", "-m", "venv", str(venv_path)], "Creating virtual environment"):
             return False
 
         # Activate and install
@@ -75,7 +83,7 @@ def test_base_install():
             return False
 
         # Verify minimal dependencies
-        result = subprocess.run(f"{activate_cmd} && pip list", shell=True, capture_output=True, text=True)
+        result = subprocess.run(["bash", "-c", f"{activate_cmd} && pip list"], capture_output=True, text=True)
 
         if "torch" in result.stdout or "transformers" in result.stdout:
             print("   ❌ Heavy dependencies found in base install")
@@ -97,7 +105,7 @@ def test_bench_extras():
         venv_path = Path(temp_dir) / "bench_venv"
 
         # Create virtual environment
-        if not run_cmd(f"python3 -m venv {venv_path}", "Creating virtual environment"):
+        if not run_cmd(["python3", "-m", "venv", str(venv_path)], "Creating virtual environment"):
             return False
 
         # Install with CPU torch first
@@ -154,15 +162,15 @@ def test_packaging_correctness():
         os.chdir(work_dir / "gradience_src")
 
         # Build packages
-        if not run_cmd("python3 -m pip install build", "Installing build tools"):
+        if not run_cmd(["python3", "-m", "pip", "install", "build"], "Installing build tools"):
             return False
 
-        if not run_cmd("python3 -m build", "Building wheel and sdist", timeout=60):
+        if not run_cmd(["python3", "-m", "build"], "Building wheel and sdist", timeout=60):
             return False
 
         # Create test environment
         venv_path = work_dir / "wheel_test_venv"
-        if not run_cmd(f"python3 -m venv {venv_path}", "Creating test environment"):
+        if not run_cmd(["python3", "-m", "venv", str(venv_path)], "Creating test environment"):
             return False
 
         # Install from wheel
@@ -232,7 +240,7 @@ def test_performance():
         venv_path = Path(temp_dir) / "perf_venv"
 
         # Create and install
-        if not run_cmd(f"python3 -m venv {venv_path}", "Creating environment"):
+        if not run_cmd(["python3", "-m", "venv", str(venv_path)], "Creating environment"):
             return False
 
         activate_cmd = f"source {venv_path}/bin/activate"

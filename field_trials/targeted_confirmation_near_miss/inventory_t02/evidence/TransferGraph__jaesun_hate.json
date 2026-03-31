@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__jaesun_hate",
+  "base_model": "distilbert-base-uncased",
+  "eval_dataset": "tweet_eval/hate",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.54,
+  "base_score": 0.534,
+  "beats_base": true,
+  "delta": 0.006,
+  "adapter_f1": 0.6384,
+  "base_f1": 0.5476,
+  "adapter_id": "TransferGraph/jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate"
+}

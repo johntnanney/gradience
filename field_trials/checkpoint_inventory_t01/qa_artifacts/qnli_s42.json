@@ -1,0 +1,43 @@
+{
+  "schema": "gradience.adapter_qa/v1",
+  "adapter": {
+    "name": "qnli_s42",
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/qnli_s42",
+    "base_model": "distilbert-base-uncased",
+    "rank_nominal": 0,
+    "n_layers": 38
+  },
+  "structural_summary": {
+    "utilization_mean": 0.49156255118156733,
+    "utilization_median": 0.49156255118156733,
+    "stable_rank_mean": 6.229795097429801,
+    "effective_rank_90_median": null,
+    "rank_waste_ratio": 0.5084374488184327,
+    "flags": [
+      "diffuse_delta_spectrum",
+      "high_effective_rank"
+    ]
+  },
+  "behavioral_summary": {
+    "eval_available": true,
+    "eval_dataset": "qnli",
+    "metric_name": "accuracy",
+    "adapter_score": 0.53,
+    "base_score": 0.54,
+    "lower_is_better": false,
+    "beats_base": false,
+    "margin_confidence": 0.0
+  },
+  "eligibility": {
+    "status": "flagged_weak",
+    "confidence": "low",
+    "reasons": [
+      "Adapter is worse than base by 0.0100 (accuracy).  Merging may not preserve useful signal.",
+      "Structural summary marked this checkpoint for review.",
+      "Structural flags: diffuse_delta_spectrum, high_effective_rank"
+    ]
+  },
+  "notes": [
+    "Checkpoint QA derived from Ring 2 summary representation + bootstrap evidence."
+  ]
+}

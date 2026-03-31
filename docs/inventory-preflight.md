@@ -146,7 +146,8 @@ If the inventory is same-task and clean, the preflight will confirm that — and
 ## Further reading
 
 - **[Playbook](playbook.md)** — step-by-step instructions for the five most common workflows
-- **[Example Gallery](example-gallery.md)** — five curated scenarios: same-task, mixed-task, weak-evidence, near-miss
+- **[Product Validation](product-validation.md)** — field trial evidence: what Gradience gets right, where the limits are
+- **[Example Gallery](example-gallery.md)** — six canonical scenarios: same-task, mixed-task, large inventory, weak-evidence, near-miss, retained-vs-control evaluation
 - **[Mixed-task inventory walkthrough](examples/mixed-task-inventory-walkthrough.md)** — flagship: 6 adapters, 4 tasks, 15 pairs reduced to 2
 - **[Same-task control walkthrough](examples/same-task-control-walkthrough.md)** — contrast case: advisory silence, confirmatory behavior
 

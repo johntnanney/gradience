@@ -1,0 +1,542 @@
+{
+  "representation_name": "layerwise_summary",
+  "n_layers": 38,
+  "mean_effective_rank": 412.98746989073334,
+  "mean_stable_rank": 4.857043940259352,
+  "mean_energy_at_8": 0.5738799026922176,
+  "layers": {
+    "transformer.layer.0.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07355277985334396,
+      "spectral_norm": 0.01549737248569727,
+      "effective_rank": 486.1418964627177,
+      "stable_rank": 22.525894147846905,
+      "singular_decay_ratio_top1_over_top4": 1.2648948141688605,
+      "energy_at_4": 0.14699025452136993,
+      "energy_at_8": 0.22526918351650238,
+      "energy_at_16": 0.3236604332923889
+    },
+    "transformer.layer.0.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07252760976552963,
+      "spectral_norm": 0.01727864146232605,
+      "effective_rank": 489.6964294688729,
+      "stable_rank": 17.619255121669227,
+      "singular_decay_ratio_top1_over_top4": 1.558223537147608,
+      "energy_at_4": 0.14174987375736237,
+      "energy_at_8": 0.21724659204483032,
+      "energy_at_16": 0.3221251368522644
+    },
+    "transformer.layer.0.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07562722265720367,
+      "spectral_norm": 0.02836601808667183,
+      "effective_rank": 455.76391494791534,
+      "stable_rank": 7.108198583109496,
+      "singular_decay_ratio_top1_over_top4": 2.0978268827801663,
+      "energy_at_4": 0.27587130665779114,
+      "energy_at_8": 0.3547596037387848,
+      "energy_at_16": 0.45757439732551575
+    },
+    "transformer.layer.0.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07842864841222763,
+      "spectral_norm": 0.04183308035135269,
+      "effective_rank": 425.0825082105777,
+      "stable_rank": 3.514874087163722,
+      "singular_decay_ratio_top1_over_top4": 3.3227888361276894,
+      "energy_at_4": 0.44616925716400146,
+      "energy_at_8": 0.5156394839286804,
+      "energy_at_16": 0.6032074093818665
+    },
+    "transformer.layer.0.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.15025466680526733,
+      "spectral_norm": 0.05283668264746666,
+      "effective_rank": 614.4650479184129,
+      "stable_rank": 8.086951794278146,
+      "singular_decay_ratio_top1_over_top4": 2.32627494177645,
+      "energy_at_4": 0.20153291523456573,
+      "energy_at_8": 0.25663596391677856,
+      "energy_at_16": 0.3320279121398926
+    },
+    "transformer.layer.0.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.16043685376644135,
+      "spectral_norm": 0.10405313968658447,
+      "effective_rank": 570.7618165125728,
+      "stable_rank": 2.3773761154465896,
+      "singular_decay_ratio_top1_over_top4": 4.983034806428418,
+      "energy_at_4": 0.5026229023933411,
+      "energy_at_8": 0.5396607518196106,
+      "energy_at_16": 0.5890868306159973
+    },
+    "transformer.layer.1.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07297924906015396,
+      "spectral_norm": 0.02069268375635147,
+      "effective_rank": 445.64878922822993,
+      "stable_rank": 12.438417771432944,
+      "singular_decay_ratio_top1_over_top4": 1.679313454612296,
+      "energy_at_4": 0.2110944241285324,
+      "energy_at_8": 0.302395224571228,
+      "energy_at_16": 0.41600385308265686
+    },
+    "transformer.layer.1.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07400684058666229,
+      "spectral_norm": 0.025147531181573868,
+      "effective_rank": 444.37983791140607,
+      "stable_rank": 8.66070044968178,
+      "singular_decay_ratio_top1_over_top4": 1.8594589159933217,
+      "energy_at_4": 0.2366073578596115,
+      "energy_at_8": 0.327332079410553,
+      "energy_at_16": 0.4405171871185303
+    },
+    "transformer.layer.1.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08071199059486389,
+      "spectral_norm": 0.045777808874845505,
+      "effective_rank": 415.3297410712081,
+      "stable_rank": 3.108609097192426,
+      "singular_decay_ratio_top1_over_top4": 3.5590357975505897,
+      "energy_at_4": 0.49423208832740784,
+      "energy_at_8": 0.5614299774169922,
+      "energy_at_16": 0.637921154499054
+    },
+    "transformer.layer.1.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08392497897148132,
+      "spectral_norm": 0.05137235298752785,
+      "effective_rank": 401.33567963138137,
+      "stable_rank": 2.668846317851834,
+      "singular_decay_ratio_top1_over_top4": 3.396654543699027,
+      "energy_at_4": 0.5264511108398438,
+      "energy_at_8": 0.6037241816520691,
+      "energy_at_16": 0.6801101565361023
+    },
+    "transformer.layer.1.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.15490050613880157,
+      "spectral_norm": 0.05842005833983421,
+      "effective_rank": 588.1543212818902,
+      "stable_rank": 7.030426965098093,
+      "singular_decay_ratio_top1_over_top4": 2.358258562608043,
+      "energy_at_4": 0.25330379605293274,
+      "energy_at_8": 0.32285189628601074,
+      "energy_at_16": 0.40780267119407654
+    },
+    "transformer.layer.1.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.17680902779102325,
+      "spectral_norm": 0.1350535750389099,
+      "effective_rank": 519.187441281026,
+      "stable_rank": 1.7139442929058706,
+      "singular_decay_ratio_top1_over_top4": 5.837817539458185,
+      "energy_at_4": 0.6662316918373108,
+      "energy_at_8": 0.6986815929412842,
+      "energy_at_16": 0.7367573380470276
+    },
+    "transformer.layer.2.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07628735154867172,
+      "spectral_norm": 0.034733690321445465,
+      "effective_rank": 441.0873529928835,
+      "stable_rank": 4.823954689766401,
+      "singular_decay_ratio_top1_over_top4": 2.870870906932325,
+      "energy_at_4": 0.34103822708129883,
+      "energy_at_8": 0.4181726276874542,
+      "energy_at_16": 0.5122919082641602
+    },
+    "transformer.layer.2.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07735472917556763,
+      "spectral_norm": 0.025677219033241272,
+      "effective_rank": 437.2538654224699,
+      "stable_rank": 9.075650613169524,
+      "singular_decay_ratio_top1_over_top4": 1.7280886523822507,
+      "energy_at_4": 0.2507827579975128,
+      "energy_at_8": 0.3559763431549072,
+      "energy_at_16": 0.4825073182582855
+    },
+    "transformer.layer.2.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08253821730613708,
+      "spectral_norm": 0.04550933465361595,
+      "effective_rank": 419.33957376473427,
+      "stable_rank": 3.289343260658919,
+      "singular_decay_ratio_top1_over_top4": 3.0015374615434984,
+      "energy_at_4": 0.48378419876098633,
+      "energy_at_8": 0.5534663796424866,
+      "energy_at_16": 0.6345054507255554
+    },
+    "transformer.layer.2.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08659163862466812,
+      "spectral_norm": 0.055512718856334686,
+      "effective_rank": 402.51415145177367,
+      "stable_rank": 2.4331389976020596,
+      "singular_decay_ratio_top1_over_top4": 4.237669034651281,
+      "energy_at_4": 0.5646794438362122,
+      "energy_at_8": 0.6295289397239685,
+      "energy_at_16": 0.6974505186080933
+    },
+    "transformer.layer.2.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.15883132815361023,
+      "spectral_norm": 0.06698953360319138,
+      "effective_rank": 573.3750778277653,
+      "stable_rank": 5.621580404955071,
+      "singular_decay_ratio_top1_over_top4": 2.432753432024108,
+      "energy_at_4": 0.33893904089927673,
+      "energy_at_8": 0.406812459230423,
+      "energy_at_16": 0.4812053442001343
+    },
+    "transformer.layer.2.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.17722377181053162,
+      "spectral_norm": 0.13652245700359344,
+      "effective_rank": 489.333229738991,
+      "stable_rank": 1.6851391140680174,
+      "singular_decay_ratio_top1_over_top4": 5.951673940715608,
+      "energy_at_4": 0.7043882012367249,
+      "energy_at_8": 0.7418100237846375,
+      "energy_at_16": 0.7778630256652832
+    },
+    "transformer.layer.3.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07640062272548676,
+      "spectral_norm": 0.038139939308166504,
+      "effective_rank": 432.9127197322685,
+      "stable_rank": 4.012673294694898,
+      "singular_decay_ratio_top1_over_top4": 3.088475110754242,
+      "energy_at_4": 0.375171959400177,
+      "energy_at_8": 0.44947823882102966,
+      "energy_at_16": 0.538596510887146
+    },
+    "transformer.layer.3.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07606896013021469,
+      "spectral_norm": 0.025385485962033272,
+      "effective_rank": 431.5283551901682,
+      "stable_rank": 8.979331301671335,
+      "singular_decay_ratio_top1_over_top4": 1.7702674749520486,
+      "energy_at_4": 0.2632609009742737,
+      "energy_at_8": 0.3734458386898041,
+      "energy_at_16": 0.5018910765647888
+    },
+    "transformer.layer.3.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.086662657558918,
+      "spectral_norm": 0.04869750887155533,
+      "effective_rank": 400.5069398648273,
+      "stable_rank": 3.167017876614041,
+      "singular_decay_ratio_top1_over_top4": 2.2264888571557773,
+      "energy_at_4": 0.5608555674552917,
+      "energy_at_8": 0.6292850375175476,
+      "energy_at_16": 0.6957712769508362
+    },
+    "transformer.layer.3.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.09005992859601974,
+      "spectral_norm": 0.06103822588920593,
+      "effective_rank": 380.5385354976201,
+      "stable_rank": 2.1770048288907926,
+      "singular_decay_ratio_top1_over_top4": 3.991452815514823,
+      "energy_at_4": 0.6421121954917908,
+      "energy_at_8": 0.700366199016571,
+      "energy_at_16": 0.7570743560791016
+    },
+    "transformer.layer.3.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.16366909444332123,
+      "spectral_norm": 0.08057954162359238,
+      "effective_rank": 548.6476835721525,
+      "stable_rank": 4.125568229055886,
+      "singular_decay_ratio_top1_over_top4": 2.9528780430335333,
+      "energy_at_4": 0.424542635679245,
+      "energy_at_8": 0.4950828552246094,
+      "energy_at_16": 0.566490650177002
+    },
+    "transformer.layer.3.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.18633368611335754,
+      "spectral_norm": 0.15451158583164215,
+      "effective_rank": 423.1148526670478,
+      "stable_rank": 1.4543222580295305,
+      "singular_decay_ratio_top1_over_top4": 6.758681824944348,
+      "energy_at_4": 0.8022733926773071,
+      "energy_at_8": 0.8299716114997864,
+      "energy_at_16": 0.858796238899231
+    },
+    "transformer.layer.4.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.0800335481762886,
+      "spectral_norm": 0.04750504717230797,
+      "effective_rank": 392.4272125209435,
+      "stable_rank": 2.838341420300021,
+      "singular_decay_ratio_top1_over_top4": 3.4457799322843625,
+      "energy_at_4": 0.5103199481964111,
+      "energy_at_8": 0.5883617401123047,
+      "energy_at_16": 0.6704453825950623
+    },
+    "transformer.layer.4.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07929974794387817,
+      "spectral_norm": 0.03089633211493492,
+      "effective_rank": 382.24858686622974,
+      "stable_rank": 6.587638577589099,
+      "singular_decay_ratio_top1_over_top4": 1.786113760620681,
+      "energy_at_4": 0.3372153639793396,
+      "energy_at_8": 0.4747583270072937,
+      "energy_at_16": 0.6301994919776917
+    },
+    "transformer.layer.4.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08810613304376602,
+      "spectral_norm": 0.055213265120983124,
+      "effective_rank": 373.3665675318231,
+      "stable_rank": 2.546392931315683,
+      "singular_decay_ratio_top1_over_top4": 3.0825705437187874,
+      "energy_at_4": 0.5918315052986145,
+      "energy_at_8": 0.6663941740989685,
+      "energy_at_16": 0.7381587028503418
+    },
+    "transformer.layer.4.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08903025090694427,
+      "spectral_norm": 0.06140153482556343,
+      "effective_rank": 347.53648615030664,
+      "stable_rank": 2.102406740965483,
+      "singular_decay_ratio_top1_over_top4": 4.480949706333007,
+      "energy_at_4": 0.664990246295929,
+      "energy_at_8": 0.7262083292007446,
+      "energy_at_16": 0.7870166897773743
+    },
+    "transformer.layer.4.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.16832797229290009,
+      "spectral_norm": 0.10417387634515762,
+      "effective_rank": 481.7594556652464,
+      "stable_rank": 2.610928232167711,
+      "singular_decay_ratio_top1_over_top4": 3.8912339899834403,
+      "energy_at_4": 0.5769683122634888,
+      "energy_at_8": 0.6382713317871094,
+      "energy_at_16": 0.7049197554588318
+    },
+    "transformer.layer.4.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.1939808428287506,
+      "spectral_norm": 0.17545245587825775,
+      "effective_rank": 321.29688467312866,
+      "stable_rank": 1.22235901762311,
+      "singular_decay_ratio_top1_over_top4": 9.269378268368525,
+      "energy_at_4": 0.8945461511611938,
+      "energy_at_8": 0.9131745100021362,
+      "energy_at_16": 0.9306318759918213
+    },
+    "transformer.layer.5.attention.q_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07693339139223099,
+      "spectral_norm": 0.05154300108551979,
+      "effective_rank": 312.30772217975266,
+      "stable_rank": 2.227872596753543,
+      "singular_decay_ratio_top1_over_top4": 3.740469853647301,
+      "energy_at_4": 0.5934007167816162,
+      "energy_at_8": 0.6824979782104492,
+      "energy_at_16": 0.77750563621521
+    },
+    "transformer.layer.5.attention.k_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.07649119943380356,
+      "spectral_norm": 0.027293561026453972,
+      "effective_rank": 346.74012915487447,
+      "stable_rank": 7.854210513916311,
+      "singular_decay_ratio_top1_over_top4": 1.3877177980914939,
+      "energy_at_4": 0.3582547903060913,
+      "energy_at_8": 0.5405031442642212,
+      "energy_at_16": 0.6977982521057129
+    },
+    "transformer.layer.5.attention.v_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.0891127958893776,
+      "spectral_norm": 0.06661926209926605,
+      "effective_rank": 322.87324848670625,
+      "stable_rank": 1.7892890475249843,
+      "singular_decay_ratio_top1_over_top4": 5.34732816695244,
+      "energy_at_4": 0.6985874176025391,
+      "energy_at_8": 0.7565562129020691,
+      "energy_at_16": 0.8203232884407043
+    },
+    "transformer.layer.5.attention.out_lin.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08511410653591156,
+      "spectral_norm": 0.06555130332708359,
+      "effective_rank": 289.8602135814141,
+      "stable_rank": 1.685933449241234,
+      "singular_decay_ratio_top1_over_top4": 5.597163485352979,
+      "energy_at_4": 0.7327990531921387,
+      "energy_at_8": 0.7877844572067261,
+      "energy_at_16": 0.8481383323669434
+    },
+    "transformer.layer.5.ffn.lin1.weight": {
+      "shape": [
+        3072,
+        768
+      ],
+      "frobenius_norm": 0.16051042079925537,
+      "spectral_norm": 0.1140117198228836,
+      "effective_rank": 382.0807527487048,
+      "stable_rank": 1.9820174457692,
+      "singular_decay_ratio_top1_over_top4": 4.242644633873382,
+      "energy_at_4": 0.6419207453727722,
+      "energy_at_8": 0.7195664048194885,
+      "energy_at_16": 0.7998239398002625
+    },
+    "transformer.layer.5.ffn.lin2.weight": {
+      "shape": [
+        768,
+        3072
+      ],
+      "frobenius_norm": 0.19826442003250122,
+      "spectral_norm": 0.18781942129135132,
+      "effective_rank": 243.47858027226135,
+      "stable_rank": 1.114316526880867,
+      "singular_decay_ratio_top1_over_top4": 13.189373372293964,
+      "energy_at_4": 0.9263877868652344,
+      "energy_at_8": 0.9396279454231262,
+      "energy_at_16": 0.9544453620910645
+    },
+    "pre_classifier.weight": {
+      "shape": [
+        768,
+        768
+      ],
+      "frobenius_norm": 0.08632691949605942,
+      "spectral_norm": 0.07548923045396805,
+      "effective_rank": 260.4443924645862,
+      "stable_rank": 1.3077432624873893,
+      "singular_decay_ratio_top1_over_top4": 7.986410008873576,
+      "energy_at_4": 0.8330423831939697,
+      "energy_at_8": 0.864708662033081,
+      "energy_at_16": 0.8980969786643982
+    },
+    "classifier.weight": {
+      "shape": [
+        2,
+        768
+      ],
+      "frobenius_norm": 0.005254775285720825,
+      "spectral_norm": 0.005254774354398251,
+      "effective_rank": 1.003861902975941,
+      "stable_rank": 1.000000354467231,
+      "singular_decay_ratio_top1_over_top4": 2262.496811313335,
+      "energy_at_4": 1.0,
+      "energy_at_8": 1.0,
+      "energy_at_16": 1.0
+    }
+  },
+  "artifact_size_bytes_estimate": 9120
+}

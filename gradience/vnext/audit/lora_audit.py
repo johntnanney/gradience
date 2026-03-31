@@ -712,10 +712,14 @@ def _iter_lora_pairs(state_dict: dict[str, torch.Tensor]) -> Iterable[tuple[str,
 
 def _effective_rank_from_singular_values(s: torch.Tensor, eps: float = 1e-12) -> float:
     s = s[s > eps]
-    if s.numel() == 0:
+    n = s.numel()
+    if n == 0:
         return 0.0
     p = s / (s.sum() + eps)
     entropy = -(p * torch.log(p + eps)).sum()
+    # Clamp entropy before exp to prevent overflow.  The theoretical maximum
+    # is log(n) (uniform distribution), but numerical noise can exceed it.
+    entropy = torch.clamp(entropy, max=math.log(n) if n > 0 else 0.0)
     return torch.exp(entropy).item()
 
 
@@ -801,7 +805,10 @@ def low_rank_stable_rank(
     AAT = A_ @ A_.T
     BTB = B_.T @ B_
     # frob_sq = tr(AAT @ BTB) = sum(AAT*BTB) since both symmetric
-    frob_sq = torch.sum(AAT * BTB).item()
+    # Clamp to 0 — numerical error in the element-wise product can make the
+    # trace negative for near-zero adapters, which would produce an invalid
+    # (negative) stable rank.
+    frob_sq = max(torch.sum(AAT * BTB).item(), 0.0)
 
     sigma_max = s[0].item() if s.numel() else 0.0
     sigma_max_sq = max(sigma_max * sigma_max, eps)

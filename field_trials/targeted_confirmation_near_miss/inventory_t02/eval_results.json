@@ -1,0 +1,62 @@
+[
+  {
+    "pair_name": "t02_retained_irony_x_irony",
+    "role": "retained",
+    "strategy": "audit_aware",
+    "eval_dataset": "tweet_eval/irony",
+    "compatibility": "redundant",
+    "compatibility_score": 0.368,
+    "mean_reconstruction_error": 0.027,
+    "merged_accuracy": 0.606,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.8,
+    "notes": "Retained same-task (irony x irony, both eligible)."
+  },
+  {
+    "pair_name": "t02_near_miss_marginal_irony",
+    "role": "near_miss_marginal",
+    "strategy": "audit_aware",
+    "eval_dataset": "tweet_eval/irony",
+    "compatibility": "safe",
+    "compatibility_score": 0.127,
+    "mean_reconstruction_error": 0.0,
+    "merged_accuracy": 0.606,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.1,
+    "eval_time_s": 6.7,
+    "notes": "Near-miss marginal: phailyoor delta=-0.004 (barely weak)."
+  },
+  {
+    "pair_name": "t02_near_miss_substantial_hate",
+    "role": "near_miss_substantial",
+    "strategy": "audit_aware",
+    "eval_dataset": "tweet_eval/hate",
+    "compatibility": "safe",
+    "compatibility_score": 0.211,
+    "mean_reconstruction_error": 0.0,
+    "merged_accuracy": 0.606,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.0,
+    "eval_time_s": 13.8,
+    "notes": "Near-miss substantial: Aureliano delta=-0.15 (deeply weak)."
+  },
+  {
+    "pair_name": "t02_excluded_irony_x_hate",
+    "role": "excluded_control",
+    "strategy": "audit_aware",
+    "eval_dataset": "tweet_eval/irony",
+    "compatibility": "safe",
+    "compatibility_score": 0.082,
+    "mean_reconstruction_error": 0.0,
+    "merged_accuracy": 0.604,
+    "n_eval_samples": 500,
+    "audit_time_s": 0.0,
+    "merge_time_s": 0.0,
+    "eval_time_s": 6.8,
+    "notes": "Excluded: cross-task (irony x hate) + weak source. Eval on irony."
+  }
+]

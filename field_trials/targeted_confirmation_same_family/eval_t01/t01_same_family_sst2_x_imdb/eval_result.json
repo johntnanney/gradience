@@ -1,0 +1,15 @@
+{
+  "pair_name": "t01_same_family_sst2_x_imdb",
+  "role": "same_family",
+  "strategy": "audit_aware",
+  "eval_dataset": "sst2",
+  "compatibility": "redundant",
+  "compatibility_score": 0.314,
+  "mean_reconstruction_error": 0.1495,
+  "merged_accuracy": 0.878,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 6.0,
+  "notes": "KEY: Same-family cross-dataset (SST-2 x IMDB), eval on SST-2."
+}

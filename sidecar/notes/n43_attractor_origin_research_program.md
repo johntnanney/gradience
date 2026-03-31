@@ -186,10 +186,12 @@ Compare:
 - Strong vs Medium/Weak QNLI: does stronger training change the
   effective decision subspace?
 
-**Deliverables:**
-- `sidecar/results/attractor_origin/representation_geometry.json`
-- `sidecar/figures/attractor_origin_sv_spectra.svg`
-- `sidecar/notes/n45_representation_geometry_findings.md`
+**Planned deliverables (not produced — stage superseded):**
+- representation_geometry.json (not produced)
+- attractor_origin_sv_spectra.svg (produced by n44 as part of Stage A instead)
+- n45_representation_geometry_findings.md (not produced)
+
+**Status:** Superseded. Stage A (n44) identified two distinct mechanisms (rotational degeneracy vs feature-set switching) that answered the representation-geometry question directly. The program pivoted to the Attractor Mechanism Determinants program (n46–n49) instead of executing Stage B as originally planned.
 
 **CPU-feasible?** Yes. All operations are on weight matrices already
 available in safetensors. No inference required.
@@ -217,10 +219,12 @@ families have seeds exploiting directions used by other tasks, then
 the pretrained representation genuinely contains multiple task-relevant
 feature sets.
 
-**Deliverables:**
-- `sidecar/results/attractor_origin/cross_family_axis_alignment.json`
-- `sidecar/figures/attractor_origin_cross_family_heatmap.svg`
-- `sidecar/notes/n46_cross_family_alignment_findings.md`
+**Planned deliverables (executed under Stage A instead):**
+- cross_family_axis_alignment.json (produced by n44)
+- attractor_origin_cross_family_heatmap.svg (produced by n44)
+- n46_cross_family_alignment_findings.md (superseded — findings folded into n44; n46 reassigned to mechanism classification)
+
+**Status:** The cross-family alignment analysis was executed as part of Stage A (n44) rather than as a separate stage. The key finding — QNLI/RoBERTa seed alignment with RTE (cos=0.86) — was reported in n44 §cross-family section.
 
 **CPU-feasible?** Yes. Same weight-matrix-only approach.
 

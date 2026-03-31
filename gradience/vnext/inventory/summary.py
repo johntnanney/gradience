@@ -600,6 +600,8 @@ class InventoryActionPlan:
     # Near-miss: same-task pairs with clean structure but excluded by weak/uncertain source
     near_miss_candidates: tuple[str, ...] = ()
     near_miss_detail: tuple[tuple[str, str, str, str], ...] = ()  # (label, risk, strategy, reason)
+    # Severity classification for near-miss weak sources: "marginal" / "moderate" / "substantial"
+    near_miss_severity: tuple[tuple[str, str], ...] = ()  # (pair_label, severity)
 
 
 def build_action_plan(
@@ -616,6 +618,7 @@ def build_action_plan(
     # --- Build adapter info maps ---
     adapter_status: dict[str, str] = {}  # name -> eligibility status
     adapter_eval_ds: dict[str, str] = {}  # name -> eval_dataset
+    adapter_delta: dict[str, float] = {}  # name -> behavioral delta (positive = beats base)
 
     for qa in qa_artifacts:
         name = qa.adapter_name if hasattr(qa, "adapter_name") else getattr(qa, "name", "?")
@@ -623,6 +626,14 @@ def build_action_plan(
         eval_ds = getattr(qa, "eval_dataset", None)
         if eval_ds:
             adapter_eval_ds[name] = eval_ds
+        # Compute behavioral delta for severity classification
+        a_score = getattr(qa, "adapter_score", None)
+        b_score = getattr(qa, "base_score", None)
+        lib = getattr(qa, "lower_is_better", None)
+        if a_score is not None and b_score is not None:
+            raw_delta = a_score - b_score
+            # Normalize so positive = beats base, regardless of metric direction
+            adapter_delta[name] = -raw_delta if lib else raw_delta
 
     # --- Classify sources ---
     exclude_names: list[str] = []
@@ -679,19 +690,61 @@ def build_action_plan(
             continue  # Skip to next pair — not retained
 
         if has_advisory:
-            cross_task_pairs.append(pair_label)
-            # Extract task region names from eval_dataset
-            a_ds = adapter_eval_ds.get(a_name, "")
-            b_ds = adapter_eval_ds.get(b_name, "")
-            if a_ds and b_ds:
-                # Normalize: "qnli_dev" -> "QNLI", "sst2_dev" -> "SST-2"
-                a_task = a_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
-                b_task = b_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
-                region = f"{min(a_task, b_task)} × {max(a_task, b_task)} region"
-                cross_task_regions.add(region)
+            # Check if this is a same-family pair (advisory-only, not full caution)
+            task_rel = getattr(report, "task_relationship", None)
+            if task_rel == "same_family":
+                # Same-family pairs go into the same-task bucket
+                same_task_pairs.append(pair_label)
+                same_task_detail.append((pair_label, pair_risk, rec_strategy))
+            else:
+                cross_task_pairs.append(pair_label)
+                # Extract task region names from eval_dataset
+                a_ds = adapter_eval_ds.get(a_name, "")
+                b_ds = adapter_eval_ds.get(b_name, "")
+                if a_ds and b_ds:
+                    # Normalize: "qnli_dev" -> "QNLI", "sst2_dev" -> "SST-2"
+                    a_task = a_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
+                    b_task = b_ds.replace("_dev", "").replace("_test", "").upper().replace("SST2", "SST-2")
+                    region = f"{min(a_task, b_task)} × {max(a_task, b_task)} region"
+                    cross_task_regions.add(region)
         else:
             same_task_pairs.append(pair_label)
             same_task_detail.append((pair_label, pair_risk, rec_strategy))
+
+    # --- Classify near-miss severity based on weak source's behavioral delta ---
+    # Bands: "marginal" (delta > -0.010), "moderate" (-0.010 to -0.050), "substantial" (< -0.050)
+    near_miss_sev: list[tuple[str, str]] = []
+    for pair_label, _risk, _strategy, _reason in near_miss_detail:
+        # Find the weak source(s) in this pair and use the worst delta
+        parts = pair_label.split(" × ")
+        worst_delta: float | None = None
+        for part in parts:
+            part = part.strip()
+            status = adapter_status.get(part, "")
+            if status in _WEAK_STATUSES:
+                delta = adapter_delta.get(part)
+                if delta is not None and (worst_delta is None or delta < worst_delta):
+                    worst_delta = delta
+        if worst_delta is None:
+            severity = "unknown"
+        elif worst_delta > -0.010:
+            severity = "marginal"
+        elif worst_delta >= -0.050:
+            severity = "moderate"
+        else:
+            severity = "substantial"
+        near_miss_sev.append((pair_label, severity))
+
+    # Sort near-miss lists by severity: marginal first, then moderate, then substantial, then unknown
+    _SEV_ORDER = {"marginal": 0, "moderate": 1, "substantial": 2, "unknown": 3}
+    sev_map = dict(near_miss_sev)
+    sorted_indices = sorted(
+        range(len(near_miss_detail)),
+        key=lambda i: _SEV_ORDER.get(sev_map.get(near_miss_detail[i][0], "unknown"), 3),
+    )
+    near_miss_detail = [near_miss_detail[i] for i in sorted_indices]
+    near_miss_pairs = [near_miss_pairs[i] for i in sorted_indices]
+    near_miss_sev = [near_miss_sev[i] for i in sorted_indices]
 
     # --- Build evaluate-first list (same-task pairs minus weak sources) ---
     evaluate_first = same_task_pairs[:4]  # Cap at 4 for readability
@@ -742,6 +795,7 @@ def build_action_plan(
         retained_pair_detail=tuple(same_task_detail),
         near_miss_candidates=tuple(near_miss_pairs),
         near_miss_detail=tuple(near_miss_detail),
+        near_miss_severity=tuple(near_miss_sev),
     )
 
 
@@ -803,20 +857,29 @@ def format_action_plan(plan: InventoryActionPlan) -> str:
     else:
         lines.append("  - none")
 
-    # Near-miss candidates
+    # Near-miss candidates (ordered by severity: marginal first)
     if plan.near_miss_candidates:
         lines.append("")
         lines.append("  Near-miss candidates")
         lines.append("  " + "-" * 40)
         lines.append("  Structurally plausible, evidence-constrained.")
-        lines.append("  Optional if evaluation budget allows.")
+        lines.append("  Ordered by weak-source severity (best prospects first).")
         nm_detail_map = {d[0]: (d[1], d[2], d[3]) for d in plan.near_miss_detail}
+        nm_sev_map = dict(plan.near_miss_severity)
+        _SEV_LABELS = {
+            "marginal": "barely weak",
+            "moderate": "moderately weak",
+            "substantial": "deeply weak",
+            "unknown": "severity unknown",
+        }
         for pair in plan.near_miss_candidates:
+            sev = nm_sev_map.get(pair, "unknown")
+            sev_label = _SEV_LABELS.get(sev, sev)
             if pair in nm_detail_map:
                 risk, strategy, reason = nm_detail_map[pair]
-                lines.append(f"  - {pair}  ({risk} risk, {strategy} — {reason})")
+                lines.append(f"  - {pair}  ({risk} risk, {strategy} — {reason}; {sev_label})")
             else:
-                lines.append(f"  - {pair}")
+                lines.append(f"  - {pair}  ({sev_label})")
 
     # Cross-task caution zone
     lines.append("")

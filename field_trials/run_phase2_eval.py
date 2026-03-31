@@ -72,14 +72,25 @@ DATASET_REGISTRY: dict[str, dict] = {
         "hf_name": "nyu-mll/multi_nli", "hf_config": None, "split": "validation_matched",
         "text_col": "premise", "text_col_b": "hypothesis", "label_col": "label", "num_labels": 3,
     },
+    "yelp_polarity": {
+        "hf_name": "yelp_polarity", "hf_config": None, "split": "test",
+        "text_col": "text", "label_col": "label", "num_labels": 2,
+    },
+    "amazon_polarity": {
+        "hf_name": "amazon_polarity", "hf_config": None, "split": "test",
+        "text_col": "content", "label_col": "label", "num_labels": 2,
+    },
 }
 
 
 def load_eval_data(ds_key: str, max_samples: int = MAX_SAMPLES):
-    """Load a small eval slice."""
+    """Load a small eval slice.
+
+    Uses shuffling with a fixed seed to avoid label-sorted splits.
+    """
     info = DATASET_REGISTRY[ds_key]
-    slice_spec = f"{info['split']}[:{max_samples}]"
-    ds = load_dataset(info["hf_name"], info["hf_config"], split=slice_spec)
+    ds = load_dataset(info["hf_name"], info["hf_config"], split=info["split"])
+    ds = ds.shuffle(seed=42).select(range(min(max_samples, len(ds))))
 
     texts = ds[info["text_col"]]
     if "text_col_b" in info:
@@ -128,7 +139,7 @@ def patch_merged_adapter(merged_dir: Path, source_adapter_dir: Path) -> None:
     if not source_path.exists():
         source_path = source_adapter_dir / "adapter_model.bin"
         if source_path.exists():
-            source_weights = torch.load(str(source_path), map_location="cpu")
+            source_weights = torch.load(str(source_path), map_location="cpu", weights_only=True)
         else:
             return  # no source weights to copy
     else:

@@ -1,0 +1,149 @@
+{
+  "schema": "route2_stability.aggregation.perturbed_comparison/v1",
+  "generated_utc": "2026-03-31T22:30:00Z",
+  "substudy": "Route2 Substudy 2 - Aggregation-Sensitive Compatibility Stability Check",
+  "source_panel": "sidecar/results/route2_stability/aggregation/perturbed_panel_table.json",
+  "aggregation_families": [
+    "worst_case",
+    "distributional",
+    "qa_dominant",
+    "qa_gated_distributional"
+  ],
+  "case_rows": [
+    {
+      "case_id": "mrg_safe_same_task",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "confusable",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_4_qa_gated_enrichment",
+      "interpretation_note": "Unchanged anchor: actionable under all families, but action semantics differ by aggregation lens."
+    },
+    {
+      "case_id": "mrg_near_miss_marginal",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "needs_disambiguation",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_2_distributional_gradient_case",
+      "interpretation_note": "Perturbed near-miss still separates under distributional while worst-case stays coarse."
+    },
+    {
+      "case_id": "mrg_cross_task_control",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "separable",
+      "agreement_pattern": "full_agreement",
+      "original_pattern_mapping": "pattern_1_aggregation_invariant_exclusion",
+      "interpretation_note": "Unchanged invariant exclusion anchor."
+    },
+    {
+      "case_id": "rte_same_task_confusable",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_unclear",
+      "aggregation_d_output": "qa_unclear",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_2_distributional_gradient_case",
+      "interpretation_note": "Distributional confusability signal remains visible."
+    },
+    {
+      "case_id": "mnli_rte_moderate_alt",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_unclear",
+      "aggregation_d_output": "qa_unclear",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_2_distributional_gradient_case",
+      "interpretation_note": "Nearby moderate routing case preserves the distributional middle tier."
+    },
+    {
+      "case_id": "qnli_rte_separable",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_unclear",
+      "aggregation_d_output": "qa_unclear",
+      "agreement_pattern": "strong_divergence",
+      "original_pattern_mapping": "pattern_2_distributional_gradient_case",
+      "interpretation_note": "Worst-case still collapses this with other routing cases while distributional marks clear separability."
+    },
+    {
+      "case_id": "tri_same_task_qa_blocked",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_blocked",
+      "aggregation_d_output": "qa_blocked",
+      "agreement_pattern": "strong_divergence",
+      "original_pattern_mapping": "pattern_3_qa_dominance_override",
+      "interpretation_note": "Structural-best yet QA-blocked contradiction remains the sharp QA-dominance anchor."
+    },
+    {
+      "case_id": "tri_same_family_qa_blocked",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_blocked",
+      "aggregation_d_output": "qa_blocked",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_3_qa_dominance_override",
+      "interpretation_note": "Blocked same-family case still shows structural-vs-QA tension."
+    },
+    {
+      "case_id": "tri_cross_task_qa_review_alt",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_review",
+      "aggregation_d_output": "qa_review",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_5_mixed_evidence_nuance",
+      "interpretation_note": "Mixed-evidence nuance remains; review state persists with nearby cross-task replacement."
+    },
+    {
+      "case_id": "tri_same_task_qa_clear",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "confusable",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_4_qa_gated_enrichment",
+      "interpretation_note": "QA-clear matched contrast remains enrichment case for hybrid family."
+    },
+    {
+      "case_id": "tri_same_family_qa_clear",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "needs_disambiguation",
+      "agreement_pattern": "partial_agreement",
+      "original_pattern_mapping": "pattern_4_qa_gated_enrichment",
+      "interpretation_note": "QA-clear same-family case remains distributional middle tier once gate is passed."
+    },
+    {
+      "case_id": "tri_cross_task_qa_clear",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "separable",
+      "agreement_pattern": "full_agreement",
+      "original_pattern_mapping": "pattern_1_aggregation_invariant_exclusion",
+      "interpretation_note": "Cross-task clear case remains aggregation-invariant exclusion."
+    }
+  ],
+  "summary": {
+    "agreement_distribution": {
+      "full_agreement": 2,
+      "partial_agreement": 8,
+      "strong_divergence": 2
+    },
+    "aggregation_invariant_count": 2,
+    "aggregation_sensitive_count": 10,
+    "key_findings": [
+      "Aggregation seam remains visible: same structural inputs still produce different operational outputs under different families.",
+      "Worst-case still flattens routing gradient while distributional preserves confusable/moderate/separable distinctions.",
+      "QA-dominant remains distinct: blocked/review states still override structurally positive cases.",
+      "Matched QA contrasts remain interpretable under perturbation."
+    ]
+  }
+}

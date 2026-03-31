@@ -1,0 +1,15 @@
+{
+  "pair_name": "t02_retained_irony_x_irony",
+  "role": "retained",
+  "strategy": "audit_aware",
+  "eval_dataset": "tweet_eval/irony",
+  "compatibility": "redundant",
+  "compatibility_score": 0.368,
+  "mean_reconstruction_error": 0.027,
+  "merged_accuracy": 0.606,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.1,
+  "eval_time_s": 6.8,
+  "notes": "Retained same-task (irony x irony, both eligible)."
+}

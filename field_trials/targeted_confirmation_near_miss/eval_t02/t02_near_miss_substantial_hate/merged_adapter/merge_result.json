@@ -1,0 +1,122 @@
+{
+  "schema_version": "gradience.merge_result/v1",
+  "plan_id": "7a25d881-fe23-482a-8ab7-7d8088445a31",
+  "strategy_name": "audit_aware",
+  "output_dir": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/merged_adapter",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "n_layers": 12,
+  "total_time_seconds": 0.05,
+  "mean_reconstruction_error": 1e-06,
+  "max_reconstruction_error": 1e-06,
+  "per_layer": [
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.877100931996848e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.8411260843276978
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.185590295243912e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.6389429569244385
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.094460780338209e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.48001402616500854
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.233062456594869e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.4858933687210083
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 4.847904723022164e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.4989880323410034
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.093136982618681e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.42835676670074463
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 9.19274840734923e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5956454873085022
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.0806961433197e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.35544681549072266
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 6.512448411770715e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 1.2085278034210205
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.828878210386387e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.27640101313591003
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 7.661222811284008e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.9916864037513733
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 5.479621367631372e-07,
+      "input_rank_a": 1,
+      "input_rank_b": 1,
+      "output_rank": 8,
+      "merged_frobenius": 0.5060132741928101
+    }
+  ]
+}

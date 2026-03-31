@@ -1,0 +1,227 @@
+{
+  "schema": "cross_artifact_portability_panel/v1",
+  "generated_utc": "2026-03-31T18:00:00.000000+00:00",
+  "program": "Cross-Artifact Compatibility Research Program (Route 2)",
+  "panel_size": 9,
+  "artifact_classes": {
+    "lora": 3,
+    "loha": 3,
+    "checkpoint_delta": 3
+  },
+  "task_relation_coverage": {
+    "same_task": ["lora", "loha", "checkpoint_delta"],
+    "same_family": ["lora", "checkpoint_delta"],
+    "cross_task": ["lora", "checkpoint_delta"]
+  },
+  "known_gaps": [
+    "LoHa coverage is same-task only (all three adapters trained on SST-2)",
+    "LoHa has no behavioral evaluation data",
+    "Checkpoint delta cases have no behavioral evaluation data except triage role assignment",
+    "LoRA routing cases lack behavioral merge evaluation"
+  ],
+  "cases": [
+    {
+      "case_id": "lora_same_task_sst2_pair",
+      "artifact_class": "lora",
+      "pair_description": "SST-2 same-task retained pair",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01",
+      "decision_dependent_case_id": "mrg_safe_same_task_sst2_sst2_t01",
+      "metrics": {
+        "merge_accuracy": 0.876,
+        "compatibility_score": 0.475,
+        "triage_role": "retained"
+      },
+      "notes": "Strongest same-task LoRA case with full behavioral evidence. Retained in triage."
+    },
+    {
+      "case_id": "lora_same_family_mnli_qnli",
+      "artifact_class": "lora",
+      "pair_description": "MNLI x QNLI same-family NLI pair",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "mnli",
+      "task_b": "qnli",
+      "task_relation": "same_family",
+      "task_family": "nli",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["merge", "routing"],
+      "source": "experiments/routing_pilot",
+      "decision_dependent_case_id": "mnli_qnli_moderate_confusable",
+      "metrics": {
+        "merge_compatibility_score": 0.431,
+        "routing_confusability": "moderate",
+        "routing_score": 0.3787
+      },
+      "notes": "Same-family pair from routing pilot. Moderate routing confusability. No behavioral merge evaluation."
+    },
+    {
+      "case_id": "lora_cross_task_sst2_agnews",
+      "artifact_class": "lora",
+      "pair_description": "SST-2 x AG News cross-task control",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "ag_news",
+      "task_relation": "cross_task",
+      "evidence_status": "behavioral_reported",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": true,
+      "scenarios_available": ["merge", "triage"],
+      "source": "field_trials/targeted_confirmation_same_family/inventory_t01",
+      "decision_dependent_case_id": "mrg_cross_task_control_sst2_agnews_t01",
+      "metrics": {
+        "merge_accuracy": 0.842,
+        "compatibility_score": 0.111,
+        "triage_role": "cross_task_control"
+      },
+      "notes": "Cross-task control with behavioral evidence. Low compatibility, excluded by triage."
+    },
+    {
+      "case_id": "loha_same_task_r4_r8",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r4 x r8 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1",
+      "metrics": {
+        "compatibility_score": 0.1018,
+        "pair_risk": "low",
+        "dominant_issue": "none",
+        "recommended_strategy": "linear"
+      },
+      "notes": "Same-task rank-variety pair. Shimmed via materialized mode. No behavioral eval."
+    },
+    {
+      "case_id": "loha_same_task_r4_r16",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r4 x r16 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1",
+      "metrics": {
+        "compatibility_score": 0.1418,
+        "pair_risk": "low",
+        "dominant_issue": "none",
+        "recommended_strategy": "linear"
+      },
+      "notes": "Same-task rank-variety pair. Larger rank gap than r4xr8. Shimmed via materialized mode."
+    },
+    {
+      "case_id": "loha_same_task_r8_r16",
+      "artifact_class": "loha",
+      "pair_description": "LoHa r8 x r16 same-task SST-2 (shimmed)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "unknown_no_behavioral_eval",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/peft_ring1",
+      "metrics": {
+        "compatibility_score": 0.1452,
+        "pair_risk": "low",
+        "dominant_issue": "none",
+        "recommended_strategy": "linear"
+      },
+      "notes": "Same-task rank-variety pair. Closest rank pair. Shimmed via materialized mode."
+    },
+    {
+      "case_id": "ckpt_same_task_sst2_seeds",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "SST-2 seed 42 x seed 123 checkpoint deltas",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "task_relation": "same_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/ring2_checkpoint_delta",
+      "decision_dependent_case_id": "tri_same_task_near_miss_sst2_pair_t02",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.8922,
+        "pair_risk": "medium",
+        "cosine_similarity": 0.9985,
+        "mean_energy_delta": 0.0138
+      },
+      "notes": "Same-task seed pair via summary representation. Highest compatibility in checkpoint panel. Retained as sole candidate after triage."
+    },
+    {
+      "case_id": "ckpt_same_family_sst2_yelp",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "SST-2 x Yelp Polarity checkpoint deltas (sentiment_binary)",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "yelp_polarity",
+      "task_relation": "same_family",
+      "task_family": "sentiment_binary",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "field_trials/checkpoint_inventory_t02",
+      "decision_dependent_case_id": "tri_same_family_review_sst2_yelp_t02",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.6523,
+        "pair_risk": "high"
+      },
+      "notes": "Same-family checkpoint pair. Sentiment_binary task family. High risk by structural measure but same-family routing applies."
+    },
+    {
+      "case_id": "ckpt_cross_task_sst2_qnli",
+      "artifact_class": "checkpoint_delta",
+      "pair_description": "SST-2 x QNLI checkpoint deltas",
+      "backbone": "distilbert-base-uncased",
+      "base_model": "distilbert-base-uncased",
+      "task_a": "sst2",
+      "task_b": "qnli",
+      "task_relation": "cross_task",
+      "evidence_status": "structural_only",
+      "structural_outputs_available": true,
+      "behavioral_outputs_available": false,
+      "scenarios_available": ["triage"],
+      "source": "experiments/ring2_checkpoint_delta",
+      "representation": "layerwise_summary",
+      "metrics": {
+        "compatibility_score": 0.6259,
+        "pair_risk": "high",
+        "cosine_similarity": 0.9840,
+        "mean_energy_delta": 0.0919
+      },
+      "notes": "Cross-task checkpoint pair. Lowest compatibility in Ring 2 panel. Excluded by triage."
+    }
+  ]
+}

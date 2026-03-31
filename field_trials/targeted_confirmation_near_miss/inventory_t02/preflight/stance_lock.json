@@ -1,0 +1,41 @@
+{
+  "locked_at": "2026-03-29 10:01:48",
+  "same_task_priority": [
+    "TransferGraph__JB173_irony \u00d7 TransferGraph__neibla_irony",
+    "TransferGraph__JB173_irony \u00d7 TransferGraph__phailyoor_irony"
+  ],
+  "cross_task_caution": [],
+  "exclude": [
+    "TransferGraph__Aureliano_hate: weak source \u2014 low confidence"
+  ],
+  "near_miss_candidates": [
+    "TransferGraph__jaesun_hate \u00d7 TransferGraph__Aureliano_hate"
+  ],
+  "near_miss_severity": [
+    [
+      "TransferGraph__jaesun_hate \u00d7 TransferGraph__Aureliano_hate",
+      "substantial"
+    ]
+  ],
+  "near_miss_detail": [
+    [
+      "TransferGraph__jaesun_hate \u00d7 TransferGraph__Aureliano_hate",
+      "low",
+      "linear",
+      "TransferGraph__Aureliano_hate is evidence-constrained"
+    ]
+  ],
+  "retained_pair_detail": [
+    [
+      "TransferGraph__JB173_irony \u00d7 TransferGraph__neibla_irony",
+      "medium",
+      "norm_equalized"
+    ],
+    [
+      "TransferGraph__JB173_irony \u00d7 TransferGraph__phailyoor_irony",
+      "low",
+      "linear"
+    ]
+  ],
+  "summary_line": "QA and task boundary dominate this inventory. Candidate space reduced from 4 pairs to 2."
+}

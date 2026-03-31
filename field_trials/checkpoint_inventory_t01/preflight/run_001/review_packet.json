@@ -1,0 +1,41 @@
+{
+  "schema": "gradience.review_packet/v1",
+  "inventory_id": "checkpoint_inventory_t01",
+  "run_id": "run_001",
+  "timestamp": "2026-03-31T00:26:16.057631+00:00",
+  "sections_present": [
+    "header",
+    "policy_summary",
+    "trust_snapshot",
+    "action_plan",
+    "artifact_links"
+  ],
+  "adapter_count": 4,
+  "pair_count": 6,
+  "retained_candidate_count": 0,
+  "trust_snapshot": {
+    "qa_summary": {
+      "flagged_weak": 3,
+      "eligible": 1
+    },
+    "behavioral_evidence_count": 4,
+    "total_source_count": 4,
+    "excluded_source_count": 3
+  },
+  "action_plan_summary": {
+    "total_pairs": 6,
+    "retained_count": 0,
+    "cross_task_count": 0,
+    "evaluate_first_count": 0,
+    "summary_line": "QA dominates this inventory; no credible same-task candidates remain."
+  },
+  "policy_summary": {
+    "inventory_type": "mixed_quality",
+    "dominant_driver": "source_qa",
+    "exploration_posture": "narrow",
+    "constraint": "Source QA is the binding constraint; resolve weak evidence before exploring merges."
+  },
+  "drift_summary": null,
+  "large_inventory_region_summary": null,
+  "previous_run_id": null
+}

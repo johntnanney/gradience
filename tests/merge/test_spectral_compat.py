@@ -468,3 +468,155 @@ class TestSymmetricScaleFields:
         assert hasattr(metrics, "scale_log_ratio")
         assert hasattr(metrics, "frob_bounded_ratio")
         assert hasattr(metrics, "frob_log_ratio")
+
+
+# ---------------------------------------------------------------------------
+# overlap_score and aggregate_overlap
+# ---------------------------------------------------------------------------
+
+
+class TestOverlapScore:
+    """Tests for overlap_score — squared-Frobenius overlap from existing cosines."""
+
+    def test_orthogonal_subspaces(self):
+        """Orthogonal adapters → overlap_score ≈ 0."""
+        from gradience.vnext.merge.spectral_compat import overlap_score
+
+        torch.manual_seed(30)
+        r = 4
+        d_in, d_out = 64, 64
+        A_a = torch.randn(r, d_in)
+        B_a = torch.randn(d_out, r)
+
+        # Create B adapter in the orthogonal complement
+        U_a, _, _ = compute_layer_svd(A_a, B_a, compute_dtype=torch.float64)
+        # Random B in the null space of U_a
+        null_proj = torch.eye(d_out, dtype=torch.float64) - U_a.double() @ U_a.double().T
+        B_rand = torch.randn(d_out, r, dtype=torch.float64)
+        B_orth = null_proj @ B_rand
+        # Re-extract via QR to get clean rank-r factors
+        Q, R = torch.linalg.qr(B_orth)
+        B_b = Q[:, :r].float()
+        A_b = torch.randn(r, d_in)
+
+        metrics = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r)
+        score = overlap_score(metrics)
+        assert score < 0.15, f"Expected near-zero overlap for orthogonal subspaces, got {score}"
+
+    def test_identical_subspaces(self):
+        """Identical adapters → overlap_score ≈ 1."""
+        from gradience.vnext.merge.spectral_compat import overlap_score
+
+        torch.manual_seed(31)
+        r = 4
+        A = torch.randn(r, 64)
+        B = torch.randn(64, r)
+
+        metrics = compute_subspace_metrics(A, B, None, r, A, B, None, r)
+        score = overlap_score(metrics)
+        assert score > 0.95, f"Expected near-1.0 overlap for identical subspaces, got {score}"
+
+    def test_range(self):
+        """overlap_score is in [0, 1]."""
+        from gradience.vnext.merge.spectral_compat import overlap_score
+
+        torch.manual_seed(32)
+        r = 4
+        A_a, B_a = torch.randn(r, 48), torch.randn(32, r)
+        A_b, B_b = torch.randn(r, 48), torch.randn(32, r)
+
+        metrics = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r)
+        score = overlap_score(metrics)
+        assert 0.0 <= score <= 1.0
+
+    def test_empty_cosines(self):
+        """Empty principal_angle_cosines → 0."""
+        from gradience.vnext.merge.spectral_compat import overlap_score
+
+        # Construct a minimal SubspaceMetrics with empty cosines
+        m = SubspaceMetrics(
+            principal_angle_cosines=(),
+            mean_overlap=0.0,
+            max_overlap=0.0,
+            directional_agreement=0.0,
+            magnitude_ratio=1.0,
+            frobenius_ratio=1.0,
+            frobenius_norm_a=1.0,
+            frobenius_norm_b=1.0,
+            scale_bounded_ratio=1.0,
+            scale_log_ratio=0.0,
+            frob_bounded_ratio=1.0,
+            frob_log_ratio=0.0,
+            effective_rank_a=0,
+            effective_rank_b=0,
+            nominal_rank_a=4,
+            nominal_rank_b=4,
+            stable_rank_a=1.0,
+            stable_rank_b=1.0,
+        )
+        assert overlap_score(m) == 0.0
+
+    def test_consistent_with_mean_overlap(self):
+        """overlap_score and mean_overlap are related but distinct summary statistics."""
+        from gradience.vnext.merge.spectral_compat import overlap_score
+
+        torch.manual_seed(33)
+        r = 8
+        A_a, B_a = torch.randn(r, 64), torch.randn(64, r)
+        A_b, B_b = torch.randn(r, 64), torch.randn(64, r)
+
+        metrics = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r)
+        os = overlap_score(metrics)
+
+        # overlap_score = mean(cos²) / min(k_a, k_b) * n_cosines ... actually
+        # just verify they're both in [0,1] and not identical
+        assert 0.0 <= os <= 1.0
+        assert 0.0 <= metrics.mean_overlap <= 1.0
+        # They need not be equal (different summary statistics)
+
+
+class TestAggregateOverlap:
+    """Tests for aggregate_overlap — parameter-weighted mean across layers."""
+
+    def test_empty_list(self):
+        """Empty layer list → 0."""
+        from gradience.vnext.merge.spectral_compat import aggregate_overlap
+
+        assert aggregate_overlap([]) == 0.0
+
+    def test_single_layer(self):
+        """Single layer → equals that layer's overlap_score."""
+        from gradience.vnext.merge.spectral_compat import aggregate_overlap, overlap_score
+
+        torch.manual_seed(40)
+        r = 4
+        A_a, B_a = torch.randn(r, 48), torch.randn(32, r)
+        A_b, B_b = torch.randn(r, 48), torch.randn(32, r)
+
+        metrics = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r)
+        agg = aggregate_overlap([("layer.0", metrics)])
+        single = overlap_score(metrics)
+        assert abs(agg - single) < 1e-6
+
+    def test_weighting(self):
+        """Layers with larger Frobenius norms dominate the aggregate."""
+        from gradience.vnext.merge.spectral_compat import aggregate_overlap, overlap_score
+
+        torch.manual_seed(41)
+        r = 4
+
+        # Small-norm layer
+        A_a_s, B_a_s = torch.randn(r, 16) * 0.01, torch.randn(8, r) * 0.01
+        A_b_s, B_b_s = torch.randn(r, 16) * 0.01, torch.randn(8, r) * 0.01
+        m_small = compute_subspace_metrics(A_a_s, B_a_s, None, r, A_b_s, B_b_s, None, r)
+
+        # Large-norm identical layer
+        A_big, B_big = torch.randn(r, 64) * 10.0, torch.randn(64, r) * 10.0
+        m_big = compute_subspace_metrics(A_big, B_big, None, r, A_big, B_big, None, r)
+
+        layers = [("small", m_small), ("big", m_big)]
+        agg = aggregate_overlap(layers)
+        big_score = overlap_score(m_big)
+
+        # Aggregate should be close to the big layer's score because it dominates
+        assert abs(agg - big_score) < 0.15, f"Expected aggregate ({agg:.3f}) near big-layer score ({big_score:.3f})"

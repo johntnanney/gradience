@@ -1,0 +1,27 @@
+{
+  "schema": "route2_stability.aggregation.summary/v1",
+  "generated_utc": "2026-03-31T23:20:00Z",
+  "substudy": "Route2 Substudy 2 - Aggregation-Sensitive Compatibility Stability Check",
+  "claim_status": {
+    "stable": ["A1", "B1", "B3", "C2", "D1"],
+    "moderately_stable": ["B2", "C1"],
+    "panel_sensitive": [],
+    "still_thin": []
+  },
+  "route2_implications": {
+    "safe_to_fold_into_stable_story": [
+      "aggregation_as_decision_seam",
+      "worst_case_vs_distributional_divergence",
+      "qa_dominant_as_distinct_operational_family",
+      "aggregation_as_workflow_design_variable"
+    ],
+    "needs_guarded_language": [
+      "distributional_tier_cutpoints",
+      "pattern_frequency_generalization"
+    ],
+    "future_strengthening_target": [
+      "mixed_evidence_triage_coverage_in_additional_local_perturbation"
+    ]
+  },
+  "bottom_line": "Local perturbation supports the original aggregation-sensitive Route 2 story: aggregation remains a first-class workflow seam, with caution reserved for fine-grained taxonomy boundaries."
+}

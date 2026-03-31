@@ -1,0 +1,39 @@
+
+  MERGE QA REPORT
+  ============================================================
+  Weak-source pair — low-priority candidate
+
+  1. STRUCTURAL RESULT
+  ----------------------------------------
+  Pair risk:       LOW
+  Compat. score:   0.211
+  Dominant issue:  NONE
+                   adapters are spectrally compatible
+  Layer verdicts:  12 safe (12 total)
+
+  Adapter A:  rank=1, alpha=1.0, 12 layers (jaesun/distilbert-base-uncased-finetuned-cola)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__jaesun_hate
+  Adapter B:  rank=1, alpha=1.0, 12 layers (Aureliano/distilbert-base-uncased-if)
+              /sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate
+
+  2. BEHAVIORAL STATUS
+  ----------------------------------------
+  Adapter A eligibility: eligible
+  Adapter B eligibility: flagged_weak
+
+  Confidence:      medium
+                   Low spectral compatibility (score=0.211) — at least one adapter lacks behavioral evidence of quality
+
+  3. ELIGIBILITY WARNING
+  ----------------------------------------
+  1. Adapter B underperforms the base model. Rebalancing may preserve a weak signal.
+  2. Structural rebalance may preserve a behaviorally weak adapter.
+
+  4. RECOMMENDED ACTION
+  ----------------------------------------
+  Merge is safe. Use audit-aware strategy or norm-equalized baseline.
+  Strategy: linear
+
+  INTERPRETATION
+  ----------------------------------------
+  Weak-source influence likely dominates; low-value candidate.

@@ -1,0 +1,110 @@
+{
+  "schema": "route2_stability.aggregation_mixed_evidence.comparison/v1",
+  "generated_utc": "2026-04-01T00:20:00Z",
+  "substudy": "Route2 Aggregation Mixed-Evidence Triage Perturbation",
+  "aggregation_families": [
+    "worst_case",
+    "distributional",
+    "qa_dominant",
+    "qa_gated_distributional"
+  ],
+  "case_rows": [
+    {
+      "case_id": "anchor_clear_retained_irony",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "confusable",
+      "qa_dominant_secondary": null,
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Clear same-task anchor remains actionable under all families with expected label translation."
+    },
+    {
+      "case_id": "anchor_blocked_same_task_checkpoint",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_confusable",
+      "aggregation_c_output": "qa_blocked",
+      "aggregation_d_output": "qa_blocked",
+      "qa_dominant_secondary": "blocked_high_structure",
+      "agreement_pattern": "strong_divergence",
+      "interpretation_note": "High-structure same-task case still blocked by QA-dominant family; canonical soft-middle contradiction persists."
+    },
+    {
+      "case_id": "anchor_blocked_cross_task_checkpoint",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_blocked",
+      "aggregation_d_output": "qa_blocked",
+      "qa_dominant_secondary": "blocked_low_value",
+      "agreement_pattern": "strong_divergence",
+      "interpretation_note": "Blocked weak cross-task anchor remains low-value under QA-dominant aggregation regardless of structural lens."
+    },
+    {
+      "case_id": "review_mixed_cross_task_sst2_mrpc",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_review",
+      "aggregation_d_output": "qa_review",
+      "qa_dominant_secondary": "review_priority_high",
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Mixed-evidence review case with stronger structure; QA-dominant keeps review state while structural lens suggests higher review priority."
+    },
+    {
+      "case_id": "review_mixed_cross_task_yelp_mrpc",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_separable",
+      "aggregation_c_output": "qa_review",
+      "aggregation_d_output": "qa_review",
+      "qa_dominant_secondary": "review_priority_lower",
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Mixed-evidence review case with weaker structure; remains review but with lower structural priority than sst2-mrpc mixed case."
+    },
+    {
+      "case_id": "optional_same_family_clear_sst2_imdb",
+      "aggregation_a_output": "merge_caution",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_clear",
+      "aggregation_d_output": "needs_disambiguation",
+      "qa_dominant_secondary": null,
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Clear-evidence same-family optional case remains non-collapse and structurally nuanced."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_a",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_review",
+      "aggregation_d_output": "qa_review",
+      "qa_dominant_secondary": "review_priority_medium",
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Same-family optional mixed case remains in review channel, not blocked/collapse channel."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_b",
+      "aggregation_a_output": "merge_risky",
+      "aggregation_b_output": "routing_needs_disambiguation",
+      "aggregation_c_output": "qa_review",
+      "aggregation_d_output": "qa_review",
+      "qa_dominant_secondary": "review_priority_medium_lower",
+      "agreement_pattern": "partial_agreement",
+      "interpretation_note": "Second same-family optional mixed case shows similar primary review classification with slightly weaker structural profile."
+    }
+  ],
+  "summary": {
+    "agreement_distribution": {
+      "full_agreement": 0,
+      "partial_agreement": 6,
+      "strong_divergence": 2
+    },
+    "qa_dominant_outputs": {
+      "qa_clear": 2,
+      "qa_review": 4,
+      "qa_blocked": 2
+    },
+    "key_findings": [
+      "QA-dominant remains distinct under soft-middle weighting: blocked and mixed cases do not collapse into clear-state labels.",
+      "Same-family optional cases remain in clear/review channels and do not map to collapse-like blocked states.",
+      "Structural nuance re-enters as secondary review priority inside qa_review cases rather than replacing QA-dominant primary classification."
+    ]
+  }
+}

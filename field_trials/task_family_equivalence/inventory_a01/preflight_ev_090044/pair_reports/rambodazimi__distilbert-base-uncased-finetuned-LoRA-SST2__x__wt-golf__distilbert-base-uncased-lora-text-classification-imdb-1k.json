@@ -1,0 +1,35 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "rank": 16,
+    "alpha": 32.0,
+    "n_layers": 12,
+    "base_model": "./distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "adapter_b": {
+    "path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "rank": 4,
+    "alpha": 32.0,
+    "n_layers": 6,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "low",
+  "dominant_issue": "none",
+  "dominant_issue_detail": "adapters are spectrally compatible",
+  "recommended_action": "Merge is safe. Use audit-aware strategy or norm-equalized baseline.",
+  "recommended_strategy": "linear",
+  "confidence": "medium",
+  "confidence_note": "Low spectral compatibility (score=0.137) \u2014 both adapters have user-reported behavioral quality",
+  "caveats": [],
+  "verdict_distribution": {
+    "safe": 6,
+    "redundant": 0,
+    "conflicting": 0,
+    "imbalanced": 0
+  },
+  "compatibility_score": 0.1374,
+  "task_relationship_advisory": "Cross-task merge: adapters were evaluated on different tasks (sst2 vs imdb). Linear merges across task boundaries may degrade the weaker task's performance."
+}

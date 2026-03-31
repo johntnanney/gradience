@@ -1,0 +1,90 @@
+{
+  "schema": "cross_artifact_compatibility.shared_vs_specific/v1",
+  "generated_utc": "2026-03-31T00:00:00Z",
+  "panel": {
+    "artifact_classes": [
+      "lora",
+      "loha",
+      "full_checkpoint_delta"
+    ],
+    "primary_sources": [
+      "field_trials/targeted_confirmation_same_family/inventory_t01/preflight",
+      "experiments/peft_ring1/measurement_compatibility_results.json",
+      "experiments/peft_ring1/inventory_pilot/run_001/preflight_summary.json",
+      "field_trials/checkpoint_inventory_t02/preflight/preflight_results.json",
+      "field_trials/checkpoint_inventory_t02/trial_memo.md"
+    ]
+  },
+  "rows": [
+    {
+      "signal_id": "S1",
+      "signal_name": "Evidence bootstrap and QA gating are operationally central",
+      "classification": "shared_substrate_signal",
+      "lora_evidence": "adapter inventories and targeted confirmations depend on eligibility states",
+      "loha_evidence": "all three sources were unknown_no_behavioral_eval in Ring 1 pilot",
+      "checkpoint_evidence": "T01/T02 were source_qa dominated with no retained pairs",
+      "assessment": "shared",
+      "product_implication": "keep evidence gate as first-class in every broadened workflow"
+    },
+    {
+      "signal_id": "S2",
+      "signal_name": "Pairwise structural comparison remains useful for narrowing",
+      "classification": "shared_substrate_signal",
+      "lora_evidence": "retained-vs-control ordering in field trials",
+      "loha_evidence": "Ring 1 pairwise reports produced coherent low-risk same-task assessments",
+      "checkpoint_evidence": "Ring 2 Stage B pairwise compatibility separated same-task from cross-task on summary representation",
+      "assessment": "shared",
+      "product_implication": "preserve pairwise layer as common engine across artifact classes"
+    },
+    {
+      "signal_id": "S3",
+      "signal_name": "Task relation labels (same_task/same_family/cross_task) stay meaningful",
+      "classification": "shared_with_partial_coverage",
+      "lora_evidence": "same-family targeted confirmation branch is validated",
+      "loha_evidence": "only same-task panel tested",
+      "checkpoint_evidence": "T02 explicitly exercised same-family checkpoint routing",
+      "assessment": "shared_but_thin_for_loha",
+      "product_implication": "keep relation tags; avoid claiming full LoHa relation coverage"
+    },
+    {
+      "signal_id": "S4",
+      "signal_name": "Representation path differs by artifact class",
+      "classification": "representation_specific_signal",
+      "lora_evidence": "native factor geometry",
+      "loha_evidence": "shimmed factor/materialized geometry",
+      "checkpoint_evidence": "summary-based checkpoint-delta representation (Ring 2 Representation C)",
+      "assessment": "artifact_specific",
+      "product_implication": "treat representation adapters as per-artifact extraction seams"
+    },
+    {
+      "signal_id": "S5",
+      "signal_name": "Merge execution support is not uniform across artifact classes",
+      "classification": "representation_specific_signal",
+      "lora_evidence": "native merge execution path exists",
+      "loha_evidence": "audit/triage path works via shim, native execution not established",
+      "checkpoint_evidence": "merge execution intentionally out of scope",
+      "assessment": "artifact_specific",
+      "product_implication": "separate audit/triage support claims from execution support claims"
+    },
+    {
+      "signal_id": "S6",
+      "signal_name": "Decision dependence persists across artifact classes",
+      "classification": "shared_architecture_signal",
+      "lora_evidence": "merge vs routing divergence on shared measurements",
+      "loha_evidence": "not directly stress-tested across scenarios",
+      "checkpoint_evidence": "triage gate-first behavior matches decision-dependent model",
+      "assessment": "shared_with_translation",
+      "product_implication": "keep measurement and diagnosis reusable; parameterize aggregation and policy per scenario"
+    },
+    {
+      "signal_id": "S7",
+      "signal_name": "Cross-artifact parity is incomplete",
+      "classification": "open_gap",
+      "lora_evidence": "broadest behavioral and scenario coverage",
+      "loha_evidence": "single same-task pilot",
+      "checkpoint_evidence": "two bounded triage trials",
+      "assessment": "open",
+      "product_implication": "broaden through targeted panels, not parity assumptions"
+    }
+  ]
+}

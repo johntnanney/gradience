@@ -1,0 +1,16 @@
+{
+  "adapter_path": "/sessions/brave-intelligent-galileo/mnt/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+  "base_model": "distilbert-base-uncased",
+  "eval_dataset": "imdb",
+  "eval_split": "test",
+  "n_samples": 500,
+  "metric_name": "accuracy",
+  "lower_is_better": false,
+  "adapter_score": 0.876,
+  "base_score": 0.502,
+  "beats_base": true,
+  "delta": 0.374,
+  "adapter_f1": 0.878,
+  "base_f1": 0.6584,
+  "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment"
+}

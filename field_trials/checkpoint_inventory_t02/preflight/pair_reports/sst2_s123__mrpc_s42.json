@@ -1,0 +1,39 @@
+{
+  "schema": "gradience.merge_qa_report/v1",
+  "adapter_a": {
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/sst2_s123",
+    "rank": 0,
+    "alpha": 0.0,
+    "n_layers": 38,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "flagged_weak"
+  },
+  "adapter_b": {
+    "path": "/Users/john/code/gradience/experiments/ring2_checkpoint_delta/checkpoints/mrpc_s42",
+    "rank": 0,
+    "alpha": 0.0,
+    "n_layers": 38,
+    "base_model": "distilbert-base-uncased",
+    "eligibility_status": "eligible"
+  },
+  "pair_risk": "medium",
+  "dominant_issue": "partial_redundancy",
+  "dominant_issue_detail": "Pair is structurally similar with non-trivial divergence in selected layers.",
+  "recommended_action": "Plausible with caution; use conservative weighting and targeted validation.",
+  "recommended_strategy": "norm_equalized",
+  "confidence": "medium",
+  "confidence_note": "Derived from summary-based full-checkpoint deltas; behavior-first confirmation advised.",
+  "caveats": [
+    "Checkpoint inventory trial path (no merge execution).",
+    "Representation C layer-summary signals used for comparison."
+  ],
+  "verdict_distribution": {
+    "conflicting": 0,
+    "safe": 0,
+    "redundant": 0,
+    "review": 1
+  },
+  "compatibility_score": 0.8096,
+  "task_relationship_advisory": "Cross-task advisory: require stronger behavioral evidence before promotion.",
+  "task_relationship": "cross_task"
+}
