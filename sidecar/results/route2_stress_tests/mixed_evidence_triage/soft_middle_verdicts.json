@@ -1,0 +1,44 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.soft_middle_verdicts/v1",
+  "generated_utc": "2026-04-01T00:29:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "verdicts": [
+    {
+      "target": "qa_dominant_family_coherence",
+      "verdict": "coherent",
+      "evidence_summary": "QA-dominant partition remains clean at 2 qa_clear, 4 qa_review, 2 qa_blocked.",
+      "interpretation_note": "Distinct QA-dominant family behavior survives soft-middle weighting."
+    },
+    {
+      "target": "same_family_optional_safe_likeness",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Same-family optional cases remain in clear/review lanes and do not become blocked/collapse-like.",
+      "interpretation_note": "Review-like optional framing remains valid with threshold caution."
+    },
+    {
+      "target": "review_like_vs_collapse_like_distinction",
+      "verdict": "coherent",
+      "evidence_summary": "Mixed-evidence review cases retain qa_review status while blocked anchors remain qa_blocked.",
+      "interpretation_note": "Review and collapse-like states remain operationally separable."
+    },
+    {
+      "target": "triage_middle_structure",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Soft-middle cases remain interpretable and distinguishable as higher/lower review priority.",
+      "interpretation_note": "Middle remains usable for narrowing, but not with hard cutpoints."
+    },
+    {
+      "target": "structural_nuance_inside_mixed_evidence",
+      "verdict": "coherent_with_guardrails",
+      "evidence_summary": "Inside qa_review, structural lenses still separate higher-priority from lower-priority review cases.",
+      "interpretation_note": "Structural nuance acts as secondary ordering, not primary gate replacement."
+    }
+  ],
+  "summary": {
+    "coherent": 2,
+    "coherent_with_guardrails": 3,
+    "ambiguous": 0,
+    "weakened": 0,
+    "bottom_line": "The triage soft middle remains structured under stress, with explicit guardrails on fine-grained threshold language."
+  }
+}

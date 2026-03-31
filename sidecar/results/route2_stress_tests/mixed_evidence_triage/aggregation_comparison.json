@@ -1,0 +1,110 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.aggregation_comparison/v1",
+  "generated_utc": "2026-04-01T00:18:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "aggregation_families": [
+    "worst_case",
+    "distributional",
+    "qa_dominant"
+  ],
+  "optional_reference_family": "qa_gated_distributional",
+  "case_outputs": [
+    {
+      "case_id": "anchor_clear_retained_irony",
+      "worst_case_output": "merge_caution",
+      "distributional_output": "routing_confusable",
+      "qa_dominant_output": "qa_clear",
+      "hybrid_reference_output": "confusable",
+      "final_triage_interpretation": "evaluate_first",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Clear anchor remains actionable across lenses."
+    },
+    {
+      "case_id": "anchor_blocked_same_task_checkpoint",
+      "worst_case_output": "merge_caution",
+      "distributional_output": "routing_confusable",
+      "qa_dominant_output": "qa_blocked",
+      "hybrid_reference_output": "qa_blocked",
+      "final_triage_interpretation": "blocked_high_structure",
+      "agreement_pattern": "strong_divergence",
+      "short_note": "Canonical QA-overrides-structure contradiction remains intact."
+    },
+    {
+      "case_id": "anchor_blocked_cross_task_checkpoint",
+      "worst_case_output": "merge_risky",
+      "distributional_output": "routing_separable",
+      "qa_dominant_output": "qa_blocked",
+      "hybrid_reference_output": "qa_blocked",
+      "final_triage_interpretation": "blocked_low_value",
+      "agreement_pattern": "strong_divergence",
+      "short_note": "Blocked weak anchor stays low-value regardless of structural framing."
+    },
+    {
+      "case_id": "review_mixed_cross_task_sst2_mrpc",
+      "worst_case_output": "merge_caution",
+      "distributional_output": "routing_needs_disambiguation",
+      "qa_dominant_output": "qa_review",
+      "hybrid_reference_output": "qa_review",
+      "final_triage_interpretation": "review_priority_high",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Mixed review case remains review with stronger secondary priority signal."
+    },
+    {
+      "case_id": "review_mixed_cross_task_yelp_mrpc",
+      "worst_case_output": "merge_risky",
+      "distributional_output": "routing_separable",
+      "qa_dominant_output": "qa_review",
+      "hybrid_reference_output": "qa_review",
+      "final_triage_interpretation": "review_priority_lower",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Mixed review case remains review but lower-priority than sst2-mrpc mixed case."
+    },
+    {
+      "case_id": "optional_same_family_clear_sst2_imdb",
+      "worst_case_output": "merge_caution",
+      "distributional_output": "routing_needs_disambiguation",
+      "qa_dominant_output": "qa_clear",
+      "hybrid_reference_output": "needs_disambiguation",
+      "final_triage_interpretation": "review_optional_clear",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Same-family optional clear case remains non-collapse and review/safe-like."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_a",
+      "worst_case_output": "merge_risky",
+      "distributional_output": "routing_needs_disambiguation",
+      "qa_dominant_output": "qa_review",
+      "hybrid_reference_output": "qa_review",
+      "final_triage_interpretation": "review_optional_medium",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Mixed same-family optional case remains in review channel, not blocked channel."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_b",
+      "worst_case_output": "merge_risky",
+      "distributional_output": "routing_needs_disambiguation",
+      "qa_dominant_output": "qa_review",
+      "hybrid_reference_output": "qa_review",
+      "final_triage_interpretation": "review_optional_medium_lower",
+      "agreement_pattern": "partial_agreement",
+      "short_note": "Second mixed optional case preserves review-lane structure with slightly weaker priority."
+    }
+  ],
+  "summary": {
+    "agreement_distribution": {
+      "full_agreement": 0,
+      "partial_agreement": 6,
+      "strong_divergence": 2
+    },
+    "qa_dominant_partition": {
+      "qa_clear": 2,
+      "qa_review": 4,
+      "qa_blocked": 2
+    },
+    "core_observations": [
+      "QA-dominant partition remains coherent under soft-middle weighting.",
+      "Same-family optional cases remain review/clear rather than blocked.",
+      "Secondary structural nuance remains visible inside qa_review without replacing QA-dominant primary classification."
+    ]
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.panel/v1",
+  "generated_utc": "2026-03-31T23:58:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "panel_size": 8,
+  "design_intent": "soft_middle_weighted",
+  "composition": {
+    "anchor_retained": 1,
+    "anchor_blocked": 2,
+    "review": 2,
+    "same_family_optional": 3,
+    "other_middle": 0
+  },
+  "cases": [
+    {
+      "case_id": "anchor_clear_retained_irony",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "evidence_regime": "clear",
+      "prior_route2_profile": "aggregation_invariant_safe",
+      "role_in_panel": "anchor_retained",
+      "reason_included": "Clear retained/evaluate-first anchor for calibration of non-middle behavior."
+    },
+    {
+      "case_id": "anchor_blocked_same_task_checkpoint",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_task",
+      "evidence_regime": "blocked",
+      "prior_route2_profile": "qa_dominance_override",
+      "role_in_panel": "anchor_blocked",
+      "reason_included": "High-structure same-task contradiction case; tests QA-overrides-structure behavior."
+    },
+    {
+      "case_id": "anchor_blocked_cross_task_checkpoint",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "blocked",
+      "prior_route2_profile": "weak_low_value_blocked",
+      "role_in_panel": "anchor_blocked",
+      "reason_included": "Clearly blocked weak anchor for low-value baseline."
+    },
+    {
+      "case_id": "review_mixed_cross_task_sst2_mrpc",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "mixed_evidence_review_high_structure",
+      "role_in_panel": "review",
+      "reason_included": "Mixed-evidence review case with stronger structure; candidate review-worthy middle."
+    },
+    {
+      "case_id": "review_mixed_cross_task_yelp_mrpc",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "cross_task",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "mixed_evidence_review_lower_structure",
+      "role_in_panel": "review",
+      "reason_included": "Mixed-evidence review case with weaker structure; tests review gradation."
+    },
+    {
+      "case_id": "optional_same_family_clear_sst2_imdb",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "clear",
+      "prior_route2_profile": "same_family_optional_safe_like",
+      "role_in_panel": "same_family_optional",
+      "reason_included": "Clear-evidence same-family optional case with safe-like behavior."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_a",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "same_family_optional_review",
+      "role_in_panel": "same_family_optional",
+      "reason_included": "Mixed-evidence same-family optional case to test review-lane stability."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_b",
+      "artifact_class": "full_checkpoint_pair",
+      "backbone": "distilbert-base-uncased",
+      "task_relation": "same_family",
+      "evidence_regime": "mixed",
+      "prior_route2_profile": "same_family_optional_review_weaker",
+      "role_in_panel": "same_family_optional",
+      "reason_included": "Second mixed optional same-family case to test whether optional middle collapses or stays structured."
+    }
+  ]
+}

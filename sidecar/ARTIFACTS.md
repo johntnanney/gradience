@@ -2,7 +2,7 @@
 
 A stable, navigable index of every major artifact in the sidecar and field trial directories. Organized by function, not by creation order. For the theoretical narrative, see `notes/n67_where_the_research_stands.md`. For project status, see `notes/n69_settled_open_next.md`.
 
-*Last updated: 2026-04-01. 109 notes, 17 scripts, 114+ JSON results, 67 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
+*Last updated: 2026-04-01. 116 notes, 17 scripts, 120 JSON results, 68 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
 
 ---
 
@@ -18,6 +18,7 @@ The documents that synthesize the research program. Read in this order for the c
 | `../docs/strategy/route2_claims_ladder_summary.md` | Route 2 claims ladder summary. Stable/moderate/thin/local calibration for communication and scope discipline. |
 | `notes/n112_route2_claims_ladder_implications.md` | Route 2 claims ladder implications memo. Public/product/internal language guidance from calibrated claim statuses. |
 | `../docs/strategy/aggregation_mixed_evidence_summary.md` | Mixed-evidence triage perturbation summary. Soft-middle coherence and guardrails for review/optional language. |
+| `../docs/strategy/mixed_evidence_triage_summary.md` | Follow-on mixed-evidence triage stress-test summary. Confirms soft-middle coherence in a richer mixed-evidence panel with explicit threshold guardrails. |
 | `notes/n68_ruled_out_mechanisms.md` | Ruled-out mechanisms (definitive). Ten primary, five ancillary eliminations. Supersedes n38, n52. |
 | `notes/n50_executive_research_summary.md` | Executive summary. Product identity, central claim, practitioner value. |
 | `notes/n33_conjunctive_mechanism_synthesis.md` | Conjunctive model. V-module pathology × readout incompatibility → catastrophe. |
@@ -46,7 +47,7 @@ The figures that tell the core theoretical story. Copies of the top 5 are also i
 | `figures/example_semantics_taxonomy_composition.png` | Failure taxonomy composition — neither-source rate as threshold discriminator. | Example semantics |
 | `figures/example_semantics_confidence.png` | Confidence distributions: collapse in fragile vs high-confidence wrong in control. | Example semantics |
 
-All 57 figures (34 SVG + 22 PNG + README) are in `figures/`. SVG for vector clarity, PNG for compatibility.
+All 68 figures are in `figures/`. SVG for vector clarity, PNG for compatibility.
 
 ## Field trial artifacts
 
@@ -489,6 +490,30 @@ Confidence-calibration synthesis pass for Route 2 claims (stable / moderately st
 | `results/route2_claims_ladder/stability_ladder.md` | Final ladder statuses (markdown). |
 | `results/route2_claims_ladder/implications_summary.json` | Optional communication summary (JSON). |
 | `figures/route2_claims_ladder.svg` | Ladder overview figure. |
+
+## Route 2 Mixed-Evidence Triage Stress Test (n113-n117)
+
+Focused stress-test of the Route 2 soft middle. Tests whether mixed-evidence review and same-family optional states remain structured under triage-weighted panel bias.
+
+| Artifact | Role |
+|----------|------|
+| `notes/n113_mixed_evidence_triage_baseline.md` | Stage A: baseline freeze of triage-middle claims before stress testing. |
+| `notes/n114_mixed_evidence_triage_panel.md` | Stage B: mixed-evidence panel definition (8 cases, soft-middle weighted with retained/blocked anchors). |
+| `notes/n115_mixed_evidence_triage_rerun.md` | Stage C: triage rerun and aggregation comparison on the stress panel. |
+| `notes/n116_mixed_evidence_triage_interpretation.md` | Stage D: soft-middle interpretation verdicts (`coherent` / `coherent_with_guardrails`). |
+| `notes/n117_mixed_evidence_triage_stress_test_memo.md` | Stage E: memo and Route 2 language guidance from the stress-test pass. |
+| `../docs/strategy/mixed_evidence_triage_summary.md` | Strategy-level summary for Route 2 packet and alpha-workflow language. |
+| `results/route2_stress_tests/mixed_evidence_triage/baseline_claims_snapshot.json` | Baseline claims snapshot (JSON). |
+| `results/route2_stress_tests/mixed_evidence_triage/panel_table.json` | Stress panel table (JSON). |
+| `results/route2_stress_tests/mixed_evidence_triage/panel_table.md` | Stress panel table (markdown). |
+| `results/route2_stress_tests/mixed_evidence_triage/panel_role_table.md` | Panel role table (markdown). |
+| `results/route2_stress_tests/mixed_evidence_triage/aggregation_comparison.json` | Aggregation-family comparison on stress panel (JSON). |
+| `results/route2_stress_tests/mixed_evidence_triage/aggregation_comparison.md` | Aggregation-family comparison (markdown). |
+| `results/route2_stress_tests/mixed_evidence_triage/triage_outputs.json` | Final triage outputs and interpretation fields (JSON). |
+| `results/route2_stress_tests/mixed_evidence_triage/soft_middle_verdicts.json` | Soft-middle verdict table (JSON). |
+| `results/route2_stress_tests/mixed_evidence_triage/soft_middle_verdicts.md` | Soft-middle verdict table (markdown). |
+| `results/route2_stress_tests/mixed_evidence_triage/summary.json` | Optional compact summary (JSON). |
+| `figures/mixed_evidence_triage_matrix.svg` | Mixed-evidence triage aggregation matrix figure. |
 
 ## Panels, studies, and templates
 

@@ -1,0 +1,59 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.baseline_claims_snapshot/v1",
+  "generated_utc": "2026-03-31T23:55:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "claims_under_stress": [
+    {
+      "claim_id": "A",
+      "claim_text": "QA-dominant aggregation remains a valid and distinct operational family under richer mixed-evidence triage coverage.",
+      "pre_stress_status": "stable",
+      "basis": [
+        "aggregation_sensitive_program_complete",
+        "aggregation_stability_substudy_complete",
+        "mixed_evidence_perturbation_prior_pass"
+      ]
+    },
+    {
+      "claim_id": "B",
+      "claim_text": "Same-family optional/review cases remain closer to safe-like review states than collapse-like or contamination-like states.",
+      "pre_stress_status": "moderately_stable",
+      "basis": [
+        "behavioral_route2_bridge",
+        "mixed_evidence_triage_prior_pass"
+      ]
+    },
+    {
+      "claim_id": "C",
+      "claim_text": "The triage middle is structured enough to distinguish review-worthy cases from clearly low-value cases.",
+      "pre_stress_status": "moderately_stable",
+      "basis": [
+        "checkpoint_triage_t02",
+        "aggregation_mixed_evidence_previous_outputs"
+      ]
+    },
+    {
+      "claim_id": "D",
+      "claim_text": "Within mixed-evidence triage, structural nuance may help differentiate review-worthy cases, but exact thresholds remain guarded.",
+      "pre_stress_status": "moderate_guarded",
+      "basis": [
+        "aggregation_family_comparison",
+        "mixed_review_secondary_priority_signals"
+      ]
+    }
+  ],
+  "guardrails": {
+    "keep_bounded": [
+      "cpu_only",
+      "small_encoder_only",
+      "classification_only",
+      "existing_artifact_classes_only",
+      "triage_only"
+    ],
+    "do_not_claim": [
+      "new_taxonomy",
+      "new_aggregation_family",
+      "broad_product_mode_change"
+    ]
+  },
+  "open_question": "Is the triage soft middle genuinely structured under middle-weighted stress, or only under cleaner panel composition?"
+}

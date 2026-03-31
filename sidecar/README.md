@@ -31,6 +31,7 @@ If you are new to this repo, or returning after a break, start with the document
 | **Cross-artifact stability** | [`../docs/strategy/cross_artifact_stability_summary.md`](../docs/strategy/cross_artifact_stability_summary.md) | Do the cross-artifact conclusions survive panel perturbation? 3 stable, 1 moderately stable, 1 panel-sensitive, 1 inconclusive. |
 | **Aggregation stability** | [`../docs/strategy/aggregation_stability_summary.md`](../docs/strategy/aggregation_stability_summary.md) | Do aggregation-sensitive conclusions survive panel perturbation? 5 stable, 2 moderately stable in Substudy 2. |
 | **Aggregation mixed-evidence triage** | [`../docs/strategy/aggregation_mixed_evidence_summary.md`](../docs/strategy/aggregation_mixed_evidence_summary.md) | Soft-middle stress pass: QA-dominant coherence held; same-family optional stayed review-like with guardrails. |
+| **Mixed-evidence triage stress test** | [`../docs/strategy/mixed_evidence_triage_summary.md`](../docs/strategy/mixed_evidence_triage_summary.md) | Follow-on soft-middle stress test: mixed-evidence-heavy panel remained coherent with explicit threshold guardrails. |
 | **Route 2 claims ladder** | [`../docs/strategy/route2_claims_ladder_summary.md`](../docs/strategy/route2_claims_ladder_summary.md) | Confidence-calibrated synthesis of Route 2 claims: stable vs moderately stable vs thin vs local-only. |
 | **Artifact index** | [`ARTIFACTS.md`](ARTIFACTS.md) | Every figure, script, JSON result, HTML report, and field trial bundle in one navigable page. |
 
@@ -44,7 +45,7 @@ If you are new to this repo, or returning after a break, start with the document
 
 ## Current state
 
-Route 2 initial implementation checkpoint is now complete in bounded form: broadened substrate documentation, checkpoint triage stabilization artifacts, a polished checkpoint-triage alpha workflow package, decision-dependent compatibility consolidation, completed cross-artifact portability clarification (n76-n80, anchored by n75), a local robustness/stability pass on that portability line (n93-n97), a completed aggregation-sensitive stability check (n98-n102), a targeted mixed-evidence triage perturbation pass (n103-n107), and a calibrated claims-stability ladder synthesis (n108-n112).
+Route 2 initial implementation checkpoint is now complete in bounded form: broadened substrate documentation, checkpoint triage stabilization artifacts, a polished checkpoint-triage alpha workflow package, decision-dependent compatibility consolidation, completed cross-artifact portability clarification (n76-n80, anchored by n75), a local robustness/stability pass on that portability line (n93-n97), a completed aggregation-sensitive stability check (n98-n102), a targeted mixed-evidence triage perturbation pass (n103-n107), a calibrated claims-stability ladder synthesis (n108-n112), and a follow-on mixed-evidence triage stress-test pass (n113-n117).
 
 **Instability** — the variability of a pair's **severity** across seeds and backbones — is the sidecar's central organizing concept and has been formalized as a **research program** (n06). The key finding: severity rankings reverse across backbones, but instability rankings do not. Two pairs cluster as highly unstable (instability > 0.7) and four as stable (< 0.3), with a clean gap between the clusters. The working hypothesis is **thresholded subspace interference**: catastrophic outcomes require specific seed-dependent geometric conditions to trigger.
 
@@ -334,6 +335,19 @@ Eight terms are frozen (see `glossary.md` for full definitions):
 | [`../docs/strategy/route2_claims_ladder_summary.md`](../docs/strategy/route2_claims_ladder_summary.md) | **Strategy summary.** Calibrated Route 2 wording guidance and guardrail framing. |
 | `results/route2_claims_ladder/` | **Structured outputs.** Claims inventory, evidence map, scoring table, ladder statuses, implications summary. |
 | `figures/route2_claims_ladder.svg` | **Figure.** One-page ladder visualization of claim-status distribution. |
+
+### Route 2 Mixed-Evidence Triage Stress Test (n113-n117)
+
+| Document | What it is |
+|----------|------------|
+| `notes/n113_mixed_evidence_triage_baseline.md` | **Stage A baseline.** Freeze of triage-middle claim status before the mixed-evidence stress pass. |
+| `notes/n114_mixed_evidence_triage_panel.md` | **Stage B panel.** 8-case soft-middle-weighted panel with clear retained/blocked anchors plus mixed review and same-family optional cases. |
+| `notes/n115_mixed_evidence_triage_rerun.md` | **Stage C rerun.** Triage/aggregation rerun under worst-case, distributional, and QA-dominant families. |
+| `notes/n116_mixed_evidence_triage_interpretation.md` | **Stage D interpretation.** Soft-middle verdicts (`coherent` / `coherent_with_guardrails`) for the core Route 2 middle-state claims. |
+| `notes/n117_mixed_evidence_triage_stress_test_memo.md` | **Stage E memo.** Route 2 language guidance after mixed-evidence stress: stronger family-level confidence, guarded thresholds. |
+| [`../docs/strategy/mixed_evidence_triage_summary.md`](../docs/strategy/mixed_evidence_triage_summary.md) | **Strategy summary.** Canonical summary for Route 2 packet and checkpoint-triage alpha explanation. |
+| `results/route2_stress_tests/mixed_evidence_triage/` | **Structured outputs.** Baseline snapshot, panel tables, aggregation comparison, triage outputs, soft-middle verdicts, summary JSON. |
+| `figures/mixed_evidence_triage_matrix.svg` | **Figure.** Aggregation-family output matrix across the mixed-evidence stress panel. |
 
 ### Behavioral Route 2 Bridge (n86-n92)
 

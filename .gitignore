@@ -99,6 +99,8 @@ sidecar/results/*
 !sidecar/results/route2_stability/**
 !sidecar/results/route2_claims_ladder/
 !sidecar/results/route2_claims_ladder/**
+!sidecar/results/route2_stress_tests/
+!sidecar/results/route2_stress_tests/**
 # Canonical Route 2 ladder figure
 !sidecar/figures/
 !sidecar/figures/route2_claims_ladder.svg
@@ -171,6 +173,7 @@ _artifacts/
 figures/
 !sidecar/figures/
 !sidecar/figures/route2_claims_ladder.svg
+!sidecar/figures/mixed_evidence_triage_matrix.svg
 *_results/
 *_results_full/
 intervention_*/

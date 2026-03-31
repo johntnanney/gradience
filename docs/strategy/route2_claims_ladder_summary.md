@@ -20,6 +20,7 @@ Primary sidecar artifacts:
 - `sidecar/notes/n110_route2_claim_dimension_scoring.md`
 - `sidecar/notes/n111_route2_claims_stability_ladder.md`
 - `sidecar/notes/n112_route2_claims_ladder_implications.md`
+- `sidecar/notes/n113_mixed_evidence_triage_baseline.md` through `sidecar/notes/n117_mixed_evidence_triage_stress_test_memo.md` (post-ladder soft-middle stress reinforcement)
 - `sidecar/results/route2_claims_ladder/stability_ladder.json`
 
 ## Ladder snapshot
@@ -73,6 +74,10 @@ Keep these out of broad product/public claims for now:
 
 - keep representation-local metric semantics explicit,
 - keep thin/local claims in sidecar framing until strengthened.
+
+## Post-ladder reinforcement
+
+The mixed-evidence triage stress test (`n113`-`n117`) supports the ladder's core middle-state posture: stronger confidence at family/structure level, guarded confidence at threshold/fine-ranking level.
 
 ## Bottom line
 

@@ -2,6 +2,7 @@
 
 **Date:** 2026-03-31
 **Scope:** CPU-only, triage-weighted soft-middle stress test
+**Companion follow-on:** `docs/strategy/mixed_evidence_triage_summary.md` (Route2 mixed-evidence triage stress-test pass, n113-n117)
 
 ---
 

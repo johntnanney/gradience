@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="760" viewBox="0 0 1480 760">
+  <style>
+    .title { font: 700 28px Arial, sans-serif; fill: #111827; }
+    .subtitle { font: 400 15px Arial, sans-serif; fill: #374151; }
+    .th { font: 700 14px Arial, sans-serif; fill: #111827; }
+    .td { font: 400 13px Arial, sans-serif; fill: #1f2937; }
+    .case { font: 600 12px Consolas, Menlo, monospace; fill: #1f2937; }
+    .note { font: 400 13px Arial, sans-serif; fill: #4b5563; }
+  </style>
+
+  <rect x="0" y="0" width="1480" height="760" fill="#f8fafc" />
+  <text x="36" y="48" class="title">Mixed-Evidence Triage Stress Test Matrix</text>
+  <text x="36" y="74" class="subtitle">Route 2 soft-middle panel under worst-case, distributional, and QA-dominant aggregation</text>
+
+  <rect x="30" y="100" width="1420" height="600" rx="10" fill="#ffffff" stroke="#e5e7eb" />
+
+  <rect x="52" y="124" width="420" height="34" fill="#eef2ff" stroke="#c7d2fe" />
+  <rect x="472" y="124" width="230" height="34" fill="#fee2e2" stroke="#fecaca" />
+  <rect x="702" y="124" width="240" height="34" fill="#fef3c7" stroke="#fde68a" />
+  <rect x="942" y="124" width="220" height="34" fill="#dcfce7" stroke="#86efac" />
+  <rect x="1162" y="124" width="266" height="34" fill="#e0e7ff" stroke="#c7d2fe" />
+
+  <text x="64" y="146" class="th">case_id</text>
+  <text x="490" y="146" class="th">worst_case</text>
+  <text x="720" y="146" class="th">distributional</text>
+  <text x="960" y="146" class="th">qa_dominant</text>
+  <text x="1178" y="146" class="th">final_triage</text>
+
+  <g transform="translate(0,0)">
+    <text x="64" y="186" class="case">anchor_clear_retained_irony</text>
+    <text x="490" y="186" class="td">merge_caution</text>
+    <text x="720" y="186" class="td">routing_confusable</text>
+    <text x="960" y="186" class="td">qa_clear</text>
+    <text x="1178" y="186" class="td">evaluate_first</text>
+
+    <text x="64" y="216" class="case">anchor_blocked_same_task_checkpoint</text>
+    <text x="490" y="216" class="td">merge_caution</text>
+    <text x="720" y="216" class="td">routing_confusable</text>
+    <text x="960" y="216" class="td">qa_blocked</text>
+    <text x="1178" y="216" class="td">blocked_high_structure</text>
+
+    <text x="64" y="246" class="case">anchor_blocked_cross_task_checkpoint</text>
+    <text x="490" y="246" class="td">merge_risky</text>
+    <text x="720" y="246" class="td">routing_separable</text>
+    <text x="960" y="246" class="td">qa_blocked</text>
+    <text x="1178" y="246" class="td">blocked_low_value</text>
+
+    <text x="64" y="276" class="case">review_mixed_cross_task_sst2_mrpc</text>
+    <text x="490" y="276" class="td">merge_caution</text>
+    <text x="720" y="276" class="td">routing_needs_disambiguation</text>
+    <text x="960" y="276" class="td">qa_review</text>
+    <text x="1178" y="276" class="td">review_priority_high</text>
+
+    <text x="64" y="306" class="case">review_mixed_cross_task_yelp_mrpc</text>
+    <text x="490" y="306" class="td">merge_risky</text>
+    <text x="720" y="306" class="td">routing_separable</text>
+    <text x="960" y="306" class="td">qa_review</text>
+    <text x="1178" y="306" class="td">review_priority_lower</text>
+
+    <text x="64" y="336" class="case">optional_same_family_clear_sst2_imdb</text>
+    <text x="490" y="336" class="td">merge_caution</text>
+    <text x="720" y="336" class="td">routing_needs_disambiguation</text>
+    <text x="960" y="336" class="td">qa_clear</text>
+    <text x="1178" y="336" class="td">review_optional_clear</text>
+
+    <text x="64" y="366" class="case">optional_same_family_mixed_sst2_yelp_a</text>
+    <text x="490" y="366" class="td">merge_risky</text>
+    <text x="720" y="366" class="td">routing_needs_disambiguation</text>
+    <text x="960" y="366" class="td">qa_review</text>
+    <text x="1178" y="366" class="td">review_optional_medium</text>
+
+    <text x="64" y="396" class="case">optional_same_family_mixed_sst2_yelp_b</text>
+    <text x="490" y="396" class="td">merge_risky</text>
+    <text x="720" y="396" class="td">routing_needs_disambiguation</text>
+    <text x="960" y="396" class="td">qa_review</text>
+    <text x="1178" y="396" class="td">review_optional_medium_lower</text>
+  </g>
+
+  <text x="56" y="458" class="th">Agreement summary</text>
+  <text x="56" y="482" class="note">full_agreement: 0</text>
+  <text x="56" y="504" class="note">partial_agreement: 6</text>
+  <text x="56" y="526" class="note">strong_divergence: 2</text>
+
+  <text x="430" y="458" class="th">Soft-middle read</text>
+  <text x="430" y="482" class="note">QA-dominant partition remains coherent (2 clear / 4 review / 2 blocked).</text>
+  <text x="430" y="504" class="note">Same-family optional cases remain review/clear, not collapse-like blocked.</text>
+  <text x="430" y="526" class="note">Inside qa_review, structural nuance supports guarded review prioritization.</text>
+
+  <text x="56" y="676" class="note">Study scope: CPU-only, triage-focused, existing artifact classes and prior Route 2 case pool.</text>
+</svg>

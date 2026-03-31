@@ -1,0 +1,27 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.summary/v1",
+  "generated_utc": "2026-04-01T00:36:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "verdict_rollup": {
+    "qa_dominant_family_coherence": "coherent",
+    "same_family_optional_safe_likeness": "coherent_with_guardrails",
+    "review_vs_collapse_distinction": "coherent",
+    "triage_middle_structure": "coherent_with_guardrails",
+    "structural_nuance_inside_mixed_evidence": "coherent_with_guardrails"
+  },
+  "safe_to_strengthen": [
+    "qa_dominant_remains_coherent_in_mixed_evidence_triage",
+    "same_family_optional_cases_remain_review_or_clear_leaning",
+    "soft_middle_is_structured_with_guardrails"
+  ],
+  "keep_guarded": [
+    "exact_review_thresholds",
+    "fixed_internal_review_orderings",
+    "hard_cross_panel_cutpoints"
+  ],
+  "follow_on_pass": {
+    "recommended": false,
+    "reason": "Current stress pass sufficiently clarifies middle coherence for bounded Route 2 language."
+  },
+  "bottom_line": "Mixed-evidence triage stress confirms coherent soft-middle structure with explicit threshold guardrails."
+}

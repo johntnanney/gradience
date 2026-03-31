@@ -1,0 +1,70 @@
+{
+  "schema": "route2_stress_tests.mixed_evidence_triage.triage_outputs/v1",
+  "generated_utc": "2026-04-01T00:19:00Z",
+  "study": "Route2 Mixed-Evidence Triage Stress Test",
+  "cases": [
+    {
+      "case_id": "anchor_clear_retained_irony",
+      "qa_dominant_primary": "qa_clear",
+      "recommended_action": "evaluate_first",
+      "priority_bucket": "high",
+      "rationale": "Clear evidence anchor with actionable non-blocked status."
+    },
+    {
+      "case_id": "anchor_blocked_same_task_checkpoint",
+      "qa_dominant_primary": "qa_blocked",
+      "recommended_action": "hold_until_new_evidence",
+      "priority_bucket": "blocked",
+      "rationale": "High-structure but evidence-blocked same-task case; keep as contradiction monitor, not active candidate."
+    },
+    {
+      "case_id": "anchor_blocked_cross_task_checkpoint",
+      "qa_dominant_primary": "qa_blocked",
+      "recommended_action": "deprioritize",
+      "priority_bucket": "blocked_low_value",
+      "rationale": "Blocked low-value control case remains unsuitable for current evaluation budget."
+    },
+    {
+      "case_id": "review_mixed_cross_task_sst2_mrpc",
+      "qa_dominant_primary": "qa_review",
+      "recommended_action": "review_first",
+      "priority_bucket": "review_high",
+      "rationale": "Mixed evidence but stronger structural profile makes it the top review candidate."
+    },
+    {
+      "case_id": "review_mixed_cross_task_yelp_mrpc",
+      "qa_dominant_primary": "qa_review",
+      "recommended_action": "review_later",
+      "priority_bucket": "review_lower",
+      "rationale": "Mixed review case remains plausible but lower expected value than sst2-mrpc mixed case."
+    },
+    {
+      "case_id": "optional_same_family_clear_sst2_imdb",
+      "qa_dominant_primary": "qa_clear",
+      "recommended_action": "optional_eval",
+      "priority_bucket": "optional_clear",
+      "rationale": "Same-family optional case remains review/safe-like under clear evidence."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_a",
+      "qa_dominant_primary": "qa_review",
+      "recommended_action": "optional_review",
+      "priority_bucket": "optional_review",
+      "rationale": "Same-family optional mixed case remains review-worthy but evidence-constrained."
+    },
+    {
+      "case_id": "optional_same_family_mixed_sst2_yelp_b",
+      "qa_dominant_primary": "qa_review",
+      "recommended_action": "optional_review_later",
+      "priority_bucket": "optional_review_lower",
+      "rationale": "Second mixed optional case remains structured but slightly lower priority."
+    }
+  ],
+  "rollup": {
+    "evaluate_first": 1,
+    "review_first": 1,
+    "review_or_optional": 4,
+    "blocked": 2,
+    "middle_structure_visible": true
+  }
+}
