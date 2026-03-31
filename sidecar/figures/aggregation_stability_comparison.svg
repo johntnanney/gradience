@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">Aggregation Stability Comparison</title>
+  <desc id="desc">Original vs perturbed agreement distributions and claim stability verdict counts for Route2 Substudy 2.</desc>
+  <style>
+    .bg { fill: #f7f9fc; }
+    .panel { fill: #ffffff; stroke: #d8dee9; stroke-width: 1; }
+    .axis { stroke: #9aa5b1; stroke-width: 1; }
+    .grid { stroke: #e6ebf1; stroke-width: 1; }
+    .t { fill: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .small { font-size: 12px; }
+    .med { font-size: 14px; }
+    .lg { font-size: 18px; font-weight: 600; }
+    .orig { fill: #4c78a8; }
+    .pert { fill: #72b7b2; }
+    .stable { fill: #54a24b; }
+    .mod { fill: #eeca3b; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="980" height="520" />
+  <text class="t lg" x="30" y="36">Route2 Substudy 2: Aggregation Stability Comparison</text>
+  <text class="t med" x="30" y="58">Original panel vs perturbed panel rerun (same aggregation families; local substitutions only)</text>
+
+  <rect class="panel" x="30" y="84" width="600" height="390" rx="8" />
+  <text class="t med" x="50" y="114">Agreement Pattern Distribution</text>
+
+  <line class="axis" x1="90" y1="430" x2="590" y2="430" />
+  <line class="axis" x1="90" y1="170" x2="90" y2="430" />
+
+  <line class="grid" x1="90" y1="365" x2="590" y2="365" />
+  <line class="grid" x1="90" y1="300" x2="590" y2="300" />
+  <line class="grid" x1="90" y1="235" x2="590" y2="235" />
+  <line class="grid" x1="90" y1="170" x2="590" y2="170" />
+
+  <text class="t small" x="66" y="434">0</text>
+  <text class="t small" x="66" y="369">2</text>
+  <text class="t small" x="66" y="304">4</text>
+  <text class="t small" x="66" y="239">6</text>
+  <text class="t small" x="66" y="174">8</text>
+
+  <!-- full_agreement: 2 original, 2 perturbed -->
+  <rect class="orig" x="140" y="365" width="45" height="65" rx="3" />
+  <rect class="pert" x="190" y="365" width="45" height="65" rx="3" />
+  <text class="t small" x="150" y="355">2</text>
+  <text class="t small" x="200" y="355">2</text>
+  <text class="t small" x="132" y="450">full</text>
+  <text class="t small" x="122" y="466">agreement</text>
+
+  <!-- partial_agreement: 8 original, 8 perturbed -->
+  <rect class="orig" x="300" y="170" width="45" height="260" rx="3" />
+  <rect class="pert" x="350" y="170" width="45" height="260" rx="3" />
+  <text class="t small" x="310" y="160">8</text>
+  <text class="t small" x="360" y="160">8</text>
+  <text class="t small" x="292" y="450">partial</text>
+  <text class="t small" x="287" y="466">agreement</text>
+
+  <!-- strong_divergence: 2 original, 2 perturbed -->
+  <rect class="orig" x="460" y="365" width="45" height="65" rx="3" />
+  <rect class="pert" x="510" y="365" width="45" height="65" rx="3" />
+  <text class="t small" x="470" y="355">2</text>
+  <text class="t small" x="520" y="355">2</text>
+  <text class="t small" x="449" y="450">strong</text>
+  <text class="t small" x="438" y="466">divergence</text>
+
+  <rect class="orig" x="410" y="102" width="14" height="14" rx="2" />
+  <text class="t small" x="430" y="114">original</text>
+  <rect class="pert" x="500" y="102" width="14" height="14" rx="2" />
+  <text class="t small" x="520" y="114">perturbed</text>
+
+  <rect class="panel" x="650" y="84" width="300" height="390" rx="8" />
+  <text class="t med" x="670" y="114">Claim Stability Verdicts</text>
+
+  <rect class="stable" x="695" y="200" width="80" height="230" rx="4" />
+  <rect class="mod" x="815" y="338" width="80" height="92" rx="4" />
+
+  <text class="t small" x="723" y="188">5</text>
+  <text class="t small" x="846" y="326">2</text>
+  <text class="t small" x="705" y="450">stable</text>
+  <text class="t small" x="819" y="450">moderately</text>
+  <text class="t small" x="836" y="466">stable</text>
+
+  <text class="t small" x="670" y="486">No claims moved to panel-sensitive or still-thin in this pass.</text>
+</svg>

@@ -1,0 +1,154 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "D",
+  "generated_on": "2026-03-31",
+  "summary_counts": {
+    "stable": 11,
+    "moderately_stable": 6,
+    "thin": 2,
+    "local_only": 1,
+    "blocked_or_open": 0
+  },
+  "claims": [
+    {
+      "claim_id": "A1",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Evidence gating is replicated across cross-artifact and aggregation programs and survives perturbation checks.",
+      "product_implication_tag": "safe_to_expose",
+      "notes": "Keep bounded-scope caveat in external language."
+    },
+    {
+      "claim_id": "A2",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Conservative narrowing is a repeated workflow outcome across tested artifact classes and trials.",
+      "product_implication_tag": "safe_to_expose",
+      "notes": "Core Route 2 workflow invariant."
+    },
+    {
+      "claim_id": "A3",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Checkpoint triage has an end-to-end validated path in Ring 2 and T01/T02 with explicit scope controls.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Stable in bounded envelope only."
+    },
+    {
+      "claim_id": "B1",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Same-task versus cross-task separation is directionally reliable where class coverage is available.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Do not overstate full parity across all artifact classes."
+    },
+    {
+      "claim_id": "B2",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Same-family intermediate behavior appears repeatedly but shifts under local perturbation and requires caveats.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Panel-sensitive ordering language should remain guarded."
+    },
+    {
+      "claim_id": "B3",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Same-family optional states trend review/safe-like across behavioral and mixed-evidence triage analyses.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Threshold precision remains non-canonical."
+    },
+    {
+      "claim_id": "B4",
+      "final_ladder_status": "thin",
+      "one_sentence_justification": "Optional/near-miss portability across artifact classes remains under-supported outside LoRA.",
+      "product_implication_tag": "research_only",
+      "notes": "Keep out of broad Route 2 claims."
+    },
+    {
+      "claim_id": "C1",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "The locality of strongest structural metrics is itself a stable replicated cross-artifact finding.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Use as a guardrail against metric-unification claims."
+    },
+    {
+      "claim_id": "C2",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Workflow-level portability consistently outperforms metric-level portability across Route 2 studies.",
+      "product_implication_tag": "safe_to_expose",
+      "notes": "Core Route 2 framing claim."
+    },
+    {
+      "claim_id": "C3",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Checkpoint broadening is robustly summary-based and remains explicitly distinct from factorized low-rank reuse.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Do not imply checkpoint factor-equivalence."
+    },
+    {
+      "claim_id": "D1",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Aggregation as a decision seam is repeatedly validated and survives local robustness testing.",
+      "product_implication_tag": "safe_to_expose",
+      "notes": "One of the strongest seam-level Route 2 claims."
+    },
+    {
+      "claim_id": "D2",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Worst-case, distributional, and QA-dominant families remain operationally distinct under perturbation.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Families stable; boundary cuts guarded."
+    },
+    {
+      "claim_id": "D3",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "QA-dominant behavior shows genuine override/review logic not explained by weaker structural-only grading.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Strong for triage language, bounded by scenario scope."
+    },
+    {
+      "claim_id": "D4",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Taxonomy structure is usable and reproducible at coarse grain, while fine thresholds remain panel-dependent.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Use taxonomy categories, not hard threshold claims."
+    },
+    {
+      "claim_id": "E1",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Route 2 profiles show distinct behavioral footprints in current panel evidence with bounded coverage.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Needs broader artifact-level behavioral replication."
+    },
+    {
+      "claim_id": "E2",
+      "final_ladder_status": "local_only",
+      "one_sentence_justification": "Collapse-versus-contamination dissociation is convincing in current merge-facing evidence but not yet broad enough for cross-context generalization.",
+      "product_implication_tag": "research_only",
+      "notes": "Treat as strong local mechanism evidence."
+    },
+    {
+      "claim_id": "E3",
+      "final_ladder_status": "thin",
+      "one_sentence_justification": "Routing-confusability non-transfer to merge behavior remains suggestive but sparsely supported.",
+      "product_implication_tag": "research_only",
+      "notes": "Do not elevate beyond sidecar language yet."
+    },
+    {
+      "claim_id": "E4",
+      "final_ladder_status": "moderately_stable",
+      "one_sentence_justification": "Same-family optionality remains behaviorally closer to review/safe-like states with guardrailed boundaries.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Good for triage messaging with threshold caution."
+    },
+    {
+      "claim_id": "F1",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "The broadened substrate claim is consistently supported across programs, with explicit narrow-scope boundaries intact.",
+      "product_implication_tag": "safe_with_guardrails",
+      "notes": "Route 2 should keep bounded-regime language."
+    },
+    {
+      "claim_id": "F2",
+      "final_ladder_status": "stable",
+      "one_sentence_justification": "Workflow-level evidence-aware triage remains the most portable cross-artifact Route 2 value proposition.",
+      "product_implication_tag": "safe_to_expose",
+      "notes": "Best anchor for product and public wording."
+    }
+  ]
+}

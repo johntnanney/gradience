@@ -61,6 +61,7 @@ Anything else remains experimental, sidecar-only, or deferred.
 - `docs/strategy/checkpoint_triage_summary.md`
 - `docs/strategy/checkpoint_triage_alpha_scope.md`
 - `docs/strategy/decision_dependent_compatibility_implications.md`
+- `docs/strategy/route2_claims_ladder_summary.md`
 - `docs/strategy/external_use_case_scan.md`
 - `docs/examples/checkpoint-triage-alpha-workflow.md`
 

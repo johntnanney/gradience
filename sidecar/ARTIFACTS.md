@@ -2,7 +2,7 @@
 
 A stable, navigable index of every major artifact in the sidecar and field trial directories. Organized by function, not by creation order. For the theoretical narrative, see `notes/n67_where_the_research_stands.md`. For project status, see `notes/n69_settled_open_next.md`.
 
-*Last updated: 2026-04-01. 104 notes, 17 scripts, 109+ JSON results, 66 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
+*Last updated: 2026-04-01. 109 notes, 17 scripts, 114+ JSON results, 67 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
 
 ---
 
@@ -15,6 +15,8 @@ The documents that synthesize the research program. Read in this order for the c
 | `notes/n69_settled_open_next.md` | State-of-project dashboard. What is established, open, and next. |
 | `notes/n67_where_the_research_stands.md` | Mechanism-ladder synthesis. Commensurability, V-module pathology, conjunctive failure, behavioral signatures. Supersedes n51, n25. |
 | `notes/n93_route2_synthesis.md` | Route 2 synthesis. Decision-dependent, cross-artifact, aggregation-sensitive, behavioral bridge. Companion to n67. |
+| `../docs/strategy/route2_claims_ladder_summary.md` | Route 2 claims ladder summary. Stable/moderate/thin/local calibration for communication and scope discipline. |
+| `notes/n112_route2_claims_ladder_implications.md` | Route 2 claims ladder implications memo. Public/product/internal language guidance from calibrated claim statuses. |
 | `../docs/strategy/aggregation_mixed_evidence_summary.md` | Mixed-evidence triage perturbation summary. Soft-middle coherence and guardrails for review/optional language. |
 | `notes/n68_ruled_out_mechanisms.md` | Ruled-out mechanisms (definitive). Ten primary, five ancillary eliminations. Supersedes n38, n52. |
 | `notes/n50_executive_research_summary.md` | Executive summary. Product identity, central claim, practitioner value. |
@@ -464,6 +466,29 @@ Targeted soft-middle stress test on triage-weighted mixed-evidence and same-fami
 | `results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.md` | Soft-middle verdicts (markdown). |
 | `results/route2_stability/aggregation_mixed_evidence/summary.json` | Optional compact summary (JSON). |
 | `figures/aggregation_mixed_evidence_matrix.svg` | Mixed-evidence aggregation matrix figure. |
+
+## Route 2 Claims Stability Ladder (n108-n112)
+
+Confidence-calibration synthesis pass for Route 2 claims (stable / moderately stable / thin / local-only).
+
+| Artifact | Role |
+|----------|------|
+| `notes/n108_route2_claims_inventory.md` | Stage A: fixed Route 2 claims inventory (20 claims). |
+| `notes/n109_route2_claim_evidence_map.md` | Stage B: explicit evidence mapping for each claim. |
+| `notes/n110_route2_claim_dimension_scoring.md` | Stage C: five-dimension scoring rationale and calibration notes. |
+| `notes/n111_route2_claims_stability_ladder.md` | Stage D: final ladder assignment and status distribution. |
+| `notes/n112_route2_claims_ladder_implications.md` | Stage E: communication and product-guardrail implications. |
+| `../docs/strategy/route2_claims_ladder_summary.md` | Strategy-level summary for public/product/internal wording. |
+| `results/route2_claims_ladder/claims_inventory.json` | Claims inventory (JSON). |
+| `results/route2_claims_ladder/claims_inventory.md` | Claims inventory (markdown). |
+| `results/route2_claims_ladder/claim_evidence_map.json` | Per-claim evidence source map (JSON). |
+| `results/route2_claims_ladder/claim_evidence_map.md` | Condensed evidence map (markdown). |
+| `results/route2_claims_ladder/claim_scoring.json` | Five-dimension scoring table (JSON). |
+| `results/route2_claims_ladder/claim_scoring.md` | Five-dimension scoring table (markdown). |
+| `results/route2_claims_ladder/stability_ladder.json` | Final ladder statuses and implications (JSON). |
+| `results/route2_claims_ladder/stability_ladder.md` | Final ladder statuses (markdown). |
+| `results/route2_claims_ladder/implications_summary.json` | Optional communication summary (JSON). |
+| `figures/route2_claims_ladder.svg` | Ladder overview figure. |
 
 ## Panels, studies, and templates
 

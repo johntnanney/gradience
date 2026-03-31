@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="'Helvetica Neue', Arial, sans-serif">
+  <title>Behavioral Route 2 Profile Matrix</title>
+
+  <!-- Background -->
+  <rect width="900" height="520" fill="#fafafa" rx="4"/>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#1a1a1a">Route 2 Behavioral Profile Matrix</text>
+  <text x="450" y="48" text-anchor="middle" font-size="11" fill="#666">Neither-source rate, confidence collapse, and high-confidence wrong by profile</text>
+
+  <!-- Column headers -->
+  <text x="280" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Neither-Source %</text>
+  <text x="480" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">Confidence Collapse</text>
+  <text x="680" y="80" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">High-Conf Wrong</text>
+
+  <!-- Scale markers for neither-source (0-16%) -->
+  <line x1="200" y1="90" x2="360" y2="90" stroke="#ccc" stroke-width="0.5"/>
+  <text x="200" y="100" text-anchor="middle" font-size="8" fill="#999">0%</text>
+  <text x="280" y="100" text-anchor="middle" font-size="8" fill="#999">8%</text>
+  <text x="360" y="100" text-anchor="middle" font-size="8" fill="#999">16%</text>
+
+  <!-- Scale markers for confidence collapse (0-30) -->
+  <line x1="400" y1="90" x2="560" y2="90" stroke="#ccc" stroke-width="0.5"/>
+  <text x="400" y="100" text-anchor="middle" font-size="8" fill="#999">0</text>
+  <text x="480" y="100" text-anchor="middle" font-size="8" fill="#999">15</text>
+  <text x="560" y="100" text-anchor="middle" font-size="8" fill="#999">30</text>
+
+  <!-- Scale markers for high-conf wrong (0-45) -->
+  <line x1="600" y1="90" x2="760" y2="90" stroke="#ccc" stroke-width="0.5"/>
+  <text x="600" y="100" text-anchor="middle" font-size="8" fill="#999">0</text>
+  <text x="680" y="100" text-anchor="middle" font-size="8" fill="#999">23</text>
+  <text x="760" y="100" text-anchor="middle" font-size="8" fill="#999">45</text>
+
+  <!-- Tier 1: No pathology -->
+  <rect x="10" y="110" width="880" height="150" fill="#e8f5e9" rx="3" opacity="0.5"/>
+  <text x="25" y="130" font-size="10" font-weight="bold" fill="#2e7d32">TIER 1: No pathology</text>
+
+  <!-- SR-01: neither=0.8%, collapse=0, hcw=6 -->
+  <text x="170" y="155" text-anchor="end" font-size="10" fill="#333">SR-01 (agg_inv)</text>
+  <circle cx="208" cy="152" r="5" fill="#4caf50"/>
+  <circle cx="400" cy="152" r="5" fill="#4caf50"/>
+  <circle cx="621" cy="152" r="5" fill="#4caf50"/>
+
+  <!-- SR-02: neither=0.0%, collapse=0, hcw=26 -->
+  <text x="170" y="180" text-anchor="end" font-size="10" fill="#333">SR-02 (agg_inv)</text>
+  <circle cx="200" cy="177" r="5" fill="#4caf50"/>
+  <circle cx="400" cy="177" r="5" fill="#4caf50"/>
+  <circle cx="692" cy="177" r="5" fill="#66bb6a"/>
+
+  <!-- NM-01: neither=1.8%, collapse=0, hcw=1 -->
+  <text x="170" y="205" text-anchor="end" font-size="10" fill="#333">NM-01 (optional)</text>
+  <circle cx="218" cy="202" r="5" fill="#81c784"/>
+  <circle cx="400" cy="202" r="5" fill="#81c784"/>
+  <circle cx="604" cy="202" r="5" fill="#81c784"/>
+
+  <!-- NM-02: neither=0.0%, collapse=0, hcw=43 -->
+  <text x="170" y="230" text-anchor="end" font-size="10" fill="#333">NM-02 (optional)</text>
+  <circle cx="200" cy="227" r="5" fill="#81c784"/>
+  <circle cx="400" cy="227" r="5" fill="#81c784"/>
+  <circle cx="753" cy="227" r="5" fill="#a5d6a7"/>
+
+  <!-- Tier 2: Localized pathology -->
+  <rect x="10" y="265" width="880" height="130" fill="#ffebee" rx="3" opacity="0.5"/>
+  <text x="25" y="285" font-size="10" font-weight="bold" fill="#c62828">TIER 2: Localized pathology</text>
+
+  <!-- FR-01: neither=14.6%, collapse=30, hcw=0 -->
+  <text x="170" y="310" text-anchor="end" font-size="10" fill="#333">FR-01 (collapse)</text>
+  <circle cx="346" cy="307" r="6" fill="#e53935"/>
+  <circle cx="560" cy="307" r="6" fill="#e53935"/>
+  <circle cx="600" cy="307" r="5" fill="#ef9a9a"/>
+
+  <!-- FR-02: neither=15.4%, collapse=28, hcw=4 -->
+  <text x="170" y="335" text-anchor="end" font-size="10" fill="#333">FR-02 (collapse)</text>
+  <circle cx="354" cy="332" r="6" fill="#e53935"/>
+  <circle cx="549" cy="332" r="6" fill="#e53935"/>
+  <circle cx="614" cy="332" r="5" fill="#ef9a9a"/>
+
+  <!-- CT-01: neither=14.4%, collapse=3, hcw=23 -->
+  <text x="170" y="360" text-anchor="end" font-size="10" fill="#333">CT-01 (cross-task)</text>
+  <circle cx="344" cy="357" r="6" fill="#ff7043"/>
+  <circle cx="416" cy="357" r="5" fill="#ffab91"/>
+  <circle cx="682" cy="357" r="6" fill="#ff7043"/>
+
+  <!-- Tier 3: Stasis -->
+  <rect x="10" y="400" width="880" height="70" fill="#fff3e0" rx="3" opacity="0.5"/>
+  <text x="25" y="420" font-size="10" font-weight="bold" fill="#e65100">TIER 3: Stasis</text>
+
+  <!-- AN-01: neither=7.0%, collapse=0, hcw=0 -->
+  <text x="170" y="445" text-anchor="end" font-size="10" fill="#333">AN-01 (QA review)</text>
+  <circle cx="270" cy="442" r="5" fill="#ffa726"/>
+  <circle cx="400" cy="442" r="5" fill="#ffa726"/>
+  <circle cx="600" cy="442" r="5" fill="#ffa726"/>
+
+  <!-- Legend -->
+  <text x="450" y="495" text-anchor="middle" font-size="9" fill="#666">Dot position = metric value on the column scale. Larger dots = higher values on key discriminating metrics.</text>
+  <text x="450" y="510" text-anchor="middle" font-size="9" fill="#666">Key separation: Tier 1 vs Tier 2 on neither-source rate; collapse vs contamination on confidence pattern.</text>
+</svg>

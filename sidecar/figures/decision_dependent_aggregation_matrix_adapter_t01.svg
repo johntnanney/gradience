@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="256">
+<rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+<text x="20" y="28" font-family="Menlo, monospace" font-size="16" font-weight="bold" fill="#1f2d3d">Decision-Dependent Aggregation Matrix (Adapter T01 Stress Test)</text>
+<text x="20" y="50" font-family="Menlo, monospace" font-size="12" fill="#4a5665">Generated 2026-03-31T01:23:15.537343+00:00</text>
+<rect x="20" y="50" width="340" height="24" fill="#ecf0f1" stroke="#d5d8dc" />
+<text x="28" y="66" font-family="Menlo, monospace" font-size="12" fill="#17202a">Case</text>
+<rect x="360" y="50" width="240" height="24" fill="#ecf0f1" stroke="#d5d8dc" />
+<text x="368" y="66" font-family="Menlo, monospace" font-size="11" fill="#17202a">Worst-case (merge-like)</text>
+<rect x="600" y="50" width="240" height="24" fill="#ecf0f1" stroke="#d5d8dc" />
+<text x="608" y="66" font-family="Menlo, monospace" font-size="11" fill="#17202a">Distributional (routing-like)</text>
+<rect x="840" y="50" width="240" height="24" fill="#ecf0f1" stroke="#d5d8dc" />
+<text x="848" y="66" font-family="Menlo, monospace" font-size="11" fill="#17202a">QA gate-first (triage-like)</text>
+<rect x="20" y="74" width="1080" height="34" fill="#fbfcfc" />
+<text x="28" y="96" font-family="Menlo, monospace" font-size="11" fill="#1b2631">myselfmankar__distilbert-base-sst2-lora::rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2</text>
+<rect x="368" y="80" width="224" height="22" fill="#d68910" rx="4" ry="4" />
+<text x="374" y="96" font-family="Menlo, monospace" font-size="10" fill="#ffffff">merge_caution</text>
+<rect x="608" y="80" width="224" height="22" fill="#1f618d" rx="4" ry="4" />
+<text x="614" y="96" font-family="Menlo, monospace" font-size="10" fill="#ffffff">routing_confusable</text>
+<rect x="848" y="80" width="224" height="22" fill="#1d8348" rx="4" ry="4" />
+<text x="854" y="96" font-family="Menlo, monospace" font-size="10" fill="#ffffff">qa_clear</text>
+<rect x="20" y="108" width="1080" height="34" fill="#f7f9f9" />
+<text x="28" y="130" font-family="Menlo, monospace" font-size="11" fill="#1b2631">myselfmankar__distilbert-base-sst2-lora::dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment</text>
+<rect x="368" y="114" width="224" height="22" fill="#d68910" rx="4" ry="4" />
+<text x="374" y="130" font-family="Menlo, monospace" font-size="10" fill="#ffffff">merge_caution</text>
+<rect x="608" y="114" width="224" height="22" fill="#7d6608" rx="4" ry="4" />
+<text x="614" y="130" font-family="Menlo, monospace" font-size="10" fill="#ffffff">routing_needs_disambiguation</text>
+<rect x="848" y="114" width="224" height="22" fill="#1d8348" rx="4" ry="4" />
+<text x="854" y="130" font-family="Menlo, monospace" font-size="10" fill="#ffffff">qa_clear</text>
+<rect x="20" y="142" width="1080" height="34" fill="#fbfcfc" />
+<text x="28" y="164" font-family="Menlo, monospace" font-size="11" fill="#1b2631">myselfmankar__distilbert-base-sst2-lora::TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news</text>
+<rect x="368" y="148" width="224" height="22" fill="#c0392b" rx="4" ry="4" />
+<text x="374" y="164" font-family="Menlo, monospace" font-size="10" fill="#ffffff">merge_risky</text>
+<rect x="608" y="148" width="224" height="22" fill="#117864" rx="4" ry="4" />
+<text x="614" y="164" font-family="Menlo, monospace" font-size="10" fill="#ffffff">routing_separable</text>
+<rect x="848" y="148" width="224" height="22" fill="#1d8348" rx="4" ry="4" />
+<text x="854" y="164" font-family="Menlo, monospace" font-size="10" fill="#ffffff">qa_clear</text>
+<text x="20" y="200" font-family="Menlo, monospace" font-size="11" fill="#1b2631">Legend:</text>
+<rect x="80" y="190" width="10" height="10" fill="#c0392b" />
+<text x="94" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">merge_risky</text>
+<rect x="250" y="190" width="10" height="10" fill="#d68910" />
+<text x="264" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">merge_caution</text>
+<rect x="420" y="190" width="10" height="10" fill="#1e8449" />
+<text x="434" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">merge_favorable</text>
+<rect x="590" y="190" width="10" height="10" fill="#1f618d" />
+<text x="604" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">routing_confusable</text>
+<rect x="760" y="190" width="10" height="10" fill="#7d6608" />
+<text x="774" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">routing_needs_disambiguation</text>
+<rect x="930" y="190" width="10" height="10" fill="#117864" />
+<text x="944" y="200" font-family="Menlo, monospace" font-size="10" fill="#34495e">routing_separable</text>
+<rect x="80" y="206" width="10" height="10" fill="#943126" />
+<text x="94" y="216" font-family="Menlo, monospace" font-size="10" fill="#34495e">qa_blocked</text>
+<rect x="250" y="206" width="10" height="10" fill="#b9770e" />
+<text x="264" y="216" font-family="Menlo, monospace" font-size="10" fill="#34495e">qa_review</text>
+<rect x="420" y="206" width="10" height="10" fill="#1d8348" />
+<text x="434" y="216" font-family="Menlo, monospace" font-size="10" fill="#34495e">qa_clear</text>
+</svg>

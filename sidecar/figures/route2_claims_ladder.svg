@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <style>
+    .title { font: 700 28px Arial, sans-serif; fill: #111827; }
+    .subtitle { font: 400 15px Arial, sans-serif; fill: #374151; }
+    .header { font: 700 16px Arial, sans-serif; fill: #111827; }
+    .count { font: 700 26px Arial, sans-serif; fill: #111827; }
+    .claims { font: 600 14px Consolas, Menlo, monospace; fill: #1f2937; }
+    .footer { font: 400 13px Arial, sans-serif; fill: #4b5563; }
+  </style>
+
+  <rect x="0" y="0" width="1400" height="760" fill="#f8fafc" />
+
+  <text x="40" y="55" class="title">Route 2 Claims Stability Ladder</text>
+  <text x="40" y="82" class="subtitle">20 claims grouped by calibrated confidence status (2026-03-31)</text>
+
+  <rect x="35" y="110" width="1330" height="560" rx="10" fill="#ffffff" stroke="#e5e7eb" />
+
+  <rect x="60" y="140" width="240" height="500" rx="8" fill="#dcfce7" stroke="#22c55e" />
+  <text x="80" y="175" class="header">stable</text>
+  <text x="250" y="175" class="count">11</text>
+  <text x="80" y="205" class="claims">A1 A2 A3</text>
+  <text x="80" y="227" class="claims">C1 C2 C3</text>
+  <text x="80" y="249" class="claims">D1 D2 D3</text>
+  <text x="80" y="271" class="claims">F1 F2</text>
+
+  <rect x="320" y="140" width="240" height="500" rx="8" fill="#fef9c3" stroke="#eab308" />
+  <text x="340" y="175" class="header">moderately_stable</text>
+  <text x="510" y="175" class="count">6</text>
+  <text x="340" y="205" class="claims">B1 B2 B3</text>
+  <text x="340" y="227" class="claims">D4 E1 E4</text>
+
+  <rect x="580" y="140" width="240" height="500" rx="8" fill="#fee2e2" stroke="#ef4444" />
+  <text x="600" y="175" class="header">thin</text>
+  <text x="770" y="175" class="count">2</text>
+  <text x="600" y="205" class="claims">B4 E3</text>
+
+  <rect x="840" y="140" width="240" height="500" rx="8" fill="#e0e7ff" stroke="#6366f1" />
+  <text x="860" y="175" class="header">local_only</text>
+  <text x="1030" y="175" class="count">1</text>
+  <text x="860" y="205" class="claims">E2</text>
+
+  <rect x="1100" y="140" width="240" height="500" rx="8" fill="#f3f4f6" stroke="#9ca3af" />
+  <text x="1120" y="175" class="header">blocked_or_open</text>
+  <text x="1290" y="175" class="count">0</text>
+  <text x="1120" y="205" class="claims">none</text>
+
+  <text x="60" y="705" class="footer">Highest-confidence cluster: workflow invariants and aggregation seam claims.</text>
+  <text x="60" y="726" class="footer">Most guarded cluster: same-family ordering, optional portability, and scenario-local behavioral transfer.</text>
+</svg>

@@ -1,0 +1,194 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "C",
+  "generated_on": "2026-03-31",
+  "dimensions": [
+    "evidence_base_score",
+    "perturbation_survival_score",
+    "artifact_coverage_score",
+    "behavioral_grounding_score",
+    "product_relevance_score"
+  ],
+  "claims": [
+    {
+      "claim_id": "A1",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "indirect_behavioral_support",
+      "product_relevance_score": "safe_to_expose",
+      "short_scoring_justification": "Cross-artifact plus stability passes repeatedly support evidence gating as dominant triage logic."
+    },
+    {
+      "claim_id": "A2",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "workflow_only",
+      "product_relevance_score": "safe_to_expose",
+      "short_scoring_justification": "Conservative narrowing recurs across adapter and checkpoint workflows and survives perturbation checks."
+    },
+    {
+      "claim_id": "A3",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "single_class",
+      "behavioral_grounding_score": "indirect_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Ring 2 and T01/T02 support checkpoint triage as real, but explicitly bounded."
+    },
+    {
+      "claim_id": "B1",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "indirect_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Directional separation is visible where testable, but parity is incomplete across artifact classes."
+    },
+    {
+      "claim_id": "B2",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "panel_sensitive",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "indirect_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Same-family intermediate status is present but known to shift under panel perturbation."
+    },
+    {
+      "claim_id": "B3",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "direct_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Behavioral and mixed-evidence analyses support safe-like optionality with threshold guardrails."
+    },
+    {
+      "claim_id": "B4",
+      "evidence_base_score": "thin",
+      "perturbation_survival_score": "panel_sensitive",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "structural_only",
+      "product_relevance_score": "research_only",
+      "short_scoring_justification": "Optional/near-miss portability outside LoRA remains explicitly inconclusive."
+    },
+    {
+      "claim_id": "C1",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "structural_only",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Representation-locality of strong metrics is replicated across cross-artifact and stability studies."
+    },
+    {
+      "claim_id": "C2",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "workflow_only",
+      "product_relevance_score": "safe_to_expose",
+      "short_scoring_justification": "Multiple Route 2 lines converge on workflow-level portability rather than metric-level portability."
+    },
+    {
+      "claim_id": "C3",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "structural_only",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Ring 2 consistently supports summary-based checkpoint broadening with explicit non-equivalence to factor reuse."
+    },
+    {
+      "claim_id": "D1",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "workflow_only",
+      "product_relevance_score": "safe_to_expose",
+      "short_scoring_justification": "Aggregation-as-seam is repeatedly confirmed in main and stability aggregation programs."
+    },
+    {
+      "claim_id": "D2",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "structural_only",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Aggregation families remain distinct across reruns and mixed-evidence stress tests."
+    },
+    {
+      "claim_id": "D3",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "indirect_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "QA-dominant logic shows override and review behavior not captured by structural-only gradation."
+    },
+    {
+      "claim_id": "D4",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "structural_only",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Taxonomy remains usable, but exact boundaries and frequencies stay panel-local."
+    },
+    {
+      "claim_id": "E1",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "not_yet_stress_tested",
+      "artifact_coverage_score": "single_class",
+      "behavioral_grounding_score": "direct_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Behavioral profile differentiation is strong in-panel, but broader artifact coverage is limited."
+    },
+    {
+      "claim_id": "E2",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "not_yet_stress_tested",
+      "artifact_coverage_score": "single_class",
+      "behavioral_grounding_score": "direct_behavioral_support",
+      "product_relevance_score": "research_only",
+      "short_scoring_justification": "Collapse vs contamination dissociation is clear in merge-facing evidence but not yet broadly portability-tested."
+    },
+    {
+      "claim_id": "E3",
+      "evidence_base_score": "thin",
+      "perturbation_survival_score": "not_yet_stress_tested",
+      "artifact_coverage_score": "single_class",
+      "behavioral_grounding_score": "direct_behavioral_support",
+      "product_relevance_score": "research_only",
+      "short_scoring_justification": "Routing-confusability behavioral non-transfer is plausible but still based on sparse evidence."
+    },
+    {
+      "claim_id": "E4",
+      "evidence_base_score": "moderate",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "multiple_classes_partial",
+      "behavioral_grounding_score": "direct_behavioral_support",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Optionality appears review/safe-like in behavioral and mixed-evidence lines, with guarded threshold precision."
+    },
+    {
+      "claim_id": "F1",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_with_caveats",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "workflow_only",
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Broadened substrate claim is supported across Route 2 programs but explicitly bounded by scope guardrails."
+    },
+    {
+      "claim_id": "F2",
+      "evidence_base_score": "strong",
+      "perturbation_survival_score": "survived_cleanly",
+      "artifact_coverage_score": "multiple_classes_broad",
+      "behavioral_grounding_score": "workflow_only",
+      "product_relevance_score": "safe_to_expose",
+      "short_scoring_justification": "Cross-artifact and aggregation programs converge on workflow-level triage value as the broadest stable portability layer."
+    }
+  ]
+}

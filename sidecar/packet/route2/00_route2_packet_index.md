@@ -41,24 +41,25 @@ Read in this order.
 | 6 | [`../../../docs/strategy/aggregation_stability_summary.md`](../../../docs/strategy/aggregation_stability_summary.md) | **Aggregation stability check.** Confirms aggregation as seam, QA-dominant distinctness, and worst-case collapse under local perturbation. | ~400 words |
 | 7 | [`../../../docs/strategy/aggregation_mixed_evidence_summary.md`](../../../docs/strategy/aggregation_mixed_evidence_summary.md) | **Mixed-evidence triage perturbation.** Soft-middle stress test: QA-dominant remains coherent; same-family optional stays review-like with guardrails. | ~350 words |
 | 8 | [`../../../docs/strategy/behavioral_route2_summary.md`](../../../docs/strategy/behavioral_route2_summary.md) | **Behavioral bridge.** Three-tier behavioral model. The collapse/contamination mode split. Same-family optional is safe-like. | ~500 words |
+| 9 | [`../../../docs/strategy/route2_claims_ladder_summary.md`](../../../docs/strategy/route2_claims_ladder_summary.md) | **Claims ladder synthesis.** Stable/moderate/thin/local calibration for Route 2 communication and scope discipline. | ~500 words |
 
 ### Substrate evidence
 
 | # | Document | What it is |
 |---|----------|------------|
-| 9 | [`../../../docs/strategy/broadened_substrate_scope.md`](../../../docs/strategy/broadened_substrate_scope.md) | **Route 2 scope checkpoint.** Stable bounded scope statement for broadened substrate claims. |
-| 10 | [`../../../docs/strategy/ring1_peft_generalization_results.md`](../../../docs/strategy/ring1_peft_generalization_results.md) | **Ring 1.** LoHa through the full pipeline via ~160-line shim. Zero core code changes. |
-| 11 | [`../../../docs/design/ring2_stage_d_assessment_memo.md`](../../../docs/design/ring2_stage_d_assessment_memo.md) | **Ring 2.** Checkpoint deltas via summary-based representation. Triage works; merge out of scope. |
-| 12 | [`../../../docs/routing-pilot-results.md`](../../../docs/routing-pilot-results.md) | **Routing pilot.** ~370 lines, zero core changes. Same substrate, different policy layer. |
+| 10 | [`../../../docs/strategy/broadened_substrate_scope.md`](../../../docs/strategy/broadened_substrate_scope.md) | **Route 2 scope checkpoint.** Stable bounded scope statement for broadened substrate claims. |
+| 11 | [`../../../docs/strategy/ring1_peft_generalization_results.md`](../../../docs/strategy/ring1_peft_generalization_results.md) | **Ring 1.** LoHa through the full pipeline via ~160-line shim. Zero core code changes. |
+| 12 | [`../../../docs/design/ring2_stage_d_assessment_memo.md`](../../../docs/design/ring2_stage_d_assessment_memo.md) | **Ring 2.** Checkpoint deltas via summary-based representation. Triage works; merge out of scope. |
+| 13 | [`../../../docs/routing-pilot-results.md`](../../../docs/routing-pilot-results.md) | **Routing pilot.** ~370 lines, zero core changes. Same substrate, different policy layer. |
 
 ### Alpha workflow
 
 | # | Document | What it is |
 |---|----------|------------|
-| 13 | [`../../../docs/examples/checkpoint-triage-alpha-workflow.md`](../../../docs/examples/checkpoint-triage-alpha-workflow.md) | **Checkpoint triage alpha walkthrough.** Canonical use path, artifacts, and interpretation guide. |
-| 14 | [`../../../docs/strategy/checkpoint_triage_alpha_scope.md`](../../../docs/strategy/checkpoint_triage_alpha_scope.md) | **Alpha scope contract.** Explicit boundaries for the Route 2 checkpoint triage workflow. |
-| 15 | [`../../../field_trials/checkpoint_inventory_t02/README.md`](../../../field_trials/checkpoint_inventory_t02/README.md) | **Checkpoint triage alpha — mini-product README.** What it's for, how to run it, what outputs mean, example inventory, adaptation guide. |
-| 16 | [`../../../field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/report.html`](../../../field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/report.html) | **Example HTML report.** The canonical T02 output — open in a browser. |
+| 14 | [`../../../docs/examples/checkpoint-triage-alpha-workflow.md`](../../../docs/examples/checkpoint-triage-alpha-workflow.md) | **Checkpoint triage alpha walkthrough.** Canonical use path, artifacts, and interpretation guide. |
+| 15 | [`../../../docs/strategy/checkpoint_triage_alpha_scope.md`](../../../docs/strategy/checkpoint_triage_alpha_scope.md) | **Alpha scope contract.** Explicit boundaries for the Route 2 checkpoint triage workflow. |
+| 16 | [`../../../field_trials/checkpoint_inventory_t02/README.md`](../../../field_trials/checkpoint_inventory_t02/README.md) | **Checkpoint triage alpha — mini-product README.** What it's for, how to run it, what outputs mean, example inventory, adaptation guide. |
+| 17 | [`../../../field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/report.html`](../../../field_trials/checkpoint_inventory_t02/preflight/alpha_bundle/report.html) | **Example HTML report.** The canonical T02 output — open in a browser. |
 
 ### Figures
 
@@ -80,6 +81,7 @@ Gradience's spectral substrate — task-boundary detection, evidence gating, inv
 - **Mechanism ladder** (why merges fail): `../00_packet_index.md`
 - **Settled/open/next dashboard**: `../../notes/n69_settled_open_next.md`
 - **Full sidecar index**: `../../README.md`
-- **Project map** (stable vs alpha vs experimental vs research): `../../../docs/project-map.md`
+- **Project map** (stable vs alpha vs experimental vs research): `../../../docs/00_start_here/project-map.md`
+- **Route 2 claims ladder summary**: `../../../docs/strategy/route2_claims_ladder_summary.md`
 - **Boundaries and non-generalizations**: `../../../docs/boundaries-and-non-generalizations.md`
 - **All structured data**: `../../results/` (decision-dependent, cross-artifact, aggregation-sensitive, behavioral bridge subdirectories)

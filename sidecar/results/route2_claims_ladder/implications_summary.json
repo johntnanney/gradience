@@ -1,0 +1,30 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "E",
+  "generated_on": "2026-03-31",
+  "communication_guidance": {
+    "public_safe_claims": [
+      "Evidence gating and conservative narrowing are stable workflow invariants in tested Route 2 scope.",
+      "Aggregation is a first-class decision seam.",
+      "Worst-case, distributional, and QA-dominant aggregation families are operationally distinct.",
+      "Cross-artifact broadening is stronger at workflow layer than at metric layer.",
+      "The broadened substrate is real but intentionally narrow."
+    ],
+    "product_guarded_claims": [
+      "Same-task vs cross-task directional separation is useful but not fully class-parity complete.",
+      "Same-family intermediate and optional states are usable review categories with threshold guardrails.",
+      "Aggregation taxonomy is viable at coarse level; fine thresholds are non-canonical.",
+      "Behavioral profile distinctions are meaningful in current bounded panel."
+    ],
+    "research_only_claims": [
+      "Cross-artifact optional/near-miss portability outside LoRA.",
+      "Routing-confusability behavioral non-transfer as a broad rule.",
+      "Collapse-vs-contamination as a cross-context law beyond current merge-facing evidence."
+    ]
+  },
+  "next_strengthening_targets": [
+    "Increase non-LoRA optional/near-miss middle-state coverage.",
+    "Collect scenario-correct routing behavioral evidence.",
+    "Run bounded behavioral replication across additional artifact slices without widening scenario scope."
+  ]
+}

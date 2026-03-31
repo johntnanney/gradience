@@ -1,0 +1,381 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "B",
+  "generated_on": "2026-03-31",
+  "claims": [
+    {
+      "claim_id": "A1",
+      "supporting_notes": [
+        "sidecar/notes/n76_cross_artifact_panel_definition.md",
+        "sidecar/notes/n77_cross_artifact_invariant_signal_audit.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md",
+        "sidecar/notes/n102_aggregation_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/invariant_signal_matrix.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json",
+        "sidecar/results/route2_stability/aggregation/stability_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Evidence gating is repeatedly observed as the dominant triage gate across LoRA, LoHa, and checkpoint-delta paths, and survives perturbation checks.",
+      "gaps_or_weaknesses": "Coverage remains bounded to small-encoder, CPU-only settings."
+    },
+    {
+      "claim_id": "A2",
+      "supporting_notes": [
+        "sidecar/notes/n77_cross_artifact_invariant_signal_audit.md",
+        "sidecar/notes/n80_cross_artifact_product_relevance.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/invariant_signal_matrix.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Conservative narrowing appears as a recurring output behavior across artifact classes and field-trial style runs.",
+      "gaps_or_weaknesses": "No large-scale external deployment data yet."
+    },
+    {
+      "claim_id": "A3",
+      "supporting_notes": [
+        "docs/design/ring2_stage_a_checkpoint_delta_representation.md",
+        "docs/design/ring2_stage_b_representation_c_audit.md",
+        "docs/design/ring2_stage_c_guardrail_triage.md",
+        "docs/design/ring2_stage_d_assessment_memo.md"
+      ],
+      "supporting_results_files": [
+        "experiments/ring2_checkpoint_delta/stage_a_representation_results.json",
+        "experiments/ring2_checkpoint_delta/stage_b_representation_c_results.json",
+        "experiments/ring2_checkpoint_delta/stage_c_inventory_results.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Ring 2 and T01/T02 show an end-to-end checkpoint triage workflow that is broader than adapter merge preflight while remaining conservative.",
+      "gaps_or_weaknesses": "Support is explicitly bounded to shared-base small encoder classification settings."
+    },
+    {
+      "claim_id": "B1",
+      "supporting_notes": [
+        "sidecar/notes/n77_cross_artifact_invariant_signal_audit.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md",
+        "docs/strategy/cross_artifact_stability_summary.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/invariant_signal_matrix.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/cross_artifact_invariant_matrix.svg"
+      ],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Directional same-task vs cross-task separation appears in LoRA and checkpoint-delta slices and persists with caveats in perturbation checks.",
+      "gaps_or_weaknesses": "Incomplete parity in LoHa and scenario-limited coverage."
+    },
+    {
+      "claim_id": "B2",
+      "supporting_notes": [
+        "sidecar/notes/n77_cross_artifact_invariant_signal_audit.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md",
+        "sidecar/notes/n107_aggregation_mixed_evidence_triage_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/invariant_signal_matrix.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Same-family intermediate status appears repeatedly but is less robust than same-task/cross-task separation and is sensitive to panel composition.",
+      "gaps_or_weaknesses": "Panel-sensitive in cross-artifact stability pass; should remain guarded."
+    },
+    {
+      "claim_id": "B3",
+      "supporting_notes": [
+        "sidecar/notes/n89_behavioral_route2_dossier_optional_vs_fragile.md",
+        "sidecar/notes/n92_behavioral_route2_bridge.md",
+        "sidecar/notes/n107_aggregation_mixed_evidence_triage_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/behavioral_route2_bridge/profile_behavior_table.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/behavioral_route2_profile_matrix.svg",
+        "sidecar/figures/aggregation_mixed_evidence_matrix.svg"
+      ],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Same-family optional cases repeatedly cluster as review/safe-like rather than collapse-like in behavioral and mixed-evidence triage analyses.",
+      "gaps_or_weaknesses": "Exact thresholding and intra-review ranking remain lightly evidenced."
+    },
+    {
+      "claim_id": "B4",
+      "supporting_notes": [
+        "sidecar/notes/n80_cross_artifact_product_relevance.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/product_relevance_filter.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [],
+      "evidence_summary": "Cross-artifact optional/near-miss portability remains explicitly inconclusive outside LoRA.",
+      "gaps_or_weaknesses": "Thin evidence and sparse non-LoRA middle-state coverage."
+    },
+    {
+      "claim_id": "C1",
+      "supporting_notes": [
+        "sidecar/notes/n78_representation_local_signal_audit.md",
+        "sidecar/notes/n79_cross_artifact_compatibility_framework.md",
+        "sidecar/notes/n97_cross_artifact_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/local_signal_table.json",
+        "sidecar/results/cross_artifact_portability/framework_table.json",
+        "sidecar/results/route2_stability/cross_artifact/stability_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [],
+      "evidence_summary": "Representation-locality of strongest structural signals is one of the most replicated Route 2 cross-artifact findings.",
+      "gaps_or_weaknesses": "Current artifact panel remains small and bounded."
+    },
+    {
+      "claim_id": "C2",
+      "supporting_notes": [
+        "sidecar/notes/n75_cross_artifact_compatibility.md",
+        "sidecar/notes/n79_cross_artifact_compatibility_framework.md",
+        "sidecar/notes/n93_route2_synthesis.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_compatibility/shared_vs_specific_table.json",
+        "sidecar/results/cross_artifact_portability/framework_table.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Cross-artifact broadening repeatedly converges on workflow transfer rather than metric parity.",
+      "gaps_or_weaknesses": "No claim of universal portability outside tested artifact classes."
+    },
+    {
+      "claim_id": "C3",
+      "supporting_notes": [
+        "docs/design/ring2_stage_a_checkpoint_delta_representation.md",
+        "docs/design/ring2_stage_d_assessment_memo.md",
+        "docs/strategy/checkpoint_triage_summary.md"
+      ],
+      "supporting_results_files": [
+        "experiments/ring2_checkpoint_delta/stage_a_representation_results.json",
+        "experiments/ring2_checkpoint_delta/stage_b_representation_c_results.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Ring 2 selected summary-based checkpoint representation as the viable path, explicitly distinguishing it from factor-equivalent low-rank reuse.",
+      "gaps_or_weaknesses": "Checkpoint support remains bounded and does not imply merge execution support."
+    },
+    {
+      "claim_id": "D1",
+      "supporting_notes": [
+        "sidecar/notes/n72_aggregation_sensitive_compatibility.md",
+        "sidecar/notes/n85_aggregation_sensitive_operational_implications.md",
+        "sidecar/notes/n102_aggregation_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/aggregation_sensitive_compatibility/aggregation_comparison.json",
+        "sidecar/results/route2_stability/aggregation/stability_verdicts.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/decision_dependent_aggregation_matrix.svg"
+      ],
+      "supporting_field_trials": [],
+      "evidence_summary": "Aggregation as seam is the most replicated conclusion in decision-dependent and aggregation-sensitive lines, including perturbation survival.",
+      "gaps_or_weaknesses": "Generalization beyond current scenario set remains untested."
+    },
+    {
+      "claim_id": "D2",
+      "supporting_notes": [
+        "sidecar/notes/n83_aggregation_comparison_analysis.md",
+        "sidecar/notes/n84_aggregation_sensitive_pattern_taxonomy.md",
+        "sidecar/notes/n102_aggregation_stability_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/aggregation_sensitive_compatibility/aggregation_comparison.json",
+        "sidecar/results/route2_stability/aggregation/stability_verdicts.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/aggregation_comparison.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/aggregation_stability_comparison.svg"
+      ],
+      "supporting_field_trials": [],
+      "evidence_summary": "Worst-case, distributional, and QA-dominant families remain empirically distinct under original and perturbed panels.",
+      "gaps_or_weaknesses": "Family distinctions are stable, but exact thresholds are panel-local."
+    },
+    {
+      "claim_id": "D3",
+      "supporting_notes": [
+        "sidecar/notes/n83_aggregation_comparison_analysis.md",
+        "sidecar/notes/n85_aggregation_sensitive_operational_implications.md",
+        "sidecar/notes/n107_aggregation_mixed_evidence_triage_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/aggregation_sensitive_compatibility/aggregation_comparison.json",
+        "sidecar/results/route2_stability/aggregation/stability_verdicts.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "QA-dominant behavior includes override and mixed-review states that are not explained as weaker structural-only modes.",
+      "gaps_or_weaknesses": "Still bounded to tested triage settings."
+    },
+    {
+      "claim_id": "D4",
+      "supporting_notes": [
+        "sidecar/notes/n84_aggregation_sensitive_pattern_taxonomy.md",
+        "sidecar/notes/n102_aggregation_stability_memo.md",
+        "sidecar/notes/n107_aggregation_mixed_evidence_triage_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/aggregation_sensitive_compatibility/pattern_taxonomy.json",
+        "sidecar/results/route2_stability/aggregation/stability_verdicts.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/aggregation_stability_pattern_map.svg"
+      ],
+      "supporting_field_trials": [],
+      "evidence_summary": "Taxonomy structure is usable and replicable at coarse level, but fine-grained thresholds remain explicitly guarded.",
+      "gaps_or_weaknesses": "Fine boundary calibration remains panel-sensitive."
+    },
+    {
+      "claim_id": "E1",
+      "supporting_notes": [
+        "sidecar/notes/n88_behavioral_route2_findings.md",
+        "sidecar/notes/n92_behavioral_route2_bridge.md",
+        "docs/strategy/behavioral_route2_summary.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/behavioral_route2_bridge/behavior_bridge_table.json",
+        "sidecar/results/behavioral_route2_bridge/behavior_summary.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/behavioral_route2_profile_matrix.svg"
+      ],
+      "supporting_field_trials": [],
+      "evidence_summary": "Four of five Route 2 profiles show distinct behavioral signatures in the analyzed panel.",
+      "gaps_or_weaknesses": "Behavioral bridge coverage remains panel-bounded and largely LoRA-centered."
+    },
+    {
+      "claim_id": "E2",
+      "supporting_notes": [
+        "sidecar/notes/n64_example_dossier_safe_vs_fragile.md",
+        "sidecar/notes/n66_behavior_mechanism_bridge.md",
+        "sidecar/notes/n92_behavioral_route2_bridge.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/behavioral_route2_bridge/profile_behavior_table.json",
+        "sidecar/results/behavioral_route2_bridge/behavior_summary.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/behavioral_route2_profile_matrix.svg"
+      ],
+      "supporting_field_trials": [],
+      "evidence_summary": "Collapse and contamination channels are behaviorally dissociated in current merge-facing behavioral evidence.",
+      "gaps_or_weaknesses": "Portability beyond current merge-oriented panel is not yet established."
+    },
+    {
+      "claim_id": "E3",
+      "supporting_notes": [
+        "sidecar/notes/n90_behavioral_route2_dossier_confusable_vs_separable.md",
+        "sidecar/notes/n92_behavioral_route2_bridge.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/behavioral_route2_bridge/behavior_bridge_table.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [],
+      "evidence_summary": "Current evidence suggests routing-confusability does not automatically appear as merge-setting behavioral confusion.",
+      "gaps_or_weaknesses": "Evidence is sparse and scenario-limited; true routing behavior still thinly tested."
+    },
+    {
+      "claim_id": "E4",
+      "supporting_notes": [
+        "sidecar/notes/n89_behavioral_route2_dossier_optional_vs_fragile.md",
+        "sidecar/notes/n92_behavioral_route2_bridge.md",
+        "sidecar/notes/n107_aggregation_mixed_evidence_triage_memo.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/behavioral_route2_bridge/profile_behavior_table.json",
+        "sidecar/results/route2_stability/aggregation_mixed_evidence/soft_middle_verdicts.json"
+      ],
+      "supporting_figures": [
+        "sidecar/figures/behavioral_route2_profile_matrix.svg"
+      ],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Same-family optional behavior consistently aligns with review/safe-like profiles rather than collapse-like states.",
+      "gaps_or_weaknesses": "Fine-grained optional-state ranking remains guarded."
+    },
+    {
+      "claim_id": "F1",
+      "supporting_notes": [
+        "sidecar/notes/n93_route2_synthesis.md",
+        "docs/strategy/broadened_substrate_scope.md",
+        "docs/strategy/checkpoint_triage_summary.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/route2_stability/cross_artifact/stability_summary.json",
+        "sidecar/results/route2_stability/aggregation/stability_summary.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "Multiple Route 2 programs support a broadened substrate picture while repeatedly asserting narrow scope boundaries.",
+      "gaps_or_weaknesses": "Bounded regime only; not universal artifact or scenario coverage."
+    },
+    {
+      "claim_id": "F2",
+      "supporting_notes": [
+        "sidecar/notes/n79_cross_artifact_compatibility_framework.md",
+        "sidecar/notes/n85_aggregation_sensitive_operational_implications.md",
+        "sidecar/notes/n93_route2_synthesis.md"
+      ],
+      "supporting_results_files": [
+        "sidecar/results/cross_artifact_portability/framework_table.json",
+        "sidecar/results/aggregation_sensitive_compatibility/aggregation_comparison.json"
+      ],
+      "supporting_figures": [],
+      "supporting_field_trials": [
+        "field_trials/checkpoint_inventory_t01/",
+        "field_trials/checkpoint_inventory_t02/"
+      ],
+      "evidence_summary": "The strongest recurring portability is in evidence-aware triage workflow behavior, not in a universal metric layer.",
+      "gaps_or_weaknesses": "Needs broader external workflow pull to elevate from bounded to wider operational confidence."
+    }
+  ]
+}

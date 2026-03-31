@@ -36,6 +36,7 @@ Given a pool of LoRA adapters you might want to merge, Gradience runs a prefligh
 
 | I want to... | Go to |
 |--------------|-------|
+| Get the curated docs map by audience/stability/purpose | **[Documentation Map](docs/README.md)** |
 | Run my first inventory preflight | **[Playbook](docs/playbook.md)** — step-by-step for the five most common workflows |
 | See what each scenario looks like | **[Example Gallery](docs/example-gallery.md)** — same-task, mixed-task, weak-evidence, near-miss |
 | Understand the conceptual framework | **[Inventory Preflight Workflow](docs/inventory-preflight.md)** — when to use, how to interpret |

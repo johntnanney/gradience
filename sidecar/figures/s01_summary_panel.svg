@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1142" width="1200" height="1142">
+<style>text { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }</style>
+<rect width="1200" height="1142" fill="#FAFAFA"/>
+<text x="600" y="24" text-anchor="middle" font-size="18" font-weight="700" fill="#2C2C2C">S01 Summary: Instability as Working Concept</text>
+<text x="600" y="42" text-anchor="middle" font-size="11" fill="#888888">Two-backbone phase (DistilBERT + RoBERTa) — DeBERTa-v3 adjudication pending</text>
+<text x="90" y="57" font-size="13" font-weight="600" fill="#2C2C2C">A. Taxonomy Scatter — Severity vs Instability</text>
+<line x1="193" y1="65" x2="193" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="193" y="384" text-anchor="middle" font-size="8" fill="#888888">5%</text>
+<line x1="297" y1="65" x2="297" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="297" y="384" text-anchor="middle" font-size="8" fill="#888888">10%</text>
+<line x1="400" y1="65" x2="400" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="400" y="384" text-anchor="middle" font-size="8" fill="#888888">15%</text>
+<line x1="503" y1="65" x2="503" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="503" y="384" text-anchor="middle" font-size="8" fill="#888888">20%</text>
+<line x1="607" y1="65" x2="607" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="607" y="384" text-anchor="middle" font-size="8" fill="#888888">25%</text>
+<line x1="710" y1="65" x2="710" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="710" y="384" text-anchor="middle" font-size="8" fill="#888888">30%</text>
+<line x1="813" y1="65" x2="813" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="813" y="384" text-anchor="middle" font-size="8" fill="#888888">35%</text>
+<line x1="917" y1="65" x2="917" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="917" y="384" text-anchor="middle" font-size="8" fill="#888888">40%</text>
+<line x1="1020" y1="65" x2="1020" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="1020" y="384" text-anchor="middle" font-size="8" fill="#888888">45%</text>
+<line x1="90" y1="370" x2="1020" y2="370" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="373" text-anchor="end" font-size="8" fill="#888888">0.0</text>
+<line x1="90" y1="309" x2="1020" y2="309" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="312" text-anchor="end" font-size="8" fill="#888888">0.2</text>
+<line x1="90" y1="248" x2="1020" y2="248" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="251" text-anchor="end" font-size="8" fill="#888888">0.4</text>
+<line x1="90" y1="187" x2="1020" y2="187" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="190" text-anchor="end" font-size="8" fill="#888888">0.6</text>
+<line x1="90" y1="126" x2="1020" y2="126" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="129" text-anchor="end" font-size="8" fill="#888888">0.8</text>
+<line x1="90" y1="65" x2="1020" y2="65" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="84" y="68" text-anchor="end" font-size="8" fill="#888888">1.0</text>
+<rect x="90" y="144" width="930" height="134" fill="#F5F0FF" opacity="0.6"/>
+<text x="1026" y="215" font-size="9" fill="#9B7DBF" font-style="italic">instability gap</text>
+<line x1="193" y1="65" x2="193" y2="370" stroke="#CCCCCC" stroke-width="1" stroke-dasharray="4,3"/>
+<line x1="297" y1="65" x2="297" y2="370" stroke="#CCCCCC" stroke-width="1" stroke-dasharray="4,3"/>
+<line x1="400" y1="65" x2="400" y2="370" stroke="#CCCCCC" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="555" y="402" text-anchor="middle" font-size="11" fill="#5A5A5A">Max severity (worst delta across both backbones)</text>
+<text x="18" y="217" text-anchor="middle" font-size="11" fill="#5A5A5A" transform="rotate(-90, 18, 217)">Instability score</text>
+<rect x="90" y="65" width="930" height="305" fill="none" stroke="#AAAAAA" stroke-width="1"/>
+<circle cx="400" cy="306" r="9" fill="#5B8DBE" opacity="0.7" stroke="#5B8DBE" stroke-width="1.5"/>
+<text x="414" y="310" font-size="9" font-weight="500" fill="#2C2C2C">MRPC×SST2</text>
+<circle cx="951" cy="105" r="19" fill="#C04040" opacity="0.7" stroke="#C04040" stroke-width="1.5"/>
+<text x="975" y="109" font-size="9" font-weight="500" fill="#2C2C2C">QNLI×MRPC</text>
+<circle cx="262" cy="278" r="9" fill="#5B8DBE" opacity="0.7" stroke="#5B8DBE" stroke-width="1.5"/>
+<text x="275" y="282" font-size="9" font-weight="500" fill="#2C2C2C">QNLI×RTE</text>
+<circle cx="652" cy="145" r="13" fill="#C04040" opacity="0.7" stroke="#C04040" stroke-width="1.5"/>
+<text x="670" y="149" font-size="9" font-weight="500" fill="#2C2C2C">QNLI×SST2</text>
+<circle cx="262" cy="311" r="8" fill="#5B8DBE" opacity="0.7" stroke="#5B8DBE" stroke-width="1.5"/>
+<text x="275" y="315" font-size="9" font-weight="500" fill="#2C2C2C">RTE×MRPC</text>
+<circle cx="351" cy="325" r="9" fill="#5B8DBE" opacity="0.7" stroke="#5B8DBE" stroke-width="1.5"/>
+<text x="365" y="329" font-size="9" font-weight="500" fill="#2C2C2C">RTE×SST2</text>
+<text x="1035" y="75" font-size="10" font-weight="600" fill="#2C2C2C">Taxonomy</text>
+<circle cx="1042" cy="92" r="5" fill="#C04040" opacity="0.7"/>
+<text x="1052" y="96" font-size="9" fill="#5A5A5A">Backbone reversal</text>
+<circle cx="1042" cy="112" r="5" fill="#5B8DBE" opacity="0.7"/>
+<text x="1052" y="116" font-size="9" fill="#5A5A5A">Stable asymmetric</text>
+<text x="1035" y="150" font-size="9" font-weight="500" fill="#2C2C2C">Dot size =</text>
+<text x="1035" y="163" font-size="9" fill="#5A5A5A">backbone shift</text>
+<text x="90" y="486" font-size="13" font-weight="600" fill="#2C2C2C">B. Instability Case Table — One Row Per Pair</text>
+<rect x="85" y="498" width="1075" height="24" fill="#EEEEF4" rx="3"/>
+<text x="90" y="512" font-size="10" font-weight="600" fill="#2C2C2C">Pair</text>
+<text x="220" y="512" font-size="10" font-weight="600" fill="#2C2C2C">Taxonomy</text>
+<text x="350" y="512" font-size="10" font-weight="600" fill="#2C2C2C">Instability</text>
+<text x="460" y="512" font-size="10" font-weight="600" fill="#2C2C2C">Max Severity</text>
+<text x="560" y="512" font-size="10" font-weight="600" fill="#2C2C2C">Seed Range</text>
+<text x="670" y="512" font-size="10" font-weight="600" fill="#2C2C2C">BB Shift</text>
+<text x="780" y="512" font-size="10" font-weight="600" fill="#2C2C2C">CV</text>
+<rect x="85" y="528" width="1075" height="24" fill="#F5F5F8" rx="2"/>
+<rect x="85" y="530" width="3" height="20" fill="#C04040" rx="1"/>
+<text x="90" y="542" font-size="10" font-weight="500" fill="#2C2C2C">QNLI × MRPC</text>
+<text x="220" y="542" font-size="10" font-weight="400" fill="#2C2C2C">backbone reversal</text>
+<text x="350" y="542" font-size="10" font-weight="400" fill="#2C2C2C">0.87</text>
+<text x="460" y="542" font-size="10" font-weight="400" fill="#2C2C2C">41.7%</text>
+<text x="560" y="542" font-size="10" font-weight="400" fill="#2C2C2C">28.9%</text>
+<text x="670" y="542" font-size="10" font-weight="400" fill="#2C2C2C">40.0%</text>
+<text x="780" y="542" font-size="10" font-weight="400" fill="#2C2C2C">0.61</text>
+<rect x="85" y="554" width="3" height="20" fill="#C04040" rx="1"/>
+<text x="90" y="566" font-size="10" font-weight="500" fill="#2C2C2C">QNLI × SST2</text>
+<text x="220" y="566" font-size="10" font-weight="400" fill="#2C2C2C">backbone reversal</text>
+<text x="350" y="566" font-size="10" font-weight="400" fill="#2C2C2C">0.74</text>
+<text x="460" y="566" font-size="10" font-weight="400" fill="#2C2C2C">27.2%</text>
+<text x="560" y="566" font-size="10" font-weight="400" fill="#2C2C2C">26.2%</text>
+<text x="670" y="566" font-size="10" font-weight="400" fill="#2C2C2C">16.2%</text>
+<text x="780" y="566" font-size="10" font-weight="400" fill="#2C2C2C">0.89</text>
+<rect x="85" y="576" width="1075" height="24" fill="#F5F5F8" rx="2"/>
+<rect x="85" y="578" width="3" height="20" fill="#5B8DBE" rx="1"/>
+<text x="90" y="590" font-size="10" font-weight="500" fill="#2C2C2C">QNLI × RTE</text>
+<text x="220" y="590" font-size="10" font-weight="400" fill="#2C2C2C">stable asymmetric</text>
+<text x="350" y="590" font-size="10" font-weight="400" fill="#2C2C2C">0.30</text>
+<text x="460" y="590" font-size="10" font-weight="400" fill="#2C2C2C">8.3%</text>
+<text x="560" y="590" font-size="10" font-weight="400" fill="#2C2C2C">6.9%</text>
+<text x="670" y="590" font-size="10" font-weight="400" fill="#2C2C2C">1.9%</text>
+<text x="780" y="590" font-size="10" font-weight="400" fill="#2C2C2C">0.66</text>
+<rect x="85" y="602" width="3" height="20" fill="#5B8DBE" rx="1"/>
+<text x="90" y="614" font-size="10" font-weight="500" fill="#2C2C2C">MRPC × SST2</text>
+<text x="220" y="614" font-size="10" font-weight="400" fill="#2C2C2C">stable asymmetric</text>
+<text x="350" y="614" font-size="10" font-weight="400" fill="#2C2C2C">0.21</text>
+<text x="460" y="614" font-size="10" font-weight="400" fill="#2C2C2C">15.0%</text>
+<text x="560" y="614" font-size="10" font-weight="400" fill="#2C2C2C">8.0%</text>
+<text x="670" y="614" font-size="10" font-weight="400" fill="#2C2C2C">2.2%</text>
+<text x="780" y="614" font-size="10" font-weight="400" fill="#2C2C2C">0.29</text>
+<rect x="85" y="624" width="1075" height="24" fill="#F5F5F8" rx="2"/>
+<rect x="85" y="626" width="3" height="20" fill="#5B8DBE" rx="1"/>
+<text x="90" y="638" font-size="10" font-weight="500" fill="#2C2C2C">RTE × MRPC</text>
+<text x="220" y="638" font-size="10" font-weight="400" fill="#2C2C2C">stable asymmetric</text>
+<text x="350" y="638" font-size="10" font-weight="400" fill="#2C2C2C">0.19</text>
+<text x="460" y="638" font-size="10" font-weight="400" fill="#2C2C2C">8.3%</text>
+<text x="560" y="638" font-size="10" font-weight="400" fill="#2C2C2C">4.7%</text>
+<text x="670" y="638" font-size="10" font-weight="400" fill="#2C2C2C">1.2%</text>
+<text x="780" y="638" font-size="10" font-weight="400" fill="#2C2C2C">0.41</text>
+<rect x="85" y="650" width="3" height="20" fill="#5B8DBE" rx="1"/>
+<text x="90" y="662" font-size="10" font-weight="500" fill="#2C2C2C">RTE × SST2</text>
+<text x="220" y="662" font-size="10" font-weight="400" fill="#2C2C2C">stable asymmetric</text>
+<text x="350" y="662" font-size="10" font-weight="400" fill="#2C2C2C">0.15</text>
+<text x="460" y="662" font-size="10" font-weight="400" fill="#2C2C2C">12.6%</text>
+<text x="560" y="662" font-size="10" font-weight="400" fill="#2C2C2C">4.3%</text>
+<text x="670" y="662" font-size="10" font-weight="400" fill="#2C2C2C">4.3%</text>
+<text x="780" y="662" font-size="10" font-weight="400" fill="#2C2C2C">0.19</text>
+<line x1="350" y1="594" x2="430" y2="594" stroke="#9B7DBF" stroke-width="1.5" stroke-dasharray="4,2"/>
+<text x="435" y="598" font-size="9" fill="#9B7DBF" font-style="italic">instability gap (0.74 → 0.30)</text>
+<text x="90" y="758" font-size="13" font-weight="600" fill="#2C2C2C">C. Regime Contrast — All Evidence Regimes</text>
+<rect x="520" y="797" width="640" height="300" fill="#FFE0E0" opacity="0.35"/>
+<rect x="413" y="797" width="107" height="300" fill="#FFF0DD" opacity="0.35"/>
+<rect x="307" y="797" width="107" height="300" fill="#FFFFF0" opacity="0.35"/>
+<line x1="200" y1="797" x2="200" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="200" y="1111" text-anchor="middle" font-size="8" fill="#888888">0%</text>
+<line x1="307" y1="797" x2="307" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="307" y="1111" text-anchor="middle" font-size="8" fill="#888888">5%</text>
+<line x1="413" y1="797" x2="413" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="413" y="1111" text-anchor="middle" font-size="8" fill="#888888">10%</text>
+<line x1="520" y1="797" x2="520" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="520" y="1111" text-anchor="middle" font-size="8" fill="#888888">15%</text>
+<line x1="627" y1="797" x2="627" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="627" y="1111" text-anchor="middle" font-size="8" fill="#888888">20%</text>
+<line x1="733" y1="797" x2="733" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="733" y="1111" text-anchor="middle" font-size="8" fill="#888888">25%</text>
+<line x1="840" y1="797" x2="840" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="840" y="1111" text-anchor="middle" font-size="8" fill="#888888">30%</text>
+<line x1="947" y1="797" x2="947" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="947" y="1111" text-anchor="middle" font-size="8" fill="#888888">35%</text>
+<line x1="1053" y1="797" x2="1053" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="1053" y="1111" text-anchor="middle" font-size="8" fill="#888888">40%</text>
+<line x1="1160" y1="797" x2="1160" y2="1097" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="1160" y="1111" text-anchor="middle" font-size="8" fill="#888888">45%</text>
+<text x="680" y="1129" text-anchor="middle" font-size="11" fill="#5A5A5A">Worst-case delta per pair</text>
+<text x="190" y="822.4285714285714" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Same-task (DistilBERT)</text>
+<line x1="200" y1="818.4285714285714" x2="1160" y2="818.4285714285714" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="247" cy="821" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="208" cy="808" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="205" cy="814" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="209" cy="812" r="3" fill="#6BAF7A" opacity="0.55"/>
+<text x="190" y="865.2857142857143" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Same-task (RoBERTa)</text>
+<line x1="200" y1="861.2857142857143" x2="1160" y2="861.2857142857143" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="200" cy="866" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="200" cy="865" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="221" cy="870" r="3" fill="#6BAF7A" opacity="0.55"/>
+<circle cx="200" cy="852" r="3" fill="#6BAF7A" opacity="0.55"/>
+<text x="190" y="908.1428571428571" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Domain shift</text>
+<line x1="200" y1="904.1428571428571" x2="1160" y2="904.1428571428571" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="221" cy="902" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="230" cy="894" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="226" cy="898" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="221" cy="904" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="213" cy="894" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="238" cy="898" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="247" cy="907" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="238" cy="905" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="226" cy="898" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="204" cy="906" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="200" cy="911" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="200" cy="894" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="217" cy="911" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="209" cy="908" r="3" fill="#9B7DBF" opacity="0.55"/>
+<circle cx="213" cy="901" r="3" fill="#9B7DBF" opacity="0.55"/>
+<text x="190" y="951.0" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Source strength</text>
+<line x1="200" y1="947.0" x2="1160" y2="947.0" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="209" cy="940" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="226" cy="957" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="200" cy="943" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="251" cy="938" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="251" cy="938" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="221" cy="954" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="209" cy="949" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="209" cy="954" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="217" cy="952" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="230" cy="948" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="209" cy="957" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="209" cy="944" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="200" cy="948" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="217" cy="954" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="204" cy="950" r="3" fill="#5B8DBE" opacity="0.55"/>
+<text x="190" y="993.8571428571429" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Training style</text>
+<line x1="200" y1="989.8571428571429" x2="1160" y2="989.8571428571429" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="217" cy="998" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="230" cy="992" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="273" cy="994" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="234" cy="980" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="264" cy="984" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="209" cy="985" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="243" cy="981" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="204" cy="984" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="217" cy="981" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="226" cy="985" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="200" cy="993" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="234" cy="987" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="200" cy="987" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="243" cy="984" r="3" fill="#5B8DBE" opacity="0.55"/>
+<circle cx="213" cy="985" r="3" fill="#5B8DBE" opacity="0.55"/>
+<text x="190" y="1036.7142857142856" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Cross-task (DistilBERT)</text>
+<line x1="200" y1="1032.7142857142856" x2="1160" y2="1032.7142857142856" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="254" cy="1042" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="255" cy="1036" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="482" cy="1035" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="1089" cy="1026" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="413" cy="1038" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="435" cy="1026" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="315" cy="1030" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="337" cy="1043" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="490" cy="1036" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="472" cy="1034" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="383" cy="1037" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="422" cy="1040" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="252" cy="1039" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="320" cy="1027" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="339" cy="1023" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="377" cy="1029" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="268" cy="1028" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="352" cy="1027" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="331" cy="1042" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="346" cy="1041" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="404" cy="1029" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="346" cy="1036" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="472" cy="1030" r="3" fill="#C04040" opacity="0.55"/>
+<circle cx="383" cy="1042" r="3" fill="#C04040" opacity="0.55"/>
+<text x="190" y="1079.5714285714284" text-anchor="end" font-size="10" font-weight="500" fill="#2C2C2C">Cross-task (RoBERTa)</text>
+<line x1="200" y1="1075.5714285714284" x2="1160" y2="1075.5714285714284" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="377" cy="1075" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1071" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="216" cy="1070" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="237" cy="1077" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="575" cy="1070" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="780" cy="1077" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="231" cy="1084" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="243" cy="1073" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="210" cy="1070" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="216" cy="1086" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="221" cy="1076" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="260" cy="1067" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1066" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1067" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="470" cy="1078" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1082" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1074" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1066" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="439" cy="1073" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="377" cy="1086" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="392" cy="1076" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="520" cy="1086" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="349" cy="1083" r="3" fill="#E8A838" opacity="0.55"/>
+<circle cx="490" cy="1065" r="3" fill="#E8A838" opacity="0.55"/>
+<rect x="200" y="797" width="960" height="300" fill="none" stroke="#AAAAAA" stroke-width="1"/>
+<text x="309.6666666666667" y="809" font-size="8" fill="#888888" font-style="italic">broad</text>
+<text x="416.33333333333337" y="809" font-size="8" fill="#888888" font-style="italic">severe</text>
+<text x="523.0" y="809" font-size="8" fill="#888888" font-style="italic">catastrophic</text>
+</svg>

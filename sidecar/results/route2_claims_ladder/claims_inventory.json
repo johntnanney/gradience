@@ -1,0 +1,148 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "A",
+  "generated_on": "2026-03-31",
+  "claim_count": 20,
+  "claims": [
+    {
+      "claim_id": "A1",
+      "claim_group": "workflow_invariants",
+      "claim_text": "QA / evidence gating is a strong invariant across tested Route 2 artifact classes.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Cross-artifact and aggregation lines both treat evidence gating as dominant workflow logic."
+    },
+    {
+      "claim_id": "A2",
+      "claim_group": "workflow_invariants",
+      "claim_text": "Conservative narrowing is a strong invariant across tested Route 2 artifact classes.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Seen across adapter and checkpoint triage workflows."
+    },
+    {
+      "claim_id": "A3",
+      "claim_group": "workflow_invariants",
+      "claim_text": "Checkpoint triage is a real broadened workflow beyond adapter merge preflight.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Bounded to shared-base small-encoder classification settings."
+    },
+    {
+      "claim_id": "B1",
+      "claim_group": "task_relation_middle_state",
+      "claim_text": "Same-task vs cross-task separation remains directionally useful across tested artifact classes.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Supported where class coverage is available; not full parity in all classes."
+    },
+    {
+      "claim_id": "B2",
+      "claim_group": "task_relation_middle_state",
+      "claim_text": "Same-family intermediate status is real but more fragile than same-task vs cross-task separation.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Known to be panel-sensitive under perturbation."
+    },
+    {
+      "claim_id": "B3",
+      "claim_group": "task_relation_middle_state",
+      "claim_text": "Same-family optional / near-miss-like cases often behave safe-like rather than collapse-like.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Behavioral and mixed-evidence triage support exists with guardrails."
+    },
+    {
+      "claim_id": "B4",
+      "claim_group": "task_relation_middle_state",
+      "claim_text": "Cross-artifact optional / near-miss portability remains thin outside LoRA.",
+      "initial_expected_ladder_category": "thin",
+      "notes": "Cross-artifact stability pass kept this inconclusive."
+    },
+    {
+      "claim_id": "C1",
+      "claim_group": "structural_representation",
+      "claim_text": "The strongest structural metrics remain representation-local rather than cross-artifact invariant.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Core portability conclusion from n76-n80 and substudy 1."
+    },
+    {
+      "claim_id": "C2",
+      "claim_group": "structural_representation",
+      "claim_text": "Cross-artifact broadening is stronger at the workflow layer than at the metric layer.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Supported by cross-artifact and aggregation lines."
+    },
+    {
+      "claim_id": "C3",
+      "claim_group": "structural_representation",
+      "claim_text": "Checkpoint-delta broadening is currently summary-representation-based, not factor-equivalent to low-rank PEFT broadening.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Direct Ring 2 finding with architecture implications."
+    },
+    {
+      "claim_id": "D1",
+      "claim_group": "aggregation_scenario",
+      "claim_text": "Aggregation is a first-class seam in Route 2 compatibility.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Supported by main aggregation program and stability substudy."
+    },
+    {
+      "claim_id": "D2",
+      "claim_group": "aggregation_scenario",
+      "claim_text": "Worst-case, distributional, and QA-dominant aggregation families are genuinely distinct operational families.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Main aggregation finding, reinforced by perturbation checks."
+    },
+    {
+      "claim_id": "D3",
+      "claim_group": "aggregation_scenario",
+      "claim_text": "QA-dominant logic is not just a weaker form of structural-only reasoning.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Supported by contradiction cases and mixed-evidence pass."
+    },
+    {
+      "claim_id": "D4",
+      "claim_group": "aggregation_scenario",
+      "claim_text": "Aggregation-sensitive taxonomy is viable, but exact fine-grained thresholds remain guarded.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Viability survives, threshold precision remains bounded."
+    },
+    {
+      "claim_id": "E1",
+      "claim_group": "behavioral",
+      "claim_text": "Broadened Route 2 profiles have distinct behavioral footprints.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Strong in current panel, still limited to current behavioral coverage."
+    },
+    {
+      "claim_id": "E2",
+      "claim_group": "behavioral",
+      "claim_text": "Collapse and contamination are distinct behavioral failure channels.",
+      "initial_expected_ladder_category": "local_only",
+      "notes": "Well-supported in current merge-facing behavioral panel; portability still bounded."
+    },
+    {
+      "claim_id": "E3",
+      "claim_group": "behavioral",
+      "claim_text": "Routing-confusability does not necessarily produce a merge-setting behavioral signature.",
+      "initial_expected_ladder_category": "thin",
+      "notes": "Current evidence is informative but sparse."
+    },
+    {
+      "claim_id": "E4",
+      "claim_group": "behavioral",
+      "claim_text": "Same-family optionality is behaviorally closer to review-like / safe-like than to collapse-like.",
+      "initial_expected_ladder_category": "moderately_stable",
+      "notes": "Supported by behavioral dossiers and mixed-evidence triage pass."
+    },
+    {
+      "claim_id": "F1",
+      "claim_group": "broadened_substrate",
+      "claim_text": "Gradience’s broadened substrate is real but narrow.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Cross-program synthesis claim with explicit scope bounds."
+    },
+    {
+      "claim_id": "F2",
+      "claim_group": "broadened_substrate",
+      "claim_text": "The broadest portable value lies in evidence-aware triage rather than in universal structural metric semantics.",
+      "initial_expected_ladder_category": "stable",
+      "notes": "Converges from cross-artifact, aggregation, and stability lines."
+    }
+  ]
+}

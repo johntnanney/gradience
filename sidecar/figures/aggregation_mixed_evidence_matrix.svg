@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1380" height="520" viewBox="0 0 1380 520" role="img" aria-labelledby="title desc">
+  <title id="title">Aggregation Mixed-Evidence Matrix</title>
+  <desc id="desc">Case-by-family output matrix for the mixed-evidence triage perturbation panel.</desc>
+  <style>
+    .bg { fill: #f8fafc; }
+    .panel { fill: #ffffff; stroke: #d9e2ec; stroke-width: 1; }
+    .grid { stroke: #e3e8ef; stroke-width: 1; }
+    .txt { fill: #1f2937; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; }
+    .hdr { fill: #0f172a; font-weight: 600; font-size: 13px; }
+    .title { fill: #0f172a; font-weight: 700; font-size: 18px; }
+    .merge { fill: #fde68a; }
+    .route { fill: #bfdbfe; }
+    .qa_clear { fill: #bbf7d0; }
+    .qa_review { fill: #fde68a; }
+    .qa_blocked { fill: #fecaca; }
+    .hybrid { fill: #ddd6fe; }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1380" height="520" />
+  <text class="title" x="24" y="34">Route2 Mixed-Evidence Aggregation Matrix</text>
+  <text class="txt" x="24" y="54">Panel: 8 cases (clear=2, mixed=4, blocked=2), soft-middle weighted</text>
+
+  <rect class="panel" x="20" y="70" width="1340" height="430" rx="8" />
+
+  <line class="grid" x1="20" y1="110" x2="1360" y2="110" />
+  <line class="grid" x1="380" y1="70" x2="380" y2="500" />
+  <line class="grid" x1="620" y1="70" x2="620" y2="500" />
+  <line class="grid" x1="860" y1="70" x2="860" y2="500" />
+  <line class="grid" x1="1110" y1="70" x2="1110" y2="500" />
+
+  <text class="hdr" x="34" y="95">case_id</text>
+  <text class="hdr" x="402" y="95">worst_case</text>
+  <text class="hdr" x="642" y="95">distributional</text>
+  <text class="hdr" x="882" y="95">qa_dominant</text>
+  <text class="hdr" x="1128" y="95">qa_gated_distributional</text>
+
+  <!-- row 1 -->
+  <line class="grid" x1="20" y1="157" x2="1360" y2="157" />
+  <text class="txt" x="34" y="140">anchor_clear_retained_irony</text>
+  <rect class="merge" x="392" y="118" width="220" height="32" rx="4" /><text class="txt" x="402" y="138">merge_caution</text>
+  <rect class="route" x="632" y="118" width="220" height="32" rx="4" /><text class="txt" x="642" y="138">routing_confusable</text>
+  <rect class="qa_clear" x="872" y="118" width="230" height="32" rx="4" /><text class="txt" x="882" y="138">qa_clear</text>
+  <rect class="hybrid" x="1120" y="118" width="230" height="32" rx="4" /><text class="txt" x="1130" y="138">confusable</text>
+
+  <!-- row 2 -->
+  <line class="grid" x1="20" y1="204" x2="1360" y2="204" />
+  <text class="txt" x="34" y="187">anchor_blocked_same_task_checkpoint</text>
+  <rect class="merge" x="392" y="165" width="220" height="32" rx="4" /><text class="txt" x="402" y="185">merge_caution</text>
+  <rect class="route" x="632" y="165" width="220" height="32" rx="4" /><text class="txt" x="642" y="185">routing_confusable</text>
+  <rect class="qa_blocked" x="872" y="165" width="230" height="32" rx="4" /><text class="txt" x="882" y="185">qa_blocked</text>
+  <rect class="qa_blocked" x="1120" y="165" width="230" height="32" rx="4" /><text class="txt" x="1130" y="185">qa_blocked</text>
+
+  <!-- row 3 -->
+  <line class="grid" x1="20" y1="251" x2="1360" y2="251" />
+  <text class="txt" x="34" y="234">anchor_blocked_cross_task_checkpoint</text>
+  <rect class="merge" x="392" y="212" width="220" height="32" rx="4" /><text class="txt" x="402" y="232">merge_risky</text>
+  <rect class="route" x="632" y="212" width="220" height="32" rx="4" /><text class="txt" x="642" y="232">routing_separable</text>
+  <rect class="qa_blocked" x="872" y="212" width="230" height="32" rx="4" /><text class="txt" x="882" y="232">qa_blocked</text>
+  <rect class="qa_blocked" x="1120" y="212" width="230" height="32" rx="4" /><text class="txt" x="1130" y="232">qa_blocked</text>
+
+  <!-- row 4 -->
+  <line class="grid" x1="20" y1="298" x2="1360" y2="298" />
+  <text class="txt" x="34" y="281">review_mixed_cross_task_sst2_mrpc</text>
+  <rect class="merge" x="392" y="259" width="220" height="32" rx="4" /><text class="txt" x="402" y="279">merge_caution</text>
+  <rect class="route" x="632" y="259" width="220" height="32" rx="4" /><text class="txt" x="642" y="279">routing_needs_disambiguation</text>
+  <rect class="qa_review" x="872" y="259" width="230" height="32" rx="4" /><text class="txt" x="882" y="279">qa_review</text>
+  <rect class="qa_review" x="1120" y="259" width="230" height="32" rx="4" /><text class="txt" x="1130" y="279">qa_review</text>
+
+  <!-- row 5 -->
+  <line class="grid" x1="20" y1="345" x2="1360" y2="345" />
+  <text class="txt" x="34" y="328">review_mixed_cross_task_yelp_mrpc</text>
+  <rect class="merge" x="392" y="306" width="220" height="32" rx="4" /><text class="txt" x="402" y="326">merge_risky</text>
+  <rect class="route" x="632" y="306" width="220" height="32" rx="4" /><text class="txt" x="642" y="326">routing_separable</text>
+  <rect class="qa_review" x="872" y="306" width="230" height="32" rx="4" /><text class="txt" x="882" y="326">qa_review</text>
+  <rect class="qa_review" x="1120" y="306" width="230" height="32" rx="4" /><text class="txt" x="1130" y="326">qa_review</text>
+
+  <!-- row 6 -->
+  <line class="grid" x1="20" y1="392" x2="1360" y2="392" />
+  <text class="txt" x="34" y="375">optional_same_family_clear_sst2_imdb</text>
+  <rect class="merge" x="392" y="353" width="220" height="32" rx="4" /><text class="txt" x="402" y="373">merge_caution</text>
+  <rect class="route" x="632" y="353" width="220" height="32" rx="4" /><text class="txt" x="642" y="373">routing_needs_disambiguation</text>
+  <rect class="qa_clear" x="872" y="353" width="230" height="32" rx="4" /><text class="txt" x="882" y="373">qa_clear</text>
+  <rect class="hybrid" x="1120" y="353" width="230" height="32" rx="4" /><text class="txt" x="1130" y="373">needs_disambiguation</text>
+
+  <!-- row 7 -->
+  <line class="grid" x1="20" y1="439" x2="1360" y2="439" />
+  <text class="txt" x="34" y="422">optional_same_family_mixed_sst2_yelp_a</text>
+  <rect class="merge" x="392" y="400" width="220" height="32" rx="4" /><text class="txt" x="402" y="420">merge_risky</text>
+  <rect class="route" x="632" y="400" width="220" height="32" rx="4" /><text class="txt" x="642" y="420">routing_needs_disambiguation</text>
+  <rect class="qa_review" x="872" y="400" width="230" height="32" rx="4" /><text class="txt" x="882" y="420">qa_review</text>
+  <rect class="qa_review" x="1120" y="400" width="230" height="32" rx="4" /><text class="txt" x="1130" y="420">qa_review</text>
+
+  <!-- row 8 -->
+  <line class="grid" x1="20" y1="486" x2="1360" y2="486" />
+  <text class="txt" x="34" y="469">optional_same_family_mixed_sst2_yelp_b</text>
+  <rect class="merge" x="392" y="447" width="220" height="32" rx="4" /><text class="txt" x="402" y="467">merge_risky</text>
+  <rect class="route" x="632" y="447" width="220" height="32" rx="4" /><text class="txt" x="642" y="467">routing_needs_disambiguation</text>
+  <rect class="qa_review" x="872" y="447" width="230" height="32" rx="4" /><text class="txt" x="882" y="467">qa_review</text>
+  <rect class="qa_review" x="1120" y="447" width="230" height="32" rx="4" /><text class="txt" x="1130" y="467">qa_review</text>
+</svg>

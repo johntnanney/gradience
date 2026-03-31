@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 550" width="1100" height="550">
+<style>text { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }</style>
+<rect width="1100" height="550" fill="#FAFAFA"/>
+<text x="630" y="28" text-anchor="middle" font-size="17" font-weight="600" fill="#2C2C2C">Regime Contrast: Delta Distributions Across All Evidence</text>
+<text x="630" y="48" text-anchor="middle" font-size="11" fill="#888888">Each dot is one pair. Same-task regimes cluster near zero; cross-task regimes spread widely.</text>
+<rect x="487" y="60" width="573" height="430" fill="#FFE0E0" opacity="0.4"/>
+<rect x="391" y="60" width="96" height="430" fill="#FFF0DD" opacity="0.4"/>
+<rect x="296" y="60" width="96" height="430" fill="#FFFFF0" opacity="0.4"/>
+<line x1="200" y1="60" x2="200" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="200" y="506" text-anchor="middle" font-size="9" fill="#888888">0%</text>
+<line x1="296" y1="60" x2="296" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="296" y="506" text-anchor="middle" font-size="9" fill="#888888">5%</text>
+<line x1="391" y1="60" x2="391" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="391" y="506" text-anchor="middle" font-size="9" fill="#888888">10%</text>
+<line x1="487" y1="60" x2="487" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="487" y="506" text-anchor="middle" font-size="9" fill="#888888">15%</text>
+<line x1="582" y1="60" x2="582" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="582" y="506" text-anchor="middle" font-size="9" fill="#888888">20%</text>
+<line x1="678" y1="60" x2="678" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="678" y="506" text-anchor="middle" font-size="9" fill="#888888">25%</text>
+<line x1="773" y1="60" x2="773" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="773" y="506" text-anchor="middle" font-size="9" fill="#888888">30%</text>
+<line x1="869" y1="60" x2="869" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="869" y="506" text-anchor="middle" font-size="9" fill="#888888">35%</text>
+<line x1="964" y1="60" x2="964" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="964" y="506" text-anchor="middle" font-size="9" fill="#888888">40%</text>
+<line x1="1060" y1="60" x2="1060" y2="490" stroke="#E0E0E0" stroke-width="0.5"/>
+<text x="1060" y="506" text-anchor="middle" font-size="9" fill="#888888">45%</text>
+<text x="630" y="528" text-anchor="middle" font-size="12" fill="#5A5A5A">Worst-case delta per pair</text>
+<text x="190" y="94.71428571428572" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Same-task (DistilBERT)</text>
+<line x1="200" y1="90.71428571428572" x2="1060" y2="90.71428571428572" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="242" cy="95" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="207" cy="76" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="205" cy="84" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="208" cy="82" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<text x="190" y="156.14285714285714" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Same-task (RoBERTa)</text>
+<line x1="200" y1="152.14285714285714" x2="1060" y2="152.14285714285714" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="200" cy="159" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="200" cy="158" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="219" cy="164" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<circle cx="200" cy="139" r="3.5" fill="#6BAF7A" opacity="0.6"/>
+<text x="190" y="217.57142857142858" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Domain shift</text>
+<line x1="200" y1="213.57142857142858" x2="1060" y2="213.57142857142858" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="219" cy="211" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="227" cy="199" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="223" cy="205" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="219" cy="214" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="211" cy="199" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="234" cy="204" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="242" cy="218" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="234" cy="215" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="223" cy="205" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="204" cy="216" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="200" cy="223" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="200" cy="198" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="215" cy="223" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="208" cy="220" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<circle cx="211" cy="209" r="3.5" fill="#9B7DBF" opacity="0.6"/>
+<text x="190" y="279.0" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Source strength</text>
+<line x1="200" y1="275.0" x2="1060" y2="275.0" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="208" cy="264" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="223" cy="289" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="200" cy="270" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="246" cy="262" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="246" cy="263" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="219" cy="286" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="208" cy="278" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="208" cy="284" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="215" cy="282" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="227" cy="276" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="208" cy="290" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="208" cy="271" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="200" cy="277" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="215" cy="285" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="204" cy="279" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<text x="190" y="340.42857142857144" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Training style</text>
+<line x1="200" y1="336.42857142857144" x2="1060" y2="336.42857142857144" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="215" cy="348" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="227" cy="339" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="265" cy="343" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="231" cy="322" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="257" cy="328" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="208" cy="330" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="238" cy="324" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="204" cy="328" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="215" cy="324" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="223" cy="330" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="200" cy="341" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="231" cy="332" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="200" cy="332" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="238" cy="328" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<circle cx="211" cy="329" r="3.5" fill="#5B8DBE" opacity="0.6"/>
+<text x="190" y="401.8571428571429" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Cross-task (DistilBERT)</text>
+<line x1="200" y1="397.8571428571429" x2="1060" y2="397.8571428571429" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="248" cy="411" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="250" cy="402" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="452" cy="401" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="996" cy="388" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="391" cy="405" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="410" cy="388" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="303" cy="394" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="322" cy="413" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="460" cy="402" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="444" cy="400" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="364" cy="404" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="399" cy="408" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="247" cy="406" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="308" cy="390" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="324" cy="383" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="359" cy="392" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="261" cy="391" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="336" cy="389" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="317" cy="411" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="331" cy="409" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="383" cy="392" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="331" cy="403" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="444" cy="395" r="3.5" fill="#C04040" opacity="0.6"/>
+<circle cx="364" cy="411" r="3.5" fill="#C04040" opacity="0.6"/>
+<text x="190" y="463.2857142857143" text-anchor="end" font-size="11" font-weight="500" fill="#2C2C2C">Cross-task (RoBERTa)</text>
+<line x1="200" y1="459.2857142857143" x2="1060" y2="459.2857142857143" stroke="#E0E0E0" stroke-width="0.5"/>
+<circle cx="359" cy="458" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="452" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="214" cy="452" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="233" cy="461" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="536" cy="452" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="720" cy="462" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="228" cy="472" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="238" cy="456" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="209" cy="451" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="214" cy="475" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="219" cy="460" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="254" cy="447" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="445" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="447" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="441" cy="463" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="468" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="457" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="446" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="414" cy="456" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="359" cy="475" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="372" cy="460" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="487" cy="474" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="334" cy="470" r="3.5" fill="#E8A838" opacity="0.6"/>
+<circle cx="460" cy="444" r="3.5" fill="#E8A838" opacity="0.6"/>
+<rect x="200" y="60" width="860" height="430" fill="none" stroke="#AAAAAA" stroke-width="1"/>
+</svg>
