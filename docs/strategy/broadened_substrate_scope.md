@@ -63,6 +63,7 @@ Anything else remains experimental, sidecar-only, or deferred.
 - `docs/strategy/decision_dependent_compatibility_implications.md`
 - `docs/strategy/route2_claims_ladder_summary.md`
 - `docs/strategy/mixed_evidence_triage_summary.md`
+- `docs/strategy/collapse_vs_contamination_summary.md`
 - `docs/strategy/external_use_case_scan.md`
 - `docs/examples/checkpoint-triage-alpha-workflow.md`
 
@@ -78,4 +79,5 @@ Route 2 initial implementation checkpoint is complete in bounded form:
 4. cross-artifact compatibility portability pass completed in bounded scope
 5. external use-case scan framed
 6. mixed-evidence triage stress testing confirms soft-middle coherence with guardrails
-7. expansion remains gated by representation clarity, workflow usefulness, interpretability, and practical confirmation
+7. collapse-vs-contamination replication strengthens bounded behavioral channel language
+8. expansion remains gated by representation clarity, workflow usefulness, interpretability, and practical confirmation

@@ -1,0 +1,270 @@
+{
+  "program": "route2_claims_stability_ladder",
+  "stage": "R1_edge_refinement",
+  "generated_on": "2026-04-01",
+  "policy_mode": "conservative_public_suppression",
+  "precedence": [
+    "thin_suppress_public",
+    "stable_but_local",
+    "moderate_but_product_relevant",
+    "core_stable_non_edge"
+  ],
+  "summary_counts": {
+    "core_stable_non_edge": 8,
+    "stable_but_local": 5,
+    "moderate_but_product_relevant": 5,
+    "thin_suppress_public": 2
+  },
+  "claims": [
+    {
+      "claim_id": "A1",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Broad cross-artifact workflow invariant; foundational and not scenario-local.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Broad cross-artifact workflow invariant; foundational and not scenario-local.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "A2",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Broad repeated workflow invariant across tested artifacts and inventories.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Broad repeated workflow invariant across tested artifacts and inventories.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "A3",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "justification": "Strong but bounded to checkpoint triage envelope and single-class operational path.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "stable_but_local",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Strong but bounded to checkpoint triage envelope and single-class operational path.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "B1",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "justification": "Directionally useful for triage/ranking decisions with explicit parity caveats.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "moderate_but_product_relevant",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Directionally useful for triage/ranking decisions with explicit parity caveats.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "B2",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "justification": "Useful middle-state signal for workflow decisions but panel-sensitive ordering.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "moderate_but_product_relevant",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Useful middle-state signal for workflow decisions but panel-sensitive ordering.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "B3",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "justification": "Operationally useful review/optional framing with threshold guardrails.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "moderate_but_product_relevant",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Operationally useful review/optional framing with threshold guardrails.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "B4",
+      "final_ladder_status": "thin",
+      "edge_refinement_bucket": "thin_suppress_public",
+      "public_language_policy": "suppress_public",
+      "justification": "Thin portability evidence outside LoRA; not reliable for public claims.",
+      "original_ladder_status": "thin",
+      "refined_status_r1": "thin_suppress_public",
+      "communication_policy_tag": "suppress_public",
+      "short_explanation": "Thin portability evidence outside LoRA; not reliable for public claims.",
+      "allowed_use": "research_only"
+    },
+    {
+      "claim_id": "C1",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Stable cross-artifact guardrail about metric locality; core calibration claim.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Stable cross-artifact guardrail about metric locality; core calibration claim.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "C2",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Core Route 2 portability framing across programs.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Core Route 2 portability framing across programs.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "C3",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "justification": "Strong but representation-path-specific (checkpoint summary route), not universal factor equivalence.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "stable_but_local",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Strong but representation-path-specific (checkpoint summary route), not universal factor equivalence.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "D1",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Seam-level aggregation claim repeatedly stability-checked.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Seam-level aggregation claim repeatedly stability-checked.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "D2",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Distinct aggregation families replicated and core to decision-dependent interpretation.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Distinct aggregation families replicated and core to decision-dependent interpretation.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "D3",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "justification": "Strong within QA-dominant triage family, but scenario-local by design.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "stable_but_local",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Strong within QA-dominant triage family, but scenario-local by design.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "D4",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "justification": "Taxonomy useful for product/workflow messaging at coarse grain with guarded boundaries.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "moderate_but_product_relevant",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Taxonomy useful for product/workflow messaging at coarse grain with guarded boundaries.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "E1",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "justification": "Behavioral profile differentiation is strong but still bounded to current behavioral coverage.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "stable_but_local",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Behavioral profile differentiation is strong but still bounded to current behavioral coverage.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "E2",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "justification": "Replication-supported channel distinction in merge-facing setting; bounded cross-context scope.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "stable_but_local",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Replication-supported channel distinction in merge-facing setting; bounded cross-context scope.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "E3",
+      "final_ladder_status": "thin",
+      "edge_refinement_bucket": "thin_suppress_public",
+      "public_language_policy": "suppress_public",
+      "justification": "Routing behavioral transfer remains sparse and should stay out of public framing.",
+      "original_ladder_status": "thin",
+      "refined_status_r1": "thin_suppress_public",
+      "communication_policy_tag": "suppress_public",
+      "short_explanation": "Routing behavioral transfer remains sparse and should stay out of public framing.",
+      "allowed_use": "research_only"
+    },
+    {
+      "claim_id": "E4",
+      "final_ladder_status": "moderately_stable",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "justification": "Useful behavioral guidance for optional/review handling with guardrails.",
+      "original_ladder_status": "moderately_stable",
+      "refined_status_r1": "moderate_but_product_relevant",
+      "communication_policy_tag": "allow_bounded",
+      "short_explanation": "Useful behavioral guidance for optional/review handling with guardrails.",
+      "allowed_use": "product_guarded"
+    },
+    {
+      "claim_id": "F1",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Core synthesis claim with explicit bounded-scope wording already embedded.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Core synthesis claim with explicit bounded-scope wording already embedded.",
+      "allowed_use": "public"
+    },
+    {
+      "claim_id": "F2",
+      "final_ladder_status": "stable",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "justification": "Primary Route 2 portable value claim for product/public explanation.",
+      "original_ladder_status": "stable",
+      "refined_status_r1": "core_stable_non_edge",
+      "communication_policy_tag": "allow_core",
+      "short_explanation": "Primary Route 2 portable value claim for product/public explanation.",
+      "allowed_use": "public"
+    }
+  ],
+  "refinement_schema": {
+    "required_stage_c_fields": [
+      "claim_id",
+      "original_ladder_status",
+      "refined_status_r1",
+      "communication_policy_tag",
+      "short_explanation",
+      "allowed_use"
+    ]
+  }
+}

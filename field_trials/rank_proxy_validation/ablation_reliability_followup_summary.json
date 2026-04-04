@@ -1,0 +1,145 @@
+{
+  "scope": {
+    "task_families": [
+      "sst2",
+      "imdb"
+    ],
+    "adapter_count": 4,
+    "ablation_modes": [
+      "hard_zero",
+      "attenuate"
+    ],
+    "ablation_samples_grid": [
+      24,
+      48,
+      72
+    ],
+    "fixed_panels": 3,
+    "random_repeats": 3,
+    "budgets": [
+      0.35,
+      0.5,
+      0.65
+    ],
+    "low_info_max_unique_values": 2,
+    "low_info_min_nonzero_fraction": 0.2,
+    "high_tie_pair_fraction_threshold": 0.8
+  },
+  "stability_delta_max_minus_min_sample": {
+    "attenuate_fixed": {
+      "delta_pairwise_spearman": 0.6283354055972703,
+      "delta_pairwise_kendall_tau_b": 0.6077086214513583,
+      "delta_pairwise_goodman_kruskal_gamma": 0.462962962962963,
+      "delta_pairwise_topk_overlap_q25": -0.05555555555555558,
+      "delta_pairwise_topk_overlap_q50": 0.05555555555555558
+    },
+    "attenuate_random": {
+      "delta_pairwise_spearman": 0.2670415690158242,
+      "delta_pairwise_kendall_tau_b": 0.2652611171343192,
+      "delta_pairwise_goodman_kruskal_gamma": 0.12125097125097117,
+      "delta_pairwise_topk_overlap_q25": 0.05555555555555547,
+      "delta_pairwise_topk_overlap_q50": 0.09722222222222221
+    },
+    "hard_zero_fixed": {
+      "delta_pairwise_spearman": 0.2718415115165293,
+      "delta_pairwise_kendall_tau_b": 0.24213135310966977,
+      "delta_pairwise_goodman_kruskal_gamma": 0.2430335097001763,
+      "delta_pairwise_topk_overlap_q25": 0.13888888888888895,
+      "delta_pairwise_topk_overlap_q50": 0.02777777777777779
+    },
+    "hard_zero_random": {
+      "delta_pairwise_spearman": 0.4465832719115886,
+      "delta_pairwise_kendall_tau_b": 0.43750292707576166,
+      "delta_pairwise_goodman_kruskal_gamma": 0.5822293174400455,
+      "delta_pairwise_topk_overlap_q25": 0.2222222222222222,
+      "delta_pairwise_topk_overlap_q50": 0.06944444444444442
+    }
+  },
+  "best_stability_setting_by_spearman": {
+    "ablation_mode": "attenuate",
+    "panel_type": "random",
+    "ablation_samples": 72,
+    "mean_pairwise_spearman": 0.8875164589487735,
+    "mean_pairwise_topk_overlap_q25": 0.6666666666666666,
+    "mean_pairwise_topk_overlap_q50": 0.9444444444444444
+  },
+  "best_stability_setting_by_kendall_tau_b": {
+    "ablation_mode": "attenuate",
+    "panel_type": "fixed",
+    "ablation_samples": 72,
+    "mean_pairwise_kendall_tau_b": 0.8577086214513583
+  },
+  "best_stability_setting_by_gamma": {
+    "ablation_mode": "attenuate",
+    "panel_type": "fixed",
+    "ablation_samples": 72,
+    "mean_pairwise_goodman_kruskal_gamma": 0.962962962962963
+  },
+  "aggregate_by_ablation_samples": {
+    "24": {
+      "mean_pairwise_spearman": 0.3501,
+      "mean_pairwise_kendall_tau_b": 0.3417,
+      "mean_pairwise_goodman_kruskal_gamma": 0.5284,
+      "mean_pairwise_topk_overlap_q25": 0.6181,
+      "pairwise_spearman_valid_pair_fraction": 0.3333,
+      "pairwise_kendall_valid_pair_fraction": 0.3333,
+      "pairwise_gamma_valid_pair_fraction": 0.3333,
+      "low_information_vector_fraction": 0.8333,
+      "flat_vector_fraction": 0.5417,
+      "high_tie_vector_fraction": 0.5833
+    },
+    "48": {
+      "mean_pairwise_spearman": 0.4191,
+      "mean_pairwise_kendall_tau_b": 0.4047,
+      "mean_pairwise_goodman_kruskal_gamma": 0.6401,
+      "mean_pairwise_topk_overlap_q25": 0.5625,
+      "pairwise_spearman_valid_pair_fraction": 0.4583,
+      "pairwise_kendall_valid_pair_fraction": 0.4583,
+      "pairwise_gamma_valid_pair_fraction": 0.4583,
+      "low_information_vector_fraction": 0.8125,
+      "flat_vector_fraction": 0.4375,
+      "high_tie_vector_fraction": 0.4583
+    },
+    "72": {
+      "mean_pairwise_spearman": 0.7535,
+      "mean_pairwise_kendall_tau_b": 0.7298,
+      "mean_pairwise_goodman_kruskal_gamma": 0.8808,
+      "mean_pairwise_topk_overlap_q25": 0.7083,
+      "pairwise_spearman_valid_pair_fraction": 0.625,
+      "pairwise_kendall_valid_pair_fraction": 0.625,
+      "pairwise_gamma_valid_pair_fraction": 0.625,
+      "low_information_vector_fraction": 0.5625,
+      "flat_vector_fraction": 0.3125,
+      "high_tie_vector_fraction": 0.3125
+    }
+  },
+  "reliability_caveat": {
+    "pairwise_valid_fraction_range": {
+      "spearman": [
+        0.08333333333333333,
+        0.75
+      ],
+      "kendall_tau_b": [
+        0.08333333333333333,
+        0.75
+      ],
+      "goodman_kruskal_gamma": [
+        0.08333333333333333,
+        0.75
+      ]
+    },
+    "note": "Tie-aware metrics are now available, but low-information ablation vectors still constrain valid pair counts in several settings."
+  },
+  "bounded_conclusion": {
+    "ablation_reliability_improves_with_larger_panels": true,
+    "fixed_panels_consistently_better_than_random": false,
+    "soft_ablation_clearly_dominant_everywhere": false,
+    "tie_aware_metrics_added": true,
+    "low_information_flags_added": true,
+    "operational_default_proxy_remains_gradient": true
+  },
+  "source_artifacts": {
+    "raw_sweep_json": "/Users/john/code/gradience/field_trials/rank_proxy_validation/ablation_reliability_sweep.json",
+    "raw_sweep_md": "/Users/john/code/gradience/field_trials/rank_proxy_validation/ablation_reliability_sweep.md"
+  }
+}

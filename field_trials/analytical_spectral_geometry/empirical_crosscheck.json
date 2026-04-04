@@ -1,0 +1,224 @@
+{
+  "status": "empirical_crosscheck_completed",
+  "generated_at_utc": "2026-04-03T20:17:33+00:00",
+  "scope": "strict_naive_cohort_only",
+  "params": {
+    "poor_threshold": -0.05,
+    "subset_overlap_min": 0.25,
+    "subset_conflict_max": 0.1
+  },
+  "n_ok_pairs": 12,
+  "n_errors": 0,
+  "errors": [],
+  "pair_rows": [
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.010000000000000009,
+      "source_score_gap": 0.018000000000000016,
+      "mean_overlap": 0.4682,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.5833333333333334,
+      "oa_v1_max_score": 0.34765061449482726,
+      "oa_v1_top3_score_mean": 0.3444366331305531,
+      "oa_v2_max_score": 0.19953273437245975,
+      "oa_v2_top3_interaction": 0.19576113609247447,
+      "is_poor": false
+    },
+    {
+      "pair_id": "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "merge_delta_vs_best_source": -0.05400000000000005,
+      "source_score_gap": 0.07800000000000007,
+      "mean_overlap": 0.4165,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.20980685949325562,
+      "oa_v1_top3_score_mean": 0.19777914881706238,
+      "oa_v2_max_score": 0.30783573277330073,
+      "oa_v2_top3_interaction": 0.3061271552262248,
+      "is_poor": true
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.010000000000000009,
+      "source_score_gap": 0.006000000000000005,
+      "mean_overlap": 0.3897,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.19503098130226135,
+      "oa_v1_top3_score_mean": 0.18593221306800842,
+      "oa_v2_max_score": 0.3660175166300293,
+      "oa_v2_top3_interaction": 0.3886622619046551,
+      "is_poor": false
+    },
+    {
+      "pair_id": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.02200000000000002,
+      "source_score_gap": 0.038000000000000034,
+      "mean_overlap": 0.3085,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.3799513299284304,
+      "oa_v1_top3_score_mean": 0.28984913238463844,
+      "oa_v2_max_score": 0.2380436007956188,
+      "oa_v2_top3_interaction": 0.18118756326037808,
+      "is_poor": false
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "merge_delta_vs_best_source": -0.006000000000000005,
+      "source_score_gap": 0.016000000000000014,
+      "mean_overlap": 0.2558,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.20105807153622623,
+      "oa_v1_top3_score_mean": 0.17485855389491642,
+      "oa_v2_max_score": 0.0923209801575193,
+      "oa_v2_top3_interaction": 0.08463745991646741,
+      "is_poor": false
+    },
+    {
+      "pair_id": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": -0.008000000000000007,
+      "source_score_gap": 0.020000000000000018,
+      "mean_overlap": 0.2542,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.24007334074120515,
+      "oa_v1_top3_score_mean": 0.1865623995080766,
+      "oa_v2_max_score": 0.22893312938109225,
+      "oa_v2_top3_interaction": 0.12754447255619525,
+      "is_poor": false
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.006000000000000005,
+      "source_score_gap": 0.014000000000000012,
+      "mean_overlap": 0.3499,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.16324233412742614,
+      "oa_v1_top3_score_mean": 0.15997381210327147,
+      "oa_v2_max_score": 0.28434592170202694,
+      "oa_v2_top3_interaction": 0.2987574096178219,
+      "is_poor": false
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.15000000000000002,
+      "source_score_gap": 0.19000000000000006,
+      "mean_overlap": 0.2537,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 1.0,
+      "oa_v1_max_score": 0.1426705317456115,
+      "oa_v1_top3_score_mean": 0.11746456561006176,
+      "oa_v2_max_score": 0.026836093335234235,
+      "oa_v2_top3_interaction": 0.0280273411873187,
+      "is_poor": true
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "merge_delta_vs_best_source": -0.008000000000000007,
+      "source_score_gap": 0.02200000000000002,
+      "mean_overlap": 0.2417,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.1224400520324707,
+      "oa_v1_top3_score_mean": 0.11751182675361632,
+      "oa_v2_max_score": 0.16719694257452103,
+      "oa_v2_top3_interaction": 0.17425684383066198,
+      "is_poor": false
+    },
+    {
+      "pair_id": "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "merge_delta_vs_best_source": -0.5680000000000001,
+      "source_score_gap": 0.62,
+      "mean_overlap": 0.2413,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.16757805347442625,
+      "oa_v1_top3_score_mean": 0.15350461900234222,
+      "oa_v2_max_score": 0.1578563091072418,
+      "oa_v2_top3_interaction": 0.15811012463914054,
+      "is_poor": true
+    },
+    {
+      "pair_id": "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.018000000000000016,
+      "source_score_gap": 0.020000000000000018,
+      "mean_overlap": 0.2146,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.13591169714927673,
+      "oa_v1_top3_score_mean": 0.13155933618545532,
+      "oa_v2_max_score": 0.1969680530556417,
+      "oa_v2_top3_interaction": 0.20486640065695857,
+      "is_poor": false
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": 0.0040000000000000036,
+      "source_score_gap": 0.0040000000000000036,
+      "mean_overlap": 0.2076,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": 0.0,
+      "oa_v1_max_score": 0.1838071245918051,
+      "oa_v1_top3_score_mean": 0.15522876207210926,
+      "oa_v2_max_score": 0.14036336585941445,
+      "oa_v2_top3_interaction": 0.08546442670831338,
+      "is_poor": false
+    }
+  ],
+  "analysis": {
+    "overall": {
+      "n_pairs": 12,
+      "spearman_delta_vs_oa_v1_max": -0.017574936721114882,
+      "spearman_delta_vs_oa_v2_max": -0.04217984813067571,
+      "spearman_delta_vs_oa_v2_top3_interaction": -0.11950956970358119
+    },
+    "high_overlap_low_conflict_subset": {
+      "n_pairs": 8,
+      "spearman_delta_vs_oa_v1_max": -0.024098134635593994,
+      "spearman_delta_vs_oa_v2_max": 0.03614720195339099,
+      "spearman_delta_vs_oa_v2_top3_interaction": 0.03614720195339099
+    },
+    "poor_merge_enrichment": {
+      "v1_top_tercile": {
+        "n_alerted": 4,
+        "poor_rate_alerted": 0.25,
+        "poor_rate_rest": 0.25,
+        "lift": 0.0,
+        "recall": 0.3333333333333333
+      },
+      "v2_top_tercile": {
+        "n_alerted": 4,
+        "poor_rate_alerted": 0.25,
+        "poor_rate_rest": 0.25,
+        "lift": 0.0,
+        "recall": 0.3333333333333333
+      },
+      "recall_gain_v2_minus_v1": 0.0
+    },
+    "sign_consistency": {
+      "loo": {
+        "full_spearman": 0.03614720195339099,
+        "n_loo": 8,
+        "sign_consistency": 0.75
+      },
+      "bootstrap": {
+        "full_spearman": 0.03614720195339099,
+        "n_boot": 400,
+        "sign_consistency": 0.545
+      }
+    },
+    "threshold_policy_gate": {
+      "rule_1_abs_spearman_gain_ge_0_15": false,
+      "rule_1_abs_spearman_gain_value": 0.012049067317796994,
+      "rule_2_recall_gain_ge_0_20": false,
+      "rule_2_recall_gain_value": 0.0,
+      "rule_3_sign_consistency_ge_0_70": true,
+      "rule_3_sign_consistency_value": 0.75,
+      "rule_4_interpretability_decomposition_ok": true,
+      "all_pass": false
+    }
+  }
+}

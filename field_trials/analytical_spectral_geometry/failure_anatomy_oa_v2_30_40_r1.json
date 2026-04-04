@@ -1,0 +1,234 @@
+{
+  "status": "oa_v2_failure_anatomy_completed",
+  "generated_at_utc": "2026-04-03T21:35:22+00:00",
+  "inputs": {
+    "crosscheck_json": "field_trials/analytical_spectral_geometry/empirical_crosscheck_oa_v2_30_40_r1.json",
+    "strict_naive_json": "field_trials/over_accumulation_followup/oa_v2_30_40_r1_strict_naive_rerun_results.json"
+  },
+  "n_pairs": 30,
+  "n_intended_slice": 9,
+  "cohort_group_mix": {
+    "high_tail": 15,
+    "lower_tail_matched": 15
+  },
+  "summary": {
+    "overall": {
+      "n": 30,
+      "mean_delta_vs_best": -0.10673333333333333,
+      "mean_oa_v1": 0.14963105097953475,
+      "mean_oa_v2": 0.11732740049204614,
+      "spearman_delta_vs_oa_v1": 0.17914460293032564,
+      "spearman_delta_vs_oa_v2": 0.25133720411120314,
+      "spearman_gain_v2_minus_v1": 0.0721926011808775,
+      "poor_rate": 0.4,
+      "mean_source_gap": 0.16860000000000003
+    },
+    "intended_high_overlap_low_conflict_slice": {
+      "n": 9,
+      "mean_delta_vs_best": -0.030444444444444458,
+      "mean_oa_v1": 0.22770412564081274,
+      "mean_oa_v2": 0.22610520419071817,
+      "spearman_delta_vs_oa_v1": 0.16035039978824722,
+      "spearman_delta_vs_oa_v2": -0.09283444198266944,
+      "spearman_gain_v2_minus_v1": -0.25318484177091666,
+      "poor_rate": 0.2222222222222222,
+      "mean_source_gap": 0.04600000000000003
+    }
+  },
+  "breakdown": {
+    "task_family": [
+      {
+        "n": 22,
+        "mean_delta_vs_best": -0.11054545454545454,
+        "mean_oa_v1": 0.14565255392063745,
+        "mean_oa_v2": 0.0744431571282287,
+        "spearman_delta_vs_oa_v1": 0.16402738545860734,
+        "spearman_delta_vs_oa_v2": 0.22511344625008872,
+        "spearman_gain_v2_minus_v1": 0.06108606079148138,
+        "poor_rate": 0.4090909090909091,
+        "mean_source_gap": 0.18945454545454546,
+        "group": "sentiment_binary"
+      },
+      {
+        "n": 6,
+        "mean_delta_vs_best": -0.12533333333333338,
+        "mean_oa_v1": 0.16538037061691283,
+        "mean_oa_v2": 0.23729908113277498,
+        "spearman_delta_vs_oa_v1": 0.08571428571428572,
+        "spearman_delta_vs_oa_v2": 0.6571428571428571,
+        "spearman_gain_v2_minus_v1": 0.5714285714285714,
+        "poor_rate": 0.5,
+        "mean_source_gap": 0.139,
+        "group": "tweet_eval"
+      },
+      {
+        "n": 2,
+        "mean_delta_vs_best": -0.009000000000000008,
+        "mean_oa_v1": 0.146146559715271,
+        "mean_oa_v2": 0.22913903557185156,
+        "spearman_delta_vs_oa_v1": null,
+        "spearman_delta_vs_oa_v2": null,
+        "spearman_gain_v2_minus_v1": null,
+        "poor_rate": 0.0,
+        "mean_source_gap": 0.028000000000000025,
+        "group": "topic_classification"
+      }
+    ],
+    "backbone_family": [
+      {
+        "n": 28,
+        "mean_delta_vs_best": -0.09371428571428572,
+        "mean_oa_v1": 0.14826787173262662,
+        "mean_oa_v2": 0.10967444918160572,
+        "spearman_delta_vs_oa_v1": 0.19986323715872784,
+        "spearman_delta_vs_oa_v2": 0.29307791566897123,
+        "spearman_gain_v2_minus_v1": 0.0932146785102434,
+        "poor_rate": 0.39285714285714285,
+        "mean_source_gap": 0.15728571428571428,
+        "group": "distilbert"
+      },
+      {
+        "n": 1,
+        "mean_delta_vs_best": -0.5680000000000001,
+        "mean_oa_v1": 0.16757805347442625,
+        "mean_oa_v2": 0.1578563091072418,
+        "spearman_delta_vs_oa_v1": null,
+        "spearman_delta_vs_oa_v2": null,
+        "spearman_gain_v2_minus_v1": null,
+        "poor_rate": 1.0,
+        "mean_source_gap": 0.62,
+        "group": "bert"
+      },
+      {
+        "n": 1,
+        "mean_delta_vs_best": -0.010000000000000009,
+        "mean_oa_v1": 0.1698530673980713,
+        "mean_oa_v2": 0.2910811285691821,
+        "spearman_delta_vs_oa_v1": null,
+        "spearman_delta_vs_oa_v2": null,
+        "spearman_gain_v2_minus_v1": null,
+        "poor_rate": 0.0,
+        "mean_source_gap": 0.03400000000000003,
+        "group": "roberta"
+      }
+    ],
+    "source_gap_band": [
+      {
+        "n": 13,
+        "mean_delta_vs_best": -0.21169230769230768,
+        "mean_oa_v1": 0.10701991777561162,
+        "mean_oa_v2": 0.039615598371131426,
+        "spearman_delta_vs_oa_v1": -0.7015137310479301,
+        "spearman_delta_vs_oa_v2": -0.8775799223697636,
+        "spearman_gain_v2_minus_v1": -0.17606619132183343,
+        "poor_rate": 0.6153846153846154,
+        "mean_source_gap": 0.33076923076923076,
+        "group": "large_gap"
+      },
+      {
+        "n": 11,
+        "mean_delta_vs_best": -0.006909090909090915,
+        "mean_oa_v1": 0.2055248070255299,
+        "mean_oa_v2": 0.20777046778049535,
+        "spearman_delta_vs_oa_v1": -0.3041765350680116,
+        "spearman_delta_vs_oa_v2": -0.5346133040589295,
+        "spearman_gain_v2_minus_v1": -0.23043676899091786,
+        "poor_rate": 0.0,
+        "mean_source_gap": 0.01927272727272729,
+        "group": "near_top"
+      },
+      {
+        "n": 6,
+        "mean_delta_vs_best": -0.06233333333333336,
+        "mean_oa_v1": 0.13948328683704384,
+        "mean_oa_v2": 0.11989068172520445,
+        "spearman_delta_vs_oa_v1": 0.7142857142857143,
+        "spearman_delta_vs_oa_v2": 0.4857142857142857,
+        "spearman_gain_v2_minus_v1": -0.2285714285714286,
+        "poor_rate": 0.6666666666666666,
+        "mean_source_gap": 0.09100000000000001,
+        "group": "mid_gap"
+      }
+    ],
+    "rank_mismatch_band": [
+      {
+        "n": 14,
+        "mean_delta_vs_best": -0.15071428571428572,
+        "mean_oa_v1": 0.1027703868411012,
+        "mean_oa_v2": 0.043919856140911546,
+        "spearman_delta_vs_oa_v1": -0.3894391795522936,
+        "spearman_delta_vs_oa_v2": -0.36303652331146014,
+        "spearman_gain_v2_minus_v1": 0.02640265624083349,
+        "poor_rate": 0.5,
+        "mean_source_gap": 0.26285714285714284,
+        "group": "large_mismatch"
+      },
+      {
+        "n": 10,
+        "mean_delta_vs_best": -0.07720000000000002,
+        "mean_oa_v1": 0.18160330822186516,
+        "mean_oa_v2": 0.22219686581722273,
+        "spearman_delta_vs_oa_v1": 0.28659069365997897,
+        "spearman_delta_vs_oa_v2": 0.08536744066467458,
+        "spearman_gain_v2_minus_v1": -0.20122325299530439,
+        "poor_rate": 0.3,
+        "mean_source_gap": 0.09120000000000002,
+        "group": "matched"
+      },
+      {
+        "n": 6,
+        "mean_delta_vs_best": -0.053333333333333344,
+        "mean_oa_v1": 0.20568550523199572,
+        "mean_oa_v2": 0.11382922843606591,
+        "spearman_delta_vs_oa_v1": 0.5161002296110788,
+        "spearman_delta_vs_oa_v2": 0.5161002296110788,
+        "spearman_gain_v2_minus_v1": 0.0,
+        "poor_rate": 0.3333333333333333,
+        "mean_source_gap": 0.0776666666666667,
+        "group": "moderate_mismatch"
+      }
+    ],
+    "cohort_group": [
+      {
+        "n": 15,
+        "mean_delta_vs_best": -0.10466666666666669,
+        "mean_oa_v1": 0.21500577329172318,
+        "mean_oa_v2": 0.18270734335523958,
+        "spearman_delta_vs_oa_v1": 0.10951684881947671,
+        "spearman_delta_vs_oa_v2": 0.27109908478263905,
+        "spearman_gain_v2_minus_v1": 0.16158223596316235,
+        "poor_rate": 0.3333333333333333,
+        "mean_source_gap": 0.12853333333333336,
+        "group": "high_tail"
+      },
+      {
+        "n": 15,
+        "mean_delta_vs_best": -0.10879999999999998,
+        "mean_oa_v1": 0.08425632866734631,
+        "mean_oa_v2": 0.0519474576288527,
+        "spearman_delta_vs_oa_v1": 0.13214285714285715,
+        "spearman_delta_vs_oa_v2": -0.02142857142857143,
+        "spearman_gain_v2_minus_v1": -0.15357142857142858,
+        "poor_rate": 0.4666666666666667,
+        "mean_source_gap": 0.20866666666666667,
+        "group": "lower_tail_matched"
+      }
+    ]
+  },
+  "findings": [
+    "OA-v2 improves overall rank correlation but does not hold directionally in the intended high-overlap/low-conflict slice.",
+    "Overall Spearman(delta, OA-v1)=0.1791, OA-v2=0.2513; intended-slice Spearman OA-v1=0.1604, OA-v2=-0.0928.",
+    "Intended slice coverage is 9/30 pairs, which remains a key stability limiter.",
+    "Promotion gate remains failed: rule1=False, rule2=False, rule3=False, rule4=True."
+  ],
+  "gate_snapshot": {
+    "rule_1_abs_spearman_gain_ge_0_15": false,
+    "rule_1_abs_spearman_gain_value": -0.06751595780557779,
+    "rule_2_recall_gain_ge_0_20": false,
+    "rule_2_recall_gain_value": -0.08333333333333334,
+    "rule_3_sign_consistency_ge_0_70": false,
+    "rule_3_sign_consistency_value": 0.5555555555555556,
+    "rule_4_interpretability_decomposition_ok": true,
+    "all_pass": false
+  }
+}

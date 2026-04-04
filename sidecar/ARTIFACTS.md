@@ -2,7 +2,7 @@
 
 A stable, navigable index of every major artifact in the sidecar and field trial directories. Organized by function, not by creation order. For the theoretical narrative, see `notes/n67_where_the_research_stands.md`. For project status, see `notes/n69_settled_open_next.md`.
 
-*Last updated: 2026-04-01. 116 notes, 17 scripts, 120 JSON results, 68 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
+*Last updated: 2026-04-01. 121 notes, 17 scripts, 126 JSON results, 69 figures, 5 primary field trial inventories, 5 Ring 2 checkpoints.*
 
 ---
 
@@ -19,6 +19,7 @@ The documents that synthesize the research program. Read in this order for the c
 | `notes/n112_route2_claims_ladder_implications.md` | Route 2 claims ladder implications memo. Public/product/internal language guidance from calibrated claim statuses. |
 | `../docs/strategy/aggregation_mixed_evidence_summary.md` | Mixed-evidence triage perturbation summary. Soft-middle coherence and guardrails for review/optional language. |
 | `../docs/strategy/mixed_evidence_triage_summary.md` | Follow-on mixed-evidence triage stress-test summary. Confirms soft-middle coherence in a richer mixed-evidence panel with explicit threshold guardrails. |
+| `../docs/strategy/collapse_vs_contamination_summary.md` | Collapse-vs-contamination replication summary. Strengthens channel distinction as stable but bounded in merge-facing settings. |
 | `notes/n68_ruled_out_mechanisms.md` | Ruled-out mechanisms (definitive). Ten primary, five ancillary eliminations. Supersedes n38, n52. |
 | `notes/n50_executive_research_summary.md` | Executive summary. Product identity, central claim, practitioner value. |
 | `notes/n33_conjunctive_mechanism_synthesis.md` | Conjunctive model. V-module pathology × readout incompatibility → catastrophe. |
@@ -47,7 +48,7 @@ The figures that tell the core theoretical story. Copies of the top 5 are also i
 | `figures/example_semantics_taxonomy_composition.png` | Failure taxonomy composition — neither-source rate as threshold discriminator. | Example semantics |
 | `figures/example_semantics_confidence.png` | Confidence distributions: collapse in fragile vs high-confidence wrong in control. | Example semantics |
 
-All 68 figures are in `figures/`. SVG for vector clarity, PNG for compatibility.
+All 69 figures are in `figures/`. SVG for vector clarity, PNG for compatibility.
 
 ## Field trial artifacts
 
@@ -514,6 +515,29 @@ Focused stress-test of the Route 2 soft middle. Tests whether mixed-evidence rev
 | `results/route2_stress_tests/mixed_evidence_triage/soft_middle_verdicts.md` | Soft-middle verdict table (markdown). |
 | `results/route2_stress_tests/mixed_evidence_triage/summary.json` | Optional compact summary (JSON). |
 | `figures/mixed_evidence_triage_matrix.svg` | Mixed-evidence triage aggregation matrix figure. |
+
+## Route 2 Collapse vs Contamination Replication (n118-n122)
+
+Targeted behavioral replication pass for one high-value Route 2 distinction: uncertainty-dominant collapse vs confident contamination.
+
+| Artifact | Role |
+|----------|------|
+| `notes/n118_collapse_vs_contamination_baseline.md` | Stage A: baseline freeze of original collapse-vs-contamination anchor finding. |
+| `notes/n119_collapse_vs_contamination_replication_panel.md` | Stage B: nearby replication panel (1 case + 3 slices, both channels represented). |
+| `notes/n120_collapse_vs_contamination_rerun.md` | Stage C: metric rerun across replication targets. |
+| `notes/n121_collapse_vs_contamination_verdict.md` | Stage D: channel comparison verdict (`replicated_with_guardrails`). |
+| `notes/n122_collapse_vs_contamination_replication_memo.md` | Stage E: memo with bounded language guidance. |
+| `../docs/strategy/collapse_vs_contamination_summary.md` | Strategy-level summary for Route 2 synthesis and guarded public language. |
+| `results/route2_stress_tests/collapse_vs_contamination/baseline_snapshot.json` | Baseline case snapshot (JSON). |
+| `results/route2_stress_tests/collapse_vs_contamination/panel_table.json` | Replication panel table (JSON). |
+| `results/route2_stress_tests/collapse_vs_contamination/panel_table.md` | Replication panel table (markdown). |
+| `results/route2_stress_tests/collapse_vs_contamination/behavior_summary.json` | Per-target behavioral metrics and channel aggregates (JSON). |
+| `results/route2_stress_tests/collapse_vs_contamination/channel_comparison_table.json` | Channel comparison table (JSON). |
+| `results/route2_stress_tests/collapse_vs_contamination/channel_comparison_table.md` | Channel comparison table (markdown). |
+| `results/route2_stress_tests/collapse_vs_contamination/verdicts.json` | Verdict dimensions and overall status (JSON). |
+| `results/route2_stress_tests/collapse_vs_contamination/verdicts.md` | Verdict summary (markdown). |
+| `results/route2_stress_tests/collapse_vs_contamination/summary.json` | Optional compact summary (JSON). |
+| `figures/collapse_vs_contamination_replication_matrix.svg` | Replication matrix figure for confidence-channel separation. |
 
 ## Panels, studies, and templates
 

@@ -87,6 +87,7 @@ A v1 report has these top-level sections:
 - **`verdict_distribution`** -- layer verdict counts: how many layers were classified as safe, redundant, conflicting, or imbalanced.
 - **`compatibility_score`** -- numeric score from 0 to 1. Higher means more compatible. Derived from the layer verdict distribution.
 - **`core_space`** *(optional)* -- shared-basis diagnostic summary (`shared_basis_score`, `basis_distortion`, `effective_shared_rank`, `status`) when `--compute-core-space` is enabled.
+- **`over_accumulation_advisory`** *(optional)* -- additive watch signal (`"watch"` or `"elevated"`) for possible shared-direction inflation under naive linear merge. Includes companion fields `over_accumulation_summary`, `over_accumulation_high_risk_layers`, and `over_accumulation_watch_layers`.
 - **`task_relationship_advisory`** *(optional)* -- present when source QA artifacts indicate the adapters were evaluated on different tasks. Part of the stable interpretive layer. Across 132+ checked pairs on two backbones, the advisory has 0% false positive rate on same-task pairs and 100% correct fire rate on different-task pairs. Most valuable for inventory-level partitioning of mixed-task pools — in observation testing, it collapsed 11 medium-risk candidates to 2 actionable pairs. Does not alter structural risk classification or recommendation logic. Note: in same-task/different-domain regimes with high cross-domain transfer (e.g., sentiment across review domains), the advisory may overcall — flagging merges that are actually safe. Treat as "worth checking" rather than "likely degraded" in such cases.
 
 ## 4. How to Consume It
@@ -153,6 +154,10 @@ if report.recommended_strategy == "linear":
 | `caveats` | `list[str]` | `[]` | Warnings and advisories |
 | `verdict_distribution` | `dict[str, int]` | `{}` | Layer verdict counts (values must be integers) |
 | `core_space` | `dict` | omitted | Optional shared-basis diagnostic block (present only when computed) |
+| `over_accumulation_advisory` | `str` | omitted | Optional additive advisory: `"watch"` or `"elevated"` (omitted when none) |
+| `over_accumulation_summary` | `str` | omitted | Human-readable note for the over-accumulation advisory |
+| `over_accumulation_high_risk_layers` | `int` | `0` | Number of layers in over-accumulation `"high"` band |
+| `over_accumulation_watch_layers` | `int` | `0` | Number of layers in over-accumulation `"watch"` band |
 | `task_relationship_advisory` | `str` | omitted | Advisory when adapters were evaluated on different tasks (present only when applicable) |
 
 Extra keys at any level are silently ignored (forward compatible).
@@ -166,6 +171,7 @@ Extra keys at any level are silently ignored (forward compatible).
 - `caveats` must be `list[str]` if present.
 - `verdict_distribution` values must be integers if present.
 - If `core_space` is present, it must include numeric `shared_basis_score`, numeric `basis_distortion`, integer `effective_shared_rank`, and status in `{compatible, marginal, incompatible, not_applicable}`.
+- If `over_accumulation_advisory` is present, it must be one of `{none, watch, elevated}`; emitted reports use `watch`/`elevated` and omit the field when none.
 - Numeric fields accept `int` or `float`, normalized to the declared type.
 - If `task_relationship_advisory` is present, it must be a string.
 
@@ -223,6 +229,16 @@ Extra keys at any level are silently ignored (forward compatible).
 | `high` | Significant structural risk; validate after merge |
 
 `pair_risk` is derived from structural analysis (layer verdicts, magnitude ratios). Eligibility status never affects `pair_risk`. Eligibility affects `caveats`, `recommended_action`, and `--strict-qa` behavior.
+
+### Over-accumulation advisory (additive)
+
+| Value | Meaning |
+|-------|---------|
+| `watch` | Some high-overlap layers may be susceptible to shared-direction inflation under naive merge |
+| `elevated` | Stronger concentration/exposure pattern suggests elevated inflation watch |
+| omitted | No over-accumulation watch triggered |
+
+This advisory does not replace `pair_risk` or `dominant_issue`. It is an additive explanatory signal.
 
 ## 7. Versioning Policy
 

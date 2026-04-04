@@ -1,0 +1,68 @@
+{
+  "schema_version": "gradience.merge_result/v1",
+  "plan_id": "ccfcd5be-6922-4c21-87ba-ffb7167e1823",
+  "strategy_name": "uniform_linear",
+  "output_dir": "/Users/john/code/gradience/field_trials/over_accumulation_followup/oa_v2_30_40_strict_naive_reruns/06_dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k/merged_adapter",
+  "output_rank": 8,
+  "output_alpha": 16.0,
+  "n_layers": 6,
+  "total_time_seconds": 0.01,
+  "mean_reconstruction_error": 0.073129,
+  "max_reconstruction_error": 0.124409,
+  "per_layer": [
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.12440948695714893,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 4.191411018371582
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.08974656493938044,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 4.965057373046875
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.06668364708785342,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 4.572150230407715
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.3.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.10114194250325463,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 4.320223331451416
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.04525760512754527,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 4.547056674957275
+    },
+    {
+      "module_prefix": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+      "strategy_used": "linear",
+      "reconstruction_error": 0.011536475812240725,
+      "input_rank_a": 8,
+      "input_rank_b": 4,
+      "output_rank": 8,
+      "merged_frobenius": 7.3579792976379395
+    }
+  ]
+}

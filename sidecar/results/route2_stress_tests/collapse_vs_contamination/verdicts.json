@@ -1,0 +1,34 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.verdicts/v1",
+  "generated_utc": "2026-04-01T00:30:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "overall_verdict": "replicated_with_guardrails",
+  "verdict_dimensions": {
+    "channel_separation_clarity": {
+      "status": "strong",
+      "evidence": "Confidence-collapse and high-confidence-wrong metrics remain strongly separated across channels."
+    },
+    "slice_stability": {
+      "status": "strong",
+      "evidence": "CT-01 even/odd slices retain contamination signature with minimal drift; FR-01 even slice retains collapse signature."
+    },
+    "case_stability": {
+      "status": "moderate",
+      "evidence": "Collapse replicated on nearby FR-02 case; contamination replication remains centered on CT-01 slice perturbations."
+    },
+    "scope_breadth": {
+      "status": "narrow",
+      "evidence": "Same backbone, merge-facing context, existing case family only."
+    },
+    "communication_relevance": {
+      "status": "high_with_guardrails",
+      "evidence": "Supports bounded internal and guarded public language about channel distinctions."
+    }
+  },
+  "claim_assessment": {
+    "collapse_vs_contamination_distinction": {
+      "status": "replicated_with_guardrails",
+      "one_line": "Behavioral channel split survives local replication and slice perturbation, but remains context-bounded."
+    }
+  }
+}

@@ -1,10 +1,10 @@
 # n112 -- Route 2 Claims Ladder Implications
 
 **Type:** synthesis implication memo  
-**Date:** 2026-03-31  
+**Date:** 2026-04-01  
 **Program:** Route 2 Claims Stability Ladder  
 **Stage:** E  
-**Depends on:** n111 stability ladder outputs  
+**Depends on:** n111 stability ladder outputs, n123 edge refinement overlay  
 **Status:** complete
 
 ---
@@ -35,6 +35,7 @@ Use with explicit caveats:
 2. Same-family intermediate and same-family optional states are meaningful, but thresholds/orderings remain guarded.
 3. Aggregation taxonomy is usable at coarse grain, not as fixed numeric boundaries.
 4. Behavioral profile distinctions are useful, but broader artifact-level behavioral replication remains limited.
+5. Collapse-vs-contamination is usable as bounded merge-facing explanatory language after local replication, but should retain cross-context guardrails.
 
 ---
 
@@ -44,7 +45,7 @@ Keep out of broad external claims:
 
 1. Cross-artifact optional/near-miss portability outside LoRA (thin).
 2. Routing-confusability behavioral non-transfer claims (thin).
-3. Collapse-vs-contamination as a broad cross-context law (currently local to merge-facing evidence).
+3. Collapse-vs-contamination as a broad cross-context law beyond tested merge-facing evidence.
 
 ---
 
@@ -62,7 +63,7 @@ If additional strengthening work is needed, highest value targets are:
 
 ### Public language (blog/HF)
 
-Use stable workflow and aggregation seam claims with explicit bounded-scope phrasing.
+Use `allow_core` claims directly; use `allow_bounded` claims only with explicit scope caveats; suppress all `thin_suppress_public` claims.
 
 ### Product and alpha workflow language
 
@@ -74,7 +75,7 @@ Include representation-locality and aggregation-family distinctions explicitly.
 
 ### Sidecar-only language
 
-Keep thin/local claims in sidecar context until stronger evidence exists.
+Keep suppressed thin claims and cross-context extrapolations in sidecar context until stronger evidence exists.
 
 ---
 

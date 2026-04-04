@@ -1,7 +1,7 @@
 {
   "program": "route2_claims_stability_ladder",
   "stage": "C",
-  "generated_on": "2026-03-31",
+  "generated_on": "2026-04-01",
   "dimensions": [
     "evidence_base_score",
     "perturbation_survival_score",
@@ -17,7 +17,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "indirect_behavioral_support",
       "product_relevance_score": "safe_to_expose",
-      "short_scoring_justification": "Cross-artifact plus stability passes repeatedly support evidence gating as dominant triage logic."
+      "short_scoring_justification": "Cross-artifact plus stability passes repeatedly support evidence gating as dominant triage logic.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Broad cross-artifact workflow invariant; foundational and not scenario-local."
     },
     {
       "claim_id": "A2",
@@ -26,7 +29,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "workflow_only",
       "product_relevance_score": "safe_to_expose",
-      "short_scoring_justification": "Conservative narrowing recurs across adapter and checkpoint workflows and survives perturbation checks."
+      "short_scoring_justification": "Conservative narrowing recurs across adapter and checkpoint workflows and survives perturbation checks.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Broad repeated workflow invariant across tested artifacts and inventories."
     },
     {
       "claim_id": "A3",
@@ -35,7 +41,10 @@
       "artifact_coverage_score": "single_class",
       "behavioral_grounding_score": "indirect_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Ring 2 and T01/T02 support checkpoint triage as real, but explicitly bounded."
+      "short_scoring_justification": "Ring 2 and T01/T02 support checkpoint triage as real, but explicitly bounded.",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Strong but bounded to checkpoint triage envelope and single-class operational path."
     },
     {
       "claim_id": "B1",
@@ -44,7 +53,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "indirect_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Directional separation is visible where testable, but parity is incomplete across artifact classes."
+      "short_scoring_justification": "Directional separation is visible where testable, but parity is incomplete across artifact classes.",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Directionally useful for triage/ranking decisions with explicit parity caveats."
     },
     {
       "claim_id": "B2",
@@ -53,7 +65,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "indirect_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Same-family intermediate status is present but known to shift under panel perturbation."
+      "short_scoring_justification": "Same-family intermediate status is present but known to shift under panel perturbation.",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Useful middle-state signal for workflow decisions but panel-sensitive ordering."
     },
     {
       "claim_id": "B3",
@@ -62,7 +77,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "direct_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Behavioral and mixed-evidence analyses support safe-like optionality with threshold guardrails."
+      "short_scoring_justification": "Behavioral and mixed-evidence analyses support safe-like optionality with threshold guardrails.",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Operationally useful review/optional framing with threshold guardrails."
     },
     {
       "claim_id": "B4",
@@ -71,7 +89,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "structural_only",
       "product_relevance_score": "research_only",
-      "short_scoring_justification": "Optional/near-miss portability outside LoRA remains explicitly inconclusive."
+      "short_scoring_justification": "Optional/near-miss portability outside LoRA remains explicitly inconclusive.",
+      "edge_refinement_bucket": "thin_suppress_public",
+      "public_language_policy": "suppress_public",
+      "edge_refinement_justification": "Thin portability evidence outside LoRA; not reliable for public claims."
     },
     {
       "claim_id": "C1",
@@ -80,7 +101,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "structural_only",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Representation-locality of strong metrics is replicated across cross-artifact and stability studies."
+      "short_scoring_justification": "Representation-locality of strong metrics is replicated across cross-artifact and stability studies.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Stable cross-artifact guardrail about metric locality; core calibration claim."
     },
     {
       "claim_id": "C2",
@@ -89,7 +113,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "workflow_only",
       "product_relevance_score": "safe_to_expose",
-      "short_scoring_justification": "Multiple Route 2 lines converge on workflow-level portability rather than metric-level portability."
+      "short_scoring_justification": "Multiple Route 2 lines converge on workflow-level portability rather than metric-level portability.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Core Route 2 portability framing across programs."
     },
     {
       "claim_id": "C3",
@@ -98,7 +125,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "structural_only",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Ring 2 consistently supports summary-based checkpoint broadening with explicit non-equivalence to factor reuse."
+      "short_scoring_justification": "Ring 2 consistently supports summary-based checkpoint broadening with explicit non-equivalence to factor reuse.",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Strong but representation-path-specific (checkpoint summary route), not universal factor equivalence."
     },
     {
       "claim_id": "D1",
@@ -107,7 +137,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "workflow_only",
       "product_relevance_score": "safe_to_expose",
-      "short_scoring_justification": "Aggregation-as-seam is repeatedly confirmed in main and stability aggregation programs."
+      "short_scoring_justification": "Aggregation-as-seam is repeatedly confirmed in main and stability aggregation programs.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Seam-level aggregation claim repeatedly stability-checked."
     },
     {
       "claim_id": "D2",
@@ -116,7 +149,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "structural_only",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Aggregation families remain distinct across reruns and mixed-evidence stress tests."
+      "short_scoring_justification": "Aggregation families remain distinct across reruns and mixed-evidence stress tests.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Distinct aggregation families replicated and core to decision-dependent interpretation."
     },
     {
       "claim_id": "D3",
@@ -125,7 +161,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "indirect_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "QA-dominant logic shows override and review behavior not captured by structural-only gradation."
+      "short_scoring_justification": "QA-dominant logic shows override and review behavior not captured by structural-only gradation.",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Strong within QA-dominant triage family, but scenario-local by design."
     },
     {
       "claim_id": "D4",
@@ -134,7 +173,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "structural_only",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Taxonomy remains usable, but exact boundaries and frequencies stay panel-local."
+      "short_scoring_justification": "Taxonomy remains usable, but exact boundaries and frequencies stay panel-local.",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Taxonomy useful for product/workflow messaging at coarse grain with guarded boundaries."
     },
     {
       "claim_id": "E1",
@@ -143,16 +185,22 @@
       "artifact_coverage_score": "single_class",
       "behavioral_grounding_score": "direct_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Behavioral profile differentiation is strong in-panel, but broader artifact coverage is limited."
+      "short_scoring_justification": "Behavioral profile differentiation is strong in-panel, but broader artifact coverage is limited.",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Behavioral profile differentiation is strong but still bounded to current behavioral coverage."
     },
     {
       "claim_id": "E2",
       "evidence_base_score": "moderate",
-      "perturbation_survival_score": "not_yet_stress_tested",
+      "perturbation_survival_score": "survived_with_caveats",
       "artifact_coverage_score": "single_class",
       "behavioral_grounding_score": "direct_behavioral_support",
-      "product_relevance_score": "research_only",
-      "short_scoring_justification": "Collapse vs contamination dissociation is clear in merge-facing evidence but not yet broadly portability-tested."
+      "product_relevance_score": "safe_with_guardrails",
+      "short_scoring_justification": "Collapse-vs-contamination dissociation now survives nearby case/slice replication and is usable as bounded merge-facing explanatory language.",
+      "edge_refinement_bucket": "stable_but_local",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Replication-supported channel distinction in merge-facing setting; bounded cross-context scope."
     },
     {
       "claim_id": "E3",
@@ -161,7 +209,10 @@
       "artifact_coverage_score": "single_class",
       "behavioral_grounding_score": "direct_behavioral_support",
       "product_relevance_score": "research_only",
-      "short_scoring_justification": "Routing-confusability behavioral non-transfer is plausible but still based on sparse evidence."
+      "short_scoring_justification": "Routing-confusability behavioral non-transfer is plausible but still based on sparse evidence.",
+      "edge_refinement_bucket": "thin_suppress_public",
+      "public_language_policy": "suppress_public",
+      "edge_refinement_justification": "Routing behavioral transfer remains sparse and should stay out of public framing."
     },
     {
       "claim_id": "E4",
@@ -170,7 +221,10 @@
       "artifact_coverage_score": "multiple_classes_partial",
       "behavioral_grounding_score": "direct_behavioral_support",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Optionality appears review/safe-like in behavioral and mixed-evidence lines, with guarded threshold precision."
+      "short_scoring_justification": "Optionality appears review/safe-like in behavioral and mixed-evidence lines, with guarded threshold precision.",
+      "edge_refinement_bucket": "moderate_but_product_relevant",
+      "public_language_policy": "allow_bounded",
+      "edge_refinement_justification": "Useful behavioral guidance for optional/review handling with guardrails."
     },
     {
       "claim_id": "F1",
@@ -179,7 +233,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "workflow_only",
       "product_relevance_score": "safe_with_guardrails",
-      "short_scoring_justification": "Broadened substrate claim is supported across Route 2 programs but explicitly bounded by scope guardrails."
+      "short_scoring_justification": "Broadened substrate claim is supported across Route 2 programs but explicitly bounded by scope guardrails.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Core synthesis claim with explicit bounded-scope wording already embedded."
     },
     {
       "claim_id": "F2",
@@ -188,7 +245,10 @@
       "artifact_coverage_score": "multiple_classes_broad",
       "behavioral_grounding_score": "workflow_only",
       "product_relevance_score": "safe_to_expose",
-      "short_scoring_justification": "Cross-artifact and aggregation programs converge on workflow-level triage value as the broadest stable portability layer."
+      "short_scoring_justification": "Cross-artifact and aggregation programs converge on workflow-level triage value as the broadest stable portability layer.",
+      "edge_refinement_bucket": "core_stable_non_edge",
+      "public_language_policy": "allow_core",
+      "edge_refinement_justification": "Primary Route 2 portable value claim for product/public explanation."
     }
   ]
 }

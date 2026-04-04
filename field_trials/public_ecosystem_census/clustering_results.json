@@ -1,0 +1,23 @@
+{
+  "phase": "clustering_validation",
+  "k": 5,
+  "computable": true,
+  "architecture_knn_purity": {
+    "mean": 0.9,
+    "median": 1.0,
+    "std": 0.2843
+  },
+  "task_knn_purity": {
+    "mean": 0.7,
+    "median": 1.0,
+    "std": 0.3929
+  },
+  "baselines": {
+    "architecture_random_purity": 0.574,
+    "task_random_purity": 0.4112
+  },
+  "above_baseline": {
+    "architecture": 0.326,
+    "task": 0.2888
+  }
+}

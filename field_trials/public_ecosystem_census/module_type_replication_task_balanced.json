@@ -1,0 +1,178 @@
+{
+  "phase": "module_type_asymmetry",
+  "sign_test": {
+    "n_pairs": 13,
+    "n_valid": 13,
+    "ties": 0,
+    "attn_less_than_mlp": 2,
+    "mlp_less_than_attn": 11,
+    "proportion_attn_less": 0.1538,
+    "replicates_encoder_pattern": false
+  },
+  "n_pairs": 13,
+  "n_valid": 13,
+  "ties": 0,
+  "attn_less_than_mlp": 2,
+  "mlp_less_than_attn": 11,
+  "proportion_attn_less": 0.1538,
+  "replicates_encoder_pattern": false,
+  "sign_test_interpretation": "Attention < MLP in 2/13 adapters (15%)",
+  "by_architecture_family": {
+    "llama": {
+      "attn_less": 2,
+      "mlp_less": 7,
+      "ties": 0,
+      "proportion_attn_less": 0.2222,
+      "mean_diff": 0.088,
+      "direction": "MLP < attn"
+    },
+    "qwen": {
+      "attn_less": 0,
+      "mlp_less": 4,
+      "ties": 0,
+      "proportion_attn_less": 0.0,
+      "mean_diff": 0.6548,
+      "direction": "MLP < attn"
+    }
+  },
+  "subtype_breakdown": {
+    "down": {
+      "n_layers": 416,
+      "stable_rank_mean": 2.3477,
+      "stable_rank_std": 2.3558,
+      "utilization_mean": 0.1531
+    },
+    "gate": {
+      "n_layers": 416,
+      "stable_rank_mean": 1.8623,
+      "stable_rank_std": 1.4441,
+      "utilization_mean": 0.1227
+    },
+    "k": {
+      "n_layers": 752,
+      "stable_rank_mean": 2.6558,
+      "stable_rank_std": 1.5592,
+      "utilization_mean": 0.2053
+    },
+    "o": {
+      "n_layers": 752,
+      "stable_rank_mean": 2.4912,
+      "stable_rank_std": 1.4461,
+      "utilization_mean": 0.19
+    },
+    "other_other": {
+      "n_layers": 2,
+      "stable_rank_mean": 1.051,
+      "stable_rank_std": 0.0721,
+      "utilization_mean": 0.5255
+    },
+    "q": {
+      "n_layers": 1111,
+      "stable_rank_mean": 2.2124,
+      "stable_rank_std": 1.2918,
+      "utilization_mean": 0.1561
+    },
+    "up": {
+      "n_layers": 416,
+      "stable_rank_mean": 1.9918,
+      "stable_rank_std": 1.3046,
+      "utilization_mean": 0.1266
+    },
+    "v": {
+      "n_layers": 1111,
+      "stable_rank_mean": 1.757,
+      "stable_rank_std": 0.867,
+      "utilization_mean": 0.1059
+    }
+  },
+  "subtype_by_family": {
+    "llama": {
+      "down": {
+        "n_layers": 304,
+        "stable_rank_mean": 1.5306
+      },
+      "gate": {
+        "n_layers": 304,
+        "stable_rank_mean": 1.4461
+      },
+      "k": {
+        "n_layers": 528,
+        "stable_rank_mean": 2.3018
+      },
+      "o": {
+        "n_layers": 528,
+        "stable_rank_mean": 2.3192
+      },
+      "q": {
+        "n_layers": 624,
+        "stable_rank_mean": 2.1243
+      },
+      "up": {
+        "n_layers": 304,
+        "stable_rank_mean": 1.5659
+      },
+      "v": {
+        "n_layers": 624,
+        "stable_rank_mean": 1.5345
+      }
+    },
+    "mistral": {
+      "q": {
+        "n_layers": 256,
+        "stable_rank_mean": 1.7512
+      },
+      "v": {
+        "n_layers": 256,
+        "stable_rank_mean": 1.6028
+      }
+    },
+    "qwen": {
+      "down": {
+        "n_layers": 112,
+        "stable_rank_mean": 4.5654
+      },
+      "gate": {
+        "n_layers": 112,
+        "stable_rank_mean": 2.9919
+      },
+      "k": {
+        "n_layers": 224,
+        "stable_rank_mean": 3.4901
+      },
+      "o": {
+        "n_layers": 224,
+        "stable_rank_mean": 2.8966
+      },
+      "other_other": {
+        "n_layers": 2,
+        "stable_rank_mean": 1.051
+      },
+      "q": {
+        "n_layers": 231,
+        "stable_rank_mean": 2.9612
+      },
+      "up": {
+        "n_layers": 112,
+        "stable_rank_mean": 3.1476
+      },
+      "v": {
+        "n_layers": 231,
+        "stable_rank_mean": 2.5289
+      }
+    }
+  },
+  "architectural_attribution": {
+    "llama": {
+      "n": 9,
+      "mean_asymmetry_magnitude": 0.1892,
+      "std": 0.0887
+    },
+    "qwen": {
+      "n": 4,
+      "mean_asymmetry_magnitude": 0.6548,
+      "std": 0.8282
+    },
+    "family_effect_eta_sq": 0.2206,
+    "family_effect_f": 3.1136
+  }
+}

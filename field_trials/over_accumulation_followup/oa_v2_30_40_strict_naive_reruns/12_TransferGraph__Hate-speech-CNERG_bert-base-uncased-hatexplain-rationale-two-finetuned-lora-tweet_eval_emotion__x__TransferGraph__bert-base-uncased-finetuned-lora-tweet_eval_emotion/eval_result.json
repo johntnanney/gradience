@@ -1,0 +1,15 @@
+{
+  "pair_name": "12_TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+  "role": "lower_tail_matched",
+  "strategy": "uniform_linear",
+  "eval_dataset": "tweet_eval/emotion",
+  "compatibility": "redundant",
+  "compatibility_score": 0.284,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.188,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 5.8,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

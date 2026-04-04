@@ -1,0 +1,16 @@
+{
+  "status": "rankr_synthetic_validation_completed",
+  "generated_at_utc": "2026-04-03T20:17:10+00:00",
+  "metrics": {
+    "n_total": 6912,
+    "n_parameter_settings": 576,
+    "n_samples_per_setting": 12,
+    "overall_spearman_v1": 0.395709155044818,
+    "overall_spearman_v2": 0.8260690256149195,
+    "overall_spearman_gain": 0.43035987057010144,
+    "high_overlap_positive_spearman_v1": 0.17986268857175391,
+    "high_overlap_positive_spearman_v2": 0.7180553044418043,
+    "high_overlap_positive_spearman_gain": 0.5381926158700504,
+    "degraded_input_fraction": 0.0
+  }
+}

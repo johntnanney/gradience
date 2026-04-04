@@ -1,0 +1,16 @@
+{
+  "n_records": 21,
+  "n_rows_in_study": 21,
+  "only_naive": false,
+  "cohort_counts": {
+    "group_2_high_overlap_elevated_proxy": 5,
+    "exploratory_other": 8,
+    "group_1_high_overlap_low_proxy": 4,
+    "group_3_non_overlap_pathology_anchor": 4
+  },
+  "high_overlap_proxy_split_cut": 0.3477,
+  "official_advisory_distribution_high_overlap": {
+    "none": 9
+  },
+  "spearman_delta_vs_max_oa_high_overlap": 0.2661164798355946
+}

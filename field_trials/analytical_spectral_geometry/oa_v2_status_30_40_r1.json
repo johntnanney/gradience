@@ -1,0 +1,24 @@
+{
+  "status": "oa_v2_exploratory_retained",
+  "label": "oa_v2_30_40_r1",
+  "cohort_design_gate": {
+    "cohort_min_pairs": 30,
+    "cohort_max_pairs": 40,
+    "n_pairs_in_crosscheck": 30,
+    "in_target_range": true,
+    "skipped_non_strict_rows": 0
+  },
+  "threshold_policy_gate": {
+    "rule_1_abs_spearman_gain_ge_0_15": false,
+    "rule_1_abs_spearman_gain_value": -0.06751595780557779,
+    "rule_2_recall_gain_ge_0_20": false,
+    "rule_2_recall_gain_value": -0.08333333333333334,
+    "rule_3_sign_consistency_ge_0_70": false,
+    "rule_3_sign_consistency_value": 0.5555555555555556,
+    "rule_4_interpretability_decomposition_ok": true,
+    "all_pass": false
+  },
+  "promotion_ready": false,
+  "decision": "keep_exploratory",
+  "authoritative_policy_path": "oa_v1"
+}

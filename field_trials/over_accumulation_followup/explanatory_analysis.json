@@ -1,0 +1,91 @@
+{
+  "cohort_comparison": {
+    "group_1_high_overlap_low_proxy": {
+      "n_pairs": 4,
+      "mean_delta_vs_best": -0.019000000000000017,
+      "median_delta_vs_best": -0.008000000000000007,
+      "mean_delta_vs_avg": 0.011249999999999982,
+      "median_delta_vs_avg": 0.010999999999999954,
+      "poor_merge_count": 1,
+      "poor_merge_threshold": -0.05,
+      "poor_merge_pairs": [
+        "p3_retained_sst2"
+      ]
+    },
+    "group_2_high_overlap_elevated_proxy_or_official": {
+      "n_pairs": 5,
+      "mean_delta_vs_best": -0.015600000000000013,
+      "median_delta_vs_best": -0.016000000000000014,
+      "mean_delta_vs_avg": -0.009600000000000008,
+      "median_delta_vs_avg": -0.01200000000000001,
+      "poor_merge_count": 0,
+      "poor_merge_threshold": -0.05,
+      "poor_merge_pairs": []
+    },
+    "group_3_non_overlap_pathology_anchor": {
+      "n_pairs": 4,
+      "mean_delta_vs_best": -0.04350000000000004,
+      "median_delta_vs_best": -0.050000000000000044,
+      "mean_delta_vs_avg": -0.008750000000000036,
+      "median_delta_vs_avg": -0.011000000000000065,
+      "poor_merge_count": 2,
+      "poor_merge_threshold": -0.05,
+      "poor_merge_pairs": [
+        "p3_control_sst2_x_agnews",
+        "t01_cross_task_sst2_x_agnews"
+      ]
+    },
+    "high_overlap_union": {
+      "n_pairs": 9,
+      "mean_delta_vs_best": -0.017111111111111126,
+      "median_delta_vs_best": -0.008000000000000007,
+      "mean_delta_vs_avg": -0.00033333333333334595,
+      "median_delta_vs_avg": -0.0010000000000000009,
+      "poor_merge_count": 1,
+      "poor_merge_threshold": -0.05,
+      "poor_merge_pairs": [
+        "p3_retained_sst2"
+      ]
+    }
+  },
+  "official_advisory_distribution_high_overlap": {
+    "none": 9
+  },
+  "continuous_relationships_high_overlap": {
+    "spearman_delta_vs_max_over_accumulation_score": 0.2661164798355946,
+    "spearman_delta_vs_high_risk_layer_count": null,
+    "n_pairs": 9
+  },
+  "factor_contrast_high_overlap": {
+    "spearman_delta_vs_max_over_accumulation_score": 0.2661164798355946,
+    "spearman_delta_vs_high_risk_layer_count": null,
+    "spearman_delta_vs_mean_overlap": 0.025753207726025285,
+    "spearman_delta_vs_conflict_fraction": null,
+    "spearman_delta_vs_imbalance_fraction": -0.8437205738748232
+  },
+  "compact_ols_high_overlap": {
+    "model": "delta_vs_best ~ max_over_accumulation + mean_overlap + conflict_frac + imbalance_frac",
+    "coefficients": {
+      "intercept": -0.03176673724944785,
+      "max_over_accumulation_score": -0.007429011714657264,
+      "mean_overlap": 0.08557977887058496,
+      "conflict_fraction": 0.0,
+      "imbalance_fraction": -0.05469194485288629
+    },
+    "n_samples": 9,
+    "rank": 4,
+    "residual_sum_squares": null,
+    "singular_values": [
+      3.371440906270486,
+      1.0505205391671206,
+      0.26434721345903933,
+      0.20430716729001555,
+      0.0
+    ]
+  },
+  "notes": [
+    "Official over_accumulation_advisory may be degenerate (all 'none') in this cohort.",
+    "Proxy split is only for bounded first-pass analysis; it does not modify production advisory semantics.",
+    "Delta vs source uses native-task evidence proxy when source eval scores are not dataset-matched."
+  ]
+}

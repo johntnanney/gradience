@@ -18,6 +18,7 @@
 
 - [`checkpoint-triage-alpha-workflow.md`](checkpoint-triage-alpha-workflow.md)
 - [`checkpoint-triage-alpha-scope.md`](checkpoint-triage-alpha-scope.md)
+- [`checkpoint-triage-alpha-one-pager.md`](checkpoint-triage-alpha-one-pager.md)
 
 ## Boundaries
 

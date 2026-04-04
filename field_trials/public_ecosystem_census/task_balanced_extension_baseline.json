@@ -1,0 +1,83 @@
+{
+  "snapshot_date": "2026-04-03T22:11:34.599717+00:00",
+  "baseline_manifest": {
+    "study": "public_ecosystem_spectral_census",
+    "date": "2026-04-03T19:18:43.336456+00:00",
+    "tier": "core",
+    "families": [
+      "llama",
+      "mistral",
+      "qwen"
+    ],
+    "n_discovered": 150,
+    "n_audited": 26,
+    "n_excluded": 97,
+    "n_failed": 27,
+    "n_fingerprints": 26,
+    "outcome": "partial_success",
+    "task_balanced_extension": {
+      "date": "2026-04-03T22:11:11.954615+00:00",
+      "families": [
+        "llama",
+        "mistral",
+        "qwen"
+      ],
+      "target_counts": {
+        "code": 8,
+        "math_reasoning": 8,
+        "domain_specialist": 6,
+        "classification": 5
+      },
+      "baseline_task_counts": {
+        "classification": 10,
+        "chat_instruct": 13,
+        "general_unknown": 3
+      },
+      "baseline_family_counts": {
+        "llama": 18,
+        "mistral": 8
+      },
+      "candidate_count": 160,
+      "selected_count": 10,
+      "audited_count": 10,
+      "excluded_count": 0,
+      "failed_count": 0
+    }
+  },
+  "counts": {
+    "n_records": 150,
+    "n_fingerprints": 26,
+    "architecture_counts": {
+      "llama": 18,
+      "mistral": 8
+    },
+    "task_counts": {
+      "classification": 10,
+      "chat_instruct": 13,
+      "general_unknown": 3
+    }
+  },
+  "architecture_task_summary": {
+    "mean_architecture_eta_sq": 0.1155,
+    "mean_task_eta_sq": 0.2599,
+    "architecture_metrics_above_010": 2,
+    "task_metrics_above_010": 4,
+    "dominant_factor": "task"
+  },
+  "clustering": {
+    "architecture_knn_purity_mean": 0.9,
+    "task_knn_purity_mean": 0.7,
+    "architecture_random_purity": 0.574,
+    "task_random_purity": 0.4112
+  },
+  "module_type_replication": {
+    "sign_test_interpretation": "Attention < MLP in 2/8 adapters (25%)",
+    "replicates_encoder_pattern": false
+  },
+  "confound_overall": {
+    "max_r_squared": 0.6598,
+    "residualization_recommended": true,
+    "note": "Confound R^2 > 0.3 detected; residualize metrics before architecture/task analysis"
+  },
+  "task_balance_limitation": "Task balance remains the main limitation if target task categories are sparse or if one category dominates kNN neighborhoods."
+}

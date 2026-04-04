@@ -1,0 +1,40 @@
+{
+  "phase": "confound_assessment",
+  "nominal_rank": {
+    "stable_rank_mean": {
+      "pearson_r": -0.4423,
+      "r_squared": 0.1956,
+      "n": 26,
+      "interpretation": "moderate confound (R^2 > 0.1)"
+    },
+    "utilization_mean": {
+      "pearson_r": -0.7405,
+      "r_squared": 0.5483,
+      "n": 26,
+      "interpretation": "strong confound (R^2 > 0.3)"
+    },
+    "energy_rank_90_p50": {
+      "pearson_r": -0.332,
+      "r_squared": 0.1102,
+      "n": 26,
+      "interpretation": "moderate confound (R^2 > 0.1)"
+    },
+    "entropy_erank_mean": {
+      "pearson_r": 0.8123,
+      "r_squared": 0.6598,
+      "n": 26,
+      "interpretation": "strong confound (R^2 > 0.3)"
+    },
+    "edge_gap_mean": {
+      "pearson_r": -0.1763,
+      "r_squared": 0.0311,
+      "n": 26,
+      "interpretation": "weak confound"
+    }
+  },
+  "overall": {
+    "max_r_squared": 0.6598,
+    "residualization_recommended": true,
+    "note": "Confound R^2 > 0.3 detected; residualize metrics before architecture/task analysis"
+  }
+}

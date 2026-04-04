@@ -1,0 +1,1277 @@
+{
+  "phase": "task_balanced_decomposition",
+  "date": "2026-04-03T22:11:34.873672+00:00",
+  "n_fingerprints": 36,
+  "distributional": {
+    "phase": "distributional_characterization",
+    "global_stable_rank_mean": {
+      "n": 36,
+      "mean": 2.0991,
+      "median": 1.7002,
+      "std": 1.0321,
+      "min": 1.1433,
+      "max": 5.8117,
+      "p25": 1.5272,
+      "p75": 2.3422
+    },
+    "global_stable_rank_std": {
+      "n": 36,
+      "mean": 0.703,
+      "median": 0.5408,
+      "std": 0.4472,
+      "min": 0.1738,
+      "max": 2.0282,
+      "p25": 0.4407,
+      "p75": 0.8653
+    },
+    "global_utilization_mean": {
+      "n": 36,
+      "mean": 0.1525,
+      "median": 0.0692,
+      "std": 0.1482,
+      "min": 0.0208,
+      "max": 0.576,
+      "p25": 0.0445,
+      "p75": 0.2714
+    },
+    "global_energy_rank_90_p50": {
+      "n": 36,
+      "mean": 5.8056,
+      "median": 5.0,
+      "std": 4.9285,
+      "min": 1.0,
+      "max": 30.0,
+      "p25": 3.75,
+      "p75": 6.125
+    },
+    "global_entropy_erank_mean": {
+      "n": 36,
+      "mean": 16.2375,
+      "median": 15.1626,
+      "std": 11.1008,
+      "min": 1.6173,
+      "max": 47.94,
+      "p25": 7.23,
+      "p75": 18.4284
+    },
+    "global_attn_stable_rank_mean": {
+      "n": 36,
+      "mean": 2.1401,
+      "median": 1.7056,
+      "std": 1.058,
+      "min": 1.1433,
+      "max": 5.8361,
+      "p25": 1.6193,
+      "p75": 2.3422
+    },
+    "global_mlp_stable_rank_mean": {
+      "n": 36,
+      "mean": 0.7787,
+      "median": 0.0,
+      "std": 1.3913,
+      "min": 0.0,
+      "max": 5.7791,
+      "p25": 0.0,
+      "p75": 1.2788
+    },
+    "global_attn_utilization_mean": {
+      "n": 36,
+      "mean": 0.1541,
+      "median": 0.0773,
+      "std": 0.1486,
+      "min": 0.0208,
+      "max": 0.5832,
+      "p25": 0.047,
+      "p75": 0.2631
+    },
+    "global_mlp_utilization_mean": {
+      "n": 36,
+      "mean": 0.0512,
+      "median": 0.0,
+      "std": 0.0976,
+      "min": 0.0,
+      "max": 0.3612,
+      "p25": 0.0,
+      "p75": 0.0417
+    },
+    "global_edge_gap_mean": {
+      "n": 36,
+      "mean": 3.6698,
+      "median": 2.3721,
+      "std": 4.2989,
+      "min": 1.3534,
+      "max": 21.9476,
+      "p25": 1.7728,
+      "p75": 3.3213
+    },
+    "by_architecture_family": {
+      "llama": {
+        "n": 19,
+        "stable_rank_mean": {
+          "n": 19,
+          "mean": 2.009,
+          "median": 1.9957,
+          "std": 0.6661,
+          "min": 1.1433,
+          "max": 2.98,
+          "p25": 1.3785,
+          "p75": 2.7592
+        },
+        "stable_rank_std": {
+          "n": 19,
+          "mean": 0.6823,
+          "median": 0.5599,
+          "std": 0.3582,
+          "min": 0.1738,
+          "max": 1.2069,
+          "p25": 0.4036,
+          "p75": 1.0354
+        },
+        "utilization_mean": {
+          "n": 19,
+          "mean": 0.1817,
+          "median": 0.1429,
+          "std": 0.1371,
+          "min": 0.0208,
+          "max": 0.3725,
+          "p25": 0.06,
+          "p75": 0.3449
+        },
+        "energy_rank_90_p50": {
+          "n": 19,
+          "mean": 4.6053,
+          "median": 5.0,
+          "std": 2.0315,
+          "min": 1.0,
+          "max": 8.0,
+          "p25": 3.0,
+          "p75": 6.0
+        },
+        "entropy_erank_mean": {
+          "n": 19,
+          "mean": 11.4696,
+          "median": 7.2525,
+          "std": 8.1211,
+          "min": 2.945,
+          "max": 29.9898,
+          "p25": 7.1472,
+          "p75": 11.9198
+        },
+        "attn_stable_rank_mean": {
+          "n": 19,
+          "mean": 2.0268,
+          "median": 1.9068,
+          "std": 0.651,
+          "min": 1.1433,
+          "max": 2.98,
+          "p25": 1.4933,
+          "p75": 2.7592
+        },
+        "mlp_stable_rank_mean": {
+          "n": 19,
+          "mean": 0.7243,
+          "median": 0.0,
+          "std": 0.8158,
+          "min": 0.0,
+          "max": 2.1142,
+          "p25": 0.0,
+          "p75": 1.413
+        },
+        "attn_utilization_mean": {
+          "n": 19,
+          "mean": 0.1818,
+          "median": 0.1429,
+          "std": 0.1363,
+          "min": 0.0208,
+          "max": 0.3725,
+          "p25": 0.0646,
+          "p75": 0.3449
+        },
+        "mlp_utilization_mean": {
+          "n": 19,
+          "mean": 0.0513,
+          "median": 0.0,
+          "std": 0.0795,
+          "min": 0.0,
+          "max": 0.2643,
+          "p25": 0.0,
+          "p75": 0.084
+        },
+        "edge_gap_mean": {
+          "n": 19,
+          "mean": 3.9867,
+          "median": 2.2892,
+          "std": 4.8652,
+          "min": 1.6126,
+          "max": 21.9476,
+          "p25": 1.6802,
+          "p75": 3.7171
+        }
+      },
+      "mistral": {
+        "n": 8,
+        "stable_rank_mean": {
+          "n": 8,
+          "mean": 1.677,
+          "median": 1.6875,
+          "std": 0.0257,
+          "min": 1.6335,
+          "max": 1.7046,
+          "p25": 1.6645,
+          "p75": 1.6931
+        },
+        "stable_rank_std": {
+          "n": 8,
+          "mean": 0.4909,
+          "median": 0.4908,
+          "std": 0.0546,
+          "min": 0.4266,
+          "max": 0.5839,
+          "p25": 0.4416,
+          "p75": 0.521
+        },
+        "utilization_mean": {
+          "n": 8,
+          "mean": 0.0524,
+          "median": 0.0527,
+          "std": 0.0008,
+          "min": 0.051,
+          "max": 0.0533,
+          "p25": 0.052,
+          "p75": 0.0529
+        },
+        "energy_rank_90_p50": {
+          "n": 8,
+          "mean": 4.4375,
+          "median": 4.0,
+          "std": 0.6232,
+          "min": 4.0,
+          "max": 5.5,
+          "p25": 4.0,
+          "p75": 5.0
+        },
+        "entropy_erank_mean": {
+          "n": 8,
+          "mean": 17.9934,
+          "median": 17.9864,
+          "std": 0.5487,
+          "min": 17.1444,
+          "max": 19.0392,
+          "p25": 17.6912,
+          "p75": 18.2083
+        },
+        "attn_stable_rank_mean": {
+          "n": 8,
+          "mean": 1.677,
+          "median": 1.6875,
+          "std": 0.0257,
+          "min": 1.6335,
+          "max": 1.7046,
+          "p25": 1.6645,
+          "p75": 1.6931
+        },
+        "mlp_stable_rank_mean": {
+          "n": 8,
+          "mean": 0.0,
+          "median": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "attn_utilization_mean": {
+          "n": 8,
+          "mean": 0.0524,
+          "median": 0.0527,
+          "std": 0.0008,
+          "min": 0.051,
+          "max": 0.0533,
+          "p25": 0.052,
+          "p75": 0.0529
+        },
+        "mlp_utilization_mean": {
+          "n": 8,
+          "mean": 0.0,
+          "median": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "edge_gap_mean": {
+          "n": 8,
+          "mean": 2.3822,
+          "median": 2.3933,
+          "std": 0.133,
+          "min": 2.1332,
+          "max": 2.5778,
+          "p25": 2.3481,
+          "p75": 2.4338
+        }
+      },
+      "qwen": {
+        "n": 9,
+        "stable_rank_mean": {
+          "n": 9,
+          "mean": 2.6645,
+          "median": 1.7757,
+          "std": 1.7621,
+          "min": 1.152,
+          "max": 5.8117,
+          "p25": 1.6956,
+          "p75": 3.059
+        },
+        "stable_rank_std": {
+          "n": 9,
+          "mean": 0.9353,
+          "median": 0.5586,
+          "std": 0.6906,
+          "min": 0.2031,
+          "max": 2.0282,
+          "p25": 0.5432,
+          "p75": 1.493
+        },
+        "utilization_mean": {
+          "n": 9,
+          "mean": 0.1799,
+          "median": 0.0478,
+          "std": 0.2021,
+          "min": 0.0265,
+          "max": 0.576,
+          "p25": 0.0277,
+          "p75": 0.3407
+        },
+        "energy_rank_90_p50": {
+          "n": 9,
+          "mean": 9.5556,
+          "median": 7.0,
+          "std": 8.6907,
+          "min": 1.0,
+          "max": 30.0,
+          "p25": 6.0,
+          "p75": 13.0
+        },
+        "entropy_erank_mean": {
+          "n": 9,
+          "mean": 24.7424,
+          "median": 33.2139,
+          "std": 15.8752,
+          "min": 1.6173,
+          "max": 47.94,
+          "p25": 15.1299,
+          "p75": 35.0154
+        },
+        "attn_stable_rank_mean": {
+          "n": 9,
+          "mean": 2.7908,
+          "median": 1.7757,
+          "std": 1.7949,
+          "min": 1.1664,
+          "max": 5.8361,
+          "p25": 1.7066,
+          "p75": 3.8483
+        },
+        "mlp_stable_rank_mean": {
+          "n": 9,
+          "mean": 1.5859,
+          "median": 0.0,
+          "std": 2.3716,
+          "min": 0.0,
+          "max": 5.7791,
+          "p25": 0.0,
+          "p75": 2.0065
+        },
+        "attn_utilization_mean": {
+          "n": 9,
+          "mean": 0.1862,
+          "median": 0.0601,
+          "std": 0.2036,
+          "min": 0.0265,
+          "max": 0.5832,
+          "p25": 0.0277,
+          "p75": 0.3438
+        },
+        "mlp_utilization_mean": {
+          "n": 9,
+          "mean": 0.0963,
+          "median": 0.0,
+          "std": 0.1501,
+          "min": 0.0,
+          "max": 0.3612,
+          "p25": 0.0,
+          "p75": 0.1379
+        },
+        "edge_gap_mean": {
+          "n": 9,
+          "mean": 4.1453,
+          "median": 2.3798,
+          "std": 5.0425,
+          "min": 1.3534,
+          "max": 17.3042,
+          "p25": 2.1982,
+          "p75": 3.2725
+        }
+      }
+    },
+    "by_task_category": {
+      "chat_instruct": {
+        "n": 13,
+        "stable_rank_mean": {
+          "n": 13,
+          "mean": 2.2146,
+          "median": 2.2234,
+          "std": 0.7029,
+          "min": 1.1433,
+          "max": 2.98,
+          "p25": 1.4334,
+          "p75": 2.8639
+        },
+        "stable_rank_std": {
+          "n": 13,
+          "mean": 0.799,
+          "median": 0.8255,
+          "std": 0.3781,
+          "min": 0.1738,
+          "max": 1.2069,
+          "p25": 0.4101,
+          "p75": 1.1432
+        },
+        "utilization_mean": {
+          "n": 13,
+          "mean": 0.2271,
+          "median": 0.1792,
+          "std": 0.134,
+          "min": 0.0208,
+          "max": 0.3725,
+          "p25": 0.1292,
+          "p75": 0.358
+        },
+        "energy_rank_90_p50": {
+          "n": 13,
+          "mean": 4.8846,
+          "median": 6.0,
+          "std": 2.1424,
+          "min": 1.0,
+          "max": 8.0,
+          "p25": 3.0,
+          "p75": 6.0
+        },
+        "entropy_erank_mean": {
+          "n": 13,
+          "mean": 8.2415,
+          "median": 7.233,
+          "std": 3.6047,
+          "min": 2.945,
+          "max": 16.1573,
+          "p25": 7.1059,
+          "p75": 11.1487
+        },
+        "attn_stable_rank_mean": {
+          "n": 13,
+          "mean": 2.215,
+          "median": 2.2234,
+          "std": 0.7079,
+          "min": 1.1433,
+          "max": 2.98,
+          "p25": 1.5002,
+          "p75": 2.8639
+        },
+        "mlp_stable_rank_mean": {
+          "n": 13,
+          "mean": 0.3713,
+          "median": 0.0,
+          "std": 0.7196,
+          "min": 0.0,
+          "max": 2.0009,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "attn_utilization_mean": {
+          "n": 13,
+          "mean": 0.2269,
+          "median": 0.1875,
+          "std": 0.1341,
+          "min": 0.0208,
+          "max": 0.3725,
+          "p25": 0.1315,
+          "p75": 0.358
+        },
+        "mlp_utilization_mean": {
+          "n": 13,
+          "mean": 0.0368,
+          "median": 0.0,
+          "std": 0.0711,
+          "min": 0.0,
+          "max": 0.1852,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "edge_gap_mean": {
+          "n": 13,
+          "mean": 4.2629,
+          "median": 1.7941,
+          "std": 5.8829,
+          "min": 1.6126,
+          "max": 21.9476,
+          "p25": 1.6454,
+          "p75": 2.9056
+        }
+      },
+      "classification": {
+        "n": 10,
+        "stable_rank_mean": {
+          "n": 10,
+          "mean": 1.6333,
+          "median": 1.6786,
+          "std": 0.1049,
+          "min": 1.3635,
+          "max": 1.7046,
+          "p25": 1.636,
+          "p75": 1.6914
+        },
+        "stable_rank_std": {
+          "n": 10,
+          "mean": 0.4818,
+          "median": 0.4649,
+          "std": 0.0519,
+          "min": 0.4266,
+          "max": 0.5839,
+          "p25": 0.4415,
+          "p75": 0.5118
+        },
+        "utilization_mean": {
+          "n": 10,
+          "mean": 0.0602,
+          "median": 0.0528,
+          "std": 0.0166,
+          "min": 0.051,
+          "max": 0.0971,
+          "p25": 0.0523,
+          "p75": 0.0532
+        },
+        "energy_rank_90_p50": {
+          "n": 10,
+          "mean": 4.45,
+          "median": 4.0,
+          "std": 1.3006,
+          "min": 2.0,
+          "max": 7.0,
+          "p25": 4.0,
+          "p75": 5.0
+        },
+        "entropy_erank_mean": {
+          "n": 10,
+          "mean": 16.3104,
+          "median": 17.8366,
+          "std": 3.6481,
+          "min": 8.1004,
+          "max": 19.0392,
+          "p25": 17.2738,
+          "p75": 18.1523
+        },
+        "attn_stable_rank_mean": {
+          "n": 10,
+          "mean": 1.6504,
+          "median": 1.6786,
+          "std": 0.0624,
+          "min": 1.5112,
+          "max": 1.7046,
+          "p25": 1.636,
+          "p75": 1.6914
+        },
+        "mlp_stable_rank_mean": {
+          "n": 10,
+          "mean": 0.2689,
+          "median": 0.0,
+          "std": 0.5732,
+          "min": 0.0,
+          "max": 1.5229,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "attn_utilization_mean": {
+          "n": 10,
+          "mean": 0.0612,
+          "median": 0.0528,
+          "std": 0.0186,
+          "min": 0.051,
+          "max": 0.0985,
+          "p25": 0.0523,
+          "p75": 0.0532
+        },
+        "mlp_utilization_mean": {
+          "n": 10,
+          "mean": 0.0168,
+          "median": 0.0,
+          "std": 0.0358,
+          "min": 0.0,
+          "max": 0.0952,
+          "p25": 0.0,
+          "p75": 0.0
+        },
+        "edge_gap_mean": {
+          "n": 10,
+          "mean": 2.8097,
+          "median": 2.4131,
+          "std": 0.9625,
+          "min": 2.1332,
+          "max": 5.1918,
+          "p25": 2.3707,
+          "p75": 2.5562
+        }
+      },
+      "code": {
+        "n": 1,
+        "stable_rank_mean": {
+          "n": 1,
+          "mean": 3.059,
+          "median": 3.059,
+          "std": 0.0,
+          "min": 3.059,
+          "max": 3.059,
+          "p25": 3.059,
+          "p75": 3.059
+        },
+        "stable_rank_std": {
+          "n": 1,
+          "mean": 1.493,
+          "median": 1.493,
+          "std": 0.0,
+          "min": 1.493,
+          "max": 1.493,
+          "p25": 1.493,
+          "p75": 1.493
+        },
+        "utilization_mean": {
+          "n": 1,
+          "mean": 0.0478,
+          "median": 0.0478,
+          "std": 0.0,
+          "min": 0.0478,
+          "max": 0.0478,
+          "p25": 0.0478,
+          "p75": 0.0478
+        },
+        "energy_rank_90_p50": {
+          "n": 1,
+          "mean": 30.0,
+          "median": 30.0,
+          "std": 0.0,
+          "min": 30.0,
+          "max": 30.0,
+          "p25": 30.0,
+          "p75": 30.0
+        },
+        "entropy_erank_mean": {
+          "n": 1,
+          "mean": 47.94,
+          "median": 47.94,
+          "std": 0.0,
+          "min": 47.94,
+          "max": 47.94,
+          "p25": 47.94,
+          "p75": 47.94
+        },
+        "attn_stable_rank_mean": {
+          "n": 1,
+          "mean": 3.8483,
+          "median": 3.8483,
+          "std": 0.0,
+          "min": 3.8483,
+          "max": 3.8483,
+          "p25": 3.8483,
+          "p75": 3.8483
+        },
+        "mlp_stable_rank_mean": {
+          "n": 1,
+          "mean": 2.0065,
+          "median": 2.0065,
+          "std": 0.0,
+          "min": 2.0065,
+          "max": 2.0065,
+          "p25": 2.0065,
+          "p75": 2.0065
+        },
+        "attn_utilization_mean": {
+          "n": 1,
+          "mean": 0.0601,
+          "median": 0.0601,
+          "std": 0.0,
+          "min": 0.0601,
+          "max": 0.0601,
+          "p25": 0.0601,
+          "p75": 0.0601
+        },
+        "mlp_utilization_mean": {
+          "n": 1,
+          "mean": 0.0314,
+          "median": 0.0314,
+          "std": 0.0,
+          "min": 0.0314,
+          "max": 0.0314,
+          "p25": 0.0314,
+          "p75": 0.0314
+        },
+        "edge_gap_mean": {
+          "n": 1,
+          "mean": 2.1982,
+          "median": 2.1982,
+          "std": 0.0,
+          "min": 2.1982,
+          "max": 2.1982,
+          "p25": 2.1982,
+          "p75": 2.1982
+        }
+      },
+      "domain_specialist": {
+        "n": 1,
+        "stable_rank_mean": {
+          "n": 1,
+          "mean": 1.7112,
+          "median": 1.7112,
+          "std": 0.0,
+          "min": 1.7112,
+          "max": 1.7112,
+          "p25": 1.7112,
+          "p75": 1.7112
+        },
+        "stable_rank_std": {
+          "n": 1,
+          "mean": 0.5599,
+          "median": 0.5599,
+          "std": 0.0,
+          "min": 0.5599,
+          "max": 0.5599,
+          "p25": 0.5599,
+          "p75": 0.5599
+        },
+        "utilization_mean": {
+          "n": 1,
+          "mean": 0.0267,
+          "median": 0.0267,
+          "std": 0.0,
+          "min": 0.0267,
+          "max": 0.0267,
+          "p25": 0.0267,
+          "p75": 0.0267
+        },
+        "energy_rank_90_p50": {
+          "n": 1,
+          "mean": 4.0,
+          "median": 4.0,
+          "std": 0.0,
+          "min": 4.0,
+          "max": 4.0,
+          "p25": 4.0,
+          "p75": 4.0
+        },
+        "entropy_erank_mean": {
+          "n": 1,
+          "mean": 26.2762,
+          "median": 26.2762,
+          "std": 0.0,
+          "min": 26.2762,
+          "max": 26.2762,
+          "p25": 26.2762,
+          "p75": 26.2762
+        },
+        "attn_stable_rank_mean": {
+          "n": 1,
+          "mean": 1.7657,
+          "median": 1.7657,
+          "std": 0.0,
+          "min": 1.7657,
+          "max": 1.7657,
+          "p25": 1.7657,
+          "p75": 1.7657
+        },
+        "mlp_stable_rank_mean": {
+          "n": 1,
+          "mean": 1.6386,
+          "median": 1.6386,
+          "std": 0.0,
+          "min": 1.6386,
+          "max": 1.6386,
+          "p25": 1.6386,
+          "p75": 1.6386
+        },
+        "attn_utilization_mean": {
+          "n": 1,
+          "mean": 0.0276,
+          "median": 0.0276,
+          "std": 0.0,
+          "min": 0.0276,
+          "max": 0.0276,
+          "p25": 0.0276,
+          "p75": 0.0276
+        },
+        "mlp_utilization_mean": {
+          "n": 1,
+          "mean": 0.0256,
+          "median": 0.0256,
+          "std": 0.0,
+          "min": 0.0256,
+          "max": 0.0256,
+          "p25": 0.0256,
+          "p75": 0.0256
+        },
+        "edge_gap_mean": {
+          "n": 1,
+          "mean": 2.3133,
+          "median": 2.3133,
+          "std": 0.0,
+          "min": 2.3133,
+          "max": 2.3133,
+          "p25": 2.3133,
+          "p75": 2.3133
+        }
+      },
+      "general_unknown": {
+        "n": 3,
+        "stable_rank_mean": {
+          "n": 3,
+          "mean": 1.5842,
+          "median": 1.379,
+          "std": 0.3564,
+          "min": 1.378,
+          "max": 1.9957,
+          "p25": 1.3785,
+          "p75": 1.6873
+        },
+        "stable_rank_std": {
+          "n": 3,
+          "mean": 0.3752,
+          "median": 0.3504,
+          "std": 0.0584,
+          "min": 0.3332,
+          "max": 0.4419,
+          "p25": 0.3418,
+          "p75": 0.3962
+        },
+        "utilization_mean": {
+          "n": 3,
+          "mean": 0.0975,
+          "median": 0.0215,
+          "std": 0.1316,
+          "min": 0.0215,
+          "max": 0.2495,
+          "p25": 0.0215,
+          "p75": 0.1355
+        },
+        "energy_rank_90_p50": {
+          "n": 3,
+          "mean": 3.6667,
+          "median": 3.0,
+          "std": 1.1547,
+          "min": 3.0,
+          "max": 5.0,
+          "p25": 3.0,
+          "p75": 4.0
+        },
+        "entropy_erank_mean": {
+          "n": 3,
+          "mean": 21.7837,
+          "median": 28.745,
+          "std": 13.1501,
+          "min": 6.6164,
+          "max": 29.9898,
+          "p25": 17.6807,
+          "p75": 29.3674
+        },
+        "attn_stable_rank_mean": {
+          "n": 3,
+          "mean": 1.6207,
+          "median": 1.4865,
+          "std": 0.248,
+          "min": 1.4687,
+          "max": 1.9068,
+          "p25": 1.4776,
+          "p75": 1.6967
+        },
+        "mlp_stable_rank_mean": {
+          "n": 3,
+          "mean": 1.5356,
+          "median": 1.257,
+          "std": 0.5012,
+          "min": 1.2356,
+          "max": 2.1142,
+          "p25": 1.2463,
+          "p75": 1.6856
+        },
+        "attn_utilization_mean": {
+          "n": 3,
+          "mean": 0.0948,
+          "median": 0.0232,
+          "std": 0.1243,
+          "min": 0.0229,
+          "max": 0.2384,
+          "p25": 0.0231,
+          "p75": 0.1308
+        },
+        "mlp_utilization_mean": {
+          "n": 3,
+          "mean": 0.1011,
+          "median": 0.0196,
+          "std": 0.1413,
+          "min": 0.0193,
+          "max": 0.2643,
+          "p25": 0.0195,
+          "p75": 0.142
+        },
+        "edge_gap_mean": {
+          "n": 3,
+          "mean": 2.9922,
+          "median": 3.4677,
+          "std": 1.1264,
+          "min": 1.706,
+          "max": 3.803,
+          "p25": 2.5868,
+          "p75": 3.6353
+        }
+      },
+      "math_reasoning": {
+        "n": 8,
+        "stable_rank_mean": {
+          "n": 8,
+          "mean": 2.6152,
+          "median": 1.7754,
+          "std": 1.8771,
+          "min": 1.152,
+          "max": 5.8117,
+          "p25": 1.6337,
+          "p75": 2.7221
+        },
+        "stable_rank_std": {
+          "n": 8,
+          "mean": 0.8656,
+          "median": 0.5578,
+          "std": 0.7036,
+          "min": 0.2031,
+          "max": 2.0282,
+          "p25": 0.539,
+          "p75": 0.9069
+        },
+        "utilization_mean": {
+          "n": 8,
+          "mean": 0.1964,
+          "median": 0.1047,
+          "std": 0.2094,
+          "min": 0.0265,
+          "max": 0.576,
+          "p25": 0.0277,
+          "p75": 0.3463
+        },
+        "energy_rank_90_p50": {
+          "n": 8,
+          "mean": 7.0,
+          "median": 7.0,
+          "std": 4.3753,
+          "min": 1.0,
+          "max": 13.0,
+          "p25": 5.0,
+          "p75": 8.5
+        },
+        "entropy_erank_mean": {
+          "n": 8,
+          "mean": 21.8427,
+          "median": 24.2046,
+          "std": 14.1965,
+          "min": 1.6173,
+          "max": 35.0425,
+          "p25": 12.6364,
+          "p75": 34.5321
+        },
+        "attn_stable_rank_mean": {
+          "n": 8,
+          "mean": 2.6586,
+          "median": 1.7754,
+          "std": 1.8714,
+          "min": 1.1664,
+          "max": 5.8361,
+          "p25": 1.7038,
+          "p75": 2.7346
+        },
+        "mlp_stable_rank_mean": {
+          "n": 8,
+          "mean": 1.5333,
+          "median": 0.0,
+          "std": 2.5297,
+          "min": 0.0,
+          "max": 5.7791,
+          "p25": 0.0,
+          "p75": 2.1737
+        },
+        "attn_utilization_mean": {
+          "n": 8,
+          "mean": 0.2019,
+          "median": 0.1208,
+          "std": 0.2117,
+          "min": 0.0265,
+          "max": 0.5832,
+          "p25": 0.0277,
+          "p75": 0.3491
+        },
+        "mlp_utilization_mean": {
+          "n": 8,
+          "mean": 0.1045,
+          "median": 0.0,
+          "std": 0.1583,
+          "min": 0.0,
+          "max": 0.3612,
+          "p25": 0.0,
+          "p75": 0.1876
+        },
+        "edge_gap_mean": {
+          "n": 8,
+          "mean": 4.3887,
+          "median": 2.3809,
+          "std": 5.3338,
+          "min": 1.3534,
+          "max": 17.3042,
+          "p25": 2.0099,
+          "p75": 3.6547
+        }
+      }
+    }
+  },
+  "confound_assessment": {
+    "phase": "confound_assessment",
+    "nominal_rank": {
+      "stable_rank_mean": {
+        "pearson_r": -0.2254,
+        "r_squared": 0.0508,
+        "n": 36,
+        "interpretation": "weak confound"
+      },
+      "utilization_mean": {
+        "pearson_r": -0.743,
+        "r_squared": 0.5521,
+        "n": 36,
+        "interpretation": "strong confound (R^2 > 0.3)"
+      },
+      "energy_rank_90_p50": {
+        "pearson_r": 0.1928,
+        "r_squared": 0.0372,
+        "n": 36,
+        "interpretation": "weak confound"
+      },
+      "entropy_erank_mean": {
+        "pearson_r": 0.8668,
+        "r_squared": 0.7514,
+        "n": 36,
+        "interpretation": "strong confound (R^2 > 0.3)"
+      },
+      "edge_gap_mean": {
+        "pearson_r": -0.2688,
+        "r_squared": 0.0723,
+        "n": 36,
+        "interpretation": "weak confound"
+      }
+    },
+    "overall": {
+      "max_r_squared": 0.7514,
+      "residualization_recommended": true,
+      "note": "Confound R^2 > 0.3 detected; residualize metrics before architecture/task analysis"
+    }
+  },
+  "analytic_controls": {
+    "phase": "analytic_control_subsets",
+    "rank_matched_subset": {
+      "modal_rank": 8,
+      "n_matched": 11,
+      "n_total": 36,
+      "architecture_eta_sq": {
+        "stable_rank_mean": 0.1177,
+        "utilization_mean": 0.1177,
+        "energy_rank_90_p50": 0.1618,
+        "entropy_erank_mean": 0.0505,
+        "edge_gap_mean": 0.0
+      },
+      "task_eta_sq": {
+        "stable_rank_mean": 0.1368,
+        "utilization_mean": 0.1368,
+        "energy_rank_90_p50": 0.1634,
+        "entropy_erank_mean": 0.0569,
+        "edge_gap_mean": 0.0268
+      },
+      "mean_arch_eta_sq": 0.0895,
+      "mean_task_eta_sq": 0.1041
+    },
+    "task_label_confidence_subset": {
+      "n_confident": 33,
+      "n_excluded": 3,
+      "architecture_eta_sq": {
+        "stable_rank_mean": 0.117,
+        "utilization_mean": 0.1638,
+        "energy_rank_90_p50": 0.1887,
+        "entropy_erank_mean": 0.3584,
+        "edge_gap_mean": 0.0299
+      },
+      "task_eta_sq": {
+        "stable_rank_mean": 0.1513,
+        "utilization_mean": 0.2748,
+        "energy_rank_90_p50": 0.7546,
+        "entropy_erank_mean": 0.5638,
+        "edge_gap_mean": 0.0311
+      },
+      "mean_arch_eta_sq": 0.1716,
+      "mean_task_eta_sq": 0.3551
+    },
+    "variant_robustness": {
+      "metrics": {
+        "stable_rank_mean": {
+          "residualized_arch_eta_sq": 0.1614,
+          "f_statistic": 3.1757
+        },
+        "utilization_mean": {
+          "residualized_arch_eta_sq": 0.3418,
+          "f_statistic": 8.5668
+        },
+        "energy_rank_90_p50": {
+          "residualized_arch_eta_sq": 0.1645,
+          "f_statistic": 3.2493
+        },
+        "entropy_erank_mean": {
+          "residualized_arch_eta_sq": 0.2663,
+          "f_statistic": 5.9888
+        },
+        "edge_gap_mean": {
+          "residualized_arch_eta_sq": 0.0334,
+          "f_statistic": 0.57
+        }
+      },
+      "mean_residualized_arch_eta_sq": 0.1935,
+      "metrics_above_005": 4,
+      "note": "Architecture eta-sq after residualizing nominal_rank confound"
+    }
+  },
+  "decomposition": {
+    "phase": "architecture_task_decomposition",
+    "architecture_effect": {
+      "stable_rank_mean": {
+        "eta_sq": 0.1195,
+        "f_statistic": 2.24,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      },
+      "stable_rank_std": {
+        "eta_sq": 0.122,
+        "f_statistic": 2.2919,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      },
+      "utilization_mean": {
+        "eta_sq": 0.1343,
+        "f_statistic": 2.5588,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      },
+      "energy_rank_90_p50": {
+        "eta_sq": 0.1987,
+        "f_statistic": 4.0911,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      },
+      "entropy_erank_mean": {
+        "eta_sq": 0.2568,
+        "f_statistic": 5.7013,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      },
+      "edge_gap_mean": {
+        "eta_sq": 0.0266,
+        "f_statistic": 0.4509,
+        "n_groups": 3,
+        "n_total": 36,
+        "df_between": 2,
+        "df_within": 33,
+        "computable": true
+      }
+    },
+    "task_effect": {
+      "stable_rank_mean": {
+        "eta_sq": 0.1701,
+        "f_statistic": 1.2294,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      },
+      "stable_rank_std": {
+        "eta_sq": 0.2554,
+        "f_statistic": 2.0575,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      },
+      "utilization_mean": {
+        "eta_sq": 0.2717,
+        "f_statistic": 2.2389,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      },
+      "energy_rank_90_p50": {
+        "eta_sq": 0.7565,
+        "f_statistic": 18.6454,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      },
+      "entropy_erank_mean": {
+        "eta_sq": 0.5288,
+        "f_statistic": 6.7332,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      },
+      "edge_gap_mean": {
+        "eta_sq": 0.0332,
+        "f_statistic": 0.2062,
+        "n_groups": 6,
+        "n_total": 36,
+        "df_between": 5,
+        "df_within": 30,
+        "computable": true
+      }
+    },
+    "summary": {
+      "mean_architecture_eta_sq": 0.143,
+      "mean_task_eta_sq": 0.3359,
+      "architecture_metrics_above_010": 5,
+      "task_metrics_above_010": 5,
+      "dominant_factor": "task"
+    }
+  },
+  "minimum_per_cell_rule": {
+    "recommended_exploratory_min_per_cell": 4,
+    "recommended_serious_min_per_cell": 6,
+    "note": "Do not over-interpret architecture\u00d7task interactions when cells are sparse."
+  }
+}

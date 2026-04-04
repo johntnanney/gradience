@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "distilbert-base-uncased",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "8a899399-e184-4cad-9264-55b72c529d03",
+    "strategy": "uniform_linear",
+    "adapter_a": "field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "field_trials/task_family_equivalence/inventory_a01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment"
+  }
+}

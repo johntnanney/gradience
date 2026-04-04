@@ -1,0 +1,86 @@
+{
+  "snapshot_date": "2026-04-03T22:11:34.600114+00:00",
+  "cohort_mode": "task-balanced extension",
+  "target_count_rules": {
+    "rule_a": ">=3 task categories with >=8 adapters each",
+    "rule_b": "or >=4 task categories with >=5 adapters each"
+  },
+  "task_targets": {
+    "code": {
+      "current_count": 0,
+      "target_count": 8,
+      "needed": 8,
+      "search_strategy_notes": [
+        "code",
+        "coder",
+        "python",
+        "sql"
+      ],
+      "high_confidence_labeling_criteria": "high=explicit task/domain tag; medium=repo-name heuristic with non-unknown task; low=general/ambiguous"
+    },
+    "math_reasoning": {
+      "current_count": 0,
+      "target_count": 8,
+      "needed": 8,
+      "search_strategy_notes": [
+        "math",
+        "gsm",
+        "reason",
+        "proof"
+      ],
+      "high_confidence_labeling_criteria": "high=explicit task/domain tag; medium=repo-name heuristic with non-unknown task; low=general/ambiguous"
+    },
+    "domain_specialist": {
+      "current_count": 0,
+      "target_count": 6,
+      "needed": 6,
+      "search_strategy_notes": [
+        "medical",
+        "biomedical",
+        "legal",
+        "law",
+        "finance",
+        "clinical",
+        "data"
+      ],
+      "high_confidence_labeling_criteria": "high=explicit task/domain tag; medium=repo-name heuristic with non-unknown task; low=general/ambiguous"
+    },
+    "classification": {
+      "current_count": 10,
+      "target_count": 5,
+      "needed": 0,
+      "search_strategy_notes": [
+        "classification",
+        "sentiment",
+        "topic",
+        "ner",
+        "classify"
+      ],
+      "high_confidence_labeling_criteria": "high=explicit task/domain tag; medium=repo-name heuristic with non-unknown task; low=general/ambiguous"
+    }
+  },
+  "architecture_coverage_goals": {
+    "llama": {
+      "current_count": 18,
+      "target_min_count": 5,
+      "needed_for_parity": 0
+    },
+    "mistral": {
+      "current_count": 8,
+      "target_min_count": 5,
+      "needed_for_parity": 0
+    },
+    "qwen": {
+      "current_count": 0,
+      "target_min_count": 5,
+      "needed_for_parity": 5
+    }
+  },
+  "families": [
+    "llama",
+    "mistral",
+    "qwen"
+  ],
+  "deprioritize_category": "chat_instruct",
+  "notes": "New additions are chosen for task-balance value first, with architecture parity as a secondary constraint."
+}

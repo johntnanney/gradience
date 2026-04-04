@@ -1,7 +1,7 @@
 {
   "program": "route2_claims_stability_ladder",
   "stage": "E",
-  "generated_on": "2026-03-31",
+  "generated_on": "2026-04-01",
   "communication_guidance": {
     "public_safe_claims": [
       "Evidence gating and conservative narrowing are stable workflow invariants in tested Route 2 scope.",
@@ -14,12 +14,29 @@
       "Same-task vs cross-task directional separation is useful but not fully class-parity complete.",
       "Same-family intermediate and optional states are usable review categories with threshold guardrails.",
       "Aggregation taxonomy is viable at coarse level; fine thresholds are non-canonical.",
-      "Behavioral profile distinctions are meaningful in current bounded panel."
+      "Behavioral profile distinctions are meaningful in current bounded panel.",
+      "Collapse-vs-contamination is usable as a bounded merge-facing channel distinction with explicit cross-context guardrails."
     ],
     "research_only_claims": [
       "Cross-artifact optional/near-miss portability outside LoRA.",
       "Routing-confusability behavioral non-transfer as a broad rule.",
       "Collapse-vs-contamination as a cross-context law beyond current merge-facing evidence."
+    ],
+    "public_bounded_claims": [
+      "A3: Checkpoint triage has an end-to-end validated path in Ring 2 and T01/T02 with explicit scope controls.",
+      "B1: Same-task versus cross-task separation is directionally reliable where class coverage is available.",
+      "B2: Same-family intermediate behavior appears repeatedly but shifts under local perturbation and requires caveats.",
+      "B3: Same-family optional states trend review/safe-like across behavioral and mixed-evidence triage analyses.",
+      "C3: Checkpoint broadening is robustly summary-based and remains explicitly distinct from factorized low-rank reuse.",
+      "D3: QA-dominant behavior shows genuine override/review logic not explained by weaker structural-only grading.",
+      "D4: Taxonomy structure is usable and reproducible at coarse grain, while fine thresholds remain panel-dependent.",
+      "E1: Route 2 profiles show distinct behavioral footprints in current panel evidence with bounded coverage.",
+      "E2: Collapse-versus-contamination dissociation is now replication-supported in bounded merge-facing settings while remaining non-universal across contexts.",
+      "E4: Same-family optionality remains behaviorally closer to review/safe-like states with guardrailed boundaries."
+    ],
+    "public_suppressed_claims": [
+      "B4: Optional/near-miss portability across artifact classes remains under-supported outside LoRA.",
+      "E3: Routing-confusability non-transfer to merge behavior remains suggestive but sparsely supported."
     ]
   },
   "next_strengthening_targets": [

@@ -1,0 +1,189 @@
+{
+  "study": "adaptive_rank_comparison_external_validation_target_v2",
+  "analysis_scope": {
+    "primary_informative_task_families": [
+      "imdb",
+      "sst2"
+    ],
+    "secondary_context_task_families": [
+      "ag_news",
+      "tweet_eval"
+    ],
+    "informative_definition": "task family has effective compression when min_realized_budget_ratio < 0.99"
+  },
+  "counts": {
+    "adapter_dataset_rows": 12,
+    "primary_informative_rows": 6,
+    "secondary_context_rows": 6
+  },
+  "cohort_rows": [
+    {
+      "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+      "dataset": "imdb",
+      "task_family": "imdb",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.859375,
+      "dataset_best_full_adapter_accuracy": 0.8645833333333334,
+      "source_quality_gap_vs_dataset_best": 0.00520833333333337,
+      "source_quality_gap_band": "near_top",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "dataset": "imdb",
+      "task_family": "imdb",
+      "base_model": "distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.8645833333333334,
+      "dataset_best_full_adapter_accuracy": 0.8645833333333334,
+      "source_quality_gap_vs_dataset_best": 0.0,
+      "source_quality_gap_band": "near_top",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "dataset": "imdb",
+      "task_family": "imdb",
+      "base_model": "distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.8125,
+      "dataset_best_full_adapter_accuracy": 0.8645833333333334,
+      "source_quality_gap_vs_dataset_best": 0.05208333333333337,
+      "source_quality_gap_band": "large_gap",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "NightPrince/peft-distilbert-sst2",
+      "dataset": "sst2",
+      "task_family": "sst2",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.7083333333333334,
+      "dataset_best_full_adapter_accuracy": 0.90625,
+      "source_quality_gap_vs_dataset_best": 0.19791666666666663,
+      "source_quality_gap_band": "large_gap",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+      "dataset": "sst2",
+      "task_family": "sst2",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.8697916666666666,
+      "dataset_best_full_adapter_accuracy": 0.90625,
+      "source_quality_gap_vs_dataset_best": 0.03645833333333337,
+      "source_quality_gap_band": "mid_gap",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+      "dataset": "sst2",
+      "task_family": "sst2",
+      "base_model": "distilbert-base-uncased",
+      "compressibility_label": "compressible",
+      "inclusion_status": "primary_informative",
+      "full_adapter_accuracy": 0.90625,
+      "dataset_best_full_adapter_accuracy": 0.90625,
+      "source_quality_gap_vs_dataset_best": 0.0,
+      "source_quality_gap_band": "near_top",
+      "dataset_adapter_count": 3,
+      "rationale": "effective compression active in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+      "dataset": "ag_news",
+      "task_family": "ag_news",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.890625,
+      "dataset_best_full_adapter_accuracy": 0.890625,
+      "source_quality_gap_vs_dataset_best": 0.0,
+      "source_quality_gap_band": "single_source_dataset",
+      "dataset_adapter_count": 1,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "dataset": "tweet_eval/emotion",
+      "task_family": "tweet_eval",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.7239583333333334,
+      "dataset_best_full_adapter_accuracy": 0.7916666666666666,
+      "source_quality_gap_vs_dataset_best": 0.06770833333333326,
+      "source_quality_gap_band": "large_gap",
+      "dataset_adapter_count": 2,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "dataset": "tweet_eval/emotion",
+      "task_family": "tweet_eval",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.7916666666666666,
+      "dataset_best_full_adapter_accuracy": 0.7916666666666666,
+      "source_quality_gap_vs_dataset_best": 0.0,
+      "source_quality_gap_band": "near_top",
+      "dataset_adapter_count": 2,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "task_family": "tweet_eval",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.6041666666666666,
+      "dataset_best_full_adapter_accuracy": 0.6145833333333334,
+      "source_quality_gap_vs_dataset_best": 0.01041666666666674,
+      "source_quality_gap_band": "mid_gap",
+      "dataset_adapter_count": 3,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "task_family": "tweet_eval",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.5885416666666666,
+      "dataset_best_full_adapter_accuracy": 0.6145833333333334,
+      "source_quality_gap_vs_dataset_best": 0.02604166666666674,
+      "source_quality_gap_band": "mid_gap",
+      "dataset_adapter_count": 3,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    },
+    {
+      "adapter_id": "TransferGraph/vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dataset": "tweet_eval/irony",
+      "task_family": "tweet_eval",
+      "base_model": "distilbert/distilbert-base-uncased",
+      "compressibility_label": "saturated",
+      "inclusion_status": "secondary_context",
+      "full_adapter_accuracy": 0.6145833333333334,
+      "dataset_best_full_adapter_accuracy": 0.6145833333333334,
+      "source_quality_gap_vs_dataset_best": 0.0,
+      "source_quality_gap_band": "near_top",
+      "dataset_adapter_count": 3,
+      "rationale": "realized budgets saturate near 1.0 in this task family"
+    }
+  ]
+}

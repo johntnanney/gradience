@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "query",
+    "value"
+  ],
+  "base_model_name_or_path": "cointegrated/roberta-base-formality",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "bbb49cfa-3760-4b98-bc46-f249b6f2594d",
+    "strategy": "uniform_linear",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-ag_news"
+  }
+}

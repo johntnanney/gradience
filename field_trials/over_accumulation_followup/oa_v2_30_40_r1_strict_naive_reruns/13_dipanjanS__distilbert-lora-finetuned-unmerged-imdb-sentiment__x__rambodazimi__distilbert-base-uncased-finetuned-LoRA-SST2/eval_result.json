@@ -1,0 +1,15 @@
+{
+  "pair_name": "13_dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+  "role": "high_tail",
+  "strategy": "uniform_linear",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.189,
+  "mean_reconstruction_error": 0.2029,
+  "merged_accuracy": 0.894,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 3.1,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

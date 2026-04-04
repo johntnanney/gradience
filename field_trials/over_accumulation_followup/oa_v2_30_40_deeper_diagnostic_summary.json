@@ -1,0 +1,40 @@
+{
+  "mode": "full_deeper_diagnostic",
+  "audited_pairs": 189,
+  "pair_advisory_counts": {
+    "none": 188,
+    "elevated": 1
+  },
+  "cohort_count": 13,
+  "selection_parameters": {
+    "overlap_gate": 0.2,
+    "conflict_gate": 0.1,
+    "n_high": 7,
+    "n_low": 6
+  },
+  "target_window_resolution": {
+    "min_pairs": 30,
+    "max_pairs": 40,
+    "candidate_count": 13,
+    "preferred_candidate_count": 13,
+    "working_pool_count": 13,
+    "selected_total_pairs": 13,
+    "selected_in_requested_window": false
+  },
+  "rerun_ok": 13,
+  "rerun_error": 0,
+  "high_tail_mean_delta_vs_best": -0.015142857142857156,
+  "low_tail_mean_delta_vs_best": -0.12666666666666668,
+  "spearman_delta_vs_max_oa": 0.05300484348380716,
+  "cutpoint_sweep_thresholds": [
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.5,
+    0.6
+  ]
+}

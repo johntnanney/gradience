@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "Aureliano/distilbert-base-uncased-if",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "f0b6cf4f-8a5b-4df1-a327-0ecbebb1ef99",
+    "strategy": "uniform_linear",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate"
+  }
+}

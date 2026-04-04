@@ -1,0 +1,27 @@
+{
+  "metrics": {
+    "stable_rank_mean": {
+      "residualized_arch_eta_sq": 0.0388,
+      "f_statistic": 0.9701
+    },
+    "utilization_mean": {
+      "residualized_arch_eta_sq": 0.2392,
+      "f_statistic": 7.5448
+    },
+    "energy_rank_90_p50": {
+      "residualized_arch_eta_sq": 0.0006,
+      "f_statistic": 0.015
+    },
+    "entropy_erank_mean": {
+      "residualized_arch_eta_sq": 0.2607,
+      "f_statistic": 8.4625
+    },
+    "edge_gap_mean": {
+      "residualized_arch_eta_sq": 0.023,
+      "f_statistic": 0.5658
+    }
+  },
+  "mean_residualized_arch_eta_sq": 0.1125,
+  "metrics_above_005": 2,
+  "note": "Architecture eta-sq after residualizing nominal_rank confound"
+}

@@ -1,0 +1,20 @@
+{
+  "study": "merge_aware_training_monitor_demo",
+  "prototype_mode": "diagnostic_only",
+  "runs": [
+    {
+      "run_id": "7f78ef5e-2561-480b-9c95-ee45291f9c2b",
+      "telemetry_path": "field_trials/merge_aware_monitor_demo/artifacts/demo_run.jsonl",
+      "reference_adapter": "field_trials/merge_aware_monitor_demo/artifacts/reference_adapter",
+      "log_steps": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "compatibility_snapshot_count": 4,
+      "run_level_trend": "inconclusive",
+      "status": "completed"
+    }
+  ]
+}

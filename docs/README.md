@@ -7,6 +7,8 @@ This directory is organized by **audience**, **stability**, and **purpose**.
 - [`docs/00_start_here/README.md`](00_start_here/README.md)
 - [`docs/00_start_here/project-map.md`](00_start_here/project-map.md)
 - [`docs/00_start_here/stable-vs-experimental.md`](00_start_here/stable-vs-experimental.md)
+- [`docs/00_start_here/current-bounded-conclusions.md`](00_start_here/current-bounded-conclusions.md)
+- [`docs/00_start_here/bounded-validation-summary.md`](00_start_here/bounded-validation-summary.md)
 - [`docs/00_start_here/demo-paths.md`](00_start_here/demo-paths.md)
 
 ## Zones
@@ -21,6 +23,8 @@ This directory is organized by **audience**, **stability**, and **purpose**.
    - [`docs/research/README.md`](research/README.md)
 5. **Development** — implementation/design/maintenance references.
    - [`docs/development/README.md`](development/README.md)
+6. **Theory** — analytical derivations and spectral-geometry notes.
+   - [`docs/theory/README.md`](theory/README.md)
 
 ## Notes
 

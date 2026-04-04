@@ -1,0 +1,99 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.behavior_summary/v1",
+  "generated_utc": "2026-04-01T00:20:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "metrics_protocol": "aligned_with_sidecar/scripts/analyze_example_behavior.py",
+  "targets": [
+    {
+      "target_id": "R1_FR02_case",
+      "expected_channel": "collapse_like",
+      "source_case_id": "FR-02",
+      "replication_type": "case",
+      "slice_spec": "full_500_examples",
+      "observed_failure_rate": 0.336,
+      "confidence_collapse_rate": 0.056,
+      "confidence_collapse_count": 28,
+      "high_confidence_wrong_rate": 0.008,
+      "high_confidence_wrong_count": 4,
+      "confusion_or_neither_source_rate": 0.154,
+      "confusion_or_neither_source_count": 77,
+      "preservation_rate": 0.7906,
+      "dominant_behavioral_signature": "collapse_uncertainty_dominant",
+      "short_interpretation": "Collapse-like channel replicated on nearby case: high confidence-collapse and low confident-wrong despite high novel-failure pressure."
+    },
+    {
+      "target_id": "R2_FR01_even_slice",
+      "expected_channel": "collapse_like",
+      "source_case_id": "FR-01",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_even_indices_mod2",
+      "observed_failure_rate": 0.344,
+      "confidence_collapse_rate": 0.068,
+      "confidence_collapse_count": 17,
+      "high_confidence_wrong_rate": 0.0,
+      "high_confidence_wrong_count": 0,
+      "confusion_or_neither_source_rate": 0.16,
+      "confusion_or_neither_source_count": 40,
+      "preservation_rate": 0.7959,
+      "dominant_behavioral_signature": "collapse_uncertainty_dominant",
+      "short_interpretation": "Collapse signature survives deterministic slice perturbation with unchanged uncertainty-dominant channel."
+    },
+    {
+      "target_id": "R3_CT01_even_slice",
+      "expected_channel": "contamination_like",
+      "source_case_id": "CT-01",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_even_indices_mod2",
+      "observed_failure_rate": 0.176,
+      "confidence_collapse_rate": 0.008,
+      "confidence_collapse_count": 2,
+      "high_confidence_wrong_rate": 0.056,
+      "high_confidence_wrong_count": 14,
+      "confusion_or_neither_source_rate": 0.14,
+      "confusion_or_neither_source_count": 35,
+      "preservation_rate": 0.8745,
+      "dominant_behavioral_signature": "contamination_confident_wrong_dominant",
+      "short_interpretation": "Contamination signature survives deterministic slice perturbation: confident wrong stays high while confidence-collapse stays low."
+    },
+    {
+      "target_id": "R4_CT01_odd_slice",
+      "expected_channel": "contamination_like",
+      "source_case_id": "CT-01",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_odd_indices_mod2",
+      "observed_failure_rate": 0.172,
+      "confidence_collapse_rate": 0.004,
+      "confidence_collapse_count": 1,
+      "high_confidence_wrong_rate": 0.036,
+      "high_confidence_wrong_count": 9,
+      "confusion_or_neither_source_rate": 0.148,
+      "confusion_or_neither_source_count": 37,
+      "preservation_rate": 0.8739,
+      "dominant_behavioral_signature": "contamination_confident_wrong_dominant",
+      "short_interpretation": "Complementary contamination slice preserves the same channel pattern and supports slice stability."
+    }
+  ],
+  "channel_level_aggregates": {
+    "collapse_like": {
+      "target_count": 2,
+      "mean_failure_rate": 0.34,
+      "mean_confidence_collapse_rate": 0.062,
+      "mean_high_confidence_wrong_rate": 0.004,
+      "mean_confusion_or_neither_source_rate": 0.157,
+      "mean_preservation_rate": 0.7933
+    },
+    "contamination_like": {
+      "target_count": 2,
+      "mean_failure_rate": 0.174,
+      "mean_confidence_collapse_rate": 0.006,
+      "mean_high_confidence_wrong_rate": 0.046,
+      "mean_confusion_or_neither_source_rate": 0.144,
+      "mean_preservation_rate": 0.8742
+    }
+  },
+  "core_discriminators": [
+    "confidence_collapse_rate (collapse_like >> contamination_like)",
+    "high_confidence_wrong_rate (contamination_like >> collapse_like)",
+    "confusion_or_neither_source_rate remains similar across channels and is not sufficient by itself"
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "program": "route2_claims_ladder_reinforcement_and_communication_policy",
+  "stage": "A",
+  "generated_on": "2026-04-01",
+  "source_artifacts": [
+    "sidecar/results/route2_claims_ladder/stability_ladder.json",
+    "sidecar/results/route2_claims_ladder/edge_refinement_table.json",
+    "sidecar/notes/n113_mixed_evidence_triage_baseline.md",
+    "sidecar/notes/n117_mixed_evidence_triage_stress_test_memo.md",
+    "sidecar/notes/n118_collapse_vs_contamination_baseline.md",
+    "sidecar/notes/n122_collapse_vs_contamination_replication_memo.md"
+  ],
+  "ladder_snapshot": {
+    "stable": 11,
+    "moderately_stable": 7,
+    "thin": 2,
+    "local_only": 0,
+    "blocked_or_open": 0
+  },
+  "edge_overlay_snapshot": {
+    "core_stable_non_edge": 8,
+    "stable_but_local": 5,
+    "moderate_but_product_relevant": 5,
+    "thin_suppress_public": 2
+  },
+  "claims": [
+    {
+      "claim_id": "A1",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_to_expose",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Evidence-gating invariant receives reinforcement from mixed-evidence triage stress coverage."
+    },
+    {
+      "claim_id": "A2",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_to_expose",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Conservative narrowing remains a core invariant without direct post-ladder change."
+    },
+    {
+      "claim_id": "A3",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Checkpoint triage workflow scope is clarified by mixed-evidence middle-state reinforcement."
+    },
+    {
+      "claim_id": "B1",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Directional separation remains useful with no direct post-ladder shift."
+    },
+    {
+      "claim_id": "B2",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Same-family intermediate status receives clearer bounded interpretation under mixed-evidence stress."
+    },
+    {
+      "claim_id": "B3",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Same-family optional review-likeness is reinforced in triage soft-middle coverage."
+    },
+    {
+      "claim_id": "B4",
+      "original_ladder_status": "thin",
+      "original_product_relevance_status": "research_only",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Portability outside LoRA remains thin and suppression-eligible."
+    },
+    {
+      "claim_id": "C1",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Representation-local metric semantics remain a stable guardrail unchanged by post-ladder passes."
+    },
+    {
+      "claim_id": "C2",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_to_expose",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": true,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Workflow-level portability framing is reinforced by both soft-middle and behavioral reinforcement passes."
+    },
+    {
+      "claim_id": "C3",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Checkpoint summary-route specificity remains bounded and unchanged."
+    },
+    {
+      "claim_id": "D1",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_to_expose",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Aggregation-as-seam is reinforced by mixed-evidence stress testing."
+    },
+    {
+      "claim_id": "D2",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Aggregation family distinctness remains reinforced under soft-middle perturbation."
+    },
+    {
+      "claim_id": "D3",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "QA-dominant distinctness is strengthened in richer mixed-evidence triage panels."
+    },
+    {
+      "claim_id": "D4",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Taxonomy remains usable at coarse grain with clearer threshold guardrails."
+    },
+    {
+      "claim_id": "E1",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": true,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Behavioral profile distinction receives bounded reinforcement from both post-ladder passes."
+    },
+    {
+      "claim_id": "E2",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": true,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Collapse-vs-contamination split is directly strengthened by bounded replication."
+    },
+    {
+      "claim_id": "E3",
+      "original_ladder_status": "thin",
+      "original_product_relevance_status": "research_only",
+      "mixed_evidence_affects": false,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Routing-confusability behavioral transfer remains thin and suppression-eligible."
+    },
+    {
+      "claim_id": "E4",
+      "original_ladder_status": "moderately_stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": false,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Same-family optional review-like framing is reinforced in mixed-evidence triage middle."
+    },
+    {
+      "claim_id": "F1",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_with_guardrails",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": true,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Broadened substrate claim remains reinforced with explicit bounded-scope communication treatment."
+    },
+    {
+      "claim_id": "F2",
+      "original_ladder_status": "stable",
+      "original_product_relevance_status": "safe_to_expose",
+      "mixed_evidence_affects": true,
+      "collapse_contamination_affects": true,
+      "edge_refinement_candidate": true,
+      "baseline_note": "Workflow-level triage value is reinforced by both reinforcement streams."
+    }
+  ]
+}

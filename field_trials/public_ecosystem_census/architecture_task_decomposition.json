@@ -1,0 +1,122 @@
+{
+  "phase": "architecture_task_decomposition",
+  "architecture_effect": {
+    "stable_rank_mean": {
+      "eta_sq": 0.0785,
+      "f_statistic": 2.0444,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    },
+    "stable_rank_std": {
+      "eta_sq": 0.0859,
+      "f_statistic": 2.2552,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    },
+    "utilization_mean": {
+      "eta_sq": 0.2518,
+      "f_statistic": 8.077,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    },
+    "energy_rank_90_p50": {
+      "eta_sq": 0.0029,
+      "f_statistic": 0.0704,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    },
+    "entropy_erank_mean": {
+      "eta_sq": 0.2378,
+      "f_statistic": 7.4894,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    },
+    "edge_gap_mean": {
+      "eta_sq": 0.0363,
+      "f_statistic": 0.9049,
+      "n_groups": 2,
+      "n_total": 26,
+      "df_between": 1,
+      "df_within": 24,
+      "computable": true
+    }
+  },
+  "task_effect": {
+    "stable_rank_mean": {
+      "eta_sq": 0.267,
+      "f_statistic": 4.1892,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    },
+    "stable_rank_std": {
+      "eta_sq": 0.3102,
+      "f_statistic": 5.1713,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    },
+    "utilization_mean": {
+      "eta_sq": 0.3967,
+      "f_statistic": 7.5606,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    },
+    "energy_rank_90_p50": {
+      "eta_sq": 0.0505,
+      "f_statistic": 0.6111,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    },
+    "entropy_erank_mean": {
+      "eta_sq": 0.5054,
+      "f_statistic": 11.7522,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    },
+    "edge_gap_mean": {
+      "eta_sq": 0.0296,
+      "f_statistic": 0.3513,
+      "n_groups": 3,
+      "n_total": 26,
+      "df_between": 2,
+      "df_within": 23,
+      "computable": true
+    }
+  },
+  "summary": {
+    "mean_architecture_eta_sq": 0.1155,
+    "mean_task_eta_sq": 0.2599,
+    "architecture_metrics_above_010": 2,
+    "task_metrics_above_010": 4,
+    "dominant_factor": "task"
+  }
+}

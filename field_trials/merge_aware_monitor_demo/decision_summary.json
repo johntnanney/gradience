@@ -1,0 +1,9 @@
+{
+  "status": "bounded_keep",
+  "basis": "prototype demonstrates callback-compatible telemetry drift traces with conservative trend labels",
+  "n_runs": 1,
+  "n_snapshots_total": 4,
+  "run_level_trends": [
+    "inconclusive"
+  ]
+}

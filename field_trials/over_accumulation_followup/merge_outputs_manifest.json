@@ -1,0 +1,505 @@
+[
+  {
+    "pair_id": "ca_family_sst2xIMDB_eval_imdb",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_eval_sst2",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_v2_eval_imdb",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_v2_eval_sst2",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "ca_retained_sst2_x_sst2",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.954119,
+        0.045881
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.949506,
+        0.050494
+      ],
+      [
+        0.931613,
+        0.068387
+      ],
+      [
+        0.918739,
+        0.081261
+      ],
+      [
+        0.934681,
+        0.065319
+      ],
+      [
+        0.919026,
+        0.080974
+      ],
+      [
+        0.89306,
+        0.10694
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "ca_same_imdb_x_imdb",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "p2_control_agnews_x_mnli",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.847136,
+        0.152864
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.91561,
+        0.08439
+      ],
+      [
+        0.85729,
+        0.14271
+      ],
+      [
+        0.853975,
+        0.146025
+      ],
+      [
+        0.872695,
+        0.127305
+      ],
+      [
+        0.837542,
+        0.162458
+      ],
+      [
+        0.880093,
+        0.119907
+      ],
+      [
+        0.870889,
+        0.129111
+      ],
+      [
+        0.889865,
+        0.110135
+      ],
+      [
+        0.905585,
+        0.094415
+      ],
+      [
+        0.867512,
+        0.132488
+      ],
+      [
+        0.887481,
+        0.112519
+      ],
+      [
+        0.872759,
+        0.127241
+      ],
+      [
+        0.906889,
+        0.093111
+      ],
+      [
+        0.850341,
+        0.149659
+      ],
+      [
+        0.894236,
+        0.105764
+      ],
+      [
+        0.887646,
+        0.112354
+      ],
+      [
+        0.900438,
+        0.099562
+      ],
+      [
+        0.906135,
+        0.093865
+      ],
+      [
+        0.900303,
+        0.099697
+      ],
+      [
+        0.907501,
+        0.092499
+      ],
+      [
+        0.893381,
+        0.106619
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "p2_control_hate_x_irony",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "p2_retained_agnews",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/merged_adapter/merge_result.json",
+    "historical_strategy": "norm_equalized",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "p3_control_agnews_x_emotion",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.079754,
+        0.920246
+      ],
+      [
+        0.101284,
+        0.898716
+      ],
+      [
+        0.111373,
+        0.888627
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.145725,
+        0.854275
+      ],
+      [
+        0.104717,
+        0.895283
+      ],
+      [
+        0.148868,
+        0.851132
+      ],
+      [
+        0.155955,
+        0.844045
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "p3_control_sst2_x_agnews",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.869591,
+        0.130409
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.839552,
+        0.160448
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "p3_nearmiss_hate",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "p3_retained_agnews",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/merged_adapter/merge_result.json",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "p3_retained_sst2",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/merged_adapter/merge_result.json",
+    "historical_strategy": "norm_equalized",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "t01_cross_task_sst2_x_agnews",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.869591,
+        0.130409
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.839552,
+        0.160448
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "t01_retained_sst2_x_sst2",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.954119,
+        0.045881
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.949506,
+        0.050494
+      ],
+      [
+        0.931613,
+        0.068387
+      ],
+      [
+        0.918739,
+        0.081261
+      ],
+      [
+        0.934681,
+        0.065319
+      ],
+      [
+        0.919026,
+        0.080974
+      ],
+      [
+        0.89306,
+        0.10694
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "t01_same_family_sst2_x_imdb",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  },
+  {
+    "pair_id": "t02_excluded_irony_x_hate",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "t02_near_miss_marginal_irony",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "t02_near_miss_substantial_hate",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "naive-linear-equivalent historical output"
+  },
+  {
+    "pair_id": "t02_retained_irony_x_irony",
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/merged_adapter/merge_result.json",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "merge_condition_note": "historical output (non-naive-equivalent strategy observed)"
+  }
+]

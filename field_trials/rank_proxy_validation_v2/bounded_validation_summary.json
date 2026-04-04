@@ -1,0 +1,30 @@
+{
+  "study": "adaptive_rank_comparison_external_validation_target_v2",
+  "primary_informative_task_families": [
+    "imdb",
+    "sst2"
+  ],
+  "secondary_context_task_families": [
+    "ag_news",
+    "tweet_eval"
+  ],
+  "lead_spectral_policy_primary": "oht",
+  "lead_spectral_mean_delta_vs_uniform": 0.009837962962962958,
+  "proxy_gradient_mean_delta_vs_uniform_primary": 0.011863425925925911,
+  "proxy_ablation_mean_delta_vs_uniform_primary": 0.0023148148148148004,
+  "policy_interpretation": {
+    "operational_default_proxy": "proxy_gradient",
+    "explanatory_companion_proxy": "proxy_ablation_attenuate",
+    "lead_spectral_policy": "oht"
+  },
+  "ablation_reliability_resampling_note": {
+    "mean_gradient_pairwise_spearman": 0.9032523032523032,
+    "mean_ablation_pairwise_spearman": 0.3998497645770876
+  },
+  "guardrails": [
+    "encoder-only bounded regime",
+    "classification-only bounded regime",
+    "compressible families only for primary claims",
+    "no adaptive-training equivalence claim"
+  ]
+}

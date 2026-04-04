@@ -1,0 +1,69 @@
+{
+  "phase": "module_type_asymmetry",
+  "sign_test": {
+    "n_pairs": 8,
+    "n_valid": 8,
+    "ties": 0,
+    "attn_less_than_mlp": 2,
+    "mlp_less_than_attn": 6,
+    "proportion_attn_less": 0.25,
+    "replicates_encoder_pattern": false
+  },
+  "n_pairs": 8,
+  "n_valid": 8,
+  "ties": 0,
+  "attn_less_than_mlp": 2,
+  "mlp_less_than_attn": 6,
+  "proportion_attn_less": 0.25,
+  "replicates_encoder_pattern": false,
+  "sign_test_interpretation": "Attention < MLP in 2/8 adapters (25%)",
+  "by_architecture_family": {
+    "llama": {
+      "attn_less": 2,
+      "mlp_less": 6,
+      "ties": 0,
+      "proportion_attn_less": 0.25,
+      "mean_diff": 0.0832,
+      "direction": "MLP < attn"
+    }
+  },
+  "subtype_breakdown": {
+    "attn_other": {
+      "n_layers": 2688,
+      "stable_rank_mean": 1.9924,
+      "stable_rank_std": 0.9459,
+      "utilization_mean": 0.169
+    },
+    "mlp_other": {
+      "n_layers": 816,
+      "stable_rank_mean": 1.4996,
+      "stable_rank_std": 0.578,
+      "utilization_mean": 0.1129
+    }
+  },
+  "subtype_by_family": {
+    "llama": {
+      "attn_other": {
+        "n_layers": 2176,
+        "stable_rank_mean": 2.0666
+      },
+      "mlp_other": {
+        "n_layers": 816,
+        "stable_rank_mean": 1.4996
+      }
+    },
+    "mistral": {
+      "attn_other": {
+        "n_layers": 512,
+        "stable_rank_mean": 1.677
+      }
+    }
+  },
+  "architectural_attribution": {
+    "llama": {
+      "n": 8,
+      "mean_asymmetry_magnitude": 0.197,
+      "std": 0.0915
+    }
+  }
+}

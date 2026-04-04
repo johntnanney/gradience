@@ -2,7 +2,7 @@
 
 **Type:** synthesis
 **Date:** 2026-04-01
-**Depends on:** n70-n74 (decision-dependent), n76-n80 (cross-artifact), n81-n85 (aggregation-sensitive), n86-n92 (behavioral bridge), n93-n97 (cross-artifact stability), n98-n102 (aggregation stability), n103-n107 (mixed-evidence triage perturbation), and the mechanism ladder (n67 §§1-10)
+**Depends on:** n70-n74 (decision-dependent), n76-n80 (cross-artifact), n81-n85 (aggregation-sensitive), n86-n92 (behavioral bridge), n93-n97 (cross-artifact stability), n98-n102 (aggregation stability), n103-n107 (mixed-evidence triage perturbation), n118-n122 (collapse-vs-contamination replication), and the mechanism ladder (n67 §§1-10)
 **Status:** The single current-best account of Route 2 findings. Companion to n67 (mechanism-ladder synthesis).
 
 ---
@@ -110,6 +110,8 @@ The most operationally important finding. Worst-case collapse and cross-task con
 
 This is the behavioral confirmation that different aggregation strategies are needed for different decision contexts — they track different failure channels.
 
+**Replication update:** a bounded local replication pass (n118-n122) strengthened this distinction under nearby case/slice perturbations. The confidence-channel split remained clear with guardrails: collapse-like targets preserved high confidence-collapse and low high-confidence wrong, while contamination-like targets preserved the opposite pattern.
+
 ### Same-family optional is behaviorally safe-like
 
 Same-family optional (near-miss) cases are indistinguishable from aggregation-invariant safe on all discriminating metrics. The structural distinction (retained vs near-miss) matters for evidence gating, not for behavioral outcome. QA constraints on these cases are about evidence gaps, not behavioral risk.
@@ -164,7 +166,7 @@ These claims are supported by the converging evidence from all four programs:
 
 4. **Same-family optional is behaviorally safe-like.** The structural near-miss classification does not predict behavioral pathology. QA constraints on these cases are about evidence, not risk.
 
-5. **Collapse and contamination are distinct operational failure channels.** Same failure rate (~14% neither-source), different confidence patterns, different operational consequences. Collapse is recoverable (the model signals its uncertainty); contamination is dangerous (the model conceals its error).
+5. **Collapse and contamination are distinct operational failure channels (replicated, bounded).** Similar neither-source pressure can hide opposite confidence signatures. The distinction now survives a nearby replication pass (n118-n122) and is safe for bounded Route 2 explanatory language.
 
 6. **Evidence gating identifies behavioral stasis.** QA-dominant aggregation does not over-conservatively block structurally sound cases — it correctly identifies cases where structural measurement has no behavioral substrate.
 
@@ -173,6 +175,8 @@ These claims are supported by the converging evidence from all four programs:
 8. **Soft-middle triage structure survives mixed-evidence weighting.** The additional triage-weighted perturbation (n103-n107) supports guarded language for review and optional states: QA-dominant remains coherent; same-family optional remains review/clear-leaning rather than collapse-like; exact thresholding remains non-canonical.
 
 9. **Aggregation claims are now seam-stable, threshold-guarded, and behaviorally grounded.** Seam-level claims (aggregation as decision seam, family distinctness, worst-case collapse) are reinforced by stability checks; threshold-level claims remain explicitly bounded; behavioral bridge results explain why these aggregation distinctions are operationally meaningful rather than architectural artifacts.
+
+10. **Route 2 claims now include an explicit edge-refinement communication layer.** The R1 refinement pass (n123) overlays the ladder with communication buckets (`core_stable_non_edge`, `stable_but_local`, `moderate_but_product_relevant`, `thin_suppress_public`). This keeps synthesis/public language conservative without weakening supported bounded claims: thin claims are suppressed, local claims are bounded, and moderate workflow-relevant claims remain guardrailed.
 
 ---
 
@@ -212,3 +216,4 @@ Together they constitute the project's theoretical account:
 | Aggregation stability | n98-n102 | `results/route2_stability/aggregation/` | `docs/strategy/aggregation_stability_summary.md` |
 | Aggregation mixed-evidence triage perturbation | n103-n107 | `results/route2_stability/aggregation_mixed_evidence/` | `docs/strategy/aggregation_mixed_evidence_summary.md` |
 | Behavioral bridge | n86-n92 | `results/behavioral_route2_bridge/` | `docs/strategy/behavioral_route2_summary.md` |
+| Collapse-vs-contamination replication | n118-n122 | `results/route2_stress_tests/collapse_vs_contamination/` | `docs/strategy/collapse_vs_contamination_summary.md` |

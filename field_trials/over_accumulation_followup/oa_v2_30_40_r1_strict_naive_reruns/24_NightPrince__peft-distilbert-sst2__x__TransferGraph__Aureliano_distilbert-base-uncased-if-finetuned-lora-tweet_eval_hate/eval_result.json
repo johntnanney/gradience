@@ -1,0 +1,15 @@
+{
+  "pair_name": "24_NightPrince__peft-distilbert-sst2__x__TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+  "role": "lower_tail_matched",
+  "strategy": "uniform_linear",
+  "eval_dataset": "sst2",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.156,
+  "mean_reconstruction_error": 0.0089,
+  "merged_accuracy": 0.674,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 2.5,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

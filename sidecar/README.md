@@ -32,7 +32,9 @@ If you are new to this repo, or returning after a break, start with the document
 | **Aggregation stability** | [`../docs/strategy/aggregation_stability_summary.md`](../docs/strategy/aggregation_stability_summary.md) | Do aggregation-sensitive conclusions survive panel perturbation? 5 stable, 2 moderately stable in Substudy 2. |
 | **Aggregation mixed-evidence triage** | [`../docs/strategy/aggregation_mixed_evidence_summary.md`](../docs/strategy/aggregation_mixed_evidence_summary.md) | Soft-middle stress pass: QA-dominant coherence held; same-family optional stayed review-like with guardrails. |
 | **Mixed-evidence triage stress test** | [`../docs/strategy/mixed_evidence_triage_summary.md`](../docs/strategy/mixed_evidence_triage_summary.md) | Follow-on soft-middle stress test: mixed-evidence-heavy panel remained coherent with explicit threshold guardrails. |
+| **Collapse vs contamination replication** | [`../docs/strategy/collapse_vs_contamination_summary.md`](../docs/strategy/collapse_vs_contamination_summary.md) | Behavioral channel replication: distinction strengthened as stable-but-bounded under nearby case/slice perturbation. |
 | **Route 2 claims ladder** | [`../docs/strategy/route2_claims_ladder_summary.md`](../docs/strategy/route2_claims_ladder_summary.md) | Confidence-calibrated synthesis of Route 2 claims: stable vs moderately stable vs thin vs local-only. |
+| **Phase-probe add-on summary** | [`../docs/strategy/phase_probe_addon_summary.md`](../docs/strategy/phase_probe_addon_summary.md) | Bounded status of HTSR alpha and edge-gap probes, with explicit core-vs-secondary observables hierarchy. |
 | **Artifact index** | [`ARTIFACTS.md`](ARTIFACTS.md) | Every figure, script, JSON result, HTML report, and field trial bundle in one navigable page. |
 
 ### Reading order
@@ -45,7 +47,13 @@ If you are new to this repo, or returning after a break, start with the document
 
 ## Current state
 
-Route 2 initial implementation checkpoint is now complete in bounded form: broadened substrate documentation, checkpoint triage stabilization artifacts, a polished checkpoint-triage alpha workflow package, decision-dependent compatibility consolidation, completed cross-artifact portability clarification (n76-n80, anchored by n75), a local robustness/stability pass on that portability line (n93-n97), a completed aggregation-sensitive stability check (n98-n102), a targeted mixed-evidence triage perturbation pass (n103-n107), a calibrated claims-stability ladder synthesis (n108-n112), and a follow-on mixed-evidence triage stress-test pass (n113-n117).
+Route 2 initial implementation checkpoint is now complete in bounded form: broadened substrate documentation, checkpoint triage stabilization artifacts, a polished checkpoint-triage alpha workflow package, decision-dependent compatibility consolidation, completed cross-artifact portability clarification (n76-n80, anchored by n75), a local robustness/stability pass on that portability line (n93-n97), a completed aggregation-sensitive stability check (n98-n102), a targeted mixed-evidence triage perturbation pass (n103-n107), a calibrated claims-stability ladder synthesis (n108-n112), a follow-on mixed-evidence triage stress-test pass (n113-n117), and a bounded collapse-vs-contamination behavioral replication pass (n118-n122).
+
+The phase-probe add-on has been integrated as a bounded research extension with an explicit observables hierarchy:
+- Core standing observables: stable/effective rank, energy concentration, DFA/regime structure
+- Secondary bounded probes: edge-gap (`edge_gap_12`) and HTSR alpha (`htsr_alpha`)
+
+Both probes are retained as companion observables and are not treated as front-line summary metrics.
 
 **Instability** — the variability of a pair's **severity** across seeds and backbones — is the sidecar's central organizing concept and has been formalized as a **research program** (n06). The key finding: severity rankings reverse across backbones, but instability rankings do not. Two pairs cluster as highly unstable (instability > 0.7) and four as stable (< 0.3), with a clean gap between the clusters. The working hypothesis is **thresholded subspace interference**: catastrophic outcomes require specific seed-dependent geometric conditions to trigger.
 
@@ -348,6 +356,19 @@ Eight terms are frozen (see `glossary.md` for full definitions):
 | [`../docs/strategy/mixed_evidence_triage_summary.md`](../docs/strategy/mixed_evidence_triage_summary.md) | **Strategy summary.** Canonical summary for Route 2 packet and checkpoint-triage alpha explanation. |
 | `results/route2_stress_tests/mixed_evidence_triage/` | **Structured outputs.** Baseline snapshot, panel tables, aggregation comparison, triage outputs, soft-middle verdicts, summary JSON. |
 | `figures/mixed_evidence_triage_matrix.svg` | **Figure.** Aggregation-family output matrix across the mixed-evidence stress panel. |
+
+### Route 2 Collapse vs Contamination Replication (n118-n122)
+
+| Document | What it is |
+|----------|------------|
+| `notes/n118_collapse_vs_contamination_baseline.md` | **Stage A baseline.** Frozen anchor distinction from original behavioral bridge (`FR-01` collapse vs `CT-01` contamination). |
+| `notes/n119_collapse_vs_contamination_replication_panel.md` | **Stage B panel.** 4-target nearby replication panel (1 case + 3 slices) spanning both channels. |
+| `notes/n120_collapse_vs_contamination_rerun.md` | **Stage C rerun.** Behavioral metric rerun with confidence-channel comparison across targets. |
+| `notes/n121_collapse_vs_contamination_verdict.md` | **Stage D verdict.** Overall verdict: `replicated_with_guardrails` with explicit scope limits. |
+| `notes/n122_collapse_vs_contamination_replication_memo.md` | **Stage E memo.** Route 2 language guidance: stable bounded channel distinction, non-universal scope. |
+| [`../docs/strategy/collapse_vs_contamination_summary.md`](../docs/strategy/collapse_vs_contamination_summary.md) | **Strategy summary.** Canonical synthesis for Route 2 communication and explanatory framing. |
+| `results/route2_stress_tests/collapse_vs_contamination/` | **Structured outputs.** Baseline snapshot, panel table, behavior summary, channel comparison, verdicts, summary JSON. |
+| `figures/collapse_vs_contamination_replication_matrix.svg` | **Figure.** Replication matrix showing channel separation on core behavioral metrics. |
 
 ### Behavioral Route 2 Bridge (n86-n92)
 

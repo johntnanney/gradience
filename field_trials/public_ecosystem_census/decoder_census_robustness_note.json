@@ -1,0 +1,657 @@
+{
+  "date": "2026-04-04T00:28:00.196640+00:00",
+  "scope": "compact decoder census robustness note",
+  "inputs": {
+    "source": "task-balanced augmented census artifacts",
+    "n_full": 36
+  },
+  "subsets": {
+    "full": {
+      "subset": "full_task_balanced",
+      "n": 36,
+      "task_counts": {
+        "chat_instruct": 13,
+        "classification": 10,
+        "domain_specialist": 1,
+        "general_unknown": 3,
+        "code": 1,
+        "math_reasoning": 8
+      },
+      "architecture_counts": {
+        "llama": 19,
+        "mistral": 8,
+        "qwen": 9
+      },
+      "decomposition_summary": {
+        "mean_architecture_eta_sq": 0.143,
+        "mean_task_eta_sq": 0.3359,
+        "architecture_metrics_above_010": 5,
+        "task_metrics_above_010": 5,
+        "dominant_factor": "task"
+      },
+      "architecture_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1195,
+          "f_statistic": 2.24,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.122,
+          "f_statistic": 2.2919,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.1343,
+          "f_statistic": 2.5588,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.1987,
+          "f_statistic": 4.0911,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.2568,
+          "f_statistic": 5.7013,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0266,
+          "f_statistic": 0.4509,
+          "n_groups": 3,
+          "n_total": 36,
+          "df_between": 2,
+          "df_within": 33,
+          "computable": true
+        }
+      },
+      "task_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1701,
+          "f_statistic": 1.2294,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.2554,
+          "f_statistic": 2.0575,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.2717,
+          "f_statistic": 2.2389,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.7565,
+          "f_statistic": 18.6454,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.5288,
+          "f_statistic": 6.7332,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0332,
+          "f_statistic": 0.2062,
+          "n_groups": 6,
+          "n_total": 36,
+          "df_between": 5,
+          "df_within": 30,
+          "computable": true
+        }
+      },
+      "clustering": {
+        "phase": "clustering_validation",
+        "k": 5,
+        "computable": true,
+        "architecture_knn_purity": {
+          "mean": 0.7444,
+          "median": 1.0,
+          "std": 0.3264
+        },
+        "task_knn_purity": {
+          "mean": 0.5667,
+          "median": 0.6,
+          "std": 0.4099
+        },
+        "baselines": {
+          "architecture_random_purity": 0.3904,
+          "task_random_purity": 0.2654
+        },
+        "above_baseline": {
+          "architecture": 0.354,
+          "task": 0.3012
+        }
+      }
+    },
+    "high_confidence": {
+      "subset": "high_confidence_labels",
+      "n": 33,
+      "task_counts": {
+        "chat_instruct": 13,
+        "classification": 10,
+        "domain_specialist": 1,
+        "code": 1,
+        "math_reasoning": 8
+      },
+      "architecture_counts": {
+        "llama": 16,
+        "mistral": 8,
+        "qwen": 9
+      },
+      "decomposition_summary": {
+        "mean_architecture_eta_sq": 0.164,
+        "mean_task_eta_sq": 0.332,
+        "architecture_metrics_above_010": 5,
+        "task_metrics_above_010": 5,
+        "dominant_factor": "task"
+      },
+      "architecture_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.117,
+          "f_statistic": 1.9879,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.1262,
+          "f_statistic": 2.1659,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.1638,
+          "f_statistic": 2.9373,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.1887,
+          "f_statistic": 3.4883,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.3584,
+          "f_statistic": 8.3804,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0299,
+          "f_statistic": 0.4625,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        }
+      },
+      "task_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1513,
+          "f_statistic": 1.2483,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.2162,
+          "f_statistic": 1.9306,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.2748,
+          "f_statistic": 2.6522,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.7546,
+          "f_statistic": 21.524,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.5638,
+          "f_statistic": 9.0484,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0311,
+          "f_statistic": 0.2246,
+          "n_groups": 5,
+          "n_total": 33,
+          "df_between": 4,
+          "df_within": 28,
+          "computable": true
+        }
+      },
+      "clustering": {
+        "phase": "clustering_validation",
+        "k": 5,
+        "computable": true,
+        "architecture_knn_purity": {
+          "mean": 0.7455,
+          "median": 1.0,
+          "std": 0.3474
+        },
+        "task_knn_purity": {
+          "mean": 0.6242,
+          "median": 0.6,
+          "std": 0.3961
+        },
+        "baselines": {
+          "architecture_random_purity": 0.3682,
+          "task_random_purity": 0.3076
+        },
+        "above_baseline": {
+          "architecture": 0.3772,
+          "task": 0.3166
+        }
+      }
+    },
+    "rank_matched_modal": {
+      "subset": "rank_matched_modal",
+      "n": 11,
+      "task_counts": {
+        "chat_instruct": 9,
+        "general_unknown": 1,
+        "math_reasoning": 1
+      },
+      "architecture_counts": {
+        "llama": 10,
+        "qwen": 1
+      },
+      "decomposition_summary": {
+        "mean_architecture_eta_sq": 0.082,
+        "mean_task_eta_sq": 0.1108,
+        "architecture_metrics_above_010": 3,
+        "task_metrics_above_010": 4,
+        "dominant_factor": "task"
+      },
+      "architecture_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1177,
+          "f_statistic": 1.2004,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.044,
+          "f_statistic": 0.4144,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.1177,
+          "f_statistic": 1.2004,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.1618,
+          "f_statistic": 1.7368,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.0505,
+          "f_statistic": 0.4785,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0,
+          "f_statistic": 0.0,
+          "n_groups": 2,
+          "n_total": 11,
+          "df_between": 1,
+          "df_within": 9,
+          "computable": true
+        }
+      },
+      "task_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1368,
+          "f_statistic": 0.634,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.1442,
+          "f_statistic": 0.6742,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.1368,
+          "f_statistic": 0.634,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.1634,
+          "f_statistic": 0.7812,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.0569,
+          "f_statistic": 0.2412,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0268,
+          "f_statistic": 0.1101,
+          "n_groups": 3,
+          "n_total": 11,
+          "df_between": 2,
+          "df_within": 8,
+          "computable": true
+        }
+      },
+      "clustering": {
+        "phase": "clustering_validation",
+        "k": 5,
+        "computable": true,
+        "architecture_knn_purity": {
+          "mean": 0.8545,
+          "median": 1.0,
+          "std": 0.2979
+        },
+        "task_knn_purity": {
+          "mean": 0.7091,
+          "median": 1.0,
+          "std": 0.3936
+        },
+        "baselines": {
+          "architecture_random_purity": 0.8347,
+          "task_random_purity": 0.686
+        },
+        "above_baseline": {
+          "architecture": 0.0198,
+          "task": 0.0231
+        }
+      },
+      "modal_rank": 8
+    },
+    "downweight_dominant_task": {
+      "subset": "downweight_dominant_task",
+      "n": 33,
+      "task_counts": {
+        "chat_instruct": 10,
+        "classification": 10,
+        "domain_specialist": 1,
+        "general_unknown": 3,
+        "code": 1,
+        "math_reasoning": 8
+      },
+      "architecture_counts": {
+        "llama": 16,
+        "mistral": 8,
+        "qwen": 9
+      },
+      "decomposition_summary": {
+        "mean_architecture_eta_sq": 0.1446,
+        "mean_task_eta_sq": 0.3311,
+        "architecture_metrics_above_010": 5,
+        "task_metrics_above_010": 5,
+        "dominant_factor": "task"
+      },
+      "architecture_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.1346,
+          "f_statistic": 2.3338,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.1356,
+          "f_statistic": 2.3532,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.1239,
+          "f_statistic": 2.1218,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.2067,
+          "f_statistic": 3.9088,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.2305,
+          "f_statistic": 4.4932,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0361,
+          "f_statistic": 0.5619,
+          "n_groups": 3,
+          "n_total": 33,
+          "df_between": 2,
+          "df_within": 30,
+          "computable": true
+        }
+      },
+      "task_effect": {
+        "stable_rank_mean": {
+          "eta_sq": 0.169,
+          "f_statistic": 1.0983,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        },
+        "stable_rank_std": {
+          "eta_sq": 0.2478,
+          "f_statistic": 1.7789,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        },
+        "utilization_mean": {
+          "eta_sq": 0.2447,
+          "f_statistic": 1.7492,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        },
+        "energy_rank_90_p50": {
+          "eta_sq": 0.7622,
+          "f_statistic": 17.3101,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        },
+        "entropy_erank_mean": {
+          "eta_sq": 0.5091,
+          "f_statistic": 5.5998,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        },
+        "edge_gap_mean": {
+          "eta_sq": 0.0535,
+          "f_statistic": 0.3052,
+          "n_groups": 6,
+          "n_total": 33,
+          "df_between": 5,
+          "df_within": 27,
+          "computable": true
+        }
+      },
+      "clustering": {
+        "phase": "clustering_validation",
+        "k": 5,
+        "computable": true,
+        "architecture_knn_purity": {
+          "mean": 0.7212,
+          "median": 0.8,
+          "std": 0.3314
+        },
+        "task_knn_purity": {
+          "mean": 0.5091,
+          "median": 0.6,
+          "std": 0.3876
+        },
+        "baselines": {
+          "architecture_random_purity": 0.3682,
+          "task_random_purity": 0.2525
+        },
+        "above_baseline": {
+          "architecture": 0.353,
+          "task": 0.2566
+        }
+      },
+      "dominant_task": "chat_instruct",
+      "dominant_task_original_n": 13,
+      "dominant_task_downweighted_n": 10
+    }
+  },
+  "robustness_checks": {
+    "high_confidence_labels_architecture_retained": true,
+    "rank_matched_architecture_detectable": true,
+    "downweighted_dominant_task_architecture_retained": true
+  },
+  "interpretation": "Architecture effects remain visible across the high-confidence and dominant-task-downweighted slices. Rank-matched slice remains interpretable but is lower-power due to small n.",
+  "guardrails": [
+    "Observational found-artifact setting only.",
+    "Task labels remain partially noisy.",
+    "Rank-matched subset is small and not a causal result.",
+    "No policy or product changes from this note."
+  ]
+}

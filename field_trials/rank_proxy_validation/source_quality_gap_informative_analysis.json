@@ -1,0 +1,313 @@
+{
+  "analysis_scope": {
+    "subset": "informative_task_families_only",
+    "informative_task_families": [
+      "sst2",
+      "imdb"
+    ],
+    "bands_present": [
+      "near_top",
+      "mid_gap",
+      "large_gap"
+    ]
+  },
+  "method_behavior_by_source_quality_band": [
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "baseline_random",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.010416666666666666,
+      "mean_delta_vs_uniform": -0.001736111111111111,
+      "mean_compressed_accuracy": 0.8663194444444444
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "baseline_uniform",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.008680555555555556,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.8680555555555556
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "energy_90",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.00810185185185186,
+      "mean_delta_vs_uniform": 0.0005787037037036954,
+      "mean_compressed_accuracy": 0.8686342592592593
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "erank",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.00810185185185186,
+      "mean_delta_vs_uniform": 0.0005787037037036954,
+      "mean_compressed_accuracy": 0.8686342592592593
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "knee",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.007523148148148152,
+      "mean_delta_vs_uniform": 0.0011574074074074032,
+      "mean_compressed_accuracy": 0.869212962962963
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "oht",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.008101851851851848,
+      "mean_delta_vs_uniform": 0.0005787037037037078,
+      "mean_compressed_accuracy": 0.8686342592592593
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "proxy_ablation",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.004050925925925954,
+      "mean_delta_vs_uniform": 0.004629629629629601,
+      "mean_compressed_accuracy": 0.8726851851851851
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "proxy_gradient",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.0034722222222222346,
+      "mean_delta_vs_uniform": 0.005208333333333321,
+      "mean_compressed_accuracy": 0.8732638888888888
+    },
+    {
+      "source_quality_gap_band": "near_top",
+      "method": "stable_rank_ceil",
+      "n": 9,
+      "mean_delta_vs_full_adapter": -0.008680555555555556,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.8680555555555556
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "baseline_random",
+      "n": 3,
+      "mean_delta_vs_full_adapter": 0.0017361111111111605,
+      "mean_delta_vs_uniform": 0.05902777777777779,
+      "mean_compressed_accuracy": 0.8715277777777778
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "baseline_uniform",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.05729166666666663,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.8125
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "energy_90",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.01909722222222217,
+      "mean_delta_vs_uniform": 0.038194444444444454,
+      "mean_compressed_accuracy": 0.8506944444444444
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "erank",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.039930555555555546,
+      "mean_delta_vs_uniform": 0.017361111111111088,
+      "mean_compressed_accuracy": 0.829861111111111
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "knee",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.01041666666666663,
+      "mean_delta_vs_uniform": 0.046875,
+      "mean_compressed_accuracy": 0.859375
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "oht",
+      "n": 3,
+      "mean_delta_vs_full_adapter": 0.0,
+      "mean_delta_vs_uniform": 0.05729166666666663,
+      "mean_compressed_accuracy": 0.8697916666666666
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "proxy_ablation",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.05729166666666663,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.8125
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "proxy_gradient",
+      "n": 3,
+      "mean_delta_vs_full_adapter": 0.0,
+      "mean_delta_vs_uniform": 0.05729166666666663,
+      "mean_compressed_accuracy": 0.8697916666666666
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "method": "stable_rank_ceil",
+      "n": 3,
+      "mean_delta_vs_full_adapter": -0.05729166666666663,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.8125
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "baseline_random",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "baseline_uniform",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "energy_90",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "erank",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.0078125,
+      "mean_delta_vs_uniform": -0.0034722222222222285,
+      "mean_compressed_accuracy": 0.7682291666666667
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "knee",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "oht",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "proxy_ablation",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "proxy_gradient",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.010416666666666666,
+      "mean_delta_vs_uniform": -0.0008680555555555617,
+      "mean_compressed_accuracy": 0.7708333333333334
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "method": "stable_rank_ceil",
+      "n": 6,
+      "mean_delta_vs_full_adapter": 0.011284722222222229,
+      "mean_delta_vs_uniform": 0.0,
+      "mean_compressed_accuracy": 0.771701388888889
+    }
+  ],
+  "best_method_by_source_quality_band": [
+    {
+      "source_quality_gap_band": "near_top",
+      "best_method_by_delta_vs_uniform": "proxy_gradient",
+      "best_mean_delta_vs_uniform": 0.005208333333333321,
+      "n": 9
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "best_method_by_delta_vs_uniform": "baseline_random",
+      "best_mean_delta_vs_uniform": 0.05902777777777779,
+      "n": 3
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "best_method_by_delta_vs_uniform": "baseline_random",
+      "best_mean_delta_vs_uniform": 0.0,
+      "n": 6
+    }
+  ],
+  "proxy_gradient_concentration_check": {
+    "proxy_gradient_mean_delta_vs_uniform": {
+      "near_top": 0.005208333333333321,
+      "mid_gap": 0.05729166666666663,
+      "large_gap": -0.0008680555555555617
+    },
+    "proxy_gradient_near_minus_large": 0.006076388888888883,
+    "proxy_gradient_near_minus_mid": -0.05208333333333331,
+    "proxy_gradient_minus_oht_by_band": {
+      "near_top": 0.004629629629629613,
+      "mid_gap": 0.0,
+      "large_gap": -0.0008680555555555617
+    }
+  },
+  "spectral_vs_ablation_alignment_by_band": [
+    {
+      "source_quality_gap_band": "near_top",
+      "n": 5,
+      "mean_spearman_rank_correlation": -0.08165864999198331,
+      "mean_topk_overlap": 0.3037037037037037,
+      "mean_policy_vs_proxy_acc_delta": -0.0040509259259259005
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "n": 5,
+      "mean_spearman_rank_correlation": 0.007085137085137088,
+      "mean_topk_overlap": 0.5777777777777777,
+      "mean_policy_vs_proxy_acc_delta": 0.031944444444444435
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "n": 5,
+      "mean_spearman_rank_correlation": 0.7652657527657527,
+      "mean_topk_overlap": 0.9333333333333333,
+      "mean_policy_vs_proxy_acc_delta": -0.0006944444444444457
+    }
+  ],
+  "spectral_vs_gradient_alignment_by_band": [
+    {
+      "source_quality_gap_band": "near_top",
+      "n": 5,
+      "mean_spearman_rank_correlation": -0.3445775212441879,
+      "mean_topk_overlap": 0.0962962962962963,
+      "mean_policy_vs_proxy_acc_delta": -0.004629629629629621
+    },
+    {
+      "source_quality_gap_band": "mid_gap",
+      "n": 5,
+      "mean_spearman_rank_correlation": -0.20298941798941797,
+      "mean_topk_overlap": 0.11111111111111112,
+      "mean_policy_vs_proxy_acc_delta": -0.025347222222222195
+    },
+    {
+      "source_quality_gap_band": "large_gap",
+      "n": 5,
+      "mean_spearman_rank_correlation": -0.4346079846079846,
+      "mean_topk_overlap": 0.06666666666666667,
+      "mean_policy_vs_proxy_acc_delta": 0.00017361111111111605
+    }
+  ],
+  "caution": "This is a small-sample control slice; use as directional evidence only."
+}

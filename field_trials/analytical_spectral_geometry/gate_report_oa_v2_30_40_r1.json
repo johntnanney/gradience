@@ -1,0 +1,32 @@
+{
+  "status": "oa_v2_gate_report_generated",
+  "generated_at_utc": "2026-04-03T20:55:51+00:00",
+  "label": "oa_v2_30_40_r1",
+  "input_strict_naive_json": "field_trials/over_accumulation_followup/oa_v2_30_40_r1_strict_naive_rerun_results.json",
+  "cohort_design_gate": {
+    "cohort_min_pairs": 30,
+    "cohort_max_pairs": 40,
+    "n_pairs_in_crosscheck": 30,
+    "in_target_range": true,
+    "skipped_non_strict_rows": 0
+  },
+  "threshold_policy_gate": {
+    "rule_1_abs_spearman_gain_ge_0_15": false,
+    "rule_1_abs_spearman_gain_value": -0.06751595780557779,
+    "rule_2_recall_gain_ge_0_20": false,
+    "rule_2_recall_gain_value": -0.08333333333333334,
+    "rule_3_sign_consistency_ge_0_70": false,
+    "rule_3_sign_consistency_value": 0.5555555555555556,
+    "rule_4_interpretability_decomposition_ok": true,
+    "all_pass": false
+  },
+  "analysis_snapshot": {
+    "overall_spearman_delta_vs_v1": 0.17914460293032564,
+    "overall_spearman_delta_vs_v2": 0.25133720411120314,
+    "subset_spearman_delta_vs_v1": 0.16035039978824722,
+    "subset_spearman_delta_vs_v2": -0.09283444198266944,
+    "recall_gain_v2_minus_v1": -0.08333333333333334,
+    "sign_consistency_loo": 0.5555555555555556
+  },
+  "promotion_ready": false
+}

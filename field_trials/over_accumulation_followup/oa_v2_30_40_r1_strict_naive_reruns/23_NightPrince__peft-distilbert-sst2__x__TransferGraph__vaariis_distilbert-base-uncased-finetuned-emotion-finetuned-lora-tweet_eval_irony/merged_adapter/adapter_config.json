@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "distilbert-base-uncased",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "c0c55fa5-984b-401e-a730-845a6bae37c6",
+    "strategy": "uniform_linear",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/NightPrince__peft-distilbert-sst2",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony"
+  }
+}

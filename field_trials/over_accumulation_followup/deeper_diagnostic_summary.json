@@ -1,0 +1,25 @@
+{
+  "mode": "full_deeper_diagnostic",
+  "audited_pairs": 189,
+  "pair_advisory_counts": {
+    "none": 188,
+    "elevated": 1
+  },
+  "cohort_count": 12,
+  "rerun_ok": 12,
+  "rerun_error": 0,
+  "high_tail_mean_delta_vs_best": -0.01833333333333335,
+  "low_tail_mean_delta_vs_best": -0.12433333333333335,
+  "spearman_delta_vs_max_oa": -0.017574936721114882,
+  "cutpoint_sweep_thresholds": [
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.5,
+    0.6
+  ]
+}

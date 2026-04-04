@@ -1,0 +1,893 @@
+{
+  "status": "theory_crosscheck_completed",
+  "generated_at_utc": "2026-04-03T21:53:08+00:00",
+  "n_pairs": 30,
+  "n_errors": 0,
+  "errors": [],
+  "analysis": {
+    "spearman_correlations": {
+      "v1_max_score": 0.1859,
+      "v2_max_score": 0.2617,
+      "theory_max_risk": 0.382,
+      "theory_max_inflation_ratio": 0.3856,
+      "theory_max_cross_bound": 0.3847
+    },
+    "poor_merge_enrichment": {
+      "v1": {
+        "n_alerted": 10,
+        "poor_rate_alerted": 0.3,
+        "poor_rate_rest": 0.45,
+        "lift": -0.15,
+        "recall": 0.25
+      },
+      "v2": {
+        "n_alerted": 10,
+        "poor_rate_alerted": 0.2,
+        "poor_rate_rest": 0.5,
+        "lift": -0.3,
+        "recall": 0.1667
+      },
+      "theory_risk": {
+        "n_alerted": 10,
+        "poor_rate_alerted": 0.1,
+        "poor_rate_rest": 0.55,
+        "lift": -0.45,
+        "recall": 0.0833
+      },
+      "theory_inflation": {
+        "n_alerted": 10,
+        "poor_rate_alerted": 0.1,
+        "poor_rate_rest": 0.55,
+        "lift": -0.45,
+        "recall": 0.0833
+      }
+    },
+    "theory_vs_heuristic_agreement": {
+      "theory_higher": 50,
+      "theory_lower": 110,
+      "agrees": 182
+    }
+  },
+  "pair_rows": [
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.006,
+      "is_poor": false,
+      "best_source_score": 0.902,
+      "merged_score": 0.896,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.3477,
+      "oa_v1_top3_mean": 0.3444,
+      "oa_v2_max_score": 0.1995,
+      "oa_v2_top3_interaction": 0.1958,
+      "theory_max_risk": 0.4614,
+      "theory_top3_risk": 0.297,
+      "theory_max_inflation_ratio": 1.4614,
+      "theory_mean_inflation_ratio": 1.1587,
+      "theory_max_cross_bound": 4.2618,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "alignment": 5,
+        "both": 7
+      },
+      "theory_vs_heuristic_counts": {
+        "theory_higher": 1,
+        "theory_lower": 10,
+        "agrees": 1
+      },
+      "normeq_mean_reduction_factor": 1.2485,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news__x__TransferGraph__roberta-base-finetuned-lora-ag_news",
+      "merge_delta_vs_best_source": -0.01,
+      "is_poor": false,
+      "best_source_score": 0.922,
+      "merged_score": 0.912,
+      "n_layers": 24,
+      "oa_v1_max_score": 0.1699,
+      "oa_v1_top3_mean": 0.1654,
+      "oa_v2_max_score": 0.2911,
+      "oa_v2_top3_interaction": 0.2775,
+      "theory_max_risk": 1.0,
+      "theory_top3_risk": 0.9329,
+      "theory_max_inflation_ratio": 2.2279,
+      "theory_mean_inflation_ratio": 1.3303,
+      "theory_max_cross_bound": 3.4319,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "alignment": 8,
+        "both": 16
+      },
+      "theory_vs_heuristic_counts": {
+        "theory_higher": 14,
+        "theory_lower": 1,
+        "agrees": 9
+      },
+      "normeq_mean_reduction_factor": 1.0136,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "merge_delta_vs_best_source": -0.054,
+      "is_poor": true,
+      "best_source_score": 0.786,
+      "merged_score": 0.732,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.2098,
+      "oa_v1_top3_mean": 0.1978,
+      "oa_v2_max_score": 0.3078,
+      "oa_v2_top3_interaction": 0.3061,
+      "theory_max_risk": 0.4212,
+      "theory_top3_risk": 0.2893,
+      "theory_max_inflation_ratio": 1.4212,
+      "theory_mean_inflation_ratio": 1.1074,
+      "theory_max_cross_bound": 0.3408,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "alignment": 4,
+        "both": 8
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 6,
+        "theory_higher": 2,
+        "theory_lower": 4
+      },
+      "normeq_mean_reduction_factor": 1.0093,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.01,
+      "is_poor": false,
+      "best_source_score": 0.62,
+      "merged_score": 0.61,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.195,
+      "oa_v1_top3_mean": 0.1859,
+      "oa_v2_max_score": 0.366,
+      "oa_v2_top3_interaction": 0.3887,
+      "theory_max_risk": 0.6087,
+      "theory_top3_risk": 0.4246,
+      "theory_max_inflation_ratio": 1.6087,
+      "theory_mean_inflation_ratio": 1.1578,
+      "theory_max_cross_bound": 0.5137,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "alignment": 6,
+        "both": 6
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 6,
+        "theory_higher": 3,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.0078,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.006,
+      "is_poor": false,
+      "best_source_score": 0.614,
+      "merged_score": 0.608,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1632,
+      "oa_v1_top3_mean": 0.16,
+      "oa_v2_max_score": 0.2843,
+      "oa_v2_top3_interaction": 0.2988,
+      "theory_max_risk": 0.4287,
+      "theory_top3_risk": 0.3072,
+      "theory_max_inflation_ratio": 1.4287,
+      "theory_mean_inflation_ratio": 1.1232,
+      "theory_max_cross_bound": 0.3618,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "alignment": 3,
+        "both": 9
+      },
+      "theory_vs_heuristic_counts": {
+        "theory_higher": 3,
+        "theory_lower": 3,
+        "agrees": 6
+      },
+      "normeq_mean_reduction_factor": 1.0049,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.022,
+      "is_poor": false,
+      "best_source_score": 0.884,
+      "merged_score": 0.862,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.38,
+      "oa_v1_top3_mean": 0.2898,
+      "oa_v2_max_score": 0.238,
+      "oa_v2_top3_interaction": 0.1812,
+      "theory_max_risk": 0.5514,
+      "theory_top3_risk": 0.2958,
+      "theory_max_inflation_ratio": 1.5514,
+      "theory_mean_inflation_ratio": 1.1099,
+      "theory_max_cross_bound": 1.3602,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "alignment": 1,
+        "both": 9,
+        "scale": 2
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 2,
+        "theory_higher": 1,
+        "theory_lower": 9
+      },
+      "normeq_mean_reduction_factor": 1.0368,
+      "normeq_reduces_fraction": 0.0833
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "merge_delta_vs_best_source": -0.008,
+      "is_poor": false,
+      "best_source_score": 0.876,
+      "merged_score": 0.868,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.2011,
+      "oa_v1_top3_mean": 0.1749,
+      "oa_v2_max_score": 0.0923,
+      "oa_v2_top3_interaction": 0.0846,
+      "theory_max_risk": 0.5138,
+      "theory_top3_risk": 0.3096,
+      "theory_max_inflation_ratio": 1.5138,
+      "theory_mean_inflation_ratio": 1.1885,
+      "theory_max_cross_bound": 2.9918,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "both": 2,
+        "scale": 4
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 3,
+        "theory_higher": 2,
+        "theory_lower": 1
+      },
+      "normeq_mean_reduction_factor": 1.1218,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": -0.008,
+      "is_poor": false,
+      "best_source_score": 0.876,
+      "merged_score": 0.868,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.2401,
+      "oa_v1_top3_mean": 0.1866,
+      "oa_v2_max_score": 0.2289,
+      "oa_v2_top3_interaction": 0.1275,
+      "theory_max_risk": 1.0,
+      "theory_top3_risk": 0.467,
+      "theory_max_inflation_ratio": 2.274,
+      "theory_mean_inflation_ratio": 1.3198,
+      "theory_max_cross_bound": 8.0373,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "both": 2,
+        "scale": 4
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 4,
+        "theory_higher": 1,
+        "theory_lower": 1
+      },
+      "normeq_mean_reduction_factor": 1.1254,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.15,
+      "is_poor": true,
+      "best_source_score": 0.884,
+      "merged_score": 0.734,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1427,
+      "oa_v1_top3_mean": 0.1175,
+      "oa_v2_max_score": 0.0268,
+      "oa_v2_top3_interaction": 0.028,
+      "theory_max_risk": 0.0017,
+      "theory_top3_risk": 0.0016,
+      "theory_max_inflation_ratio": 1.0017,
+      "theory_mean_inflation_ratio": 1.0011,
+      "theory_max_cross_bound": 0.0012,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "both": 2,
+        "scale": 10
+      },
+      "theory_vs_heuristic_counts": {
+        "theory_lower": 12
+      },
+      "normeq_mean_reduction_factor": 1.0031,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "merge_delta_vs_best_source": -0.568,
+      "is_poor": true,
+      "best_source_score": 0.756,
+      "merged_score": 0.188,
+      "n_layers": 24,
+      "oa_v1_max_score": 0.1676,
+      "oa_v1_top3_mean": 0.1535,
+      "oa_v2_max_score": 0.1579,
+      "oa_v2_top3_interaction": 0.1581,
+      "theory_max_risk": 0.1109,
+      "theory_top3_risk": 0.0977,
+      "theory_max_inflation_ratio": 1.1109,
+      "theory_mean_inflation_ratio": 1.0313,
+      "theory_max_cross_bound": 0.0585,
+      "theory_inflation_possible_fraction": 0.875,
+      "theory_driver_counts": {
+        "alignment": 1,
+        "both": 23
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 18,
+        "theory_lower": 6
+      },
+      "normeq_mean_reduction_factor": 1.006,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.018,
+      "is_poor": false,
+      "best_source_score": 0.62,
+      "merged_score": 0.602,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1359,
+      "oa_v1_top3_mean": 0.1316,
+      "oa_v2_max_score": 0.197,
+      "oa_v2_top3_interaction": 0.2049,
+      "theory_max_risk": 0.3133,
+      "theory_top3_risk": 0.2196,
+      "theory_max_inflation_ratio": 1.3133,
+      "theory_mean_inflation_ratio": 1.0732,
+      "theory_max_cross_bound": 0.2585,
+      "theory_inflation_possible_fraction": 0.75,
+      "theory_driver_counts": {
+        "both": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 8,
+        "theory_higher": 3,
+        "theory_lower": 1
+      },
+      "normeq_mean_reduction_factor": 1.0066,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": 0.004,
+      "is_poor": false,
+      "best_source_score": 0.86,
+      "merged_score": 0.864,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.1838,
+      "oa_v1_top3_mean": 0.1552,
+      "oa_v2_max_score": 0.1404,
+      "oa_v2_top3_interaction": 0.0855,
+      "theory_max_risk": 1.0,
+      "theory_top3_risk": 0.6143,
+      "theory_max_inflation_ratio": 2.8497,
+      "theory_mean_inflation_ratio": 1.5288,
+      "theory_max_cross_bound": 11.6689,
+      "theory_inflation_possible_fraction": 0.8333,
+      "theory_driver_counts": {
+        "both": 6
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 1,
+        "theory_higher": 5
+      },
+      "normeq_mean_reduction_factor": 1.024,
+      "normeq_reduces_fraction": 0.1667
+    },
+    {
+      "pair_id": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.008,
+      "is_poor": false,
+      "best_source_score": 0.902,
+      "merged_score": 0.894,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.2308,
+      "oa_v1_top3_mean": 0.1956,
+      "oa_v2_max_score": 0.0858,
+      "oa_v2_top3_interaction": 0.076,
+      "theory_max_risk": 0.4754,
+      "theory_top3_risk": 0.2849,
+      "theory_max_inflation_ratio": 1.4754,
+      "theory_mean_inflation_ratio": 1.1239,
+      "theory_max_cross_bound": 4.3906,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "scale": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 8,
+        "theory_higher": 1,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.1051,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.412,
+      "is_poor": true,
+      "best_source_score": 0.884,
+      "merged_score": 0.472,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.2307,
+      "oa_v1_top3_mean": 0.1673,
+      "oa_v2_max_score": 0.0633,
+      "oa_v2_top3_interaction": 0.0512,
+      "theory_max_risk": 0.0827,
+      "theory_top3_risk": 0.041,
+      "theory_max_inflation_ratio": 1.0827,
+      "theory_mean_inflation_ratio": 1.014,
+      "theory_max_cross_bound": 0.0853,
+      "theory_inflation_possible_fraction": 0.75,
+      "theory_driver_counts": {
+        "both": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 8,
+        "theory_lower": 4
+      },
+      "normeq_mean_reduction_factor": 1.0025,
+      "normeq_reduces_fraction": 0.0833
+    },
+    {
+      "pair_id": "TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": -0.294,
+      "is_poor": true,
+      "best_source_score": 0.884,
+      "merged_score": 0.59,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.227,
+      "oa_v1_top3_mean": 0.1712,
+      "oa_v2_max_score": 0.0614,
+      "oa_v2_top3_interaction": 0.048,
+      "theory_max_risk": 0.0616,
+      "theory_top3_risk": 0.0385,
+      "theory_max_inflation_ratio": 1.0616,
+      "theory_mean_inflation_ratio": 1.0119,
+      "theory_max_cross_bound": 0.0636,
+      "theory_inflation_possible_fraction": 0.5833,
+      "theory_driver_counts": {
+        "both": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 9,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.0012,
+      "normeq_reduces_fraction": 0.0833
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "merge_delta_vs_best_source": -0.008,
+      "is_poor": false,
+      "best_source_score": 0.9,
+      "merged_score": 0.892,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1224,
+      "oa_v1_top3_mean": 0.1175,
+      "oa_v2_max_score": 0.1672,
+      "oa_v2_top3_interaction": 0.1743,
+      "theory_max_risk": 0.8233,
+      "theory_top3_risk": 0.673,
+      "theory_max_inflation_ratio": 1.8233,
+      "theory_mean_inflation_ratio": 1.2725,
+      "theory_max_cross_bound": 1.9733,
+      "theory_inflation_possible_fraction": 0.8333,
+      "theory_driver_counts": {
+        "both": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 5,
+        "theory_higher": 7
+      },
+      "normeq_mean_reduction_factor": 1.005,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__myselfmankar__distilbert-base-sst2-lora",
+      "merge_delta_vs_best_source": 0.016,
+      "is_poor": false,
+      "best_source_score": 0.86,
+      "merged_score": 0.876,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.1218,
+      "oa_v1_top3_mean": 0.0888,
+      "oa_v2_max_score": 0.0807,
+      "oa_v2_top3_interaction": 0.0618,
+      "theory_max_risk": 0.1874,
+      "theory_top3_risk": 0.0963,
+      "theory_max_inflation_ratio": 1.1874,
+      "theory_mean_inflation_ratio": 1.0573,
+      "theory_max_cross_bound": 1.0915,
+      "theory_inflation_possible_fraction": 1.0,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 5
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 4,
+        "theory_lower": 2
+      },
+      "normeq_mean_reduction_factor": 1.0914,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate__x__TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+      "merge_delta_vs_best_source": -0.096,
+      "is_poor": true,
+      "best_source_score": 0.54,
+      "merged_score": 0.444,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1207,
+      "oa_v1_top3_mean": 0.1083,
+      "oa_v2_max_score": 0.1108,
+      "oa_v2_top3_interaction": 0.1077,
+      "theory_max_risk": 0.1819,
+      "theory_top3_risk": 0.1024,
+      "theory_max_inflation_ratio": 1.1819,
+      "theory_mean_inflation_ratio": 1.0417,
+      "theory_max_cross_bound": 0.1637,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "both": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 10,
+        "theory_higher": 1,
+        "theory_lower": 1
+      },
+      "normeq_mean_reduction_factor": 1.0079,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "myselfmankar__distilbert-base-sst2-lora__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": -0.03,
+      "is_poor": false,
+      "best_source_score": 0.884,
+      "merged_score": 0.854,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.1204,
+      "oa_v1_top3_mean": 0.1005,
+      "oa_v2_max_score": 0.1537,
+      "oa_v2_top3_interaction": 0.0969,
+      "theory_max_risk": 0.3571,
+      "theory_top3_risk": 0.1628,
+      "theory_max_inflation_ratio": 1.3571,
+      "theory_mean_inflation_ratio": 1.0868,
+      "theory_max_cross_bound": 2.2525,
+      "theory_inflation_possible_fraction": 0.8333,
+      "theory_driver_counts": {
+        "both": 2,
+        "scale": 4
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 1,
+        "theory_higher": 1,
+        "theory_lower": 4
+      },
+      "normeq_mean_reduction_factor": 1.1101,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+      "merge_delta_vs_best_source": -0.016,
+      "is_poor": false,
+      "best_source_score": 0.694,
+      "merged_score": 0.678,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0452,
+      "oa_v1_top3_mean": 0.0411,
+      "oa_v2_max_score": 0.0118,
+      "oa_v2_top3_interaction": 0.0097,
+      "theory_max_risk": 0.0011,
+      "theory_top3_risk": 0.0008,
+      "theory_max_inflation_ratio": 1.0011,
+      "theory_mean_inflation_ratio": 1.0003,
+      "theory_max_cross_bound": 0.0004,
+      "theory_inflation_possible_fraction": 0.6667,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 11
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 6,
+        "theory_lower": 6
+      },
+      "normeq_mean_reduction_factor": 1.0007,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.012,
+      "is_poor": false,
+      "best_source_score": 0.694,
+      "merged_score": 0.682,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.057,
+      "oa_v1_top3_mean": 0.0431,
+      "oa_v2_max_score": 0.0189,
+      "oa_v2_top3_interaction": 0.0112,
+      "theory_max_risk": 0.001,
+      "theory_top3_risk": 0.0007,
+      "theory_max_inflation_ratio": 1.001,
+      "theory_mean_inflation_ratio": 1.0002,
+      "theory_max_cross_bound": 0.0004,
+      "theory_inflation_possible_fraction": 0.4167,
+      "theory_driver_counts": {
+        "scale": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 7,
+        "theory_lower": 5
+      },
+      "normeq_mean_reduction_factor": 1.0005,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": 0.004,
+      "is_poor": false,
+      "best_source_score": 0.694,
+      "merged_score": 0.698,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0572,
+      "oa_v1_top3_mean": 0.0423,
+      "oa_v2_max_score": 0.0141,
+      "oa_v2_top3_interaction": 0.0093,
+      "theory_max_risk": 0.0009,
+      "theory_top3_risk": 0.0007,
+      "theory_max_inflation_ratio": 1.0009,
+      "theory_mean_inflation_ratio": 1.0002,
+      "theory_max_cross_bound": 0.0004,
+      "theory_inflation_possible_fraction": 0.3333,
+      "theory_driver_counts": {
+        "scale": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 8,
+        "theory_lower": 4
+      },
+      "normeq_mean_reduction_factor": 1.0005,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "merge_delta_vs_best_source": -0.01,
+      "is_poor": false,
+      "best_source_score": 0.694,
+      "merged_score": 0.684,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0696,
+      "oa_v1_top3_mean": 0.0461,
+      "oa_v2_max_score": 0.0216,
+      "oa_v2_top3_interaction": 0.0114,
+      "theory_max_risk": 0.0015,
+      "theory_top3_risk": 0.0008,
+      "theory_max_inflation_ratio": 1.0015,
+      "theory_mean_inflation_ratio": 1.0002,
+      "theory_max_cross_bound": 0.0005,
+      "theory_inflation_possible_fraction": 0.3333,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 11
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 10,
+        "theory_lower": 2
+      },
+      "normeq_mean_reduction_factor": 1.0006,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+      "merge_delta_vs_best_source": -0.02,
+      "is_poor": false,
+      "best_source_score": 0.694,
+      "merged_score": 0.674,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0754,
+      "oa_v1_top3_mean": 0.0502,
+      "oa_v2_max_score": 0.0144,
+      "oa_v2_top3_interaction": 0.0095,
+      "theory_max_risk": 0.0008,
+      "theory_top3_risk": 0.0005,
+      "theory_max_inflation_ratio": 1.0008,
+      "theory_mean_inflation_ratio": 1.0002,
+      "theory_max_cross_bound": 0.001,
+      "theory_inflation_possible_fraction": 0.3333,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 11
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 9,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.0004,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "NightPrince__peft-distilbert-sst2__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "merge_delta_vs_best_source": -0.124,
+      "is_poor": true,
+      "best_source_score": 0.856,
+      "merged_score": 0.732,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.0395,
+      "oa_v1_top3_mean": 0.0357,
+      "oa_v2_max_score": 0.011,
+      "oa_v2_top3_interaction": 0.0093,
+      "theory_max_risk": 0.0012,
+      "theory_top3_risk": 0.0009,
+      "theory_max_inflation_ratio": 1.0012,
+      "theory_mean_inflation_ratio": 1.0005,
+      "theory_max_cross_bound": 0.0047,
+      "theory_inflation_possible_fraction": 0.6667,
+      "theory_driver_counts": {
+        "scale": 6
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 2,
+        "theory_lower": 4
+      },
+      "normeq_mean_reduction_factor": 1.006,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "merge_delta_vs_best_source": -0.294,
+      "is_poor": true,
+      "best_source_score": 0.876,
+      "merged_score": 0.582,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.1043,
+      "oa_v1_top3_mean": 0.0872,
+      "oa_v2_max_score": 0.045,
+      "oa_v2_top3_interaction": 0.0352,
+      "theory_max_risk": 0.0564,
+      "theory_top3_risk": 0.03,
+      "theory_max_inflation_ratio": 1.0564,
+      "theory_mean_inflation_ratio": 1.0097,
+      "theory_max_cross_bound": 0.0782,
+      "theory_inflation_possible_fraction": 0.5,
+      "theory_driver_counts": {
+        "both": 4,
+        "scale": 8
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 7,
+        "theory_lower": 5
+      },
+      "normeq_mean_reduction_factor": 1.004,
+      "normeq_reduces_fraction": 0.0833
+    },
+    {
+      "pair_id": "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.062,
+      "is_poor": true,
+      "best_source_score": 0.902,
+      "merged_score": 0.84,
+      "n_layers": 6,
+      "oa_v1_max_score": 0.1156,
+      "oa_v1_top3_mean": 0.1093,
+      "oa_v2_max_score": 0.0502,
+      "oa_v2_top3_interaction": 0.0371,
+      "theory_max_risk": 0.6588,
+      "theory_top3_risk": 0.4293,
+      "theory_max_inflation_ratio": 1.6588,
+      "theory_mean_inflation_ratio": 1.2719,
+      "theory_max_cross_bound": 6.0844,
+      "theory_inflation_possible_fraction": 0.8333,
+      "theory_driver_counts": {
+        "both": 6
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 1,
+        "theory_higher": 5
+      },
+      "normeq_mean_reduction_factor": 1.0212,
+      "normeq_reduces_fraction": 0.1667
+    },
+    {
+      "pair_id": "TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.45,
+      "is_poor": true,
+      "best_source_score": 0.902,
+      "merged_score": 0.452,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0805,
+      "oa_v1_top3_mean": 0.0743,
+      "oa_v2_max_score": 0.0292,
+      "oa_v2_top3_interaction": 0.0319,
+      "theory_max_risk": 0.0188,
+      "theory_top3_risk": 0.0185,
+      "theory_max_inflation_ratio": 1.0188,
+      "theory_mean_inflation_ratio": 1.0109,
+      "theory_max_cross_bound": 0.1674,
+      "theory_inflation_possible_fraction": 0.9167,
+      "theory_driver_counts": {
+        "scale": 12
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 5,
+        "theory_lower": 7
+      },
+      "normeq_mean_reduction_factor": 1.0213,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.264,
+      "is_poor": true,
+      "best_source_score": 0.902,
+      "merged_score": 0.638,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.051,
+      "oa_v1_top3_mean": 0.0408,
+      "oa_v2_max_score": 0.0266,
+      "oa_v2_top3_interaction": 0.0239,
+      "theory_max_risk": 0.0469,
+      "theory_top3_risk": 0.026,
+      "theory_max_inflation_ratio": 1.0469,
+      "theory_mean_inflation_ratio": 1.0079,
+      "theory_max_cross_bound": 0.4335,
+      "theory_inflation_possible_fraction": 0.5,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 11
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 9,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.0156,
+      "normeq_reduces_fraction": 0.0
+    },
+    {
+      "pair_id": "TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "merge_delta_vs_best_source": -0.266,
+      "is_poor": true,
+      "best_source_score": 0.902,
+      "merged_score": 0.636,
+      "n_layers": 12,
+      "oa_v1_max_score": 0.0831,
+      "oa_v1_top3_mean": 0.0567,
+      "oa_v2_max_score": 0.0241,
+      "oa_v2_top3_interaction": 0.0232,
+      "theory_max_risk": 0.0289,
+      "theory_top3_risk": 0.0178,
+      "theory_max_inflation_ratio": 1.0289,
+      "theory_mean_inflation_ratio": 1.0046,
+      "theory_max_cross_bound": 0.2669,
+      "theory_inflation_possible_fraction": 0.3333,
+      "theory_driver_counts": {
+        "both": 1,
+        "scale": 11
+      },
+      "theory_vs_heuristic_counts": {
+        "agrees": 9,
+        "theory_lower": 3
+      },
+      "normeq_mean_reduction_factor": 1.0103,
+      "normeq_reduces_fraction": 0.0
+    }
+  ]
+}

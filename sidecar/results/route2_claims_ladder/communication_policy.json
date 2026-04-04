@@ -1,0 +1,53 @@
+{
+  "program": "route2_claims_ladder_reinforcement_and_communication_policy",
+  "stage": "D",
+  "generated_on": "2026-04-01",
+  "policy_basis": [
+    "sidecar/results/route2_claims_ladder/stability_ladder.json",
+    "sidecar/results/route2_claims_ladder/edge_refinement_table.json",
+    "sidecar/results/route2_claims_ladder/reinforcement_impact_map.json"
+  ],
+  "edge_bucket_counts": {
+    "core_stable_non_edge": 8,
+    "stable_but_local": 5,
+    "moderate_but_product_relevant": 5,
+    "thin_suppress_public": 2
+  },
+  "zones": {
+    "public_writing": {
+      "headline_allowed_claim_ids": ["A1", "A2", "C1", "C2", "D1", "D2", "F1", "F2"],
+      "bounded_optional_claim_ids": ["A3", "B1", "B2", "B3", "C3", "D3", "D4", "E1", "E2", "E4"],
+      "suppressed_claim_ids": ["B4", "E3"],
+      "rules": [
+        "Use headline_allowed claims directly with existing scope bounds.",
+        "Only use bounded_optional claims when caveats are explicit and non-universal wording is preserved.",
+        "Do not include suppressed claims in top-line public messaging."
+      ]
+    },
+    "product_alpha_docs": {
+      "default_claim_ids": ["A1", "A2", "C2", "D1", "D2", "F2"],
+      "guarded_claim_ids": ["A3", "B1", "B2", "B3", "C3", "D3", "D4", "E1", "E2", "E4", "F1"],
+      "excluded_claim_ids": ["B4", "E3"],
+      "rules": [
+        "Guarded claims require scope and threshold caveats.",
+        "Avoid hard numerical boundaries for moderate middle-state claims."
+      ]
+    },
+    "internal_architecture": {
+      "allowed_claim_ids": ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3", "D4", "E1", "E2", "E4", "F1", "F2"],
+      "research_only_claim_ids": ["B4", "E3"],
+      "rules": [
+        "Keep representation-local and scenario-local caveats explicit.",
+        "Treat thin claims as open strengthening targets, not architecture commitments."
+      ]
+    },
+    "sidecar_research": {
+      "active_research_only_claim_ids": ["B4", "E3"],
+      "bounded_explanatory_claim_ids": ["E2", "D4", "B3"],
+      "rules": [
+        "Retain thin claims in sidecar framing until reinforced.",
+        "Do not generalize bounded explanatory claims beyond tested contexts."
+      ]
+    }
+  }
+}

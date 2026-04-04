@@ -1,0 +1,25 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.summary/v1",
+  "generated_utc": "2026-04-01T00:33:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "overall_verdict": "replicated_with_guardrails",
+  "what_replicated": [
+    "Collapse-like targets remained uncertainty-dominant (higher confidence-collapse, low confident-wrong).",
+    "Contamination-like targets remained confident-wrong-dominant (higher confident-wrong, low confidence-collapse).",
+    "Neither-source rates remained relatively close across channels, preserving the channel-vs-rate distinction."
+  ],
+  "bounded_scope": [
+    "merge-facing behavioral context",
+    "same backbone family and existing case pool",
+    "contamination replication still concentrated in CT-01 case lineage"
+  ],
+  "route2_language": {
+    "safe_to_use": [
+      "Collapse-vs-contamination as a stable bounded behavioral distinction.",
+      "Confidence-channel metrics as primary discriminators."
+    ],
+    "guarded": [
+      "Universal transfer across decisions/artifact classes."
+    ]
+  }
+}

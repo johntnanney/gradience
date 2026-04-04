@@ -1,0 +1,38 @@
+{
+  "training_run_id": "tiny_encoder_reference_choice_demo_v1",
+  "training_task": "sst2_like_sentiment_train_stub",
+  "base_model": "tiny-peft-monitor-demo",
+  "trajectory_steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "reference_same_task": {
+    "name": "same_task",
+    "relation": "same_task",
+    "c1": 1.05,
+    "c2": 0.05,
+    "rationale": "Reference aligned with the primary training trajectory direction.",
+    "pseudo_task": "sst2_like_sentiment_reference"
+  },
+  "reference_same_family": {
+    "name": "same_family",
+    "relation": "same_family",
+    "c1": 0.55,
+    "c2": 0.55,
+    "rationale": "Reference mixes primary and secondary directions, emulating family-level partial overlap.",
+    "pseudo_task": "imdb_like_sentiment_reference"
+  },
+  "reference_cross_task": {
+    "name": "cross_task",
+    "relation": "cross_task",
+    "c1": -0.75,
+    "c2": 0.1,
+    "rationale": "Reference opposes the primary trajectory direction, emulating cross-task mismatch.",
+    "pseudo_task": "ag_news_like_topic_reference"
+  },
+  "notes": "Synthetic relation-labeled references for bounded interpretability demo only."
+}

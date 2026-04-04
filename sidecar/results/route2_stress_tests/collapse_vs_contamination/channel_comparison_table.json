@@ -1,0 +1,70 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.channel_comparison/v1",
+  "generated_utc": "2026-04-01T00:24:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "rows": [
+    {
+      "target_id": "R1_FR02_case",
+      "expected_channel": "collapse_like",
+      "observed_failure_rate": 0.336,
+      "confidence_collapse_rate": 0.056,
+      "high_confidence_wrong_rate": 0.008,
+      "confusion_or_neither_source_rate": 0.154,
+      "preservation_rate": 0.7906,
+      "dominant_behavioral_signature": "collapse_uncertainty_dominant",
+      "short_interpretation": "Replicates uncertainty-dominant collapse channel."
+    },
+    {
+      "target_id": "R2_FR01_even_slice",
+      "expected_channel": "collapse_like",
+      "observed_failure_rate": 0.344,
+      "confidence_collapse_rate": 0.068,
+      "high_confidence_wrong_rate": 0.0,
+      "confusion_or_neither_source_rate": 0.16,
+      "preservation_rate": 0.7959,
+      "dominant_behavioral_signature": "collapse_uncertainty_dominant",
+      "short_interpretation": "Slice perturbation preserves collapse channel signature."
+    },
+    {
+      "target_id": "R3_CT01_even_slice",
+      "expected_channel": "contamination_like",
+      "observed_failure_rate": 0.176,
+      "confidence_collapse_rate": 0.008,
+      "high_confidence_wrong_rate": 0.056,
+      "confusion_or_neither_source_rate": 0.14,
+      "preservation_rate": 0.8745,
+      "dominant_behavioral_signature": "contamination_confident_wrong_dominant",
+      "short_interpretation": "Replicates confident-misassignment contamination channel."
+    },
+    {
+      "target_id": "R4_CT01_odd_slice",
+      "expected_channel": "contamination_like",
+      "observed_failure_rate": 0.172,
+      "confidence_collapse_rate": 0.004,
+      "high_confidence_wrong_rate": 0.036,
+      "confusion_or_neither_source_rate": 0.148,
+      "preservation_rate": 0.8739,
+      "dominant_behavioral_signature": "contamination_confident_wrong_dominant",
+      "short_interpretation": "Complementary slice confirms contamination channel stability."
+    }
+  ],
+  "channel_mean_comparison": {
+    "collapse_like": {
+      "mean_failure_rate": 0.34,
+      "mean_confidence_collapse_rate": 0.062,
+      "mean_high_confidence_wrong_rate": 0.004,
+      "mean_confusion_or_neither_source_rate": 0.157
+    },
+    "contamination_like": {
+      "mean_failure_rate": 0.174,
+      "mean_confidence_collapse_rate": 0.006,
+      "mean_high_confidence_wrong_rate": 0.046,
+      "mean_confusion_or_neither_source_rate": 0.144
+    },
+    "separation_summary": {
+      "collapse_to_contamination_ratio_confidence_collapse_rate": 10.3333,
+      "contamination_to_collapse_ratio_high_confidence_wrong_rate": 11.5,
+      "absolute_difference_confusion_or_neither_source_rate": 0.013
+    }
+  }
+}

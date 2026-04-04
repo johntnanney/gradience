@@ -1,0 +1,2290 @@
+[
+  {
+    "pair_id": "ca_family_sst2xIMDB_eval_imdb",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "imdb",
+    "merged_score": 0.868,
+    "source_a_score": 0.884,
+    "source_b_score": 0.876,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": false,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.884,
+    "worst_source_score": 0.876,
+    "avg_source_score": 0.88,
+    "merge_delta_vs_best_source": -0.016000000000000014,
+    "merge_delta_vs_worst_source": -0.008000000000000007,
+    "merge_delta_vs_average_source": -0.01200000000000001,
+    "current_merge_verdict": "redundant",
+    "compatibility_score": 0.314,
+    "overlap_statistics": {
+      "mean_overlap": 0.3085,
+      "median_overlap": 0.2871,
+      "max_overlap": 0.5681,
+      "mean_agreement": 0.9487
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 1,
+      "n_safe": 11,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 1,
+    "max_over_accumulation_score": 0.3534,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.35340601656425713,
+        "band": "watch",
+        "factors": {
+          "alignment": 0.558,
+          "concentration": 0.4761,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.27317100510199804,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3982,
+          "concentration": 0.5514,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.23212270103461308,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3405,
+          "concentration": 0.5452,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "family_test",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_imdb/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "KEY TEST. SST-2 x IMDB, eval on IMDB. Does cross-dataset same-family merge preserve IMDB performance?",
+    "cohort_assignment": "group_2_high_overlap_elevated_proxy",
+    "cohort_rationale": "High overlap and top-half over-accumulation score inside the high-overlap subset. Used as a provisional elevated-risk split because official advisory did not trigger."
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_eval_sst2",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "sst2",
+    "merged_score": 0.88,
+    "source_a_score": 0.884,
+    "source_b_score": 0.876,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.884,
+    "worst_source_score": 0.876,
+    "avg_source_score": 0.88,
+    "merge_delta_vs_best_source": -0.0040000000000000036,
+    "merge_delta_vs_worst_source": 0.0040000000000000036,
+    "merge_delta_vs_average_source": 0.0,
+    "current_merge_verdict": "redundant",
+    "compatibility_score": 0.314,
+    "overlap_statistics": {
+      "mean_overlap": 0.3085,
+      "median_overlap": 0.2871,
+      "max_overlap": 0.5681,
+      "mean_agreement": 0.9487
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 1,
+      "n_safe": 11,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 1,
+    "max_over_accumulation_score": 0.3534,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.35340601656425713,
+        "band": "watch",
+        "factors": {
+          "alignment": 0.558,
+          "concentration": 0.4761,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.27317100510199804,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3982,
+          "concentration": 0.5514,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.23212270103461308,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3405,
+          "concentration": 0.5452,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "family_test",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_eval_sst2/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "KEY TEST. SST-2 x IMDB, eval on SST-2. Does cross-dataset same-family merge preserve SST-2 performance?",
+    "cohort_assignment": "group_2_high_overlap_elevated_proxy",
+    "cohort_rationale": "High overlap and top-half over-accumulation score inside the high-overlap subset. Used as a provisional elevated-risk split because official advisory did not trigger."
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_v2_eval_imdb",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "adapter_a_name": "rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_b_name": "wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "imdb",
+    "merged_score": 0.87,
+    "source_a_score": 0.902,
+    "source_b_score": 0.856,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": false,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.902,
+    "worst_source_score": 0.856,
+    "avg_source_score": 0.879,
+    "merge_delta_vs_best_source": -0.03200000000000003,
+    "merge_delta_vs_worst_source": 0.014000000000000012,
+    "merge_delta_vs_average_source": -0.009000000000000008,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.1374,
+    "overlap_statistics": {
+      "mean_overlap": 0.1324,
+      "median_overlap": 0.1268,
+      "max_overlap": 0.2099,
+      "mean_agreement": 0.3813
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 6,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 6,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1002,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.10018028221093118,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2099,
+          "concentration": 0.2531,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.09427248088055314,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1435,
+          "concentration": 0.5098,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.08198906619310235,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1267,
+          "concentration": 0.4961,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "family_test",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_imdb/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "KEY TEST v2. SST-2 x IMDB (low risk pair), eval on IMDB.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "ca_family_sst2xIMDB_v2_eval_sst2",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "adapter_a_name": "rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_b_name": "wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "sst2",
+    "merged_score": 0.852,
+    "source_a_score": 0.902,
+    "source_b_score": 0.856,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.902,
+    "worst_source_score": 0.856,
+    "avg_source_score": 0.879,
+    "merge_delta_vs_best_source": -0.050000000000000044,
+    "merge_delta_vs_worst_source": -0.0040000000000000036,
+    "merge_delta_vs_average_source": -0.027000000000000024,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.1374,
+    "overlap_statistics": {
+      "mean_overlap": 0.1324,
+      "median_overlap": 0.1268,
+      "max_overlap": 0.2099,
+      "mean_agreement": 0.3813
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 6,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 6,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1002,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.10018028221093118,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2099,
+          "concentration": 0.2531,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.09427248088055314,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1435,
+          "concentration": 0.5098,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.08198906619310235,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1267,
+          "concentration": 0.4961,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "family_test",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_family_sst2xIMDB_v2_eval_sst2/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "KEY TEST v2. SST-2 x IMDB (low risk pair), eval on SST-2.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "ca_retained_sst2_x_sst2",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "sst2",
+    "merged_score": 0.876,
+    "source_a_score": 0.884,
+    "source_b_score": 0.902,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "sst2",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.902,
+    "worst_source_score": 0.884,
+    "avg_source_score": 0.893,
+    "merge_delta_vs_best_source": -0.026000000000000023,
+    "merge_delta_vs_worst_source": -0.008000000000000007,
+    "merge_delta_vs_average_source": -0.017000000000000015,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.4748,
+    "overlap_statistics": {
+      "mean_overlap": 0.4682,
+      "median_overlap": 0.481,
+      "max_overlap": 0.5945,
+      "mean_agreement": 0.9357
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 7,
+      "n_redundant": 5,
+      "n_safe": 0,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.5833333333333334
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.3477,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.34765061449482726,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5945,
+          "concentration": 0.4068,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.3471571245816412,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5798,
+          "concentration": 0.4268,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.33850216031519087,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5477,
+          "concentration": 0.4543,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.954119,
+        0.045881
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.949506,
+        0.050494
+      ],
+      [
+        0.931613,
+        0.068387
+      ],
+      [
+        0.918739,
+        0.081261
+      ],
+      [
+        0.934681,
+        0.065319
+      ],
+      [
+        0.919026,
+        0.080974
+      ],
+      [
+        0.89306,
+        0.10694
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_retained_sst2_x_sst2/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-task baseline. SST-2 x SST-2 (r=16 x r=16). Medium risk, norm_imbalance.",
+    "cohort_assignment": "group_2_high_overlap_elevated_proxy",
+    "cohort_rationale": "High overlap and top-half over-accumulation score inside the high-overlap subset. Used as a provisional elevated-risk split because official advisory did not trigger."
+  },
+  {
+    "pair_id": "ca_same_imdb_x_imdb",
+    "adapter_a": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "adapter_b": "/Users/john/code/gradience/field_trials/task_family_equivalence/inventory_a01/adapter_cache/wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "adapter_a_name": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "adapter_b_name": "wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "imdb",
+    "merged_score": 0.868,
+    "source_a_score": 0.876,
+    "source_b_score": 0.856,
+    "source_a_dataset": "imdb",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.876,
+    "worst_source_score": 0.856,
+    "avg_source_score": 0.866,
+    "merge_delta_vs_best_source": -0.008000000000000007,
+    "merge_delta_vs_worst_source": 0.01200000000000001,
+    "merge_delta_vs_average_source": 0.0020000000000000018,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.2653,
+    "overlap_statistics": {
+      "mean_overlap": 0.2542,
+      "median_overlap": 0.1934,
+      "max_overlap": 0.4139,
+      "mean_agreement": 0.8404
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 6,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 6,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.2401,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.24007334074120515,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3765,
+          "concentration": 0.4824,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.19479166779667137,
+        "band": "low",
+        "factors": {
+          "alignment": 0.4139,
+          "concentration": 0.2437,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.12482218998635328,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2056,
+          "concentration": 0.4388,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/task_family_equivalence/eval_090340/ca_same_imdb_x_imdb/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-dataset (IMDB x IMDB). Low risk, linear. Second retained baseline.",
+    "cohort_assignment": "group_1_high_overlap_low_proxy",
+    "cohort_rationale": "High overlap with low-to-mid over-accumulation score inside the high-overlap subset."
+  },
+  {
+    "pair_id": "p2_control_agnews_x_mnli",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-ag_news",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/yuuhan__roberta-base-mnli-lora",
+    "adapter_a_name": "TransferGraph__roberta-base-finetuned-lora-ag_news",
+    "adapter_b_name": "yuuhan__roberta-base-mnli-lora",
+    "base_model": "FacebookAI/roberta-base",
+    "task_relationship": "cross_task",
+    "eval_dataset": "ag_news",
+    "merged_score": 0.938,
+    "source_a_score": 0.938,
+    "source_b_score": 0.842,
+    "source_a_dataset": "ag_news",
+    "source_b_dataset": "mnli",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.938,
+    "worst_source_score": 0.842,
+    "avg_source_score": 0.8899999999999999,
+    "merge_delta_vs_best_source": 0.0,
+    "merge_delta_vs_worst_source": 0.09599999999999997,
+    "merge_delta_vs_average_source": 0.04800000000000004,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.0963,
+    "overlap_statistics": {
+      "mean_overlap": 0.1007,
+      "median_overlap": 0.1058,
+      "max_overlap": 0.1689,
+      "mean_agreement": 0.4167
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 24,
+      "n_conflicting": 0,
+      "n_imbalanced": 22,
+      "n_redundant": 0,
+      "n_safe": 2,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.9166666666666666
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0643,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.0.attention.self.value",
+        "module_type": "attn",
+        "score": 0.06426956546588575,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1468,
+          "concentration": 0.1968,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.9.attention.self.value",
+        "module_type": "attn",
+        "score": 0.05007072356163991,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1689,
+          "concentration": 0.2602,
+          "coefficient_exposure": 0.381
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.0.attention.self.query",
+        "module_type": "attn",
+        "score": 0.044613275366709934,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1305,
+          "concentration": 0.2663,
+          "coefficient_exposure": 0.518
+        },
+        "verdict": "imbalanced"
+      }
+    ],
+    "role": "control",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.847136,
+        0.152864
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.91561,
+        0.08439
+      ],
+      [
+        0.85729,
+        0.14271
+      ],
+      [
+        0.853975,
+        0.146025
+      ],
+      [
+        0.872695,
+        0.127305
+      ],
+      [
+        0.837542,
+        0.162458
+      ],
+      [
+        0.880093,
+        0.119907
+      ],
+      [
+        0.870889,
+        0.129111
+      ],
+      [
+        0.889865,
+        0.110135
+      ],
+      [
+        0.905585,
+        0.094415
+      ],
+      [
+        0.867512,
+        0.132488
+      ],
+      [
+        0.887481,
+        0.112519
+      ],
+      [
+        0.872759,
+        0.127241
+      ],
+      [
+        0.906889,
+        0.093111
+      ],
+      [
+        0.850341,
+        0.149659
+      ],
+      [
+        0.894236,
+        0.105764
+      ],
+      [
+        0.887646,
+        0.112354
+      ],
+      [
+        0.900438,
+        0.099562
+      ],
+      [
+        0.906135,
+        0.093865
+      ],
+      [
+        0.900303,
+        0.099697
+      ],
+      [
+        0.907501,
+        0.092499
+      ],
+      [
+        0.893381,
+        0.106619
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_agnews_x_mnli/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Cross-task, high risk, norm_imbalance. Eval on AG News (adapter A's task).",
+    "cohort_assignment": "group_3_non_overlap_pathology_anchor",
+    "cohort_rationale": "Lower-overlap pair where imbalance/cross-task pathology is more salient than over-accumulation."
+  },
+  {
+    "pair_id": "p2_control_hate_x_irony",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+    "adapter_a_name": "TransferGraph__roberta-base-finetuned-lora-tweet_eval_hate",
+    "adapter_b_name": "TransferGraph__rmihaylov_roberta-base-sentiment-bg-finetuned-lora-tweet_eval_irony",
+    "base_model": "FacebookAI/roberta-base",
+    "task_relationship": "same_family",
+    "eval_dataset": "tweet_eval/hate",
+    "merged_score": 0.602,
+    "source_a_score": 0.486,
+    "source_b_score": 0.622,
+    "source_a_dataset": "tweet_eval/hate",
+    "source_b_dataset": "tweet_eval/irony",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.622,
+    "worst_source_score": 0.486,
+    "avg_source_score": 0.554,
+    "merge_delta_vs_best_source": -0.020000000000000018,
+    "merge_delta_vs_worst_source": 0.11599999999999999,
+    "merge_delta_vs_average_source": 0.04799999999999993,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.0176,
+    "overlap_statistics": {
+      "mean_overlap": 0.0172,
+      "median_overlap": 0.0155,
+      "max_overlap": 0.0346,
+      "mean_agreement": 0.3333
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0104,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.2.attention.self.value",
+        "module_type": "attn",
+        "score": 0.010371476411819458,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0346,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.3.attention.self.query",
+        "module_type": "attn",
+        "score": 0.009019392728805541,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0301,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.1.attention.self.query",
+        "module_type": "attn",
+        "score": 0.008901647105813025,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0297,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "control",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_control_hate_x_irony/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Cross-task but structurally compatible (low risk, no issues). Eval on hate (adapter A's task). Irony adapter is uncertain.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "p2_retained_agnews",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__roberta-base-finetuned-lora-ag_news",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_02_mixed_task/adapter_cache/TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+    "adapter_a_name": "TransferGraph__roberta-base-finetuned-lora-ag_news",
+    "adapter_b_name": "TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news",
+    "base_model": "FacebookAI/roberta-base",
+    "task_relationship": "same_task",
+    "eval_dataset": "ag_news",
+    "merged_score": 0.944,
+    "source_a_score": 0.938,
+    "source_b_score": 0.902,
+    "source_a_dataset": "ag_news",
+    "source_b_dataset": "ag_news",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.938,
+    "worst_source_score": 0.902,
+    "avg_source_score": 0.9199999999999999,
+    "merge_delta_vs_best_source": 0.006000000000000005,
+    "merge_delta_vs_worst_source": 0.041999999999999926,
+    "merge_delta_vs_average_source": 0.02400000000000002,
+    "current_merge_verdict": "redundant",
+    "compatibility_score": 0.42,
+    "overlap_statistics": {
+      "mean_overlap": 0.4205,
+      "median_overlap": 0.4589,
+      "max_overlap": 0.5662,
+      "mean_agreement": 0.8333
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 24,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 8,
+      "n_safe": 16,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1699,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.6.attention.self.query",
+        "module_type": "attn",
+        "score": 0.1698530673980713,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5662,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.1.attention.self.value",
+        "module_type": "attn",
+        "score": 0.1653856873512268,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5513,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.roberta.encoder.layer.0.attention.self.query",
+        "module_type": "attn",
+        "score": 0.16110491752624512,
+        "band": "low",
+        "factors": {
+          "alignment": 0.537,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "norm_equalized",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p2_retained_agnews/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-task pair. Gradience recommended: norm_equalized, medium risk, partial_redundancy.",
+    "cohort_assignment": "group_1_high_overlap_low_proxy",
+    "cohort_rationale": "High overlap with low-to-mid over-accumulation score inside the high-overlap subset."
+  },
+  {
+    "pair_id": "p3_control_agnews_x_emotion",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "adapter_a_name": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_b_name": "TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "cross_task",
+    "eval_dataset": "ag_news",
+    "merged_score": 0.87,
+    "source_a_score": 0.912,
+    "source_b_score": 0.772,
+    "source_a_dataset": "ag_news",
+    "source_b_dataset": "tweet_eval/emotion",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.912,
+    "worst_source_score": 0.772,
+    "avg_source_score": 0.8420000000000001,
+    "merge_delta_vs_best_source": -0.04200000000000004,
+    "merge_delta_vs_worst_source": 0.09799999999999998,
+    "merge_delta_vs_average_source": 0.027999999999999914,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.0891,
+    "overlap_statistics": {
+      "mean_overlap": 0.0824,
+      "median_overlap": 0.0555,
+      "max_overlap": 0.2222,
+      "mean_agreement": -0.3333
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 7,
+      "n_redundant": 0,
+      "n_safe": 5,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.5833333333333334
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0196,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.01956904623649342,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2222,
+          "concentration": 0.0,
+          "coefficient_exposure": 0.2936
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.014649613201618193,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0488,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.009729875028133392,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0324,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "control",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.079754,
+        0.920246
+      ],
+      [
+        0.101284,
+        0.898716
+      ],
+      [
+        0.111373,
+        0.888627
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.145725,
+        0.854275
+      ],
+      [
+        0.104717,
+        0.895283
+      ],
+      [
+        0.148868,
+        0.851132
+      ],
+      [
+        0.155955,
+        0.844045
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_agnews_x_emotion/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Cross-task, high risk. Eval on AG News. Should degrade if Gradience's caution is correct.",
+    "cohort_assignment": "group_3_non_overlap_pathology_anchor",
+    "cohort_rationale": "Lower-overlap pair where imbalance/cross-task pathology is more salient than over-accumulation."
+  },
+  {
+    "pair_id": "p3_control_sst2_x_agnews",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "cross_task",
+    "eval_dataset": "sst2",
+    "merged_score": 0.838,
+    "source_a_score": 0.886,
+    "source_b_score": 0.912,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "ag_news",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.912,
+    "worst_source_score": 0.886,
+    "avg_source_score": 0.899,
+    "merge_delta_vs_best_source": -0.07400000000000007,
+    "merge_delta_vs_worst_source": -0.04800000000000004,
+    "merge_delta_vs_average_source": -0.061000000000000054,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.1114,
+    "overlap_statistics": {
+      "mean_overlap": 0.113,
+      "median_overlap": 0.107,
+      "max_overlap": 0.2764,
+      "mean_agreement": -0.7481
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 2,
+      "n_redundant": 0,
+      "n_safe": 10,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.16666666666666666
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0444,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.04442318948765087,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0994,
+          "concentration": 0.21,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.04324175898698635,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1106,
+          "concentration": 0.3643,
+          "coefficient_exposure": 0.4536
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.035962992221995144,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0724,
+          "concentration": 0.2807,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "control",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.869591,
+        0.130409
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.839552,
+        0.160448
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_control_sst2_x_agnews/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Cross-task, high risk, r=16 vs r=1 mismatch. Eval on SST-2. Tests worst-case cross-task merge.",
+    "cohort_assignment": "group_3_non_overlap_pathology_anchor",
+    "cohort_rationale": "Lower-overlap pair where imbalance/cross-task pathology is more salient than over-accumulation."
+  },
+  {
+    "pair_id": "p3_nearmiss_hate",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+    "adapter_a_name": "TransferGraph__jaesun_distilbert-base-uncased-finetuned-cola-finetuned-lora-tweet_eval_hate",
+    "adapter_b_name": "TransferGraph__Aureliano_distilbert-base-uncased-if-finetuned-lora-tweet_eval_hate",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "tweet_eval/hate",
+    "merged_score": 0.598,
+    "source_a_score": 0.52,
+    "source_b_score": 0.426,
+    "source_a_dataset": "tweet_eval/hate",
+    "source_b_dataset": "tweet_eval/hate",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.52,
+    "worst_source_score": 0.426,
+    "avg_source_score": 0.473,
+    "merge_delta_vs_best_source": 0.07799999999999996,
+    "merge_delta_vs_worst_source": 0.172,
+    "merge_delta_vs_average_source": 0.125,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.2115,
+    "overlap_statistics": {
+      "mean_overlap": 0.1951,
+      "median_overlap": 0.1786,
+      "max_overlap": 0.4024,
+      "mean_agreement": 0.8333
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1207,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.12071229815483092,
+        "band": "low",
+        "factors": {
+          "alignment": 0.4024,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.10591514110565185,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3531,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.09841806292533874,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3281,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "near-miss",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_nearmiss_hate/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-task, low structural risk, but Aureliano flagged_weak (underperforms base). Tests whether evidence gate is right to exclude.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "p3_retained_agnews",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "adapter_a_name": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_b_name": "TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "ag_news",
+    "merged_score": 0.894,
+    "source_a_score": 0.912,
+    "source_b_score": 0.884,
+    "source_a_dataset": "ag_news",
+    "source_b_dataset": "ag_news",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.912,
+    "worst_source_score": 0.884,
+    "avg_source_score": 0.898,
+    "merge_delta_vs_best_source": -0.018000000000000016,
+    "merge_delta_vs_worst_source": 0.010000000000000009,
+    "merge_delta_vs_average_source": -0.0040000000000000036,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.2465,
+    "overlap_statistics": {
+      "mean_overlap": 0.2417,
+      "median_overlap": 0.2646,
+      "max_overlap": 0.4081,
+      "mean_agreement": 0.6667
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1224,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.1224400520324707,
+        "band": "low",
+        "factors": {
+          "alignment": 0.4081,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.11697964668273925,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3899,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.11311578154563903,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3771,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "uniform_linear",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_agnews/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-task, low risk, no issues, linear merge. Both r=1/alpha=1.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "p3_retained_sst2",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_03_large_mixed_task/adapter_cache/NightPrince__peft-distilbert-sst2",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "NightPrince__peft-distilbert-sst2",
+    "base_model": "distilbert/distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "sst2",
+    "merged_score": 0.82,
+    "source_a_score": 0.886,
+    "source_b_score": 0.714,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "sst2",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.886,
+    "worst_source_score": 0.714,
+    "avg_source_score": 0.8,
+    "merge_delta_vs_best_source": -0.06600000000000006,
+    "merge_delta_vs_worst_source": 0.10599999999999998,
+    "merge_delta_vs_average_source": 0.019999999999999907,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.25,
+    "overlap_statistics": {
+      "mean_overlap": 0.2537,
+      "median_overlap": 0.2513,
+      "max_overlap": 0.3377,
+      "mean_agreement": 0.6748
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 12,
+      "n_redundant": 0,
+      "n_safe": 0,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 1.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1396,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.2.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.13958332041750304,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2924,
+          "concentration": 0.5502,
+          "coefficient_exposure": 0.3073
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.12850267510970884,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2806,
+          "concentration": 0.531,
+          "coefficient_exposure": 0.2877
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.1254431311466738,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3377,
+          "concentration": 0.4317,
+          "coefficient_exposure": 0.2308
+        },
+        "verdict": "imbalanced"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "norm_equalized",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/phase2_eval_130608/p3_retained_sst2/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Same-task, medium risk, norm_imbalance (r=16 vs r=8). norm_equalized recommended.",
+    "cohort_assignment": "group_1_high_overlap_low_proxy",
+    "cohort_rationale": "High overlap with low-to-mid over-accumulation score inside the high-overlap subset."
+  },
+  {
+    "pair_id": "t01_cross_task_sst2_x_agnews",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "cross_task",
+    "eval_dataset": "sst2",
+    "merged_score": 0.842,
+    "source_a_score": 0.884,
+    "source_b_score": 0.9,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "ag_news",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.9,
+    "worst_source_score": 0.884,
+    "avg_source_score": 0.892,
+    "merge_delta_vs_best_source": -0.05800000000000005,
+    "merge_delta_vs_worst_source": -0.04200000000000004,
+    "merge_delta_vs_average_source": -0.050000000000000044,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.1114,
+    "overlap_statistics": {
+      "mean_overlap": 0.113,
+      "median_overlap": 0.107,
+      "max_overlap": 0.2764,
+      "mean_agreement": -0.7481
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 2,
+      "n_redundant": 0,
+      "n_safe": 10,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.16666666666666666
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0444,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.04442318948765087,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0994,
+          "concentration": 0.21,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.04324175898698635,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1106,
+          "concentration": 0.3643,
+          "coefficient_exposure": 0.4536
+        },
+        "verdict": "imbalanced"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.035962992221995144,
+        "band": "low",
+        "factors": {
+          "alignment": 0.0724,
+          "concentration": 0.2807,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "cross_task_control",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.869591,
+        0.130409
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.839552,
+        0.160448
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_cross_task_sst2_x_agnews/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "True cross-task control (SST-2 x ag_news), eval on SST-2.",
+    "cohort_assignment": "group_3_non_overlap_pathology_anchor",
+    "cohort_rationale": "Lower-overlap pair where imbalance/cross-task pathology is more salient than over-accumulation."
+  },
+  {
+    "pair_id": "t01_retained_sst2_x_sst2",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "sst2",
+    "merged_score": 0.876,
+    "source_a_score": 0.884,
+    "source_b_score": 0.902,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "sst2",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.902,
+    "worst_source_score": 0.884,
+    "avg_source_score": 0.893,
+    "merge_delta_vs_best_source": -0.026000000000000023,
+    "merge_delta_vs_worst_source": -0.008000000000000007,
+    "merge_delta_vs_average_source": -0.017000000000000015,
+    "current_merge_verdict": "imbalanced",
+    "compatibility_score": 0.4748,
+    "overlap_statistics": {
+      "mean_overlap": 0.4682,
+      "median_overlap": 0.481,
+      "max_overlap": 0.5945,
+      "mean_agreement": 0.9357
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 7,
+      "n_redundant": 5,
+      "n_safe": 0,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.5833333333333334
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.3477,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.34765061449482726,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5945,
+          "concentration": 0.4068,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.3471571245816412,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5798,
+          "concentration": 0.4268,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.33850216031519087,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5477,
+          "concentration": 0.4543,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.954119,
+        0.045881
+      ],
+      [
+        0.5,
+        0.5
+      ],
+      [
+        0.949506,
+        0.050494
+      ],
+      [
+        0.931613,
+        0.068387
+      ],
+      [
+        0.918739,
+        0.081261
+      ],
+      [
+        0.934681,
+        0.065319
+      ],
+      [
+        0.919026,
+        0.080974
+      ],
+      [
+        0.89306,
+        0.10694
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_retained_sst2_x_sst2/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Exact same-task baseline (SST-2 x SST-2).",
+    "cohort_assignment": "group_2_high_overlap_elevated_proxy",
+    "cohort_rationale": "High overlap and top-half over-accumulation score inside the high-overlap subset. Used as a provisional elevated-risk split because official advisory did not trigger."
+  },
+  {
+    "pair_id": "t01_same_family_sst2_x_imdb",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "adapter_a_name": "myselfmankar__distilbert-base-sst2-lora",
+    "adapter_b_name": "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "sst2",
+    "merged_score": 0.878,
+    "source_a_score": 0.884,
+    "source_b_score": 0.876,
+    "source_a_dataset": "sst2",
+    "source_b_dataset": "imdb",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.884,
+    "worst_source_score": 0.876,
+    "avg_source_score": 0.88,
+    "merge_delta_vs_best_source": -0.006000000000000005,
+    "merge_delta_vs_worst_source": 0.0020000000000000018,
+    "merge_delta_vs_average_source": -0.0020000000000000018,
+    "current_merge_verdict": "redundant",
+    "compatibility_score": 0.314,
+    "overlap_statistics": {
+      "mean_overlap": 0.3085,
+      "median_overlap": 0.2871,
+      "max_overlap": 0.5681,
+      "mean_agreement": 0.9487
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 1,
+      "n_safe": 11,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 1,
+    "max_over_accumulation_score": 0.3534,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.35340601656425713,
+        "band": "watch",
+        "factors": {
+          "alignment": 0.558,
+          "concentration": 0.4761,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.27317100510199804,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3982,
+          "concentration": 0.5514,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.3.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.23212270103461308,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3405,
+          "concentration": 0.5452,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "same_family",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/eval_t01/t01_same_family_sst2_x_imdb/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "KEY: Same-family cross-dataset (SST-2 x IMDB), eval on SST-2.",
+    "cohort_assignment": "group_2_high_overlap_elevated_proxy",
+    "cohort_rationale": "High overlap and top-half over-accumulation score inside the high-overlap subset. Used as a provisional elevated-risk split because official advisory did not trigger."
+  },
+  {
+    "pair_id": "t02_excluded_irony_x_hate",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate",
+    "adapter_a_name": "TransferGraph__JB173_irony",
+    "adapter_b_name": "TransferGraph__Aureliano_hate",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_family",
+    "eval_dataset": "tweet_eval/irony",
+    "merged_score": 0.604,
+    "source_a_score": 0.614,
+    "source_b_score": 0.444,
+    "source_a_dataset": "tweet_eval/irony",
+    "source_b_dataset": "tweet_eval/hate",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": false,
+    "source_score_method": "native-task-proxy",
+    "best_source_score": 0.614,
+    "worst_source_score": 0.444,
+    "avg_source_score": 0.529,
+    "merge_delta_vs_best_source": -0.010000000000000009,
+    "merge_delta_vs_worst_source": 0.15999999999999998,
+    "merge_delta_vs_average_source": 0.07499999999999996,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.0824,
+    "overlap_statistics": {
+      "mean_overlap": 0.0875,
+      "median_overlap": 0.0826,
+      "max_overlap": 0.1575,
+      "mean_agreement": 0.5
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0472,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.04724804162979126,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1575,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.04255970120429992,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1419,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.039660769701004024,
+        "band": "low",
+        "factors": {
+          "alignment": 0.1322,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "excluded_control",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_excluded_irony_x_hate/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Excluded: cross-task (irony x hate) + weak source. Eval on irony.",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "t02_near_miss_marginal_irony",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__phailyoor_irony",
+    "adapter_a_name": "TransferGraph__JB173_irony",
+    "adapter_b_name": "TransferGraph__phailyoor_irony",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "tweet_eval/irony",
+    "merged_score": 0.606,
+    "source_a_score": 0.614,
+    "source_b_score": 0.616,
+    "source_a_dataset": "tweet_eval/irony",
+    "source_b_dataset": "tweet_eval/irony",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.616,
+    "worst_source_score": 0.614,
+    "avg_source_score": 0.615,
+    "merge_delta_vs_best_source": -0.010000000000000009,
+    "merge_delta_vs_worst_source": -0.008000000000000007,
+    "merge_delta_vs_average_source": -0.009000000000000008,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.1272,
+    "overlap_statistics": {
+      "mean_overlap": 0.1339,
+      "median_overlap": 0.1344,
+      "max_overlap": 0.2679,
+      "mean_agreement": 1.0
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.0804,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.0803598940372467,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2679,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.06824922859668732,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2275,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.06646791994571685,
+        "band": "low",
+        "factors": {
+          "alignment": 0.2216,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "near_miss_marginal",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_marginal_irony/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Near-miss marginal: phailyoor delta=-0.004 (barely weak).",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "t02_near_miss_substantial_hate",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__jaesun_hate",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__Aureliano_hate",
+    "adapter_a_name": "TransferGraph__jaesun_hate",
+    "adapter_b_name": "TransferGraph__Aureliano_hate",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "tweet_eval/hate",
+    "merged_score": 0.606,
+    "source_a_score": 0.54,
+    "source_b_score": 0.444,
+    "source_a_dataset": "tweet_eval/hate",
+    "source_b_dataset": "tweet_eval/hate",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.54,
+    "worst_source_score": 0.444,
+    "avg_source_score": 0.492,
+    "merge_delta_vs_best_source": 0.06599999999999995,
+    "merge_delta_vs_worst_source": 0.16199999999999998,
+    "merge_delta_vs_average_source": 0.11399999999999999,
+    "current_merge_verdict": "safe",
+    "compatibility_score": 0.2115,
+    "overlap_statistics": {
+      "mean_overlap": 0.1951,
+      "median_overlap": 0.1786,
+      "max_overlap": 0.4024,
+      "mean_agreement": 0.8333
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 0,
+      "n_safe": 12,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1207,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.12071229815483092,
+        "band": "low",
+        "factors": {
+          "alignment": 0.4024,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.4.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.10591514110565185,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3531,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.2.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.09841806292533874,
+        "band": "low",
+        "factors": {
+          "alignment": 0.3281,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "safe"
+      }
+    ],
+    "role": "near_miss_substantial",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": true,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_near_miss_substantial_hate/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Near-miss substantial: Aureliano delta=-0.15 (deeply weak).",
+    "cohort_assignment": "exploratory_other",
+    "cohort_rationale": "Outside primary high-overlap comparison and outside designated anchor slice."
+  },
+  {
+    "pair_id": "t02_retained_irony_x_irony",
+    "adapter_a": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__JB173_irony",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/inventory_t02/adapter_cache/TransferGraph__neibla_irony",
+    "adapter_a_name": "TransferGraph__JB173_irony",
+    "adapter_b_name": "TransferGraph__neibla_irony",
+    "base_model": "distilbert-base-uncased",
+    "task_relationship": "same_task",
+    "eval_dataset": "tweet_eval/irony",
+    "merged_score": 0.606,
+    "source_a_score": 0.614,
+    "source_b_score": 0.6,
+    "source_a_dataset": "tweet_eval/irony",
+    "source_b_dataset": "tweet_eval/irony",
+    "source_a_matches_eval_dataset": true,
+    "source_b_matches_eval_dataset": true,
+    "source_score_method": "eval-matched",
+    "best_source_score": 0.614,
+    "worst_source_score": 0.6,
+    "avg_source_score": 0.607,
+    "merge_delta_vs_best_source": -0.008000000000000007,
+    "merge_delta_vs_worst_source": 0.006000000000000005,
+    "merge_delta_vs_average_source": -0.0010000000000000009,
+    "current_merge_verdict": "redundant",
+    "compatibility_score": 0.3682,
+    "overlap_statistics": {
+      "mean_overlap": 0.3499,
+      "median_overlap": 0.3974,
+      "max_overlap": 0.5441,
+      "mean_agreement": 1.0
+    },
+    "conflict_imbalance_summary": {
+      "n_layers": 12,
+      "n_conflicting": 0,
+      "n_imbalanced": 0,
+      "n_redundant": 3,
+      "n_safe": 9,
+      "conflict_layer_fraction": 0.0,
+      "imbalance_layer_fraction": 0.0
+    },
+    "over_accumulation_advisory": "none",
+    "over_accumulation_summary": "",
+    "high_risk_layer_count": 0,
+    "watch_layer_count": 0,
+    "max_over_accumulation_score": 0.1632,
+    "layer_hotspots": [
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.0.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.16324233412742614,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5441,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.1.attention.v_lin",
+        "module_type": "attn",
+        "score": 0.16301817297935486,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5434,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      },
+      {
+        "layer_name": "base_model.model.distilbert.transformer.layer.5.attention.q_lin",
+        "module_type": "attn",
+        "score": 0.15366092920303345,
+        "band": "low",
+        "factors": {
+          "alignment": 0.5122,
+          "concentration": 0.0,
+          "coefficient_exposure": 1.0
+        },
+        "verdict": "redundant"
+      }
+    ],
+    "role": "retained",
+    "historical_strategy": "audit_aware",
+    "naive_linear_equivalent": false,
+    "coefficients_unique": [
+      [
+        0.5,
+        0.5
+      ]
+    ],
+    "eval_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/eval_result.json",
+    "merge_plan_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/merged_adapter/merge_plan.json",
+    "merge_result_path": "/Users/john/code/gradience/field_trials/targeted_confirmation_near_miss/eval_t02/t02_retained_irony_x_irony/merged_adapter/merge_result.json",
+    "n_eval_samples": 500,
+    "notes": "Retained same-task (irony x irony, both eligible).",
+    "cohort_assignment": "group_1_high_overlap_low_proxy",
+    "cohort_rationale": "High overlap with low-to-mid over-accumulation score inside the high-overlap subset."
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.baseline_snapshot/v1",
+  "generated_utc": "2026-03-31T23:50:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "baseline_reference": "Behavioral Route 2 Bridge (n88-n92)",
+  "baseline_cases": [
+    {
+      "case_id": "FR-01",
+      "profile_label": "worst_case_collapse",
+      "decision_context": "merge_behavioral_comparison",
+      "failure_rate": 0.336,
+      "confidence_collapse_rate": 0.06,
+      "high_confidence_wrong_rate": 0.0,
+      "confusion_or_neither_source_rate": 0.146,
+      "short_channel_interpretation": "Collapse-like channel: uncertainty-dominant breakage with concentrated confidence collapse."
+    },
+    {
+      "case_id": "CT-01",
+      "profile_label": "cross_task_separable",
+      "decision_context": "merge_behavioral_comparison",
+      "failure_rate": 0.174,
+      "confidence_collapse_rate": 0.006,
+      "high_confidence_wrong_rate": 0.046,
+      "confusion_or_neither_source_rate": 0.144,
+      "short_channel_interpretation": "Contamination-like channel: confident wrong-rule assignment with minimal confidence collapse."
+    }
+  ],
+  "anchor_observation": "Neither-source rates are near-matched (~0.14) while confidence signatures diverge strongly.",
+  "scope_limits": [
+    "Bounded to merge-facing behavioral panel evidence.",
+    "Not a universal cross-context failure law.",
+    "Requires nearby replication for stronger confidence."
+  ]
+}

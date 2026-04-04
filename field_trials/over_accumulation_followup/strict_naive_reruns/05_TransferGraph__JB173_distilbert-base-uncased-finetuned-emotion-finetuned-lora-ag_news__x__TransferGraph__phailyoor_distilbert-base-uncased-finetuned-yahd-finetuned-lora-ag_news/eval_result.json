@@ -1,0 +1,15 @@
+{
+  "pair_name": "05_TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+  "role": "lower_tail_matched",
+  "strategy": "uniform_linear",
+  "eval_dataset": "ag_news",
+  "compatibility": "safe",
+  "compatibility_score": 0.246,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.892,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 5.9,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

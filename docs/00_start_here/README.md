@@ -13,7 +13,9 @@ Use this section first if you are new to the repository or returning after a bre
 
 1. [`project-map.md`](project-map.md)
 2. [`stable-vs-experimental.md`](stable-vs-experimental.md)
-3. [`demo-paths.md`](demo-paths.md)
+3. [`current-bounded-conclusions.md`](current-bounded-conclusions.md)
+4. [`bounded-validation-summary.md`](bounded-validation-summary.md)
+5. [`demo-paths.md`](demo-paths.md)
 
 Then continue into one zone:
 

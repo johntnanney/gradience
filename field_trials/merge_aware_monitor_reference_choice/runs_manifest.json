@@ -1,0 +1,35 @@
+{
+  "study": "merge_aware_monitor_reference_choice",
+  "training_run_id": "tiny_encoder_reference_choice_demo_v1",
+  "training_task": "sst2_like_sentiment_train_stub",
+  "base_model": "tiny-peft-monitor-demo",
+  "runs": [
+    {
+      "reference_type": "same_task",
+      "relation": "same_task",
+      "reference_adapter": "runs/same_task/reference_adapter",
+      "telemetry_path": "runs/same_task/run.jsonl",
+      "snapshot_count": 6,
+      "run_level_summary_label": "toward_compatibility",
+      "trajectory_interpretability": "interpretable"
+    },
+    {
+      "reference_type": "same_family",
+      "relation": "same_family",
+      "reference_adapter": "runs/same_family/reference_adapter",
+      "telemetry_path": "runs/same_family/run.jsonl",
+      "snapshot_count": 6,
+      "run_level_summary_label": "mixed",
+      "trajectory_interpretability": "mixed"
+    },
+    {
+      "reference_type": "cross_task",
+      "relation": "cross_task",
+      "reference_adapter": "runs/cross_task/reference_adapter",
+      "telemetry_path": "runs/cross_task/run.jsonl",
+      "snapshot_count": 6,
+      "run_level_summary_label": "inconclusive",
+      "trajectory_interpretability": "inconclusive"
+    }
+  ]
+}

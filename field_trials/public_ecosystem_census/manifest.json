@@ -1,0 +1,44 @@
+{
+  "study": "public_ecosystem_spectral_census",
+  "date": "2026-04-03T19:18:43.336456+00:00",
+  "tier": "core",
+  "families": [
+    "llama",
+    "mistral",
+    "qwen"
+  ],
+  "n_discovered": 150,
+  "n_audited": 26,
+  "n_excluded": 97,
+  "n_failed": 27,
+  "n_fingerprints": 26,
+  "outcome": "partial_success",
+  "task_balanced_extension": {
+    "date": "2026-04-03T22:11:34.865341+00:00",
+    "families": [
+      "llama",
+      "mistral",
+      "qwen"
+    ],
+    "target_counts": {
+      "code": 8,
+      "math_reasoning": 8,
+      "domain_specialist": 6,
+      "classification": 5
+    },
+    "baseline_task_counts": {
+      "classification": 10,
+      "chat_instruct": 13,
+      "general_unknown": 3
+    },
+    "baseline_family_counts": {
+      "llama": 18,
+      "mistral": 8
+    },
+    "candidate_count": 0,
+    "selected_count": 0,
+    "audited_count": 10,
+    "excluded_count": 0,
+    "failed_count": 0
+  }
+}

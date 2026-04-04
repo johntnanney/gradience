@@ -1,0 +1,132 @@
+{
+  "scope": {
+    "informative_families": [
+      "sst2",
+      "imdb"
+    ],
+    "cohort": "same as prior bounded pilot",
+    "panels": {
+      "fixed": 3,
+      "random": 3
+    },
+    "ablation_samples_grid": [
+      24,
+      48,
+      72
+    ],
+    "budgets": [
+      0.35,
+      0.5,
+      0.65
+    ],
+    "modes": [
+      "rank_reduction"
+    ],
+    "retain_ratios": [
+      0.5,
+      0.75,
+      0.85
+    ]
+  },
+  "comparison": {
+    "rr050": {
+      "mean_low_information_vector_fraction": 1.0,
+      "mean_flat_vector_fraction": 0.8194444444444445,
+      "mean_high_tie_vector_fraction": 0.8194444444444445,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.125,
+      "mean_pairwise_spearman": 1.0,
+      "mean_pairwise_kendall_tau_b": 1.0,
+      "mean_pairwise_goodman_kruskal_gamma": 1.0,
+      "mean_pairwise_topk_overlap_q25": 1.0,
+      "mean_pairwise_topk_overlap_q50": 1.0,
+      "mean_unique_value_count": 1.1805555555555556,
+      "mean_nonzero_fraction": 0.03009259259259259,
+      "mean_tie_pair_fraction": 0.9398148148148148,
+      "mean_alloc_spearman_vs_oht": 0.5063672438672439,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.4922059422059422,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.5516702986555928,
+      "mean_alloc_topk_overlap_vs_oht": 0.7777777777777778,
+      "sample_72": {
+        "low_information_vector_fraction": 1.0,
+        "flat_vector_fraction": 0.7916666666666667,
+        "high_tie_vector_fraction": 0.7916666666666667,
+        "valid_pair_fraction": 0.16666666666666666,
+        "spearman": 1.0,
+        "kendall_tau_b": 1.0,
+        "goodman_kruskal_gamma": 1.0
+      }
+    },
+    "rr075": {
+      "mean_low_information_vector_fraction": 1.0,
+      "mean_flat_vector_fraction": 1.0,
+      "mean_high_tie_vector_fraction": 1.0,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.0,
+      "mean_pairwise_spearman": null,
+      "mean_pairwise_kendall_tau_b": null,
+      "mean_pairwise_goodman_kruskal_gamma": null,
+      "mean_pairwise_topk_overlap_q25": 1.0,
+      "mean_pairwise_topk_overlap_q50": 1.0,
+      "mean_unique_value_count": 1.0,
+      "mean_nonzero_fraction": 0.0,
+      "mean_tie_pair_fraction": 1.0,
+      "mean_alloc_spearman_vs_oht": 0.5063672438672439,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.4922059422059422,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.5516702986555928,
+      "mean_alloc_topk_overlap_vs_oht": 0.7777777777777778,
+      "sample_72": {
+        "low_information_vector_fraction": 1.0,
+        "flat_vector_fraction": 1.0,
+        "high_tie_vector_fraction": 1.0,
+        "valid_pair_fraction": 0.0,
+        "spearman": null,
+        "kendall_tau_b": null,
+        "goodman_kruskal_gamma": null
+      }
+    },
+    "rr085": {
+      "mean_low_information_vector_fraction": 1.0,
+      "mean_flat_vector_fraction": 1.0,
+      "mean_high_tie_vector_fraction": 1.0,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.0,
+      "mean_pairwise_spearman": null,
+      "mean_pairwise_kendall_tau_b": null,
+      "mean_pairwise_goodman_kruskal_gamma": null,
+      "mean_pairwise_topk_overlap_q25": 1.0,
+      "mean_pairwise_topk_overlap_q50": 1.0,
+      "mean_unique_value_count": 1.0,
+      "mean_nonzero_fraction": 0.0,
+      "mean_tie_pair_fraction": 1.0,
+      "mean_alloc_spearman_vs_oht": 0.5063672438672439,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.4922059422059422,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.5516702986555928,
+      "mean_alloc_topk_overlap_vs_oht": 0.7777777777777778,
+      "sample_72": {
+        "low_information_vector_fraction": 1.0,
+        "flat_vector_fraction": 1.0,
+        "high_tie_vector_fraction": 1.0,
+        "valid_pair_fraction": 0.0,
+        "spearman": null,
+        "kendall_tau_b": null,
+        "goodman_kruskal_gamma": null
+      }
+    }
+  },
+  "success_criteria_assessment": {
+    "lower_degeneracy_than_rr050": false,
+    "higher_valid_pair_coverage_than_rr050": false,
+    "stability_remains_interpretable": false,
+    "agreement_less_artifact_driven": false,
+    "overall": "failure_for_rr075_rr085_in_this_regime"
+  },
+  "bounded_decision": {
+    "expand_rank_reduction_now": false,
+    "keep_gradient_operational_default": true,
+    "keep_attenuate_explanatory_companion": true,
+    "keep_hard_zero_sanity_probe": true
+  },
+  "source_artifacts": {
+    "rr050": "/Users/john/code/gradience/field_trials/rank_proxy_validation/rank_reduction_soft_ablation_pilot_sweep.json",
+    "rr075": "/Users/john/code/gradience/field_trials/rank_proxy_validation/rank_reduction_soft_ablation_rr075_sweep.json",
+    "rr085": "/Users/john/code/gradience/field_trials/rank_proxy_validation/rank_reduction_soft_ablation_rr085_sweep.json"
+  }
+}

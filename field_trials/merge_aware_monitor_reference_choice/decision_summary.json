@@ -1,0 +1,11 @@
+{
+  "study": "merge_aware_monitor_reference_choice",
+  "outcome": "same_task_preferred",
+  "observed_interpretability_scores": {
+    "same_task": 2,
+    "same_family": 1,
+    "cross_task": 0
+  },
+  "monotone_same_task_to_cross_task": true,
+  "notes": "Tiny synthetic demo; interpretability guidance only."
+}

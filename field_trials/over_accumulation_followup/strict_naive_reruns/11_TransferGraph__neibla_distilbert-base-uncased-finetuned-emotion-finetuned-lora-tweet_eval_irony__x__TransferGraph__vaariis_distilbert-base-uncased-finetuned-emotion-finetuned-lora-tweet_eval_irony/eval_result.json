@@ -1,0 +1,15 @@
+{
+  "pair_name": "11_TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+  "role": "lower_tail_matched",
+  "strategy": "uniform_linear",
+  "eval_dataset": "tweet_eval/irony",
+  "compatibility": "safe",
+  "compatibility_score": 0.25,
+  "mean_reconstruction_error": 0.0,
+  "merged_accuracy": 0.602,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.1,
+  "merge_time_s": 0.0,
+  "eval_time_s": 3.0,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

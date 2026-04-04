@@ -1,0 +1,10 @@
+{
+  "date": "2026-04-03T22:11:34.876922+00:00",
+  "decision": "mixed_but_bounded",
+  "n_baseline": 26,
+  "n_augmented": 36,
+  "architecture_eta_sq_augmented": 0.143,
+  "task_eta_sq_augmented": 0.3359,
+  "task_knn_delta": -0.1333,
+  "note": "Bounded observational extension result; no causal or policy claim."
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "route2_stress_tests.collapse_vs_contamination.panel/v1",
+  "generated_utc": "2026-03-31T23:58:00Z",
+  "study": "Route2 Collapse vs Contamination Replication",
+  "panel_size": 4,
+  "replication_mix": {
+    "case": 1,
+    "slice": 3,
+    "case_and_slice": 0
+  },
+  "targets": [
+    {
+      "target_id": "R1_FR02_case",
+      "original_or_new_case": "new_case",
+      "source_case_id": "FR-02",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "google-bert/bert-base-uncased",
+      "decision_context": "merge_behavioral_comparison",
+      "expected_channel": "collapse_like",
+      "replication_type": "case",
+      "slice_spec": "full_500_examples",
+      "reason_selected": "Nearby collapse lineage case with weaker source-B quality; tests case-level robustness of uncertainty-dominant channel."
+    },
+    {
+      "target_id": "R2_FR01_even_slice",
+      "original_or_new_case": "original_case_slice",
+      "source_case_id": "FR-01",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "google-bert/bert-base-uncased",
+      "decision_context": "merge_behavioral_comparison",
+      "expected_channel": "collapse_like",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_even_indices_mod2",
+      "reason_selected": "Minimal deterministic perturbation of baseline collapse anchor; tests slice stability without changing training artifacts."
+    },
+    {
+      "target_id": "R3_CT01_even_slice",
+      "original_or_new_case": "original_case_slice",
+      "source_case_id": "CT-01",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "google-bert/bert-base-uncased",
+      "decision_context": "merge_behavioral_comparison",
+      "expected_channel": "contamination_like",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_even_indices_mod2",
+      "reason_selected": "Minimal deterministic perturbation of baseline contamination anchor; tests confident-misassignment stability under slice perturbation."
+    },
+    {
+      "target_id": "R4_CT01_odd_slice",
+      "original_or_new_case": "original_case_slice",
+      "source_case_id": "CT-01",
+      "artifact_class": "lora_adapter_pair",
+      "backbone": "google-bert/bert-base-uncased",
+      "decision_context": "merge_behavioral_comparison",
+      "expected_channel": "contamination_like",
+      "replication_type": "slice",
+      "slice_spec": "deterministic_odd_indices_mod2",
+      "reason_selected": "Complementary contamination slice to verify that separation does not depend on one accidental half."
+    }
+  ]
+}

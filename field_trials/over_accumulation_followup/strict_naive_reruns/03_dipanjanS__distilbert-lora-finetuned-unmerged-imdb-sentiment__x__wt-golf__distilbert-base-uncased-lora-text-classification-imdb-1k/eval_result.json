@@ -1,0 +1,15 @@
+{
+  "pair_name": "03_dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+  "role": "high_tail",
+  "strategy": "uniform_linear",
+  "eval_dataset": "imdb",
+  "compatibility": "safe",
+  "compatibility_score": 0.265,
+  "mean_reconstruction_error": 0.0753,
+  "merged_accuracy": 0.868,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 12.8,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

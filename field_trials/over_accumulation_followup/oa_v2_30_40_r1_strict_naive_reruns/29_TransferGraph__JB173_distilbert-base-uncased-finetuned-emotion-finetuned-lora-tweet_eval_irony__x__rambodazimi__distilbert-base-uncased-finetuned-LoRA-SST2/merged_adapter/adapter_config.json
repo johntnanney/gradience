@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "q_lin",
+    "v_lin"
+  ],
+  "base_model_name_or_path": "JB173/distilbert-base-uncased-finetuned-emotion",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "ef2d81fc-68a5-46e9-9ce6-10ea3db10555",
+    "strategy": "uniform_linear",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_04_distilbert_irony_cluster/adapter_cache/TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+    "adapter_b": "/Users/john/code/gradience/field_trials/targeted_confirmation_same_family/inventory_t01/adapter_cache/rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2"
+  }
+}

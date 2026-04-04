@@ -186,6 +186,11 @@ uniform_*/
 smoke_test_*/
 test_regular_*/
 
+# Large field trial audit caches (regenerable)
+field_trials/**/audit_cache.json
+field_trials/**/activation_threshold_audit.json
+field_trials/**/*_activation_threshold_audit.json
+
 # Bench aggregate and generated files
 bench_aggregate.json
 bench_aggregate.md

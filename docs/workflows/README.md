@@ -18,3 +18,8 @@
 
 - [`report-interpretation.md`](report-interpretation.md)
 - [`html-report-guide.md`](html-report-guide.md)
+
+## Bounded policy references
+
+- [`../00_start_here/bounded-validation-summary.md`](../00_start_here/bounded-validation-summary.md)
+- [`../strategy/rank_proxy_bounded_validation_summary.md`](../strategy/rank_proxy_bounded_validation_summary.md)

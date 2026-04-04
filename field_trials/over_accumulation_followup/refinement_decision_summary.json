@@ -1,0 +1,9 @@
+{
+  "decision": "keep_exploratory",
+  "evidence_strength": "suggestive",
+  "n_feature_rows": 12,
+  "n_candidates": 48,
+  "best_baseline_abs_spearman": 0.21951088929068188,
+  "best_oa_feature": "concentration_oa_mass_top3_fraction",
+  "best_oa_feature_spearman": 0.5834878991410141
+}

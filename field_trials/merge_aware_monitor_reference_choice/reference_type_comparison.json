@@ -1,0 +1,59 @@
+{
+  "study": "merge_aware_monitor_reference_choice",
+  "comparison_dimensions": {
+    "summary_label_coherence": {
+      "same_task": "toward_compatibility",
+      "same_family": "mixed",
+      "cross_task": "inconclusive"
+    },
+    "metric_consistency": {
+      "same_task": {
+        "overlap_trend": "increasing",
+        "score_trend": "increasing",
+        "conflict_trend": "flat",
+        "imbalance_trend": "flat",
+        "readout": "coherent"
+      },
+      "same_family": {
+        "overlap_trend": "mixed_unstable",
+        "score_trend": "mixed_unstable",
+        "conflict_trend": "flat",
+        "imbalance_trend": "flat",
+        "readout": "mixed"
+      },
+      "cross_task": {
+        "overlap_trend": "mixed_unstable",
+        "score_trend": "decreasing",
+        "conflict_trend": "flat",
+        "imbalance_trend": "flat",
+        "readout": "weakly directional"
+      }
+    },
+    "qualitative_interpretability_rubric": {
+      "scale": {
+        "0": "inconclusive",
+        "1": "mixed",
+        "2": "clearly interpretable"
+      },
+      "scores": {
+        "same_task": 2,
+        "same_family": 1,
+        "cross_task": 0
+      }
+    }
+  },
+  "relative_ordering": {
+    "expected": [
+      "same_task",
+      "same_family",
+      "cross_task"
+    ],
+    "observed_scores": [
+      2,
+      1,
+      0
+    ],
+    "monotone_match": true
+  },
+  "bounded_conclusion": "same_task > same_family > cross_task in trajectory interpretability for this tiny synthetic demo"
+}

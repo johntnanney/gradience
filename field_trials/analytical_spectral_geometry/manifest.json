@@ -1,0 +1,29 @@
+{
+  "study": "analytical_spectral_geometry_of_merge_operations",
+  "status": "negative_completion",
+  "outcome": "spectral_inflation_correctly_derived_but_not_predictive_of_merge_quality",
+  "mode": "cpu_only_math_and_synthetic_validation",
+  "created_on": "2026-04-03",
+  "completed_on": "2026-04-03",
+  "phases_completed": [
+    "linear_merge_exact_and_bounds",
+    "over_accumulation_theory",
+    "norm_equalized_analysis_stub",
+    "empirical_crosscheck"
+  ],
+  "phases_not_pursued": [
+    "ties_bounds",
+    "dare_bounds",
+    "strategy_selection_map"
+  ],
+  "reason_not_pursued": "empirical cross-check showed spectral inflation is not predictive of merge quality; further strategy-specific bounds would answer a question already shown to be the wrong one",
+  "key_finding": "spectral metrics characterize geometry but task relationship predicts quality",
+  "deliverables": [
+    "theory_crosscheck.json",
+    "theory_crosscheck.md",
+    "synthetic_validation_results.json",
+    "empirical_crosscheck_oa_v2_30_40_r1.json",
+    "heuristic_comparison.json",
+    "study_memo.md"
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "analysis_scope": {
+    "subset": "informative_task_families_only",
+    "informative_task_families": [
+      "sst2",
+      "imdb"
+    ],
+    "non_informative_task_families": [
+      "tweet_eval",
+      "ag_news"
+    ]
+  },
+  "method_performance_summary": [
+    {
+      "method": "proxy_gradient",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.011863425925925911,
+      "var_delta_vs_uniform": 0.0004515261970593274,
+      "mean_delta_vs_full_adapter": 0.001736111111111105,
+      "var_delta_vs_full_adapter": 9.042245370370377e-05,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "oht",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.009837962962962958,
+      "var_delta_vs_uniform": 0.000454791452331961,
+      "mean_delta_vs_full_adapter": -0.0002893518518518477,
+      "var_delta_vs_full_adapter": 0.0001521274059070644,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "baseline_random",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.008969907407407409,
+      "var_delta_vs_uniform": 0.0005570190597136491,
+      "mean_delta_vs_full_adapter": -0.0011574074074073972,
+      "var_delta_vs_full_adapter": 0.0002578714420438954,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "knee",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.008391203703703701,
+      "var_delta_vs_uniform": 0.0003048408832733196,
+      "mean_delta_vs_full_adapter": -0.001736111111111105,
+      "var_delta_vs_full_adapter": 0.00017180266203703696,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "energy_90",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.006655092592592591,
+      "var_delta_vs_uniform": 0.0003852163976766114,
+      "mean_delta_vs_full_adapter": -0.003472222222222216,
+      "var_delta_vs_full_adapter": 0.00044005594135802415,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "proxy_ablation",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.0023148148148148004,
+      "var_delta_vs_uniform": 2.1768368484224903e-05,
+      "mean_delta_vs_full_adapter": -0.007812500000000007,
+      "var_delta_vs_full_adapter": 0.0006276825327932092,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "erank",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.002025462962962953,
+      "var_delta_vs_uniform": 0.00019030577524862773,
+      "mean_delta_vs_full_adapter": -0.008101851851851853,
+      "var_delta_vs_full_adapter": 0.00048593696416323695,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "stable_rank_ceil",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.0,
+      "var_delta_vs_uniform": 3.0140817901235e-06,
+      "mean_delta_vs_full_adapter": -0.010127314814814806,
+      "var_delta_vs_full_adapter": 0.0006162960015860763,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    },
+    {
+      "method": "baseline_uniform",
+      "n": 18,
+      "mean_delta_vs_uniform": 0.0,
+      "var_delta_vs_uniform": 0.0,
+      "mean_delta_vs_full_adapter": -0.010127314814814806,
+      "var_delta_vs_full_adapter": 0.0006102678380058294,
+      "mean_realized_budget_ratio": 0.49363425925925924
+    }
+  ],
+  "policy_proxy_agreement_summary": [
+    {
+      "policy_method": "energy_90",
+      "proxy_method": "proxy_gradient",
+      "n": 18,
+      "mean_spearman_rank_correlation": -0.3924462882796216,
+      "mean_topk_overlap": 0.07407407407407407,
+      "mean_policy_vs_proxy_acc_delta": -0.005208333333333321
+    },
+    {
+      "policy_method": "energy_90",
+      "proxy_method": "proxy_ablation",
+      "n": 18,
+      "mean_spearman_rank_correlation": 0.15353134519801187,
+      "mean_topk_overlap": 0.5185185185185185,
+      "mean_policy_vs_proxy_acc_delta": 0.00434027777777779
+    },
+    {
+      "policy_method": "knee",
+      "proxy_method": "proxy_gradient",
+      "n": 18,
+      "mean_spearman_rank_correlation": -0.38604898188231523,
+      "mean_topk_overlap": 0.05555555555555555,
+      "mean_policy_vs_proxy_acc_delta": -0.00347222222222221
+    },
+    {
+      "policy_method": "knee",
+      "proxy_method": "proxy_ablation",
+      "n": 18,
+      "mean_spearman_rank_correlation": 0.27052869969536636,
+      "mean_topk_overlap": 0.611111111111111,
+      "mean_policy_vs_proxy_acc_delta": 0.006076388888888901
+    },
+    {
+      "policy_method": "erank",
+      "proxy_method": "proxy_gradient",
+      "n": 18,
+      "mean_spearman_rank_correlation": -0.37615239698573033,
+      "mean_topk_overlap": 0.07407407407407407,
+      "mean_policy_vs_proxy_acc_delta": -0.009837962962962958
+    },
+    {
+      "policy_method": "erank",
+      "proxy_method": "proxy_ablation",
+      "n": 18,
+      "mean_spearman_rank_correlation": 0.15033269199935867,
+      "mean_topk_overlap": 0.537037037037037,
+      "mean_policy_vs_proxy_acc_delta": -0.0002893518518518477
+    },
+    {
+      "policy_method": "oht",
+      "proxy_method": "proxy_gradient",
+      "n": 18,
+      "mean_spearman_rank_correlation": -0.19502364919031587,
+      "mean_topk_overlap": 0.16666666666666666,
+      "mean_policy_vs_proxy_acc_delta": -0.002025462962962953
+    },
+    {
+      "policy_method": "oht",
+      "proxy_method": "proxy_ablation",
+      "n": 18,
+      "mean_spearman_rank_correlation": 0.24383918550585218,
+      "mean_topk_overlap": 0.5555555555555556,
+      "mean_policy_vs_proxy_acc_delta": 0.007523148148148158
+    },
+    {
+      "policy_method": "stable_rank_ceil",
+      "proxy_method": "proxy_gradient",
+      "n": 18,
+      "mean_spearman_rank_correlation": -0.40527697611030944,
+      "mean_topk_overlap": 0.07407407407407407,
+      "mean_policy_vs_proxy_acc_delta": -0.011863425925925911
+    },
+    {
+      "policy_method": "stable_rank_ceil",
+      "proxy_method": "proxy_ablation",
+      "n": 18,
+      "mean_spearman_rank_correlation": 0.2589686548019881,
+      "mean_topk_overlap": 0.5740740740740741,
+      "mean_policy_vs_proxy_acc_delta": -0.0023148148148148004
+    }
+  ],
+  "proxy_agreement_split_summary": [
+    {
+      "proxy_method": "proxy_ablation",
+      "n": 90,
+      "mean_spearman_rank_correlation": 0.21544011544011543,
+      "mean_topk_overlap": 0.5592592592592592,
+      "mean_policy_vs_proxy_acc_delta": 0.00306712962962964
+    },
+    {
+      "proxy_method": "proxy_gradient",
+      "n": 90,
+      "mean_spearman_rank_correlation": -0.35098965848965846,
+      "mean_topk_overlap": 0.08888888888888888,
+      "mean_policy_vs_proxy_acc_delta": -0.006481481481481471
+    }
+  ]
+}

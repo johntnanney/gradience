@@ -1,0 +1,20 @@
+{
+  "n_confident": 23,
+  "n_excluded": 3,
+  "architecture_eta_sq": {
+    "stable_rank_mean": 0.1254,
+    "utilization_mean": 0.3405,
+    "energy_rank_90_p50": 0.0115,
+    "entropy_erank_mean": 0.7429,
+    "edge_gap_mean": 0.0439
+  },
+  "task_eta_sq": {
+    "stable_rank_mean": 0.2406,
+    "utilization_mean": 0.4194,
+    "energy_rank_90_p50": 0.015,
+    "entropy_erank_mean": 0.5717,
+    "edge_gap_mean": 0.0274
+  },
+  "mean_arch_eta_sq": 0.2528,
+  "mean_task_eta_sq": 0.2548
+}

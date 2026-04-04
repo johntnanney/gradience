@@ -33,6 +33,14 @@ Worst-case collapse and cross-task contamination produce the same rate of novel 
 
 This justifies decision-context-dependent aggregation: worst-case aggregation detects concentration of pathology (relevant for merge), distributional aggregation detects confusability gradients (relevant for routing).
 
+### Replication update (bounded)
+
+A follow-on replication pass (`n118`-`n122`) re-tested this distinction on nearby case/slice perturbations and found the same qualitative split with guardrails:
+
+- collapse-like targets remained confidence-collapse dominant,
+- contamination-like targets remained high-confidence-wrong dominant,
+- neither-source pressure remained close across channels and did not collapse the distinction.
+
 ### The routing-confusability finding
 
 Structural routing-confusability (same task, similar performance, high overlap) does not produce confusion-like behavior in the merge setting. The confusable case (NM-01) is behaviorally safe-like. The behavioral signature of confusability likely only appears in actual routing scenarios where a system must choose between sources.
@@ -47,13 +55,15 @@ Structural routing-confusability (same task, similar performance, high overlap) 
 - **Evidence gating is behaviorally justified.** QA-dominant aggregation identifies cases where there is nothing to preserve or destroy (behavioral stasis), not cases that are structurally risky.
 - **Same-family optional cases are behaviorally safe-like.** QA constraints on these cases are about evidence gaps, not behavioral risk.
 - **The collapse/contamination distinction matters.** Same failure rate, different failure channels, different operational consequences for downstream users.
+- **The collapse/contamination split is replication-supported in bounded scope.** Safe for merge-facing explanatory language with explicit non-universal guardrails.
 
 ### Not safe to say
 
 - "Routing-confusability predicts behavioral confusion" — it doesn't, at least in the merge setting.
 - "The three-tier model is a validated classification system" — it describes this panel; generalization is untested.
-- "These thresholds (<2%, ~14%) are calibrated boundaries" — they are empirical observations on one panel.
+- "These thresholds (<2%, ~14%) are calibrated boundaries" — they are empirical observations in bounded panels.
 - "All five profiles have equally strong behavioral signatures" — same-family optional is behaviorally indistinguishable from aggregation-invariant safe.
+- "Collapse vs contamination is a universal cross-context law" — current support is strong but bounded to tested merge-facing settings.
 
 ---
 

@@ -1,0 +1,20 @@
+{
+  "peft_type": "LORA",
+  "r": 8,
+  "lora_alpha": 16.0,
+  "target_modules": [
+    "query",
+    "value"
+  ],
+  "base_model_name_or_path": "Hate-speech-CNERG/bert-base-uncased-hatexplain-rationale-two",
+  "bias": "none",
+  "task_type": "SEQ_CLS",
+  "fan_in_fan_out": false,
+  "lora_dropout": 0.0,
+  "gradience_merge": {
+    "plan_id": "68cb57c6-1cb2-4b0c-a393-409e1f870902",
+    "strategy": "uniform_linear",
+    "adapter_a": "/Users/john/code/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion",
+    "adapter_b": "/Users/john/code/gradience/field_trials/inventory_05_bert_hate_emotion/adapter_cache/TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion"
+  }
+}

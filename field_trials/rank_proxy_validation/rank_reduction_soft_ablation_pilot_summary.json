@@ -1,0 +1,138 @@
+{
+  "scope": {
+    "task_families": [
+      "sst2",
+      "imdb"
+    ],
+    "adapter_count": 4,
+    "ablation_modes": [
+      "hard_zero",
+      "attenuate",
+      "rank_reduction"
+    ],
+    "rank_retain_ratio": 0.5,
+    "ablation_samples_grid": [
+      24,
+      48,
+      72
+    ],
+    "fixed_panels": 3,
+    "random_repeats": 3,
+    "budgets": [
+      0.35,
+      0.5,
+      0.65
+    ]
+  },
+  "mode_aggregate": {
+    "hard_zero": {
+      "mean_low_information_vector_fraction": 0.7083333333333334,
+      "mean_flat_vector_fraction": 0.3611111111111111,
+      "mean_high_tie_vector_fraction": 0.40277777777777785,
+      "mean_pairwise_spearman": 0.4704329633550059,
+      "mean_pairwise_kendall_tau_b": 0.45536141280400605,
+      "mean_pairwise_goodman_kruskal_gamma": 0.6738107063458276,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.5416666666666666,
+      "mean_pairwise_topk_overlap_q25": 0.6157407407407408,
+      "mean_pairwise_topk_overlap_q50": 0.7407407407407408,
+      "mean_unique_value_count": 1.9722222222222223,
+      "mean_nonzero_fraction": 0.2511574074074074,
+      "mean_tie_pair_fraction": 0.6619949494949494
+    },
+    "attenuate": {
+      "mean_low_information_vector_fraction": 0.7638888888888888,
+      "mean_flat_vector_fraction": 0.5,
+      "mean_high_tie_vector_fraction": 0.5,
+      "mean_pairwise_spearman": 0.5447008326531633,
+      "mean_pairwise_kendall_tau_b": 0.5287754842483116,
+      "mean_pairwise_goodman_kruskal_gamma": 0.6923184839851507,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.40277777777777773,
+      "mean_pairwise_topk_overlap_q25": 0.6435185185185185,
+      "mean_pairwise_topk_overlap_q50": 0.8587962962962963,
+      "mean_unique_value_count": 1.75,
+      "mean_nonzero_fraction": 0.17708333333333334,
+      "mean_tie_pair_fraction": 0.7325336700336701
+    },
+    "rank_reduction": {
+      "mean_low_information_vector_fraction": 1.0,
+      "mean_flat_vector_fraction": 0.8194444444444445,
+      "mean_high_tie_vector_fraction": 0.8194444444444445,
+      "mean_pairwise_spearman": 1.0,
+      "mean_pairwise_kendall_tau_b": 1.0,
+      "mean_pairwise_goodman_kruskal_gamma": 1.0,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.125,
+      "mean_pairwise_topk_overlap_q25": 1.0,
+      "mean_pairwise_topk_overlap_q50": 1.0,
+      "mean_unique_value_count": 1.1805555555555556,
+      "mean_nonzero_fraction": 0.03009259259259259,
+      "mean_tie_pair_fraction": 0.9398148148148148
+    }
+  },
+  "sample_72_snapshot": {
+    "hard_zero": {
+      "low_information_vector_fraction": 0.5833333333333334,
+      "flat_vector_fraction": 0.29166666666666663,
+      "high_tie_vector_fraction": 0.29166666666666663,
+      "mean_pairwise_spearman": 0.6241453901070004,
+      "mean_pairwise_kendall_tau_b": 0.6031323146451704,
+      "mean_pairwise_goodman_kruskal_gamma": 0.8065203024589997,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.6666666666666667
+    },
+    "attenuate": {
+      "low_information_vector_fraction": 0.5416666666666667,
+      "flat_vector_fraction": 0.3333333333333333,
+      "high_tie_vector_fraction": 0.3333333333333333,
+      "mean_pairwise_spearman": 0.8829259322730219,
+      "mean_pairwise_kendall_tau_b": 0.856477763468249,
+      "mean_pairwise_goodman_kruskal_gamma": 0.954985754985755,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.5833333333333334
+    },
+    "rank_reduction": {
+      "low_information_vector_fraction": 1.0,
+      "flat_vector_fraction": 0.7916666666666667,
+      "high_tie_vector_fraction": 0.7916666666666667,
+      "mean_pairwise_spearman": 1.0,
+      "mean_pairwise_kendall_tau_b": 1.0,
+      "mean_pairwise_goodman_kruskal_gamma": 1.0,
+      "mean_pairwise_spearman_valid_pair_fraction": 0.16666666666666666
+    }
+  },
+  "policy_agreement_vs_oht_aggregate": {
+    "hard_zero": {
+      "mean_alloc_spearman_vs_oht": 0.14860576666132222,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.14163874743143035,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.08171466201892165,
+      "mean_alloc_topk_overlap_vs_oht": 0.5416666666666666
+    },
+    "attenuate": {
+      "mean_alloc_spearman_vs_oht": 0.21980770001603334,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.2098014094457184,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.18786014648337165,
+      "mean_alloc_topk_overlap_vs_oht": 0.6358024691358025
+    },
+    "rank_reduction": {
+      "mean_alloc_spearman_vs_oht": 0.5063672438672439,
+      "mean_alloc_kendall_tau_b_vs_oht": 0.4922059422059422,
+      "mean_alloc_goodman_kruskal_gamma_vs_oht": 0.5516702986555928,
+      "mean_alloc_topk_overlap_vs_oht": 0.7777777777777778
+    }
+  },
+  "four_question_readout": {
+    "fewest_low_information_vectors": "hard_zero",
+    "best_resampling_stability_nominal": "rank_reduction",
+    "best_resampling_stability_interpretable": "attenuate",
+    "cleanest_spectral_agreement_nominal": "rank_reduction",
+    "cleanest_spectral_agreement_interpretable": "attenuate",
+    "most_behaviorally_interpretable_for_compression": "attenuate",
+    "note": "Rank-reduction at retain_ratio=0.5 is strongly degenerate in this pilot and should not be treated as a reliable ablation target yet."
+  },
+  "bounded_decision": {
+    "supports_rank_reduction_as_default_ablation_target_now": false,
+    "supports_changing_main_gradience_story_now": false,
+    "supports_replacing_gradient_default_proxy_now": false
+  },
+  "source_artifacts": {
+    "pilot_sweep_json": "/Users/john/code/gradience/field_trials/rank_proxy_validation/rank_reduction_soft_ablation_pilot_sweep.json",
+    "pilot_sweep_md": "/Users/john/code/gradience/field_trials/rank_proxy_validation/rank_reduction_soft_ablation_pilot_sweep.md"
+  }
+}

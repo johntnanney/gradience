@@ -1,0 +1,924 @@
+{
+  "scope": {
+    "informative_task_families": [
+      "sst2",
+      "imdb"
+    ],
+    "adapter_count": 6,
+    "budgets": [
+      0.35,
+      0.5,
+      0.65
+    ],
+    "repeats": 3,
+    "grad_samples": 32,
+    "ablation_samples": 48,
+    "max_eval_samples": 128
+  },
+  "gradient_vs_ablation_concentration": {
+    "by_adapter": [
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "proxy_gradient_mean_delta_vs_uniform": 0.05729166666666663,
+        "proxy_ablation_mean_delta_vs_uniform": 0.0,
+        "gradient_minus_ablation_mean_delta_vs_uniform": 0.05729166666666663
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "proxy_gradient_mean_delta_vs_uniform": 0.013888888888888876,
+        "proxy_ablation_mean_delta_vs_uniform": 0.00694444444444442,
+        "gradient_minus_ablation_mean_delta_vs_uniform": 0.006944444444444456
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "proxy_gradient_mean_delta_vs_uniform": 0.0,
+        "proxy_ablation_mean_delta_vs_uniform": 0.0,
+        "gradient_minus_ablation_mean_delta_vs_uniform": 0.0
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "proxy_gradient_mean_delta_vs_uniform": 0.0017361111111110865,
+        "proxy_ablation_mean_delta_vs_uniform": 0.00347222222222221,
+        "gradient_minus_ablation_mean_delta_vs_uniform": -0.0017361111111111234
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "proxy_gradient_mean_delta_vs_uniform": -0.0017361111111111234,
+        "proxy_ablation_mean_delta_vs_uniform": 0.0,
+        "gradient_minus_ablation_mean_delta_vs_uniform": -0.0017361111111111234
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "proxy_gradient_mean_delta_vs_uniform": 0.0,
+        "proxy_ablation_mean_delta_vs_uniform": 0.003472222222222173,
+        "gradient_minus_ablation_mean_delta_vs_uniform": -0.003472222222222173
+      }
+    ],
+    "by_task_family": [
+      {
+        "task_family": "sst2",
+        "n_adapters": 3,
+        "mean_gradient_minus_ablation_delta_vs_uniform": 0.021412037037037028,
+        "var_gradient_minus_ablation_delta_vs_uniform": 0.0006517114626200264
+      },
+      {
+        "task_family": "imdb",
+        "n_adapters": 3,
+        "mean_gradient_minus_ablation_delta_vs_uniform": -0.0023148148148148064,
+        "var_gradient_minus_ablation_delta_vs_uniform": 6.697959533607208e-07
+      }
+    ],
+    "summary": {
+      "n_adapters": 6,
+      "mean_gradient_minus_ablation_delta_vs_uniform": 0.009548611111111112,
+      "variance_gradient_minus_ablation_delta_vs_uniform": 0.0004669315039866248,
+      "gradient_better_adapter_count": 2,
+      "ablation_better_adapter_count": 3,
+      "top2_abs_contribution_share": 0.9024390243902441
+    }
+  },
+  "proxy_stability_resampling": {
+    "by_adapter": [
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "layer_count": 12,
+        "k_top": 3,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.9906759906759907,
+        "ablation_pairwise_spearman": null,
+        "gradient_pairwise_topk_overlap": 1.0,
+        "ablation_pairwise_topk_overlap": 1.0,
+        "gradient_minus_ablation_pairwise_spearman": null,
+        "gradient_minus_ablation_pairwise_topk_overlap": 0.0
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "layer_count": 12,
+        "k_top": 3,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.7948717948717948,
+        "ablation_pairwise_spearman": 0.7827999083088281,
+        "gradient_pairwise_topk_overlap": 0.6666666666666666,
+        "ablation_pairwise_topk_overlap": 0.7777777777777778,
+        "gradient_minus_ablation_pairwise_spearman": 0.01207188656296676,
+        "gradient_minus_ablation_pairwise_topk_overlap": -0.11111111111111116
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "layer_count": 12,
+        "k_top": 3,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.8111888111888111,
+        "ablation_pairwise_spearman": 0.4198325265404099,
+        "gradient_pairwise_topk_overlap": 0.5555555555555556,
+        "ablation_pairwise_topk_overlap": 0.4444444444444444,
+        "gradient_minus_ablation_pairwise_spearman": 0.3913562846484012,
+        "gradient_minus_ablation_pairwise_topk_overlap": 0.11111111111111116
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "layer_count": 6,
+        "k_top": 1,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.9619047619047619,
+        "ablation_pairwise_spearman": 0.01075268817204301,
+        "gradient_pairwise_topk_overlap": 0.3333333333333333,
+        "ablation_pairwise_topk_overlap": 0.0,
+        "gradient_minus_ablation_pairwise_spearman": 0.9511520737327189,
+        "gradient_minus_ablation_pairwise_topk_overlap": 0.3333333333333333
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "layer_count": 12,
+        "k_top": 3,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.9370629370629371,
+        "ablation_pairwise_spearman": 0.19437181229994502,
+        "gradient_pairwise_topk_overlap": 0.7777777777777778,
+        "ablation_pairwise_topk_overlap": 0.3333333333333333,
+        "gradient_minus_ablation_pairwise_spearman": 0.742691124762992,
+        "gradient_minus_ablation_pairwise_topk_overlap": 0.4444444444444445
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "layer_count": 6,
+        "k_top": 1,
+        "repeats": 3,
+        "gradient_pairwise_spearman": 0.9238095238095237,
+        "ablation_pairwise_spearman": 0.591491887564212,
+        "gradient_pairwise_topk_overlap": 0.3333333333333333,
+        "ablation_pairwise_topk_overlap": 1.0,
+        "gradient_minus_ablation_pairwise_spearman": 0.33231763624531174,
+        "gradient_minus_ablation_pairwise_topk_overlap": -0.6666666666666667
+      }
+    ],
+    "summary_all": {
+      "n_adapters": 6,
+      "mean_gradient_pairwise_spearman": 0.9032523032523032,
+      "mean_ablation_pairwise_spearman": 0.3998497645770876,
+      "mean_gradient_pairwise_topk_overlap": 0.6111111111111112,
+      "mean_ablation_pairwise_topk_overlap": 0.5925925925925926,
+      "mean_gradient_minus_ablation_pairwise_spearman": 0.5034025386752157,
+      "mean_gradient_minus_ablation_pairwise_topk_overlap": 0.0185185185185186
+    },
+    "summary_by_task_family": [
+      {
+        "n_adapters": 3,
+        "mean_gradient_pairwise_spearman": 0.8655788655788655,
+        "mean_ablation_pairwise_spearman": 0.6013162174246189,
+        "mean_gradient_pairwise_topk_overlap": 0.7407407407407407,
+        "mean_ablation_pairwise_topk_overlap": 0.7407407407407407,
+        "mean_gradient_minus_ablation_pairwise_spearman": 0.2642626481542466,
+        "mean_gradient_minus_ablation_pairwise_topk_overlap": 0.0,
+        "task_family": "sst2"
+      },
+      {
+        "n_adapters": 3,
+        "mean_gradient_pairwise_spearman": 0.9409257409257409,
+        "mean_ablation_pairwise_spearman": 0.2655387960120667,
+        "mean_gradient_pairwise_topk_overlap": 0.48148148148148145,
+        "mean_ablation_pairwise_topk_overlap": 0.4444444444444444,
+        "mean_gradient_minus_ablation_pairwise_spearman": 0.6753869449136742,
+        "mean_gradient_minus_ablation_pairwise_topk_overlap": 0.037037037037037035,
+        "task_family": "imdb"
+      }
+    ]
+  },
+  "topk_distribution_difference": {
+    "by_repeat_budget": [
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.0,
+        "mean_abs_rank_dev_all_layers": 3.5
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 5.666666666666667,
+        "mean_abs_rank_dev_all_layers": 4.666666666666667
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 2.8,
+        "mean_abs_rank_dev_all_layers": 4.666666666666667
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.0,
+        "mean_abs_rank_dev_all_layers": 3.5
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 5.5,
+        "mean_abs_rank_dev_all_layers": 4.5
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 2.8,
+        "mean_abs_rank_dev_all_layers": 4.666666666666667
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.0,
+        "mean_abs_rank_dev_all_layers": 3.5
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 5.5,
+        "mean_abs_rank_dev_all_layers": 4.5
+      },
+      {
+        "adapter_id": "NightPrince/peft-distilbert-sst2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 2.8,
+        "mean_abs_rank_dev_all_layers": 4.666666666666667
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 15.0,
+        "mean_abs_rank_dev_all_layers": 9.166666666666666
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 12.5,
+        "mean_abs_rank_dev_all_layers": 11.5
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 8.833333333333334,
+        "mean_abs_rank_dev_all_layers": 11.333333333333334
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 15.0,
+        "mean_abs_rank_dev_all_layers": 9.166666666666666
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 12.5,
+        "mean_abs_rank_dev_all_layers": 11.5
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.666666666666667,
+        "mean_abs_rank_dev_all_layers": 11.333333333333334
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 13.333333333333334,
+        "mean_abs_rank_dev_all_layers": 7.5
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 13.5,
+        "mean_abs_rank_dev_all_layers": 8.5
+      },
+      {
+        "adapter_id": "myselfmankar/distilbert-base-sst2-lora",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.666666666666667,
+        "mean_abs_rank_dev_all_layers": 8.833333333333334
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.6666666666666666,
+        "shared_topk_count": 2,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 5.0,
+        "mean_abs_rank_dev_all_layers": 2.5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 7.2,
+        "mean_abs_rank_dev_all_layers": 5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 9.0,
+        "mean_abs_rank_dev_all_layers": 7.5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 15.0,
+        "mean_abs_rank_dev_all_layers": 7.5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 12.0,
+        "mean_abs_rank_dev_all_layers": 8.5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 9.0,
+        "mean_abs_rank_dev_all_layers": 8.666666666666666
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.6666666666666666,
+        "shared_topk_count": 2,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 7.5,
+        "mean_abs_rank_dev_all_layers": 4.166666666666667
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 12.0,
+        "mean_abs_rank_dev_all_layers": 7.5
+      },
+      {
+        "adapter_id": "rambodazimi/distilbert-base-uncased-finetuned-LoRA-SST2",
+        "dataset": "sst2",
+        "task_family": "sst2",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 6.2,
+        "mean_abs_rank_dev_all_layers": 6.333333333333333
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 1.0,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 0.0,
+        "mean_abs_rank_dev_all_layers": 0
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 1.0,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 0.0,
+        "mean_abs_rank_dev_all_layers": 0
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 1.0,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 0.0,
+        "mean_abs_rank_dev_all_layers": 0
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 1.0,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 0.0,
+        "mean_abs_rank_dev_all_layers": 0
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 3.0,
+        "mean_abs_rank_dev_all_layers": 1
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 3.0,
+        "mean_abs_rank_dev_all_layers": 2
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 2.0,
+        "mean_abs_rank_dev_all_layers": 0.6666666666666666
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 1.5,
+        "mean_abs_rank_dev_all_layers": 1
+      },
+      {
+        "adapter_id": "RAJESHCHAUHAN101/distilbert-base-uncased-lora-text-classification",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 1.5,
+        "mean_abs_rank_dev_all_layers": 1
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 5.6,
+        "mean_abs_rank_dev_all_layers": 2.3333333333333335
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.6666666666666666,
+        "shared_topk_count": 2,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 1.75,
+        "mean_abs_rank_dev_all_layers": 2.3333333333333335
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.6666666666666666,
+        "shared_topk_count": 2,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 3.5,
+        "mean_abs_rank_dev_all_layers": 1.3333333333333333
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 7.0,
+        "mean_abs_rank_dev_all_layers": 3.5
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 6.833333333333333,
+        "mean_abs_rank_dev_all_layers": 5.833333333333333
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 4.5,
+        "mean_abs_rank_dev_all_layers": 5.666666666666667
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.3333333333333333,
+        "shared_topk_count": 1,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 5.6,
+        "mean_abs_rank_dev_all_layers": 2.3333333333333335
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 5.833333333333333,
+        "mean_abs_rank_dev_all_layers": 4.833333333333333
+      },
+      {
+        "adapter_id": "dipanjanS/distilbert-lora-finetuned-unmerged-imdb-sentiment",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 5.666666666666667,
+        "mean_abs_rank_dev_all_layers": 5.666666666666667
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 2.0,
+        "mean_abs_rank_dev_all_layers": 0.6666666666666666
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 3.0,
+        "mean_abs_rank_dev_all_layers": 2
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 0,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 1.5,
+        "mean_abs_rank_dev_all_layers": 2
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 2.0,
+        "mean_abs_rank_dev_all_layers": 0.6666666666666666
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 3.0,
+        "mean_abs_rank_dev_all_layers": 1
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 1,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 1.5,
+        "mean_abs_rank_dev_all_layers": 1
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.35,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 2.0,
+        "mean_abs_rank_dev_all_layers": 0.6666666666666666
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.5,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 3.0,
+        "mean_abs_rank_dev_all_layers": 2
+      },
+      {
+        "adapter_id": "wt-golf/distilbert-base-uncased-lora-text-classification-imdb-1k",
+        "dataset": "imdb",
+        "task_family": "imdb",
+        "repeat": 2,
+        "budget_ratio": 0.65,
+        "topk_overlap": 0.0,
+        "shared_topk_count": 0,
+        "mean_abs_rank_dev_shared_topk": null,
+        "mean_abs_rank_dev_union_topk": 1.5,
+        "mean_abs_rank_dev_all_layers": 2
+      }
+    ],
+    "summary_by_task_family_budget": [
+      {
+        "task_family": "sst2",
+        "budget_ratio": 0.35,
+        "n": 9,
+        "mean_topk_overlap": 0.14814814814814814,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 10.203703703703704,
+        "mean_abs_rank_dev_all_layers": 5.611111111111111
+      },
+      {
+        "task_family": "sst2",
+        "budget_ratio": 0.5,
+        "n": 9,
+        "mean_topk_overlap": 0.1111111111111111,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 9.596296296296297,
+        "mean_abs_rank_dev_all_layers": 7.351851851851852
+      },
+      {
+        "task_family": "sst2",
+        "budget_ratio": 0.65,
+        "n": 9,
+        "mean_topk_overlap": 0.2222222222222222,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 6.307407407407408,
+        "mean_abs_rank_dev_all_layers": 7.555555555555555
+      },
+      {
+        "task_family": "imdb",
+        "budget_ratio": 0.35,
+        "n": 9,
+        "mean_topk_overlap": 0.2962962962962963,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 2.911111111111111,
+        "mean_abs_rank_dev_all_layers": 1.2037037037037037
+      },
+      {
+        "task_family": "imdb",
+        "budget_ratio": 0.5,
+        "n": 9,
+        "mean_topk_overlap": 0.18518518518518517,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 3.1018518518518516,
+        "mean_abs_rank_dev_all_layers": 2.2222222222222223
+      },
+      {
+        "task_family": "imdb",
+        "budget_ratio": 0.65,
+        "n": 9,
+        "mean_topk_overlap": 0.18518518518518517,
+        "mean_abs_rank_dev_shared_topk": 0.0,
+        "mean_abs_rank_dev_union_topk": 2.5185185185185186,
+        "mean_abs_rank_dev_all_layers": 2.2962962962962963
+      }
+    ]
+  },
+  "interpretation_hint": {
+    "question_1_ablation_noise": "Compare mean_gradient_minus_ablation_pairwise_spearman and topk overlap in proxy_stability_resampling.summary_all.",
+    "question_2_win_concentration": "See gradient_vs_ablation_concentration.summary and by_adapter.",
+    "question_3_topk_distribution": "See topk_distribution_difference.summary_by_task_family_budget."
+  }
+}

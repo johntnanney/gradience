@@ -1,0 +1,15 @@
+{
+  "pair_name": "17_RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__myselfmankar__distilbert-base-sst2-lora",
+  "role": "lower_tail_matched",
+  "strategy": "uniform_linear",
+  "eval_dataset": "imdb",
+  "compatibility": "imbalanced",
+  "compatibility_score": 0.199,
+  "mean_reconstruction_error": 0.0095,
+  "merged_accuracy": 0.876,
+  "n_eval_samples": 500,
+  "audit_time_s": 0.0,
+  "merge_time_s": 0.0,
+  "eval_time_s": 13.6,
+  "notes": "Strict naive rerun (uniform_linear) for over-accumulation validation."
+}

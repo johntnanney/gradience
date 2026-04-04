@@ -1,0 +1,50 @@
+{
+  "decision": "keep_exploratory",
+  "evidence_strength": "suggestive",
+  "best_refined_candidate": {
+    "feature": "concentration_oa_mass_top3_fraction",
+    "family": "concentration_of_risk",
+    "n": 12,
+    "spearman_delta_vs_best": 0.5834878991410141,
+    "abs_spearman": 0.5834878991410141,
+    "median_split": {
+      "n_high": 6,
+      "n_low": 6,
+      "median_x": 0.38832278757344474,
+      "mean_delta_high": -0.015333333333333346,
+      "mean_delta_low": -0.12733333333333335,
+      "delta_gap_high_minus_low": 0.112
+    },
+    "tercile_split": {
+      "n_top": 4,
+      "n_bottom": 4,
+      "top_mean_delta": -0.007000000000000006,
+      "bottom_mean_delta": -0.18750000000000003,
+      "top_minus_bottom": 0.18050000000000002
+    },
+    "loo": {
+      "n_loo": 12,
+      "median_spearman": 0.5897145734012572,
+      "median_abs_spearman": 0.5897145734012572,
+      "min_spearman": 0.4576766887262615,
+      "max_spearman": 0.6803723898160624,
+      "sign_consistency_vs_full": 1.0
+    },
+    "rank_score": 0.49596471426986194,
+    "risk_direction_consistent": false
+  },
+  "best_baseline_abs_spearman": 0.21951088929068188,
+  "matched_case_count": 3,
+  "rationale": [
+    "Best refined candidate `concentration_oa_mass_top3_fraction` has Spearman=0.5835 (improvement over best baseline |rho|=0.3640).",
+    "Stability: LOO median |rho|=0.5897, sign consistency=1.000, outlier_sensitive=False.",
+    "Median split gap (high minus low) on delta_vs_best=0.1120; risk-direction-consistent=False.",
+    "Refined candidates show some directional signal, but stability/coverage is insufficient for confident promotion.",
+    "Control feature `control_source_score_gap` has materially stronger |Spearman|=0.8468, indicating non-OA confounding remains substantial."
+  ],
+  "options": {
+    "refine": "Adopt a candidate OA v2 feature in next implementation pass.",
+    "keep_exploratory": "Retain OA line as low-confidence exploratory; collect stronger evidence before promotion.",
+    "pause": "De-emphasize OA line until better data/theory appears."
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "overall_ok_count": 13,
+  "overall_error_count": 0,
+  "group_high_tail": {
+    "n": 7,
+    "mean_delta_vs_best": -0.015142857142857156,
+    "median_delta_vs_best": -0.008000000000000007,
+    "variance_delta_vs_best": 0.00030040816326530666,
+    "poor_count": 1,
+    "poor_threshold": -0.05,
+    "task_family_mix": {
+      "sentiment_binary": 5,
+      "tweet_eval": 2
+    },
+    "pairs": [
+      "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+      "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k"
+    ]
+  },
+  "group_lower_tail_matched": {
+    "n": 6,
+    "mean_delta_vs_best": -0.12666666666666668,
+    "median_delta_vs_best": -0.014000000000000012,
+    "variance_delta_vs_best": 0.04156355555555556,
+    "poor_count": 2,
+    "poor_threshold": -0.05,
+    "task_family_mix": {
+      "topic_classification": 2,
+      "tweet_eval": 3,
+      "sentiment_binary": 1
+    },
+    "pairs": [
+      "TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news__x__TransferGraph__roberta-base-finetuned-lora-ag_news",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony"
+    ]
+  },
+  "overall": {
+    "n": 13,
+    "mean_delta_vs_best": -0.06661538461538463,
+    "median_delta_vs_best": -0.010000000000000009,
+    "variance_delta_vs_best": 0.022435928994082845,
+    "poor_count": 3,
+    "poor_threshold": -0.05,
+    "task_family_mix": {
+      "sentiment_binary": 6,
+      "tweet_eval": 5,
+      "topic_classification": 2
+    },
+    "pairs": [
+      "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+      "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+      "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+      "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+      "TransferGraph__cointegrated_roberta-base-formality-finetuned-lora-ag_news__x__TransferGraph__roberta-base-finetuned-lora-ag_news",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+      "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+      "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+      "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+      "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony"
+    ]
+  },
+  "spearman_delta_vs_max_over_accumulation_score": 0.05300484348380716,
+  "spearman_delta_vs_watch_layer_count": -0.23503360015353794,
+  "subfactor_relationships": {
+    "spearman_delta_vs_mean_alignment": 0.047425386274985354,
+    "spearman_delta_vs_mean_concentration": 0.07885162303680752,
+    "spearman_delta_vs_mean_coefficient_exposure": 0.17741543180411648,
+    "spearman_delta_vs_max_alignment": -0.32639824671607565,
+    "spearman_delta_vs_max_concentration": 0.09098264196554715,
+    "spearman_delta_vs_max_coefficient_exposure": 0.39172266692256325,
+    "spearman_delta_vs_triple_high_layer_fraction": -0.004435385795102912,
+    "n": 13
+  }
+}

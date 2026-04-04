@@ -1,0 +1,51 @@
+{
+  "study": "merge_aware_monitor_reference_choice",
+  "training_run_id": "tiny_encoder_reference_choice_demo_v1",
+  "summary_rows": [
+    {
+      "reference_type": "cross_task",
+      "relation": "cross_task",
+      "pseudo_task": "ag_news_like_topic_reference",
+      "snapshot_count": 6,
+      "init_event_present": true,
+      "summary_event_present": true,
+      "overlap_trend": "mixed_unstable",
+      "conflict_trend": "flat",
+      "imbalance_trend": "flat",
+      "score_trend": "decreasing",
+      "run_level_summary_label": "inconclusive",
+      "trajectory_interpretability": "inconclusive",
+      "interpretability_score": 0
+    },
+    {
+      "reference_type": "same_family",
+      "relation": "same_family",
+      "pseudo_task": "imdb_like_sentiment_reference",
+      "snapshot_count": 6,
+      "init_event_present": true,
+      "summary_event_present": true,
+      "overlap_trend": "mixed_unstable",
+      "conflict_trend": "flat",
+      "imbalance_trend": "flat",
+      "score_trend": "mixed_unstable",
+      "run_level_summary_label": "mixed",
+      "trajectory_interpretability": "mixed",
+      "interpretability_score": 1
+    },
+    {
+      "reference_type": "same_task",
+      "relation": "same_task",
+      "pseudo_task": "sst2_like_sentiment_reference",
+      "snapshot_count": 6,
+      "init_event_present": true,
+      "summary_event_present": true,
+      "overlap_trend": "increasing",
+      "conflict_trend": "flat",
+      "imbalance_trend": "flat",
+      "score_trend": "increasing",
+      "run_level_summary_label": "toward_compatibility",
+      "trajectory_interpretability": "interpretable",
+      "interpretability_score": 2
+    }
+  ]
+}

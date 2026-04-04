@@ -1,0 +1,161 @@
+{
+  "program": "route2_claims_ladder_reinforcement_and_communication_policy",
+  "stage": "B",
+  "generated_on": "2026-04-01",
+  "claims": [
+    {
+      "claim_id": "A1",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Mixed-evidence stress test reinforced QA/evidence-gating invariance in practical triage middle."
+    },
+    {
+      "claim_id": "A2",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "unchanged",
+      "short_note": "Conservative narrowing remained stable without direct post-ladder shift."
+    },
+    {
+      "claim_id": "A3",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "bounded_more_clearly",
+      "short_note": "Mixed-evidence triage sharpened bounded workflow wording for checkpoint triage."
+    },
+    {
+      "claim_id": "B1",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "unchanged",
+      "short_note": "Directional task-relation separation remains useful but not materially strengthened in post-ladder passes."
+    },
+    {
+      "claim_id": "B2",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "bounded_more_clearly",
+      "short_note": "Mixed-evidence panel clarified same-family intermediate guardrails under soft-middle weighting."
+    },
+    {
+      "claim_id": "B3",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Same-family optional review-likeness strengthened under mixed-evidence stress."
+    },
+    {
+      "claim_id": "B4",
+      "original_ladder_status": "thin",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "still_thin",
+      "short_note": "No new non-LoRA optional portability support; remains thin."
+    },
+    {
+      "claim_id": "C1",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "unchanged",
+      "short_note": "Representation-local metric semantics remain a stable guardrail without reinforcement shift."
+    },
+    {
+      "claim_id": "C2",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "both",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Both reinforcement streams support workflow portability over metric portability."
+    },
+    {
+      "claim_id": "C3",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "unchanged",
+      "short_note": "Summary-route checkpoint broadening remains bounded and unchanged."
+    },
+    {
+      "claim_id": "D1",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Aggregation-as-seam claim reinforced by soft-middle perturbation behavior."
+    },
+    {
+      "claim_id": "D2",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Family-level aggregation distinctness remained visible under mixed-evidence weighting."
+    },
+    {
+      "claim_id": "D3",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "QA-dominant remained a distinct operational family in the soft-middle stress pass."
+    },
+    {
+      "claim_id": "D4",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "bounded_more_clearly",
+      "short_note": "Taxonomy usability stayed viable while threshold boundaries became more explicitly guarded."
+    },
+    {
+      "claim_id": "E1",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "both",
+      "reinforcement_effect": "bounded_more_clearly",
+      "short_note": "Behavioral profile distinctions gained bounded reinforcement from both passes without broadening scope."
+    },
+    {
+      "claim_id": "E2",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "collapse_contamination",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Direct replication strengthened collapse-vs-contamination split as bounded merge-facing channel language."
+    },
+    {
+      "claim_id": "E3",
+      "original_ladder_status": "thin",
+      "reinforcement_source": "none",
+      "reinforcement_effect": "still_thin",
+      "short_note": "Routing-confusability behavioral transfer remains sparsely supported."
+    },
+    {
+      "claim_id": "E4",
+      "original_ladder_status": "moderately_stable",
+      "reinforcement_source": "mixed_evidence",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Same-family optional safe-like interpretation strengthened in mixed-evidence triage middle."
+    },
+    {
+      "claim_id": "F1",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "both",
+      "reinforcement_effect": "bounded_more_clearly",
+      "short_note": "Broadened-substrate claim remained strong with clearer bounded-language guardrails."
+    },
+    {
+      "claim_id": "F2",
+      "original_ladder_status": "stable",
+      "reinforcement_source": "both",
+      "reinforcement_effect": "strengthened",
+      "short_note": "Both reinforcement lines support evidence-aware triage as primary portable Route 2 value."
+    }
+  ],
+  "summary_counts": {
+    "reinforcement_source": {
+      "mixed_evidence": 9,
+      "collapse_contamination": 1,
+      "both": 4,
+      "none": 6
+    },
+    "reinforcement_effect": {
+      "strengthened": 9,
+      "bounded_more_clearly": 5,
+      "unchanged": 4,
+      "still_thin": 2
+    }
+  }
+}

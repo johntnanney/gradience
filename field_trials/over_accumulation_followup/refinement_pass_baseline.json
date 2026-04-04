@@ -1,0 +1,176 @@
+{
+  "scope": "strict-naive targeted high-overlap refinement baseline",
+  "current_oa_definition_snapshot": {
+    "cutpoint_summary": {
+      "layer_watch_rule": "alignment >= 0.45 and score >= 0.35",
+      "layer_high_rule": "alignment >= 0.65 and score >= 0.60",
+      "pair_watch_rule": "high_count > 0 OR (high+watch fraction) >= 0.25",
+      "pair_elevated_rule": "high_count > 0 AND (high_fraction >= 0.15 OR max_score >= 0.75)",
+      "pairs_with_max_score_ge_0_35": 4,
+      "pairs_with_max_score_ge_0_60": 1,
+      "pairs_with_max_score_ge_0_75": 0,
+      "layers_with_score_ge_0_35": 43,
+      "layers_with_score_ge_0_60": 7,
+      "layers_with_band_watch": 36,
+      "layers_with_band_high": 7
+    },
+    "pair_advisory_counts": {
+      "none": 188,
+      "elevated": 1
+    },
+    "layer_band_counts": {
+      "low": 2265,
+      "watch": 36,
+      "high": 7
+    }
+  },
+  "activation_audit_snapshot": {
+    "audited_pair_count": 189,
+    "layer_entry_count": 2308,
+    "pair_max_score_quantiles": {
+      "q50": 0.0687,
+      "q75": 0.1204,
+      "q90": 0.1838,
+      "q95": 0.2401,
+      "q99": 0.38
+    },
+    "layer_score_quantiles": {
+      "q50": 0.019095171689987183,
+      "q75": 0.0486310601234436,
+      "q90": 0.10769253815571848,
+      "q95": 0.16757805347442625,
+      "q99": 0.45749999999999996
+    },
+    "pairs_with_max_score_ge_0_35": 4,
+    "pairs_with_max_score_ge_0_60": 1,
+    "pairs_with_max_score_ge_0_75": 0
+  },
+  "targeted_strict_naive_cohort_snapshot": {
+    "cohort_count": 12,
+    "selection_parameters": {
+      "overlap_gate": 0.2,
+      "conflict_gate": 0.1,
+      "n_high": 6,
+      "n_low": 6
+    },
+    "candidate_count": 13,
+    "preferred_candidate_count": 13,
+    "working_pool_count": 13,
+    "task_relationship_counts": {
+      "same_task": 11,
+      "same_family": 1
+    }
+  },
+  "first_pass_findings_snapshot": {
+    "summary": {
+      "rerun_ok": 12,
+      "rerun_error": 0,
+      "high_tail_mean_delta_vs_best": -0.01833333333333335,
+      "low_tail_mean_delta_vs_best": -0.12433333333333335,
+      "spearman_delta_vs_max_oa": -0.017574936721114882
+    },
+    "strict_analysis": {
+      "overall_ok_count": 12,
+      "overall_error_count": 0,
+      "group_high_tail": {
+        "n": 6,
+        "mean_delta_vs_best": -0.01833333333333335,
+        "median_delta_vs_best": -0.010000000000000009,
+        "variance_delta_vs_best": 0.0002805555555555561,
+        "poor_count": 1,
+        "poor_threshold": -0.05,
+        "task_family_mix": {
+          "sentiment_binary": 4,
+          "tweet_eval": 2
+        },
+        "pairs": [
+          "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+          "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+          "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+          "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k"
+        ]
+      },
+      "group_lower_tail_matched": {
+        "n": 6,
+        "mean_delta_vs_best": -0.12433333333333335,
+        "median_delta_vs_best": -0.013000000000000012,
+        "variance_delta_vs_best": 0.042135222222222234,
+        "poor_count": 2,
+        "poor_threshold": -0.05,
+        "task_family_mix": {
+          "tweet_eval": 3,
+          "sentiment_binary": 2,
+          "topic_classification": 1
+        },
+        "pairs": [
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+          "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+          "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k"
+        ]
+      },
+      "overall": {
+        "n": 12,
+        "mean_delta_vs_best": -0.07133333333333335,
+        "median_delta_vs_best": -0.010000000000000009,
+        "variance_delta_vs_best": 0.024016888888888893,
+        "poor_count": 3,
+        "poor_threshold": -0.05,
+        "task_family_mix": {
+          "sentiment_binary": 6,
+          "tweet_eval": 5,
+          "topic_classification": 1
+        },
+        "pairs": [
+          "myselfmankar__distilbert-base-sst2-lora__x__rambodazimi__distilbert-base-uncased-finetuned-LoRA-SST2",
+          "TransferGraph__cambridgeltl_guardian_news_distilbert-base-uncased-finetuned-lora-tweet_eval_emotion__x__TransferGraph__distilbert-base-uncased-finetuned-lora-tweet_eval_emotion",
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__myselfmankar__distilbert-base-sst2-lora",
+          "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment",
+          "dipanjanS__distilbert-lora-finetuned-unmerged-imdb-sentiment__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k",
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "NightPrince__peft-distilbert-sst2__x__myselfmankar__distilbert-base-sst2-lora",
+          "TransferGraph__JB173_distilbert-base-uncased-finetuned-emotion-finetuned-lora-ag_news__x__TransferGraph__phailyoor_distilbert-base-uncased-finetuned-yahd-finetuned-lora-ag_news",
+          "TransferGraph__Hate-speech-CNERG_bert-base-uncased-hatexplain-rationale-two-finetuned-lora-tweet_eval_emotion__x__TransferGraph__bert-base-uncased-finetuned-lora-tweet_eval_emotion",
+          "TransferGraph__neibla_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony__x__TransferGraph__vaariis_distilbert-base-uncased-finetuned-emotion-finetuned-lora-tweet_eval_irony",
+          "RAJESHCHAUHAN101__distilbert-base-uncased-lora-text-classification__x__wt-golf__distilbert-base-uncased-lora-text-classification-imdb-1k"
+        ]
+      },
+      "spearman_delta_vs_max_over_accumulation_score": -0.017574936721114882,
+      "spearman_delta_vs_watch_layer_count": -0.21951088929068188,
+      "subfactor_relationships": {
+        "spearman_delta_vs_mean_alignment": -0.014059949376891905,
+        "spearman_delta_vs_mean_concentration": -0.013132214440096749,
+        "spearman_delta_vs_mean_coefficient_exposure": 0.3161330949931745,
+        "spearman_delta_vs_max_alignment": -0.3901635952087504,
+        "spearman_delta_vs_max_concentration": 0.01688427570869582,
+        "spearman_delta_vs_max_coefficient_exposure": 0.3951196007232274,
+        "spearman_delta_vs_triple_high_layer_fraction": -0.14860957456944102,
+        "n": 12
+      }
+    },
+    "threshold_0_35_snapshot": {
+      "threshold": 0.35,
+      "activated_pair_count": 4,
+      "activated_pair_fraction": 0.021164021164021163,
+      "activated_layer_count": 43,
+      "activated_layer_fraction": 0.018630849220103985,
+      "rerun_activated_count": 1,
+      "rerun_mean_delta_vs_best": -0.02200000000000002,
+      "rerun_variance_delta_vs_best": 0.0,
+      "rerun_task_family_mix": {
+        "sentiment_binary": 1
+      }
+    }
+  },
+  "current_interpretation": {
+    "pair_activation_is_sparse": true,
+    "pair_level_explanatory_power_is_weak": true,
+    "concept_not_yet_falsified": true,
+    "note": "Current OA pair-level behavior appears sparse and blunt in strict-naive outcomes. Refinement should test subfactors/interactions/hotspots before line escalation."
+  }
+}

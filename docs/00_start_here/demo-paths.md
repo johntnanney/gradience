@@ -5,7 +5,7 @@
 **Purpose:** guided reading paths by intent  
 **Canonical for:** documentation tours  
 **Supersedes:** none  
-**See also:** [`project-map.md`](project-map.md)
+**See also:** [`project-map.md`](project-map.md), [`bounded-validation-summary.md`](bounded-validation-summary.md)
 
 ## Path A — Stable Product (30–45 min)
 
@@ -27,3 +27,10 @@
 2. [`../research/summaries/where-the-research-stands.md`](../research/summaries/where-the-research-stands.md)
 3. [`../research/summaries/ruled-out-mechanisms.md`](../research/summaries/ruled-out-mechanisms.md)
 4. [`../research/packet/README.md`](../research/packet/README.md)
+
+## Path D — Bounded Rank-Proxy Policy (20–30 min)
+
+1. [`bounded-validation-summary.md`](bounded-validation-summary.md)
+2. [`../strategy/rank_proxy_bounded_validation_summary.md`](../strategy/rank_proxy_bounded_validation_summary.md)
+3. [`../strategy/route2_claims_ladder_summary.md`](../strategy/route2_claims_ladder_summary.md)
+4. [`../../field_trials/rank_proxy_validation/bounded_validation_memo.md`](../../field_trials/rank_proxy_validation/bounded_validation_memo.md)
