@@ -1,0 +1,442 @@
+# Spectral Triage of LoRA Adapter Merging: Theory, Mechanism, and Validation
+
+**John T. Nanney**
+**Gradience v0.11.0 — April 2026**
+
+> **Abstract.** Merging independently fine-tuned LoRA adapters is attractive because it promises to combine capabilities without retraining, but the failure rate is high and the failures are expensive to discover. This report presents a spectral-geometric approach to *merge triage*: using the singular value structure of low-rank weight matrices to predict, before any behavioral evaluation, which adapter pairs are worth merging and which will fail. We describe the theoretical argument for why spectral observables should carry compatibility information (Section 2), present a mechanistic account of merge failure grounded in conjunctive V-module pathology and readout incompatibility (Section 3), and report field trial results showing 90–93% candidate elimination with zero false positives on task-boundary detection across 5 inventories, 3 backbone architectures, and 53+ adapter pairs (Section 5). The approach is currently validated for small encoder models on classification tasks; preliminary results from a decoder-only ecosystem census suggest that some findings transfer while others do not (Section 7). Throughout, we maintain explicit boundaries on what the evidence supports and what remains open.
+
+---
+
+## 1. Introduction: The Merge Triage Problem
+
+The LoRA (Low-Rank Adaptation) paradigm has made fine-tuning large language models practical: rather than updating all parameters, one trains a pair of low-rank matrices whose product approximates the full weight update. The result is a small, portable *adapter* that can be stored, shared, and — in principle — merged with other adapters to combine capabilities.
+
+The promise of adapter merging is substantial. If you have adapters fine-tuned for sentiment analysis, topic classification, and irony detection, merging them could yield a single model with all three capabilities. Several merge strategies exist — linear interpolation, TIES (trim, elect sign, merge), DARE (dropout and rescale), and others — and successful merges have been demonstrated across a range of tasks.
+
+The problem is that merge failure is common, unpredictable, and expensive to detect. A merged model may lose one adapter's capability entirely, produce confident but wrong predictions on a new class of inputs, or degrade subtly in ways that only emerge during evaluation. The standard approach — merge and evaluate — scales quadratically in the number of adapters and requires behavioral evaluation (inference on held-out data) for every candidate pair. For a pool of 9 adapters, that is 36 pairs to evaluate. For 20 adapters, 190 pairs. Most of these evaluations will reveal that the merge failed, and that computational budget was wasted.
+
+This report describes a different approach: *spectral triage*. By examining the singular value decomposition (SVD) of each adapter's weight matrices, we can extract geometric signatures — subspace orientations, energy concentrations, dimensional utilization ratios — that predict structural compatibility before any merge is attempted. The claim is not that spectral analysis can replace behavioral evaluation, but that it can *dramatically reduce the search space* so that evaluation is spent only on promising candidates.
+
+Gradience is the system that implements this approach. Across 5 field trial inventories covering 3 backbone architectures (DistilBERT, BERT-base, RoBERTa-base), 4 task families, and 53+ adapter pairs with 16 fully evaluated merges, it eliminates 90–93% of candidate pairs while retaining the correct first choices. Task-boundary detection — identifying when two adapters target fundamentally different tasks and should not be merged — achieves zero false positives across the entire validation set.
+
+But the interest of this work extends beyond the product. The research program behind Gradience has produced a mechanistic account of *why* adapter merges fail that is, to our knowledge, novel: catastrophic merge failure requires the conjunction of two independent geometric conditions — pathology in the V-module (value projection) subspace *and* incompatibility in the readout layer's decision geometry. Neither condition alone is sufficient. This conjunctive model was arrived at by systematically testing and eliminating simpler hypotheses, and it is supported by four independent evidence lines described in Section 3.
+
+### Scope and Boundaries
+
+This report describes work validated on small encoder models (DistilBERT, BERT-base, RoBERTa-base) performing classification tasks, with LoRA adapters of rank ≤ 16. These boundaries are not rhetorical hedges; they reflect the actual limits of the evidence base. The approach may generalize — preliminary census data from decoder-only models (Section 7) is suggestive — but we do not claim generality we have not demonstrated.
+
+### Reading Guide
+
+The report is structured to serve two audiences. **Practitioners** managing adapter inventories will find the core value proposition in Sections 1, 4, and 5, with practical workflow details. **Researchers** studying merge dynamics and spectral geometry will find the theoretical and mechanistic substance in Sections 2, 3, and 6. Section 7 (Open Frontiers) addresses both audiences with preliminary results and honest assessment of what remains unknown.
+
+---
+
+## 2. Why Spectral Geometry? A Conceptual Argument
+
+The central claim of this work is that the singular value decomposition of LoRA weight matrices contains information about merge compatibility. This section explains *why* one should expect this to be true — not as a post-hoc rationalization of empirical findings, but as a principled argument from the structure of the problem.
+
+### 2.1 What LoRA Matrices Encode
+
+A LoRA adapter modifies a pre-trained weight matrix $W_0$ by adding a low-rank update $\Delta W = BA$, where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$ with $r \ll d$. The product $BA$ lives in a low-dimensional subspace of the full weight space. The SVD of $\Delta W$ decomposes this update into orthogonal directions (left and right singular vectors) weighted by magnitudes (singular values).
+
+Each singular direction represents a direction in weight space along which the adapter has learned to modify the pre-trained model's behavior. The corresponding singular value represents how strongly the adapter pushes along that direction. The full collection of singular directions and values — the *spectral profile* — is a complete description of the adapter's learned modification to a particular weight matrix.
+
+This is not merely a mathematical convenience. The spectral profile has a direct interpretation: it tells you *what dimensions of the representation space the adapter has learned to use, and how much it uses each one*. An adapter with a sharp spectral profile (one or two dominant singular values, the rest negligible) has learned a low-dimensional modification — it changes the model's behavior along a narrow subspace. An adapter with a flat spectral profile uses its full rank budget more evenly, modifying the model across many directions simultaneously.
+
+### 2.2 Merging as Subspace Interaction
+
+When two adapters are merged (by any strategy — linear combination, TIES, DARE), the result is a new weight update that combines the spectral content of both sources. The key geometric question is: *how do the learned subspaces of the two adapters relate to each other?*
+
+Three idealized cases illuminate the space of possibilities.
+
+**Orthogonal subspaces.** If Adapter A has learned to modify dimensions 1–4 and Adapter B has learned to modify dimensions 5–8, their modifications are independent. Merging them produces a combined update that preserves both adapters' contributions without interference. This is the best case for merging.
+
+**Aligned subspaces.** If both adapters modify the same dimensions but in the same direction, the merge reinforces both. The merged adapter pushes harder along the shared directions. This can work well (if the shared direction serves both tasks) or produce an over-strong modification, but it rarely causes catastrophic failure.
+
+**Conflicting subspaces.** If both adapters modify the same dimensions but in opposing directions, the merge produces cancellation. The merged adapter's effective modification along the contested dimensions is weakened or zeroed out. This is where catastrophic failures originate — the merge destroys information that one or both adapters needed.
+
+The SVD provides exactly the mathematical apparatus to measure where on this spectrum a given adapter pair falls. The *principal angles* between the column spaces of $B_A$ and $B_B$ (and between the row spaces of $A_A$ and $A_B$) quantify subspace overlap. The *directional agreement* between corresponding singular vectors quantifies whether shared dimensions are used cooperatively or antagonistically. The *singular value magnitudes* determine how much energy is at stake in each interaction.
+
+### 2.3 The Observable–Compatibility Link: A Formal Sketch
+
+For the rank-1 case, the connection between spectral observables and merge outcome can be made exact. Given two rank-1 adapters $\Delta W_a = \sigma_a u_a v_a^T$ and $\Delta W_b = \sigma_b u_b v_b^T$, the merged update $\Delta W_m = \alpha \Delta W_a + \beta \Delta W_b$ has leading singular value:
+
+$$\sigma_1(\Delta W_m) = \sqrt{\frac{T + \sqrt{T^2 - 4D}}{2}}$$
+
+where $T = a^2 + b^2 + 2abz$, with $a = |\alpha|\sigma_a$, $b = |\beta|\sigma_b$, and the *interaction term* $z = \text{sign}(\delta) \cdot \cos(\theta) \cdot \cos(\phi)$. Here $\theta$ is the principal angle between left singular vectors, $\phi$ is the principal angle between right singular vectors, and $\delta$ captures sign alignment. The residual term $D = a^2 b^2 (1 - \cos^2\theta)(1 - \cos^2\phi)$ is bounded by the sine product of the principal angles.
+
+The critical observation is that the interaction term $z$ — which determines whether the merge amplifies, preserves, or destroys spectral content — is entirely a function of the *geometric relationship* between the two adapters' singular subspaces. The angles $\theta$ and $\phi$ are measurable from the SVD alone, without performing the merge. This is the formal basis for spectral triage: the quantities that govern merge outcome are observable *a priori*.
+
+For general rank-$r$ adapters, exact expressions give way to bounds. The cross-term contribution to the merged spectrum is bounded by:
+
+$$\sigma_1(\text{cross}) \leq 2\alpha\beta \sum_i s_{a,i} \, s_{b,i} \cos(\theta_i) \cos(\phi_i)$$
+
+where $\theta_i$ and $\phi_i$ are the $i$-th principal angles between the respective subspaces. The bound is tight when the adapters' singular directions are well-aligned; it is loose when they interact across multiple dimensions. In practice, the spectral profiles of LoRA adapters on small encoders are sharply concentrated — 4 to 8 effective dimensions carry >90% of the Frobenius energy — so the rank-1 intuition extends well.
+
+### 2.4 Why Per-Layer, Per-Module Analysis Matters
+
+A transformer has many weight matrices — query, key, value, and output projections in each attention layer, plus MLP weights. A LoRA adapter may modify some or all of these. The spectral compatibility story plays out independently at each modified weight matrix, and the layer-level and module-level structure turns out to be critical.
+
+This is not obvious a priori. One might expect that aggregate statistics — average subspace overlap across all layers, total spectral energy — would be sufficient. The research program behind Gradience tested this hypothesis and found it false. Concatenating Q, K, V, and O projections into a single analysis produces backbone-dominated noise that obscures the signal. It was only when analysis was decomposed to the *per-module* level that the key finding emerged: the value projection (V-module) carries nearly all the catastrophe-discriminating information (Cohen's $d$ = 3.36 for dimensionality ratio), while the query and output projections carry none.
+
+The reason is structural. The V-module is where the transformer decides *what information to pass forward* from each attention head. When two adapters learn V-module updates in incompatible subspaces — when they disagree about what information matters — the merged model receives contradictory instructions about what to attend to. This is the *upstream* failure mode. It manifests at the head level as cancellation: opposite-sign incompatibilities across heads can average out (producing a mild merge) or compound (producing a catastrophic one), depending on the specific head-level geometry. This explains seed sensitivity — the same adapter pair can produce merges ranging from 12.1% to 41.7% degradation across random seeds, because the head-level cancellation pattern is seed-dependent even when module-level statistics are stable.
+
+### 2.5 The Philosophical Claim
+
+The argument can be stated concisely. LoRA adapters are low-rank perturbations to specific weight matrices in a transformer. The SVD of these perturbations reveals the subspace geometry of what each adapter has learned. Merge operations combine these perturbations, and the outcome depends on how the learned subspaces interact — whether they are orthogonal, aligned, or conflicting. The principal angles and singular values that characterize this interaction are computable from the adapters alone, without performing the merge. Therefore, spectral analysis provides a *sound a priori signal* about merge compatibility.
+
+The claim is deliberately limited. Spectral analysis reveals *structural* compatibility — whether the geometric preconditions for a successful merge are met. It does not reveal *behavioral* compatibility — whether the merged model actually performs well on the target task. Behavioral evaluation remains necessary; the contribution of spectral triage is to reduce the set of candidates that require it.
+
+This limitation is itself informative. It implies that merge failure has at least two independent components: a structural component (are the adapters geometrically compatible?) and a behavioral component (do the combined capabilities actually serve the target task?). The research program described in the next section confirms this decomposition and identifies the specific geometric conditions that constitute the structural component.
+
+---
+
+## 3. The Mechanism: Conjunctive Failure in Adapter Merging
+
+### 3.1 The Path to the Conjunctive Model
+
+The mechanistic account presented here was not the first hypothesis tested. It is what survived after simpler alternatives were systematically falsified. This epistemic history matters: the model's credibility rests not on its elegance but on the specific failures of its predecessors.
+
+**Hypothesis 1: Portable severity.** The simplest hope was that merge degradation would be a stable property of adapter pairs — that a "bad pair" would be bad regardless of context. This was decisively killed. The pair QNLI×MRPC degrades 41.7% on DistilBERT but only 1.7% on RoBERTa. Six candidate severity signals were tested; all failed to transfer across backbones. Severity is backbone-local.
+
+**Hypothesis 2: Task-pair lookup.** Perhaps certain *task* combinations are inherently incompatible? Also killed. No task pair is catastrophic on both tested backbones. The unit of catastrophe is not (task-pair) but (pair × backbone × seed).
+
+**Hypothesis 3: Aggregate thresholds.** Perhaps some aggregate spectral statistic — average overlap, total energy ratio — crosses a threshold in failing merges? Tested by computing concatenated Q/K/V/O metrics across layers. Found nothing: backbone confounds dominated. The signal emerged only when analysis was decomposed to the per-module level (Section 2.4).
+
+**Hypothesis 4: Readout orthogonality as risk.** Perhaps orthogonal decision boundaries in the readout layer indicate incompatibility? Explicitly falsified by the SC-QMRB counterexample: QNLI×MRPC on RoBERTa has readout geometry identical to the catastrophic DistilBERT instance but merges safely (Δ = 1.7%). Moreover, 5 of 14 same-task pairs show orthogonal readouts and all merge safely. Using readout orthogonality as a risk signal would produce a 40% false-alarm rate.
+
+**Hypothesis 5: Readout as sole explanation.** Perhaps readout incompatibility alone explains failure? The same SC-QMRB falsifier kills this: identical readout, different outcome. Additionally, within catastrophic pair CA-01, two seed variants have virtually identical readout geometry but differ by 29 points in severity. If readout geometry were sufficient, identical geometry could not produce different outcomes.
+
+Each elimination narrowed the space of viable explanations. What survived is the conjunctive model.
+
+### 3.2 The Conjunctive Model
+
+**Catastrophic merge failure requires the conjunction of two independent conditions:**
+
+1. **V-module pathology** — the value projections of the two adapters occupy incompatible subspaces, as measured by dimensionality ratio (the ratio of the merged V-module's effective rank to the sum of the sources' effective ranks). Catastrophic pairs cluster at 0.64–0.74; safe pairs at 0.79–0.89. The separation is sharp: Cohen's $d$ = 3.36 with zero range overlap across the tested population.
+
+2. **Readout incompatibility** — the readout layer's decision geometry fails to absorb or redirect the upstream V-module pathology. The readout acts as a *gate*: it transmits or blocks the effect of upstream incompatibility, but does not generate failure on its own.
+
+Neither condition is sufficient alone. V-module pathology without readout incompatibility produces mild degradation (the readout gate is closed, absorbing the upstream conflict). Readout incompatibility without V-module pathology has no upstream conflict to transmit. Only the conjunction produces catastrophe.
+
+**Four independent evidence lines support this model:**
+
+*Evidence 1: The SC-QMRB falsifier.* QNLI×MRPC on RoBERTa has the same readout orthogonality as the catastrophic DistilBERT instance. Same readout geometry, different backbone, different outcome — because the V-module geometry differs.
+
+*Evidence 2: Same-task seed pairs.* Five of 14 same-task pairs have orthogonal readouts. All merge safely. These pairs lack V-module pathology (same task implies similar V-module structure), so the readout gate condition is irrelevant.
+
+*Evidence 3: V-module dimensionality ratio.* Sharp separation with no range overlap between catastrophic and safe populations. This is the strongest single metric identified in the research program.
+
+*Evidence 4: CA-01 seed contrast.* Within the catastrophic pair CA-01, severity ranges from 12.1% to 41.7% across seeds, despite virtually identical readout geometry. The variable is head-level V-module cancellation, not readout — confirming that the upstream V-module condition, not the downstream readout, determines severity magnitude.
+
+### 3.3 Head-Level Modulation: Why Seeds Matter
+
+The conjunctive model explains *which* pairs are at risk, but not *how much* they degrade in any particular instance. Seed sensitivity — the observation that the same adapter pair can produce wildly different merge outcomes across random training seeds — is explained by head-level modulation.
+
+Within a multi-head attention layer, each head learns its own V-module subspace. When two adapters have incompatible V-modules, the incompatibility is distributed unevenly across heads. Some heads may have strongly opposing modifications; others may be approximately aligned. The merge outcome depends on whether these per-head incompatibilities cancel or compound.
+
+In the catastrophic pair CA-01, module-level V-module metrics are stable across seeds (variation < 0.07), but 7 of the attention heads show $|\Delta_{DR}| \geq 0.15$ (maximum 0.229 at layer 3, head 6). The difference between the mild seed variant (12.1% degradation) and the severe seed variant (41.7% degradation) is explained entirely by the head-level cancellation pattern — not by any module-level or readout-level quantity.
+
+This has a practical consequence: **module-level spectral analysis can identify risk, but cannot predict severity.** The triage system identifies *which* pairs to evaluate, not *how bad* the failures will be. This is an honest limitation, not a gap to be closed by better metrics — it reflects the genuine stochasticity of head-level geometry under different random seeds.
+
+### 3.4 Readout Attractors: Structure Without Risk
+
+A surprising finding from the research program is that readout layer geometry, while relevant to the conjunctive model, has rich structure that is *not* risk-bearing.
+
+Many tasks admit multiple stable readout orientations — different directions in output space along which the model's decision boundary can be drawn. These *attractor states* are task-properties, not training artifacts. Some tasks (like SST-2 sentiment) have a single dominant attractor; others (like QNLI entailment) have multiple attractors with orthogonal orientations.
+
+Two distinct mechanisms generate multi-attractor structure:
+
+**Rotational degeneracy** (observed on DistilBERT): the task's objective function is invariant under certain rotations in output space. Seeds that converge to different orientations within the degenerate manifold produce orthogonal readouts that are functionally identical. This is analogous to the gauge freedom in physics — a real structural symmetry, not noise.
+
+**Feature-set switching** (observed on RoBERTa for QNLI): different seeds converge to readout directions that use genuinely different principal components of the penultimate representation. These are discrete basins, not a continuous manifold. The mechanism is task×backbone-specific.
+
+In both cases, orthogonal readouts between merge partners are common and benign. The mechanism hierarchy for attractor selection is: task (primary) → backbone (secondary) → convergence dynamics (tertiary) → domain (weak). This hierarchy was confirmed by the attractor mapping program but remains bounded to two backbones, pending DeBERTa adjudication.
+
+### 3.5 Behavioral Signatures: Connecting Geometry to Outputs
+
+The mechanism ladder — V-module pathology → head-level modulation → readout gating — makes predictions about *how* failures should manifest at the output level. The Output Example Semantics program tested these predictions by examining 4,000+ individual predictions across merge conditions.
+
+A five-category taxonomy classifies each example by what the merge does to the source models' predictions:
+
+| Category | Description | Interpretation |
+|----------|-------------|----------------|
+| A | Both sources correct, merge correct | Preserved consensus |
+| C | One source correct, merge wrong | Better-source capability lost |
+| D | Neither source predicted what merge predicts | Novel (pathological) behavior |
+| E | Sources disagree, merge correct | Benign absorption |
+| X | Neither source correct | Shared failure (not merge-caused) |
+
+Two clean discriminators emerge:
+
+**Neither-source rate** (Category D): <2% in safe and near-miss merges, 12–15% in fragile and cross-task failures. This is a threshold, not a gradient — the gap between safe and pathological is an order of magnitude.
+
+**Double dissociation between failure modes:** Fragile merges (same-task, V-module pathology present) show *confidence collapse* — the merged model becomes uncertain rather than wrong (30 collapse events, 0 high-confidence errors). Cross-task merges show *confident contamination* — the merged model applies the wrong task's decision function with high confidence (23 high-confidence errors, 3 collapse events).
+
+This dissociation maps directly onto the conjunctive model:
+
+- **Fragile failure** = V-module pathology transmitted through a compatible readout. The upstream incoherence passes through faithfully, producing uncertainty. The model "knows it doesn't know."
+- **Cross-task failure** = readout contamination by a foreign task's decision function. The wrong task's readout dominates, producing confident wrong answers. The model "doesn't know it doesn't know."
+
+This behavioral grounding is important because it connects the abstract spectral-geometric analysis to observable consequences at the prediction level. It is also practically useful: the neither-source rate is a cheap behavioral diagnostic that can flag pathological merges during evaluation.
+
+---
+
+## 4. The Gradience Pipeline: From Theory to Triage
+
+### 4.1 Pipeline Overview
+
+Gradience operationalizes the spectral-geometric analysis into a preflight pipeline with five stages:
+
+**Stage 1: Single-adapter audit.** For each adapter, compute per-layer spectral profiles: stable rank (Frobenius/spectral norm ratio), energy rank at 90% (minimal rank capturing 90% of Frobenius energy), entropy effective rank, and utilization ratio (stable rank / nominal rank). These measurements characterize how each adapter uses its rank budget.
+
+**Stage 2: Evidence bootstrap and QA classification.** Each adapter is evaluated against its base model on a held-out sample (500 examples on CPU is sufficient). The evaluation delta — how much the adapter improves over the base model — is combined with spectral measurements to produce a QA artifact classifying the adapter as `eligible` (clear improvement, structurally sound), `uncertain` (ambiguous evidence), `flagged_weak` (evidence of weakness), or `unknown_no_behavioral_eval` (no behavioral evidence provided).
+
+**Stage 3: Pairwise merge audit.** For every pair of eligible adapters, compute per-layer compatibility metrics: principal angles between subspaces, directional agreement between singular vectors, magnitude balance (norm ratio), and subspace overlap. Classify each layer as SAFE, REDUNDANT, CONFLICTING, or IMBALANCED. Generate a pair-level risk assessment with dominant issue identification and merge strategy recommendation. Detect task-boundary risk using evaluation dataset metadata.
+
+**Stage 4: Inventory summary and action plan.** Aggregate pair-level results into an inventory view. Partition pairs into retained (pursue), near-miss (monitor), and skip (exclude) categories. Rank near-miss pairs by severity (marginal, moderate, substantial). Generate action plan with per-pair risk and recommended strategy.
+
+**Stage 5: Preflight bundle.** Produce machine-readable artifacts (JSON, v1 frozen schemas), human-readable reports (terminal, markdown, HTML), and a preflight summary suitable for inclusion in experiment documentation.
+
+### 4.2 Evidence Gate: The Most Impactful Feature
+
+The single most impactful design decision in Gradience is the evidence gate — the requirement that every adapter provide behavioral evidence before entering pairwise analysis. Without it, the pipeline produces nothing useful.
+
+This was discovered empirically in Field Trial Pilot 1, where 4 adapters had no behavioral evaluation data. All were classified as `unknown_no_behavioral_eval` and excluded, producing an empty retained set. The lesson: spectral analysis can characterize structural compatibility, but it cannot determine whether an adapter has learned anything useful in the first place. An adapter with a beautiful spectral profile and zero task performance is still a bad merge candidate.
+
+The evidence gate is well-calibrated across the tested range. It correctly handles: genuine failures (adapters that don't beat base), misleading evaluations (strong on evaluation set but weak in transfer), marginal passes (delta +0.01 to +0.06 — admitted but flagged as low-contribution), ambiguous ties, and strong performers. The only known calibration issue is at the margin: adapters that barely beat base pass as eligible but contribute little to merges.
+
+### 4.3 Task-Boundary Detection
+
+Task-boundary detection identifies when two adapters target fundamentally different tasks. This is the highest-confidence feature in Gradience: **zero false positives across 53+ pairs, 3 backbones, and 5 inventories.**
+
+The detection mechanism uses evaluation dataset metadata to classify pairs as same-task (trained on the same or equivalent datasets), same-family (different datasets targeting the same task type — e.g., SST-2 and IMDB both target binary sentiment), or cross-task (different task types). Same-family classification uses a validated task-family registry; currently, the binary sentiment family (SST-2, IMDB, Yelp Polarity, Amazon Polarity) is the only empirically validated family.
+
+Same-task pairs are almost always safe to merge. Same-family pairs behave like same-task pairs in all tested cases. Cross-task pairs are flagged for caution — they may merge successfully, but the structural similarity between adapters is often misleading when the tasks differ.
+
+### 4.4 Near-Miss: A Validated Middle Category
+
+Near-miss pairs are same-task, structurally plausible merge candidates that are excluded only because one source adapter has constrained evidence — it falls just below the eligibility threshold. The question was whether these pairs are genuinely risky (justifying exclusion) or merely under-evidenced (suggesting the threshold is too conservative).
+
+Field trial Phase 2b answered this decisively: near-miss pairs behave like retained pairs, not like cross-task controls.
+
+| Category | Pairs | Avg Δ vs best source | Improvers |
+|----------|-------|---------------------|-----------|
+| Retained same-task | 7 | −0.018 | 2/7 (29%) |
+| Near-miss | 7 | −0.006 | 1/7 (14%) |
+| Cross-task control | 4 | −0.047 | 0/4 (0%) |
+
+Near-miss pairs degrade 5× less than cross-task controls on average. Source severity modulates the outcome: sources that barely miss the gate (delta −0.002 to −0.004 from threshold) produce merges indistinguishable from retained; deeply weak sources (delta −0.150) introduce more variance.
+
+The near-miss category is now implemented as a graduated section in the action plan, ranked by severity (marginal → moderate → substantial), rather than a silent binary exclusion.
+
+### 4.5 Machine-Readable Artifacts
+
+All pipeline outputs conform to frozen, additive-only JSON schemas:
+
+- `gradience.adapter_qa/v1` — per-adapter QA artifact (eligibility, spectral summary, behavioral evidence)
+- `gradience.merge_qa_report/v1` — per-pair risk assessment (pair risk, dominant issue, strategy, task advisory)
+- `gradience.inventory_summary/v1` — aggregated inventory view (status counts, risk distribution, strategy recommendations)
+
+The frozen schema contract means that downstream tooling can depend on these artifacts without fear of breaking changes. New fields may be added; existing fields will not be removed or reinterpreted.
+
+---
+
+## 5. Field Trial Validation
+
+### 5.1 Design
+
+The field trial program validated Gradience across 5 inventories in three phases:
+
+**Phase 1 (Pilot):** Three inventories of increasing complexity.
+
+| Inventory | Type | Adapters | Pairs | Retained | Reduction |
+|-----------|------|----------|-------|----------|-----------|
+| 01 | Same-task control | 3/4 | 3 | 0 | 100% |
+| 02 | Mixed-task (RoBERTa) | 5/5 | 10 | 1 | 90% |
+| 03 | Large mixed-task (DistilBERT) | 8/9 | 28 | 2 | 93% |
+
+Inventory 01 served as a control: all adapters targeted the same task, so the pipeline should retain most pairs. (It retained 0 because one adapter lacked evidence — validating the evidence gate.) Inventories 02 and 03 tested mixed-task scenarios where most pairs should be excluded.
+
+**Phase 2 (Merge evaluation):** Retained pairs from Phase 1 were actually merged and evaluated.
+
+- Pilot 2 (Inventory 02): The single retained pair (AG News × AG News-formality) achieved 0.944 accuracy, improving +0.006 over the best source.
+- Pilot 3 (Inventory 03): Two retained merges; additionally, a near-miss pair that was excluded from the retained set improved by +0.078.
+
+**Phase 2b (Near-miss confirmation):** Two new inventories specifically designed to generate near-miss pairs (irony cluster on DistilBERT, hate+emotion on BERT-base). 11 merge pairs evaluated across retained, near-miss, and cross-task control categories. Results reported in Section 4.4 above.
+
+### 5.2 Aggregate Results
+
+Across all 16 evaluated merges:
+
+- **Retained same-task pairs:** 2 of 7 improve over best source (29%); average degradation −0.024 when they don't improve.
+- **Near-miss pairs:** 1 of 7 improves (14%); average degradation −0.006. Essentially indistinguishable from retained pairs.
+- **Cross-task controls:** 0 of 4 improve; average degradation −0.047. Consistently worse than both retained and near-miss.
+
+The narrowing logic is validated: Gradience correctly identifies the most promising candidates and excludes the least promising. The 90–93% reduction rate means that a practitioner with 28 candidate pairs evaluates 2 instead of 28, and those 2 are the right first choices.
+
+### 5.3 What Validation Covers
+
+The following claims are operationally validated:
+
+- Candidate reduction (90%+ across inventories of 10–28 pairs)
+- Retained-pair prioritization (correct ordering in all tested inventories)
+- Task-boundary detection (zero false positives across 5 inventories, 53+ pairs)
+- Evidence gate calibration (three-way classification handles the full range)
+- Near-miss detection and severity ordering (confirmed across 3 backbones, 3 task families)
+- Action plan and reporting (terminal, markdown, HTML, preflight bundle JSON)
+- LoHa adapter support via extraction shim (~160 lines, zero core changes)
+- Full-checkpoint delta triage via summary representation (bounded scope)
+
+### 5.4 What Validation Does Not Cover
+
+- Inventories with >28 pairs (largest tested: 9 adapters, 28 pairs)
+- High-rank adapters ($r \geq 32$)
+- Generation tasks (summarization, translation, open-ended text)
+- Non-accuracy metrics (F1, BLEU, perplexity)
+- Multi-task adapters targeting different module sets
+- Decoder-only models (see Section 7)
+
+---
+
+## 6. The Ruled-Out: What Didn't Work and Why It Matters
+
+A distinctive feature of this research program is the systematic documentation of eliminated hypotheses. This section summarizes the most instructive negative results, because they constrain the space of viable theories and explain why the final model takes the form it does.
+
+### 6.1 Primary Eliminations
+
+**Portable severity.** The hope that merge degradation is a stable pair-property was the first and most important elimination. QNLI×MRPC degrades 41.7% on DistilBERT, 1.7% on RoBERTa — the same task pair, different backbone, completely different outcome. This eliminates any theory that treats severity as intrinsic to a task combination. *Replacement concept:* instability (variability of severity across conditions), which *does* transfer across backbones.
+
+**Aggregate within-layer thresholds.** Computing Q/K/V/O statistics in aggregate — concatenating or averaging across projection types — yields backbone-dominated noise. The signal exists only at the per-module level. This is not a failure of the spectral approach but a failure of the wrong level of analysis. *Replacement:* per-module decomposition, which revealed V-module dominance (Cohen's $d$ = 3.36).
+
+**Readout orthogonality as risk.** Five of 14 same-task pairs show orthogonal readouts; all merge safely. The SC-QMRB counterexample provides a single decisive falsification. *Replacement:* readout as gate condition in the conjunctive model.
+
+**Readout as amplifier.** Within CA-01, seed variants with virtually identical readout geometry differ by 29 points in severity. If readout geometry were causal, identical geometry could not produce different outcomes. The readout *filters*; it does not *generate*. *Replacement:* readout gating (transmits or absorbs upstream pathology).
+
+### 6.2 Ancillary Eliminations
+
+- **Collision as sufficient condition for failure:** necessary but not sufficient (safe merges also have subspace collision).
+- **Readout-upstream coupling:** readout orientation and V-module structure are determined independently; no correlation observed.
+- **Training depth as primary determinant:** modulates the count of effective dimensions but does not determine the mechanism of failure.
+- **Domain structure as primary determinant:** weakest factor in the task → backbone → convergence → domain hierarchy.
+- **Feature plurality as universal attractor origin:** partially falsified; most multi-attractor cases are rotational degeneracy, not genuine feature-set switching.
+
+### 6.3 Epistemic Structure
+
+The elimination sequence follows a natural progression from simplest to most complex: portable severity (single-number model) → task-pair lookup (categorical model) → aggregate threshold (statistical model) → readout-as-risk (single-component geometric model) → readout-alone (single-component causal model) → conjunctive model (multi-component, multi-scale). Each step was forced by a specific falsifying observation, not by theoretical preference. The final model is the simplest that survives the full evidence base.
+
+---
+
+## 7. Open Frontiers
+
+*The findings in this section are preliminary. They are included because they indicate the live edge of the research program and because some are surprising enough to merit early reporting, but they have not been validated to the standard applied in Sections 3–5.*
+
+### 7.1 DeBERTa Adjudication (GPU-Blocked)
+
+The most important next empirical step is the DeBERTa adjudication protocol: training 8 DeBERTa-v3 adapters (4 GLUE tasks × 2 seeds) and evaluating 28 merge pairs. This is pre-registered with 5 specific predictions:
+
+1. Task-boundary detection maintains zero false positives
+2. V-module dimensionality ratio separates catastrophic from safe
+3. Instability transfers to the third backbone
+4. The mechanism–backbone confound (currently: DistilBERT = rotational degeneracy, RoBERTa = feature-set switching) either dissolves (different pairings possible) or solidifies (architecture determines mechanism)
+5. Head-level modulation explains seed-to-seed severity variation
+
+This requires approximately 3 hours of GPU compute. It is the single most important experiment for determining whether the mechanistic account is backbone-general or backbone-contingent. Until it is completed, the conjunctive model and V-module pathology findings are formally bounded to two backbones.
+
+### 7.2 Decoder-Only Ecosystem Census
+
+A CPU-only spectral census of publicly available decoder-only LoRA adapters on HuggingFace Hub is underway, asking: *do spectral fingerprints of decoder-only adapters separate architecture effects from task effects at population scale?*
+
+**Pilot results (n=26, Llama and Mistral):**
+
+The pilot achieved partial success — the pipeline works, spectral signal is visible, but operational failures (disk/size constraints) and missing architecture coverage prevented the original gate criteria from being met.
+
+Three findings from the pilot warrant early reporting:
+
+*Finding 1: Task dominates architecture in global variance.* Task η² = 0.26, architecture η² = 0.12 — inverting the pre-pilot hypothesis that architecture would be the dominant first-order predictor. However, architecture kNN purity is very high (0.90), indicating tight local clustering despite low global variance explained. Architecture matters locally; task matters globally.
+
+*Finding 2: Nominal rank is a major confound.* R² = 0.66 between nominal rank and spectral metrics. Any cross-adapter comparison that does not control for nominal rank is unreliable. Rank-matched analysis is essential for the core program.
+
+*Finding 3: Encoder-era module-type asymmetry does not replicate on decoders.* In encoder models, attention modules consistently show lower utilization than MLP modules. In the decoder pilot, this pattern holds in only 25% of adapters. The likely explanation is architectural: grouped query attention and SwiGLU MLP structures in decoder models change the utilization dynamics. This is a first-class finding — it means encoder-derived spectral intuitions require revision for decoder-only models.
+
+**Pilot-plus status:** A corrected rerun targeting 50–70 audited adapters across 3 architecture families (Llama, Mistral, Qwen) is in progress. Success criteria: ≥3 architecture families with ≥5 adapters each, ≥3 task categories with ≥5 adapters each, rank-matched analyses complete, and non-random structure surviving at least one confound control.
+
+### 7.3 The Generalization Landscape
+
+The current evidence base supports a map of where the approach has been tested, where it has suggestive signal, and where it is untested:
+
+**Validated (operational evidence):**
+- Small encoders (DistilBERT, BERT-base, RoBERTa-base) on classification
+- LoRA adapters, rank ≤ 16
+- Task-boundary detection, evidence gating, candidate narrowing
+- Workflow portability to LoHa (via extraction shim) and full-checkpoint deltas (via summary representation)
+
+**Suggestive (preliminary evidence, not operational):**
+- Instability as portable descriptor (2 backbones, awaiting 3rd)
+- V-module dimensionality ratio as catastrophe discriminator (2 backbones)
+- Task > architecture in global variance for decoder-only adapters (pilot, n=26)
+- Module-type asymmetry non-replication on decoders (pilot observation)
+
+**Untested:**
+- Decoder-only models for merge triage (spectral census addresses population-level structure, not merge outcome)
+- Generation tasks
+- High-rank adapters ($r \geq 32$)
+- Large-scale inventories (>28 pairs)
+- Non-English languages
+- Multi-modal adapters
+
+### 7.4 Route 2: Beyond Merge
+
+The Route 2 research program extended compatibility analysis beyond merge to other operational decisions (routing, triage) and beyond LoRA to other artifact classes (LoHa, checkpoint deltas). Four programs were completed:
+
+**Decision-dependent compatibility.** The same structural measurements support different operational conclusions depending on the decision context. Merge favors worst-case aggregation (one bad layer can ruin the merged model). Routing favors distributional aggregation (the question is which adapter to deploy, not whether to combine them). Triage favors QA-dominant aggregation (the evidence gate is the primary filter). Only 2 of 12 test cases produced aggregation-invariant results — in the other 10, the choice of aggregation changed the operational recommendation.
+
+**Cross-artifact portability.** Two invariants transfer across all artifact classes: evidence gating (adapters need behavioral evidence regardless of format) and conservative narrowing (the workflow structure is portable). Two partially transfer: task-relation ordering and same-family classification. No structural *metric* transfers fully — V-module dimensionality ratio, for example, requires factor-based representation (available for PEFT adapters) rather than summary representation (used for checkpoint deltas).
+
+**Behavioral grounding.** Four of five compatibility profiles identified by the structural analysis have distinct behavioral footprints, confirming that the structural distinctions are not artifacts of the measurement but correspond to real differences in model behavior. The three-tier behavioral model: no pathology (neither-source <2%), localized pathology (neither-source ~14%, with collapse/contamination distinction), and stasis (shared failure 65%, evidence gate would catch).
+
+---
+
+## 8. Related Approaches and Positioning
+
+The merge triage problem can be approached from several directions. Gradience's spectral approach occupies a specific position in this space.
+
+**Exhaustive merge-and-evaluate** is the default baseline: merge every candidate pair and evaluate on held-out data. This is maximally informative but scales quadratically and is computationally expensive. Gradience is explicitly designed as a *complement* to this approach — it reduces the candidate set so that evaluation budget is spent efficiently.
+
+**Task metadata heuristics** use dataset and task labels to filter pairs. Gradience incorporates this via task-boundary detection, which is its highest-confidence feature. But metadata alone cannot distinguish between same-task pairs that are structurally compatible and those that are not.
+
+**Gradient-based compatibility** measures how similarly two adapters respond to the same training signal. Gradience's own research found that `proxy_gradient` — a gradient-based comparator — is the stronger *operational* default for rank policy selection, outperforming spectral policies on stability. This creates a productive tension: spectral analysis is more informative about the *mechanism* of failure (it reveals the geometric structure), while gradient-based measures may be more reliable for *operational* decisions in some contexts. The current system uses spectral analysis for compatibility assessment and triage, where the geometric interpretation is most valuable.
+
+**Model merging research** (TIES, DARE, Task Arithmetic, etc.) focuses on improving merge *strategies* — better algorithms for combining adapter weights. Gradience is orthogonal to this: it identifies which pairs to attempt merging in the first place, regardless of which strategy is used. The spectral analysis can also inform strategy *selection* — different geometric profiles favor different merge algorithms — but this is secondary to the triage function.
+
+---
+
+## 9. Conclusion
+
+This report has presented a spectral-geometric approach to LoRA adapter merge triage, grounded in a mechanistic account of why merges fail (conjunctive V-module pathology and readout incompatibility), validated across 5 inventories and 53+ adapter pairs (90–93% candidate elimination, zero false positives on task boundaries), and bounded by explicit scope limitations (small encoders, classification, LoRA rank ≤ 16).
+
+The intellectual contribution is threefold. First, the formal argument (Section 2) establishes *why* spectral observables should carry compatibility information: the SVD reveals the subspace geometry of learned modifications, and merge outcomes depend on how these subspaces interact. Second, the mechanistic account (Section 3) identifies the specific geometric conditions for catastrophic failure — V-module dimensionality mismatch combined with readout incompatibility — arrived at by systematic elimination of simpler alternatives. Third, the operational system (Section 4) demonstrates that these theoretical insights can be translated into a practical triage pipeline that meaningfully reduces the cost of adapter inventory management.
+
+The approach's limitations are as real as its strengths. Severity cannot be predicted — only risk identified. The mechanistic account rests on two backbones, awaiting a third (DeBERTa) for confirmation. Decoder-only models show intriguing preliminary signals (task dominance in global variance, non-replication of encoder module-type patterns) but have not been validated for merge triage. The gradient-based `proxy_gradient` comparator outperforms spectral policies as an operational default, suggesting that the spectral approach's greatest value is in structural *interpretation* rather than pure prediction.
+
+These limitations define the research frontier. The DeBERTa adjudication (3 hours of GPU compute) is the single highest-value next experiment: it will either confirm the conjunctive model as backbone-general or reveal it as backbone-contingent. The decoder-only census will determine whether spectral triage extends to the models where adapter merging is most practically relevant. And the tension between spectral and gradient-based signals points toward a richer multi-modal compatibility assessment that the current architecture already supports.
+
+The code, documentation, and all field trial data are available at [github.com/johntnanney/gradience](https://github.com/johntnanney/gradience).
+
+---
+
+## References
+
+Hu, E. J., et al. (2022). LoRA: Low-Rank Adaptation of Large Language Models. *ICLR 2022*.
+
+Yadav, P., et al. (2023). TIES-Merging: Resolving Interference When Merging Models. *NeurIPS 2023*.
+
+Yu, L., et al. (2023). Language Model is Sometimes a Knowledge Base — and Vice Versa: Towards a Principled Approach to Data Augmentation. *arXiv preprint*.
+
+Ilharco, G., et al. (2023). Editing Models with Task Arithmetic. *ICLR 2023*.
+
+---
+
+*Gradience v0.11.0. Published on PyPI. Licensed under MIT.*
+
+*For the complete research archive including 121 sidecar notes, 126 structured data outputs, and 69 figures, see the `sidecar/` directory in the repository.*
