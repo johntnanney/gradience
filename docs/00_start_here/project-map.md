@@ -20,6 +20,8 @@ Gradience is an evidence-aware compatibility and triage system for learned varia
 
 - Stable product center: adapter inventory preflight and merge risk triage.
 - Broadened Route 2 center: bounded checkpoint triage alpha and decision-dependent compatibility research.
+- **Full argument:** [`../technical-report.md`](../technical-report.md) — theory, mechanism, pipeline, field trials, and bounded scope in one document.
+- **How we got here:** [`../field-trial-retrospective.md`](../field-trial-retrospective.md) — what we expected, what surprised us, and what changed.
 
 ## What is stable vs bounded
 
@@ -32,6 +34,7 @@ Gradience is an evidence-aware compatibility and triage system for learned varia
 
 ## Where to read by purpose
 
+- Why this approach works (the full case): [`../technical-report.md`](../technical-report.md)
 - What it does today: [`../product/README.md`](../product/README.md)
 - How to run workflows: [`../workflows/README.md`](../workflows/README.md)
 - How it is structured: [`../architecture/README.md`](../architecture/README.md)
