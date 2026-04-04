@@ -690,6 +690,15 @@ def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
     # Hard warnings from eligibility screening
     hard_warnings = _eligibility_warnings(pair_diag.eligibility)
 
+    # Norm equalization is contraindicated for imbalanced pairs: it amplifies
+    # the weaker adapter's spectrum into the overlap zone, increasing cross-term
+    # spectral inflation.  Only offer it as a fallback when no layers are imbalanced.
+    has_imbalanced = any(ld.verdict == "imbalanced" for ld in pair_diag.layer_diagnoses)
+    if has_imbalanced:
+        fallbacks: tuple[str, ...] = ("uniform_linear",)
+    else:
+        fallbacks = ("norm_equalized", "uniform_linear")
+
     return MergeRecommendation(
         # Always "audit_aware": the per-layer recommendations carry the real
         # strategy signal; the top-level field is a stable sentinel that
@@ -699,7 +708,7 @@ def _apply_policy(pair_diag: PairDiagnosis) -> MergeRecommendation:
         layer_recommendations=layer_recs,
         compression_needed=pair_diag.compression_needed,
         n_layers_needing_compression=pair_diag.n_layers_needing_compression,
-        fallback_strategies=("norm_equalized", "uniform_linear"),
+        fallback_strategies=fallbacks,
         warnings=tuple(hard_warnings),
     )
 
@@ -821,12 +830,15 @@ def format_recommendation(
     lines.append("        --output merge_plan.json")
     lines.append("")
 
-    # Norm-equalized baseline
-    lines.append("  Norm-equalized baseline (often competitive, simpler):")
-    lines.append("    $ gradience merge-plan --strategy norm_equalized \\")
-    lines.append(f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\")
-    lines.append("        --output merge_plan_norm_eq.json")
-    lines.append("")
+    # Norm-equalized baseline — suppress for imbalanced pairs where it
+    # would amplify the weaker adapter's spectrum and increase inflation.
+    has_imbalanced = any(lr.verdict == "imbalanced" for lr in rec.layer_recommendations)
+    if not has_imbalanced:
+        lines.append("  Norm-equalized baseline (often competitive, simpler):")
+        lines.append("    $ gradience merge-plan --strategy norm_equalized \\")
+        lines.append(f"        --adapter-a {adapter_a_path} --adapter-b {adapter_b_path} \\")
+        lines.append("        --output merge_plan_norm_eq.json")
+        lines.append("")
 
     # Hard warnings from eligibility screening
     if rec.warnings:

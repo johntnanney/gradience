@@ -618,6 +618,29 @@ class TestNormEqualizedBaseline:
         assert "Norm-equalized baseline" in output
         assert "--strategy norm_equalized" in output
 
+    def test_norm_equalized_excluded_for_imbalanced(self):
+        """norm_equalized is suppressed in fallbacks when layers are imbalanced.
+
+        Norm equalization amplifies the weaker adapter's spectrum into the
+        overlap zone, increasing cross-term spectral inflation.
+        """
+        layers = [_make_lv_dict(verdict="imbalanced", layer_name="layer.0")]
+        report = _FakeReport(layers)
+        rec = recommend_merge(report)
+
+        assert "norm_equalized" not in rec.fallback_strategies
+        assert "uniform_linear" in rec.fallback_strategies
+
+    def test_norm_equalized_baseline_suppressed_for_imbalanced(self):
+        """CLI output omits norm-equalized baseline for imbalanced pairs."""
+        layers = [_make_lv_dict(verdict="imbalanced", layer_name="layer.0")]
+        report = _FakeReport(layers)
+        rec = recommend_merge(report)
+        output = format_recommendation(rec)
+
+        assert "Norm-equalized baseline" not in output
+        assert "--strategy norm_equalized" not in output
+
 
 # ---------------------------------------------------------------------------
 # Stage A — Diagnosis tests
