@@ -525,6 +525,11 @@ def merge_risk_report(
             log_path=Path(log_path) if log_path else None,
         )
 
+        if not emit_path.exists():
+            raise RuntimeError(
+                f"merge-audit subprocess did not produce output at {emit_path}; "
+                "check log_path or re-run with check=True for details"
+            )
         report_data = _read_json(emit_path)
         from gradience.vnext.merge.qa_report import MergeQAReport as _MergeQAReport
 

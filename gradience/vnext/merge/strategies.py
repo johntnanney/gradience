@@ -186,11 +186,10 @@ def _elect_sign(task_vectors: list[Tensor]) -> Tensor:
     Sign tensor (+1 or -1) with the same shape, representing the
     majority-vote sign at each position.
     """
-    # Stack and compute sign-weighted sum
+    # Stack and compute magnitude-weighted sign vote (sign of sum, per TIES paper)
     stacked = torch.stack(task_vectors, dim=0)  # (n_tasks, *shape)
-    # Magnitude-weighted sign vote
-    sign_sum = stacked.sign().sum(dim=0)  # (*shape)
-    # Resolve ties toward positive
+    sign_sum = stacked.sum(dim=0)  # (*shape) — magnitude-weighted
+    # Resolve ties (exact zeros) toward positive
     elected = torch.where(sign_sum >= 0, torch.ones_like(sign_sum), -torch.ones_like(sign_sum))
     return elected
 

@@ -472,7 +472,9 @@ def _badge(text: str, cls: str) -> str:
 
 
 def _esc(s: str) -> str:
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    from html import escape
+
+    return escape(str(s), quote=True)
 
 
 def format_portfolio_html(view: PortfolioView, title: str = "Gradience Portfolio") -> str:

@@ -28,6 +28,7 @@ def normalize_peft_module_name(name: str) -> str:
     for prefix in ("base_model.model.", "base_model.", "model."):
         if name.startswith(prefix):
             name = name[len(prefix) :]
+            break
     return name
 
 

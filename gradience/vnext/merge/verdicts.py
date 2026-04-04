@@ -110,7 +110,7 @@ class LayerVerdict:
     recommendation: str  # human-readable
     conflict_dimensions: int  # number of conflicting singular directions
     safe_merge_rank: int  # suggested merged adapter rank
-    suggested_strategy: str  # "linear" | "ties" | "dare" | "exclude"
+    suggested_strategy: str  # "linear" | "ties" | "dare_ties" | "dare_linear" | "exclude"
     suggested_coefficients: tuple[float, float] | None  # (coeff_a, coeff_b)
     over_accumulation_score: float = 0.0
     over_accumulation_band: str = "low"
@@ -279,7 +279,7 @@ def assess_layer(
             ),
             conflict_dimensions=n_conflict,
             safe_merge_rank=metrics.effective_rank_a,
-            suggested_strategy="dare",
+            suggested_strategy="dare_ties",
             suggested_coefficients=None,
             **_over_accum_fields((0.5, 0.5)),
         )

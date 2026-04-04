@@ -144,7 +144,7 @@ class TestAssessLayer:
         lv = assess_layer("test.q_proj", "attn", metrics)
 
         assert lv.verdict == CompatibilityVerdict.CONFLICTING
-        assert lv.suggested_strategy == "dare"
+        assert lv.suggested_strategy == "dare_ties"
         assert lv.conflict_dimensions > 0
 
     def test_imbalanced(self):
