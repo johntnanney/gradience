@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680" width="900" height="680">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+
+      .title { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 22px; fill: #1F2933; }
+      .subtitle { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 13px; fill: #7B8794; }
+      .rung-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 15px; fill: #1F2933; }
+      .rung-detail { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 12px; fill: #52606D; }
+      .rung-metric { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 11px; fill: #3E4C59; font-style: italic; }
+      .gate-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 12px; fill: #9B2C2C; letter-spacing: 0.05em; }
+      .outcome-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; font-size: 13px; }
+      .outcome-detail { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 11px; fill: #52606D; }
+      .arrow-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; font-size: 11px; fill: #7B8794; }
+      .evidence-label { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 10px; fill: #9AA5B4; }
+      .footer { font-family: 'Inter', system-ui, sans-serif; font-weight: 400; font-size: 10px; fill: #9AA5B4; }
+    </style>
+
+    <!-- Arrowhead marker -->
+    <marker id="arrow" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-auto">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#9AA5B4"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-auto">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#C53030"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-auto">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#2F855A"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="680" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text class="title" x="450" y="38" text-anchor="middle">Conjunctive Failure Mechanism</text>
+  <text class="subtitle" x="450" y="58" text-anchor="middle">Three-rung causal ladder: module-level risk, head-level modulation, readout gating</text>
+
+  <!-- ================================================================ -->
+  <!-- RUNG 1: V-Module Pathology -->
+  <!-- ================================================================ -->
+  <rect x="60" y="90" width="780" height="120" rx="10" fill="#FFFFFF" stroke="#E4E7EB" stroke-width="1"/>
+
+  <!-- Rung number badge -->
+  <rect x="75" y="100" width="26" height="26" rx="13" fill="#3182CE"/>
+  <text x="88" y="118" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="13" fill="#FFFFFF">1</text>
+
+  <text class="rung-label" x="115" y="118">V-Module Pathology</text>
+  <text class="rung-detail" x="115" y="138">Value-projection subspaces of the two adapters occupy incompatible dimensions.</text>
+  <text class="rung-detail" x="115" y="156">Creates upstream risk: contradictory instructions about what information to pass forward.</text>
+  <text class="rung-metric" x="115" y="178">Dimensionality ratio: catastrophic 0.64-0.74 vs safe 0.79-0.89 (Cohen's d = 3.36, zero overlap)</text>
+
+  <!-- Identifies risk label -->
+  <rect x="640" y="102" width="180" height="28" rx="6" fill="#EBF8FF" stroke="#BEE3F8" stroke-width="0.8"/>
+  <text x="730" y="121" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="11" fill="#2B6CB0">Identifies risk</text>
+
+  <!-- Arrow down to Rung 2 -->
+  <line x1="450" y1="210" x2="450" y2="240" stroke="#9AA5B4" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="arrow-label" x="465" y="230">pathology present?</text>
+
+  <!-- ================================================================ -->
+  <!-- RUNG 2: Head-Level Modulation -->
+  <!-- ================================================================ -->
+  <rect x="60" y="248" width="780" height="120" rx="10" fill="#FFFFFF" stroke="#E4E7EB" stroke-width="1"/>
+
+  <rect x="75" y="258" width="26" height="26" rx="13" fill="#3182CE"/>
+  <text x="88" y="276" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="13" fill="#FFFFFF">2</text>
+
+  <text class="rung-label" x="115" y="276">Head-Level Cancellation</text>
+  <text class="rung-detail" x="115" y="296">Incompatibility distributed unevenly across attention heads.</text>
+  <text class="rung-detail" x="115" y="314">Opposite-sign per-head modifications may cancel (mild) or compound (catastrophic).</text>
+  <text class="rung-metric" x="115" y="336">CA-01: 7 heads with |Delta_DR| >= 0.15; severity range 12.1%-41.7% across seeds</text>
+
+  <!-- Modulates severity label -->
+  <rect x="640" y="260" width="180" height="28" rx="6" fill="#FEFCBF" stroke="#F6E05E" stroke-width="0.8"/>
+  <text x="730" y="279" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="11" fill="#975A16">Modulates severity</text>
+
+  <!-- Arrow down to Rung 3 -->
+  <line x1="450" y1="368" x2="450" y2="398" stroke="#9AA5B4" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="arrow-label" x="465" y="388">upstream conflict reaches readout?</text>
+
+  <!-- ================================================================ -->
+  <!-- RUNG 3: Readout Gating -->
+  <!-- ================================================================ -->
+  <rect x="60" y="406" width="780" height="120" rx="10" fill="#FFFFFF" stroke="#E4E7EB" stroke-width="1"/>
+
+  <rect x="75" y="416" width="26" height="26" rx="13" fill="#3182CE"/>
+  <text x="88" y="434" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="13" fill="#FFFFFF">3</text>
+
+  <text class="rung-label" x="115" y="434">Readout Gating</text>
+  <text class="rung-detail" x="115" y="454">Readout layer transmits or absorbs upstream pathology. It is a gate, not a generator.</text>
+  <text class="rung-detail" x="115" y="472">Orthogonal readouts are common (5/14 same-task pairs) and benign in isolation.</text>
+  <text class="rung-metric" x="115" y="494">SC-QMRB falsifier: identical readout geometry, different outcome (41.7% vs 1.7%)</text>
+
+  <!-- Gates transmission label -->
+  <rect x="640" y="418" width="180" height="28" rx="6" fill="#FED7D7" stroke="#FEB2B2" stroke-width="0.8"/>
+  <text x="730" y="437" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="11" fill="#9B2C2C">Gates transmission</text>
+
+  <!-- ================================================================ -->
+  <!-- CONJUNCTIVE GATE -->
+  <!-- ================================================================ -->
+  <rect x="300" y="542" width="300" height="36" rx="6" fill="#FFF5F5" stroke="#FC8181" stroke-width="1.5"/>
+  <text class="gate-label" x="450" y="565" text-anchor="middle">CONJUNCTION REQUIRED</text>
+
+  <!-- Arrow from Rung 3 to gate -->
+  <line x1="450" y1="526" x2="450" y2="542" stroke="#C53030" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <!-- ================================================================ -->
+  <!-- BEHAVIORAL OUTCOMES -->
+  <!-- ================================================================ -->
+
+  <!-- Left outcome: Safe / Mild -->
+  <line x1="300" y1="560" x2="180" y2="600" stroke="#2F855A" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <rect x="60" y="595" width="240" height="60" rx="8" fill="#F0FFF4" stroke="#C6F6D5" stroke-width="1"/>
+  <text class="outcome-label" x="180" y="617" text-anchor="middle" fill="#276749">Safe or mild degradation</text>
+  <text class="outcome-detail" x="180" y="635" text-anchor="middle">Neither-source rate &lt;2%</text>
+  <text class="outcome-detail" x="180" y="648" text-anchor="middle">One or both conditions absent</text>
+
+  <!-- Right outcome: Catastrophic -->
+  <line x1="600" y1="560" x2="720" y2="600" stroke="#C53030" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+
+  <rect x="600" y="595" width="240" height="60" rx="8" fill="#FFF5F5" stroke="#FED7D7" stroke-width="1"/>
+  <text class="outcome-label" x="720" y="617" text-anchor="middle" fill="#9B2C2C">Catastrophic failure</text>
+  <text class="outcome-detail" x="720" y="635" text-anchor="middle">Neither-source rate 12-15%</text>
+  <text class="outcome-detail" x="720" y="648" text-anchor="middle">Both conditions present</text>
+
+  <!-- Footer -->
+  <text class="footer" x="450" y="674" text-anchor="middle">Bounded to DistilBERT + RoBERTa. DeBERTa adjudication pending.</text>
+</svg>

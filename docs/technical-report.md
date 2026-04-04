@@ -95,6 +95,8 @@ This limitation is itself informative. It implies that merge failure has at leas
 
 ## 3. The Mechanism: Conjunctive Failure in Adapter Merging
 
+![Conjunctive failure mechanism: three-rung causal ladder](../assets/mechanism_ladder.svg)
+
 ### 3.1 The Path to the Conjunctive Model
 
 The mechanistic account presented here was not the first hypothesis tested. It is what survived after simpler alternatives were systematically falsified. This epistemic history matters: the model's credibility rests not on its elegance but on the specific failures of its predecessors.
@@ -189,6 +191,8 @@ This behavioral grounding is important because it connects the abstract spectral
 ---
 
 ## 4. The Gradience Pipeline: From Theory to Triage
+
+![Gradience preflight pipeline: from adapter pool to evaluated merge candidates](../assets/pipeline_flow.svg)
 
 ### 4.1 Pipeline Overview
 
