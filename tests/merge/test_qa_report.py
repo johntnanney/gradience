@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import glob
 import json
 from pathlib import Path
 from typing import Any
@@ -890,11 +889,15 @@ class TestFromDictValidation:
 # ---------------------------------------------------------------------------
 
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_EXAMPLES_DIR = _REPO_ROOT / "examples" / "reports"
+
+
 class TestStrictReloadInvariant:
     """from_dict(to_dict(obj)) must produce an identical object."""
 
     def test_roundtrip_identity_safe(self) -> None:
-        p = Path("examples/reports/safe_merge_report.json")
+        p = _EXAMPLES_DIR / "safe_merge_report.json"
         with open(p) as f:
             d = json.load(f)
         original = MergeQAReport.from_dict(d)
@@ -902,7 +905,7 @@ class TestStrictReloadInvariant:
         assert reloaded == original
 
     def test_roundtrip_identity_high_risk(self) -> None:
-        p = Path("examples/reports/high_risk_warn_report.json")
+        p = _EXAMPLES_DIR / "high_risk_warn_report.json"
         with open(p) as f:
             d = json.load(f)
         original = MergeQAReport.from_dict(d)
@@ -911,7 +914,7 @@ class TestStrictReloadInvariant:
 
 
 class TestExampleFiles:
-    @pytest.mark.parametrize("path", sorted(glob.glob("examples/reports/*.json")))
+    @pytest.mark.parametrize("path", sorted(_EXAMPLES_DIR.glob("*.json")))
     def test_example_loads_via_from_dict(self, path):
         with open(path) as f:
             d = json.load(f)

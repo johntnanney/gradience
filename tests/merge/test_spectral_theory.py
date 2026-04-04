@@ -175,6 +175,15 @@ def test_over_accumulation_theory_is_sign_sensitive() -> None:
         compute_dtype=torch.float64,
     )
 
+    # Validate setup: identical adapters should have positive agreement,
+    # negated-A adapters should have negative agreement
+    assert m_pos.directional_agreement > 0, (
+        f"Setup: identical adapters should have positive agreement, got {m_pos.directional_agreement:.4f}"
+    )
+    assert m_neg.directional_agreement < 0, (
+        f"Setup: negating A should produce negative agreement, got {m_neg.directional_agreement:.4f}"
+    )
+
     est_pos = estimate_over_accumulation_theory(m_pos, coefficients=(0.5, 0.5))
     est_neg = estimate_over_accumulation_theory(m_neg, coefficients=(0.5, 0.5))
 
@@ -448,18 +457,37 @@ def test_over_accumulation_negative_agreement_no_inflation() -> None:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def test_norm_equalized_reduces_inflation_for_imbalanced_pair() -> None:
-    """Norm equalization reduces inflation when Frobenius ratio is large."""
+def test_norm_equalized_analysis_reports_inflation_correctly() -> None:
+    """Norm-equalized analysis correctly computes and compares inflation ratios."""
     torch.manual_seed(70)
     r, d = 4, 32
-    # Build with very different scales
+    # Build with very different scales to create Frobenius imbalance
     A_a = torch.randn(r, d, dtype=torch.float64) * 0.1
     B_a = torch.randn(d, r, dtype=torch.float64) * 0.1
     A_b = torch.randn(r, d, dtype=torch.float64) * 3.0
     B_b = torch.randn(d, r, dtype=torch.float64) * 3.0
     m = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r, compute_dtype=torch.float64)
+
+    # Confirm the setup actually produces a large Frobenius imbalance
+    assert m.frobenius_ratio > 5.0, f"Setup: expected large imbalance, got ratio={m.frobenius_ratio:.2f}"
+
     result = norm_equalized_over_accumulation_analysis(m)
-    # Structure checks — the actual inflation comparison depends on geometry
-    assert result.linear_inflation_ratio >= 1.0 or math.isclose(result.linear_inflation_ratio, 1.0, abs_tol=0.01)
-    assert result.normeq_inflation_ratio >= 1.0 or math.isclose(result.normeq_inflation_ratio, 1.0, abs_tol=0.01)
-    assert isinstance(result.inflation_reduced, bool)
+
+    # Both ratios must be positive
+    assert result.linear_inflation_ratio > 0.0
+    assert result.normeq_inflation_ratio > 0.0
+
+    # inflation_reduced must be consistent with the actual ratio comparison
+    expected_reduced = result.normeq_inflation_ratio < result.linear_inflation_ratio
+    assert result.inflation_reduced == expected_reduced, (
+        f"inflation_reduced={result.inflation_reduced} but normeq={result.normeq_inflation_ratio:.4f} "
+        f"vs linear={result.linear_inflation_ratio:.4f}"
+    )
+
+    # reduction_factor = normeq / linear (< 1.0 means inflation was reduced)
+    if result.linear_inflation_ratio > 0:
+        expected_factor = result.normeq_inflation_ratio / result.linear_inflation_ratio
+        assert math.isclose(result.reduction_factor, expected_factor, rel_tol=1e-6), (
+            f"reduction_factor={result.reduction_factor:.4f} != "
+            f"normeq/linear={expected_factor:.4f}"
+        )
