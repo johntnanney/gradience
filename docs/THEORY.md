@@ -341,9 +341,24 @@ These results constitute a converging-operations argument with Tian et al.:
 training-side gradient analysis and post-hoc SVD-based audit arrive at the
 same spectral partition through independent methodological pipelines.
 The magnitude is weaker without shared gradients (7.8× vs 30×), consistent
-with the absence of co-training reinforcement. The remaining open
-theoretical work is to formalize the concentration-weighted convergence
-bound (see open question 6 in §7).
+with the absence of co-training reinforcement.
+
+**Cross-architecture replication.** The same-task/cross-task spectral
+separation is not confined to the small-encoder regime. Earlier Gradience
+research on Mistral-7B (Gradience Series Post 3) found same-task subspace
+overlap of 0.473 vs cross-task overlap of 0.200 across 36 adapter pairs
+(chat, GSM8K, code tasks; rank 8; 3 seeds) — a 2.4× separation
+(t = 12.985, p < 0.0001). This used unweighted mean overlap rather than
+the SV-weighted metric from N127, so the magnitudes are not directly
+comparable, but the structural pattern — same-task pairs clustering
+substantially higher on overlap — replicates at decoder scale. The
+Mistral-7B study additionally showed that subspace overlap predicts merge
+dominance at r = 0.846 and rank-orders merge quality at Spearman ρ = 0.710,
+confirming that the spectral observables are not only structurally meaningful
+but operationally predictive on 7B-parameter decoders.
+
+The remaining open theoretical work is to formalize the concentration-weighted
+convergence bound (see open question 6 in §7).
 
 
 ## 7. Open Theoretical Questions
@@ -369,8 +384,13 @@ bound (see open question 6 in §7).
 
 5. **Cross-architecture geometry.** Do different architectures (attention
    vs. MLP, transformer vs. SSM) produce qualitatively different spectral
-   geometries, or are there universal patterns? Gradience's architecture-agnostic
-   audit can answer this empirically once sufficient data is collected.
+   geometries, or are there universal patterns? *Partial answer:* Study 14
+   audited 29 public adapters across 8 base models (Llama-2/3, Mistral-7B,
+   Gemma, Phi; 2B–8B parameters) and found qualitatively consistent spectral
+   profiles — median 50% compression potential, negative rank-utilization
+   correlation, attention vs MLP utilization differences preserved across
+   architectures. The spectral lens appears architecture-agnostic in practice,
+   though quantitative thresholds may need per-architecture calibration.
 
 6. **Spectral partitioning convergence.** Does independent fine-tuning
    (not co-training) produce the same high-SV shared / low-SV task-specific
@@ -383,8 +403,10 @@ bound (see open question 6 in §7).
    predict per-layer alignment, but W₀ energy concentration does. Formalizing
    this — bounding subspace convergence as a function of spectral mass
    concentration rather than adjacent-SV gaps — is the next theoretical step.
-   Replication on decoder-only models is needed to test generality beyond the
-   small-encoder regime (DistilBERT-base, rank 16).
+   Cross-architecture support exists: the Mistral-7B merge study (Gradience
+   Series Post 3) found the same same-task/cross-task separation pattern
+   (2.4×, t = 12.985) using unweighted overlap. Full replication of the
+   SV-weighted partition analysis at decoder scale remains desirable.
 
 7. **Phase transition detection.** Can spectral observables serve as
    reliable order parameters for detecting training phase transitions
