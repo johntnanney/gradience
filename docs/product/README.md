@@ -11,6 +11,7 @@
 
 - [`../technical-report.md`](../technical-report.md) — **full argument**: theory, mechanism, pipeline, field trials, and scope (Sections 1, 4, 5 are practitioner-focused)
 - [`overview.md`](overview.md)
+- [`../field-trial-retrospective.md`](../field-trial-retrospective.md) — what we expected, what surprised us, and what changed in the product
 - [`product-validation.md`](product-validation.md)
 - [`capabilities.md`](capabilities.md)
 - [`example-gallery.md`](example-gallery.md)
