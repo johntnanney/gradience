@@ -7,6 +7,8 @@ This module provides comprehensive spectral measurements beyond κ̃:
 - Effective rank (entropy-based)
 - Stable rank (Frobenius/operator norm ratio)
 - Spectral decay rate (power-law fit)
+- HTSR-style tail exponent probe
+- Spectral edge-gap probe (σ1/σ2)
 - Nuclear norm (trace norm)
 - Layer-wise analysis
 
@@ -79,6 +81,50 @@ class FullSpectralSnapshot:
             "top10_energy": self.top10_energy,
             "tail_energy": self.tail_energy,
             "n_singular_values": len(self.singular_values),
+        }
+
+
+@dataclass
+class HTSRTailEstimate:
+    """Lightweight HTSR-style power-law tail estimate."""
+
+    alpha: float | None
+    fit_r2: float | None
+    valid: bool
+    tail_start_index: int | None
+    tail_points: int
+    tail_fraction: float | None
+    warning: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "htsr_alpha": self.alpha,
+            "alpha_fit_quality": self.fit_r2,
+            "alpha_valid": self.valid,
+            "tail_start_index": self.tail_start_index,
+            "tail_points": self.tail_points,
+            "tail_fraction": self.tail_fraction,
+            "warning": self.warning,
+        }
+
+
+@dataclass
+class SpectralEdgeGapProbe:
+    """Simple edge-dominance probe bundle from top singular values."""
+
+    edge_gap_12: float | None
+    edge_gap_13: float | None
+    sigma1_share_top3: float | None
+    valid: bool
+    warning: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "edge_gap_12": self.edge_gap_12,
+            "edge_gap_13": self.edge_gap_13,
+            "sigma1_share_top3": self.sigma1_share_top3,
+            "edge_valid": self.valid,
+            "warning": self.warning,
         }
 
 
@@ -240,6 +286,158 @@ def fit_spectral_decay(singular_values: list[float], min_points: int = 5) -> tup
     r2 = 1 - ss_res / (ss_tot + 1e-10) if ss_tot > 1e-10 else 0.0
 
     return alpha, r2
+
+
+def _fit_loglog_alpha(values: list[float], start_idx: int) -> tuple[float | None, float | None]:
+    """Fit log(values[i]) ~ -alpha * log(i) + c for i >= start_idx."""
+    tail = values[start_idx:]
+    if len(tail) < 2:
+        return None, None
+
+    n = len(tail)
+    x = [math.log(start_idx + i + 1) for i in range(n)]
+    y = [math.log(max(v, 1e-12)) for v in tail]
+
+    mean_x = sum(x) / n
+    mean_y = sum(y) / n
+    den = sum((xi - mean_x) ** 2 for xi in x)
+    if den < 1e-12:
+        return None, None
+
+    slope = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y)) / den
+    intercept = mean_y - slope * mean_x
+    alpha = -slope
+
+    y_pred = [slope * xi + intercept for xi in x]
+    ss_res = sum((yi - yp) ** 2 for yi, yp in zip(y, y_pred))
+    ss_tot = sum((yi - mean_y) ** 2 for yi in y)
+    r2 = 1.0 - ss_res / (ss_tot + 1e-12) if ss_tot > 1e-12 else 0.0
+
+    if not math.isfinite(alpha) or not math.isfinite(r2):
+        return None, None
+
+    return alpha, r2
+
+
+def fit_htsr_tail_exponent(
+    singular_values: list[float],
+    *,
+    use_squared_spectrum: bool = False,
+    tail_fractions: tuple[float, ...] = (0.5, 0.6, 0.7),
+    min_tail_points: int = 5,
+    min_fit_r2: float = 0.5,
+    eps: float = 1e-12,
+) -> HTSRTailEstimate:
+    """
+    Estimate an HTSR-style tail exponent alpha on a saved singular spectrum.
+
+    The estimator is intentionally lightweight:
+    - Select one tail window from a small fraction grid.
+    - Fit log-log slope on the chosen tail.
+    - Return fit quality and explicit validity flags.
+    """
+    values = [float(v) for v in singular_values if v is not None and v > eps]
+    values.sort(reverse=True)
+
+    if use_squared_spectrum:
+        values = [v * v for v in values]
+
+    n = len(values)
+    if n < min_tail_points + 1:
+        return HTSRTailEstimate(
+            alpha=None,
+            fit_r2=None,
+            valid=False,
+            tail_start_index=None,
+            tail_points=0,
+            tail_fraction=None,
+            warning="insufficient_spectrum_length",
+        )
+
+    best: tuple[float, float, int, float] | None = None  # (alpha, r2, start_idx, frac)
+    for frac in tail_fractions:
+        if frac < 0.0 or frac >= 1.0:
+            continue
+        start_idx = int(math.floor(frac * n))
+        start_idx = max(1, min(start_idx, n - min_tail_points))
+        alpha, r2 = _fit_loglog_alpha(values, start_idx)
+        if alpha is None or r2 is None:
+            continue
+        if best is None or r2 > best[1]:
+            best = (alpha, r2, start_idx, frac)
+
+    if best is None:
+        return HTSRTailEstimate(
+            alpha=None,
+            fit_r2=None,
+            valid=False,
+            tail_start_index=None,
+            tail_points=0,
+            tail_fraction=None,
+            warning="tail_fit_failed",
+        )
+
+    alpha, r2, start_idx, frac = best
+    tail_points = n - start_idx
+    valid = alpha > 0.0 and r2 >= min_fit_r2 and tail_points >= min_tail_points
+
+    warning: str | None = None
+    if not valid:
+        if alpha <= 0.0:
+            warning = "non_positive_alpha"
+        elif r2 < min_fit_r2:
+            warning = "low_fit_quality"
+        else:
+            warning = "insufficient_tail_points"
+
+    return HTSRTailEstimate(
+        alpha=float(alpha),
+        fit_r2=float(r2),
+        valid=valid,
+        tail_start_index=int(start_idx),
+        tail_points=int(tail_points),
+        tail_fraction=float(frac),
+        warning=warning,
+    )
+
+
+def compute_spectral_edge_gap(
+    singular_values: list[float],
+    *,
+    eps: float = 1e-12,
+) -> SpectralEdgeGapProbe:
+    """Compute bounded top-edge dominance probes from singular values."""
+    values = [float(v) for v in singular_values if v is not None and v > eps]
+    values.sort(reverse=True)
+
+    if len(values) < 2:
+        return SpectralEdgeGapProbe(
+            edge_gap_12=None,
+            edge_gap_13=None,
+            sigma1_share_top3=None,
+            valid=False,
+            warning="insufficient_spectrum_length",
+        )
+
+    s1 = values[0]
+    s2 = values[1]
+    edge_gap_12 = s1 / max(s2, eps)
+
+    edge_gap_13: float | None = None
+    sigma1_share_top3: float | None = None
+    if len(values) >= 3:
+        s3 = values[2]
+        edge_gap_13 = s1 / max(s3, eps)
+        denom = s1 + s2 + s3
+        sigma1_share_top3 = s1 / max(denom, eps)
+
+    return SpectralEdgeGapProbe(
+        edge_gap_12=float(edge_gap_12),
+        edge_gap_13=float(edge_gap_13) if edge_gap_13 is not None else None,
+        sigma1_share_top3=float(sigma1_share_top3) if sigma1_share_top3 is not None else None,
+        valid=True,
+        warning=None,
+    )
 
 
 @dataclass

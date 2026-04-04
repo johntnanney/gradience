@@ -65,6 +65,16 @@ from gradience.vnext.merge.null_controls import layer_shuffle_control, randomize
 
 # Phase 2 — M1 protocol modules
 from gradience.vnext.merge.outcomes import compute_merge_outcomes, is_bad_merge
+from gradience.vnext.merge.over_accumulation import (
+    OverAccumulationEstimate,
+    OverAccumulationEstimateV2,
+    OverAccumulationFactors,
+    OverAccumulationFactorsV2,
+    OverAccumulationPairSummary,
+    estimate_over_accumulation,
+    estimate_over_accumulation_v2,
+    summarize_over_accumulation,
+)
 from gradience.vnext.merge.plan import (
     PLAN_STRATEGIES,
     MergePlan,
@@ -108,6 +118,36 @@ from gradience.vnext.merge.spectral_compat import (
     SubspaceMetrics,
     compute_subspace_metrics,
 )
+from gradience.vnext.merge.spectral_theory import (
+    EqualRankEqualSpectrumResult,
+    GeneralRankGramDecomposition,
+    LinearMergeFrobeniusResult,
+    LinearMergeSigma1Bounds,
+    LinearMergeStableRankBounds,
+    NormEqualizedOverAccumulationResult,
+    NormEqualizedScaling,
+    OverAccumulationExactCondition,
+    OverAccumulationTheoryEstimate,
+    OverAccumulationTheoryHeuristicComparison,
+    Rank1MergeInputs,
+    Rank1MergeResult,
+    RankRInteractionGeometry,
+    SubspaceBoundEstimate,
+    compare_over_accumulation_theory_to_heuristic,
+    compute_rankr_interaction_geometry,
+    equal_rank_equal_spectrum_merge,
+    estimate_linear_merge_bounds_from_metrics,
+    estimate_over_accumulation_theory,
+    expected_dare_frobenius_multiplier,
+    general_rank_gram_decomposition,
+    linear_merge_frobenius,
+    linear_merge_sigma1_bounds,
+    linear_merge_stable_rank_bounds,
+    norm_equalized_over_accumulation_analysis,
+    norm_equalized_scaling,
+    over_accumulation_exact_condition,
+    rank1_linear_merge_result,
+)
 
 # Phase 2 — merge execution
 from gradience.vnext.merge.strategies import (
@@ -145,6 +185,35 @@ __all__ = [
     "match_layers",
     "extract_factors",
     "compute_subspace_metrics",
+    # Analytical spectral geometry helpers
+    "Rank1MergeInputs",
+    "Rank1MergeResult",
+    "LinearMergeSigma1Bounds",
+    "LinearMergeFrobeniusResult",
+    "LinearMergeStableRankBounds",
+    "EqualRankEqualSpectrumResult",
+    "GeneralRankGramDecomposition",
+    "NormEqualizedScaling",
+    "NormEqualizedOverAccumulationResult",
+    "OverAccumulationExactCondition",
+    "SubspaceBoundEstimate",
+    "OverAccumulationTheoryEstimate",
+    "OverAccumulationTheoryHeuristicComparison",
+    "RankRInteractionGeometry",
+    "rank1_linear_merge_result",
+    "linear_merge_sigma1_bounds",
+    "linear_merge_frobenius",
+    "linear_merge_stable_rank_bounds",
+    "equal_rank_equal_spectrum_merge",
+    "general_rank_gram_decomposition",
+    "over_accumulation_exact_condition",
+    "norm_equalized_over_accumulation_analysis",
+    "compute_rankr_interaction_geometry",
+    "norm_equalized_scaling",
+    "expected_dare_frobenius_multiplier",
+    "estimate_linear_merge_bounds_from_metrics",
+    "estimate_over_accumulation_theory",
+    "compare_over_accumulation_theory_to_heuristic",
     "assess_layer",
     "assess_overall",
     "build_report",
@@ -193,6 +262,15 @@ __all__ = [
     # M1 protocol — Null controls
     "randomized_subspace_control",
     "layer_shuffle_control",
+    # Over-accumulation diagnostic (additive)
+    "OverAccumulationFactors",
+    "OverAccumulationEstimate",
+    "OverAccumulationFactorsV2",
+    "OverAccumulationEstimateV2",
+    "OverAccumulationPairSummary",
+    "estimate_over_accumulation",
+    "estimate_over_accumulation_v2",
+    "summarize_over_accumulation",
     # M1 protocol — Norm-equalized merge (M2 stub)
     "norm_equalized_merge",
     # Typed containers

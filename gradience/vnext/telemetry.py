@@ -30,7 +30,7 @@ Event types and payloads (stable set):
       metrics: dict (e.g., {"ppl": 2.3, "accuracy": 0.35, "n": 100})
 
   - metrics:
-      kind   : str (e.g., "spectral"|"structural"|"lora_audit")
+      kind   : str (e.g., "spectral"|"structural"|"lora_audit"|"merge_aware_compatibility")
       metrics: dict
 
   - alert:

@@ -14,6 +14,10 @@ structure with Frobenius imbalance checked first:
 
 Thresholds ship as defaults but can be overridden via CLI flags or a
 VerdictThresholds instance.
+
+Additive extension:
+- Per-layer over-accumulation score/band/factors
+- Pair-level over-accumulation watch/elevated advisory (computed downstream)
 """
 
 from __future__ import annotations
@@ -22,6 +26,10 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any
 
+from gradience.vnext.merge.over_accumulation import (
+    estimate_over_accumulation,
+    summarize_over_accumulation,
+)
 from gradience.vnext.merge.spectral_compat import SubspaceMetrics
 
 # ---------------------------------------------------------------------------
@@ -104,6 +112,9 @@ class LayerVerdict:
     safe_merge_rank: int  # suggested merged adapter rank
     suggested_strategy: str  # "linear" | "ties" | "dare" | "exclude"
     suggested_coefficients: tuple[float, float] | None  # (coeff_a, coeff_b)
+    over_accumulation_score: float = 0.0
+    over_accumulation_band: str = "low"
+    over_accumulation_factors: dict[str, float] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {
@@ -117,6 +128,14 @@ class LayerVerdict:
             "safe_merge_rank": self.safe_merge_rank,
             "suggested_strategy": self.suggested_strategy,
             "suggested_coefficients": (list(self.suggested_coefficients) if self.suggested_coefficients else None),
+            "over_accumulation_score": self.over_accumulation_score,
+            "over_accumulation_band": self.over_accumulation_band,
+            "over_accumulation_factors": self.over_accumulation_factors
+            or {
+                "alignment": 0.0,
+                "concentration": 0.0,
+                "coefficient_exposure": 0.0,
+            },
         }
         return d
 
@@ -151,6 +170,14 @@ def assess_layer(
     if thresholds is None:
         thresholds = VerdictThresholds()
 
+    def _over_accum_fields(assumed_coefficients: tuple[float, float] | None) -> dict[str, Any]:
+        est = estimate_over_accumulation(metrics, assumed_coefficients=assumed_coefficients)
+        return {
+            "over_accumulation_score": est.score,
+            "over_accumulation_band": est.band,
+            "over_accumulation_factors": est.factors.to_dict(),
+        }
+
     # --- Branch 0 (NEW): Frobenius imbalanced + low-to-moderate overlap ---
     if metrics.frobenius_ratio > thresholds.imbalanced_frob and metrics.mean_overlap < thresholds.high_overlap:
         ratio = metrics.frobenius_ratio
@@ -180,6 +207,7 @@ def assess_layer(
             safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
             suggested_strategy="linear",
             suggested_coefficients=coefficients,
+            **_over_accum_fields(coefficients),
         )
 
     # --- Branch 1: Orthogonal subspaces ---
@@ -199,6 +227,7 @@ def assess_layer(
             safe_merge_rank=metrics.effective_rank_a + metrics.effective_rank_b,
             suggested_strategy="linear",
             suggested_coefficients=(0.5, 0.5),
+            **_over_accum_fields((0.5, 0.5)),
         )
 
     # --- Branch 2: Redundant (high overlap, aligned) ---
@@ -223,6 +252,7 @@ def assess_layer(
             safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
             suggested_strategy="ties",
             suggested_coefficients=(0.5, 0.5),
+            **_over_accum_fields((0.5, 0.5)),
         )
 
     # --- Branch 3: Conflicting (high overlap, opposing) ---
@@ -251,6 +281,7 @@ def assess_layer(
             safe_merge_rank=metrics.effective_rank_a,
             suggested_strategy="dare",
             suggested_coefficients=None,
+            **_over_accum_fields((0.5, 0.5)),
         )
 
     # --- Branch 4: Frobenius imbalanced (high-overlap remainder) ---
@@ -282,6 +313,7 @@ def assess_layer(
             safe_merge_rank=max(metrics.effective_rank_a, metrics.effective_rank_b),
             suggested_strategy="linear",
             suggested_coefficients=coefficients,
+            **_over_accum_fields(coefficients),
         )
 
     # --- Branch 5: Moderate / ambiguous -> default SAFE ---
@@ -300,6 +332,7 @@ def assess_layer(
         safe_merge_rank=(metrics.effective_rank_a + metrics.effective_rank_b) // 2,
         suggested_strategy="ties",
         suggested_coefficients=(0.5, 0.5),
+        **_over_accum_fields((0.5, 0.5)),
     )
 
 
@@ -381,5 +414,13 @@ def assess_overall(
         recommendations.append(
             "Adapters are spectrally compatible. Linear merge (equal coefficients) should preserve both signals."
         )
+
+    over_accum_summary = summarize_over_accumulation(
+        layer_scores=[lv.over_accumulation_score for lv in layer_verdicts],
+        layer_bands=[lv.over_accumulation_band for lv in layer_verdicts],
+        non_overlap_issue_count=len(conflicting) + len(imbalanced),
+    )
+    if over_accum_summary.advisory != "none" and over_accum_summary.summary:
+        recommendations.append(over_accum_summary.summary)
 
     return overall, score, recommendations

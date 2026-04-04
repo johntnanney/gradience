@@ -117,6 +117,7 @@ class TestAssessLayer:
         assert lv.verdict == CompatibilityVerdict.SAFE
         assert lv.suggested_strategy == "linear"
         assert lv.conflict_dimensions == 0
+        assert lv.over_accumulation_band == "low"
 
     def test_redundant(self):
         """High overlap + aligned -> REDUNDANT."""
@@ -130,6 +131,7 @@ class TestAssessLayer:
 
         assert lv.verdict == CompatibilityVerdict.REDUNDANT
         assert lv.suggested_strategy == "ties"
+        assert lv.over_accumulation_band in {"watch", "high"}
 
     def test_conflicting(self):
         """High overlap + opposing -> CONFLICTING."""
@@ -186,6 +188,7 @@ class TestAssessLayer:
         json_str = json.dumps(d)
         assert "verdict" in json_str
         assert "metrics" in json_str
+        assert "over_accumulation_score" in json_str
 
     def test_custom_thresholds(self):
         """Custom thresholds change verdict boundaries."""

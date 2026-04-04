@@ -2340,6 +2340,17 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         f"{agg['n_conflicting']} conflicting, "
         f"{agg['n_imbalanced']} imbalanced"
     )
+    over_acc_advisory = agg.get("over_accumulation_advisory", "none")
+    if over_acc_advisory != "none":
+        high_layers = int(agg.get("high_risk_layer_count", 0))
+        watch_layers = int(agg.get("watch_layer_count", 0))
+        print(
+            f"   Over-accumulation advisory: {over_acc_advisory.upper()} "
+            f"(high={high_layers}, watch={watch_layers})"
+        )
+        over_acc_summary = str(agg.get("over_accumulation_summary", "")).strip()
+        if over_acc_summary:
+            print(f"   Note: {over_acc_summary}")
 
     if (
         getattr(args, "compute_core_space", False)

@@ -40,6 +40,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from gradience.vnext.merge.eligibility import EligibilityStatus
+from gradience.vnext.merge.over_accumulation import summarize_over_accumulation
 from gradience.vnext.merge.report import _shorten_layer_name
 
 # ===================================================================
@@ -79,6 +80,8 @@ class LayerDiagnosis:
 
     # Upstream suggestion from the verdict engine (may be None)
     suggested_coefficients: tuple[float, float] | None
+    over_accumulation_score: float
+    over_accumulation_band: str  # "low" | "watch" | "high"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -95,6 +98,8 @@ class LayerDiagnosis:
             "compress_target_rank_a": self.compress_target_rank_a,
             "compress_target_rank_b": self.compress_target_rank_b,
             "suggested_coefficients": list(self.suggested_coefficients) if self.suggested_coefficients else None,
+            "over_accumulation_score": round(self.over_accumulation_score, 4),
+            "over_accumulation_band": self.over_accumulation_band,
         }
 
 
@@ -148,6 +153,11 @@ class PairDiagnosis:
     compression_needed: bool
     n_layers_needing_compression: int
     eligibility: EligibilityContext
+    over_accumulation_advisory: str = "none"  # "none" | "watch" | "elevated"
+    over_accumulation_summary: str = ""
+    over_accumulation_high_risk_layers: int = 0
+    over_accumulation_watch_layers: int = 0
+    over_accumulation_max_score: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -155,6 +165,11 @@ class PairDiagnosis:
             "overall_risk": self.overall_risk,
             "compression_needed": self.compression_needed,
             "n_layers_needing_compression": self.n_layers_needing_compression,
+            "over_accumulation_advisory": self.over_accumulation_advisory,
+            "over_accumulation_summary": self.over_accumulation_summary,
+            "over_accumulation_high_risk_layers": self.over_accumulation_high_risk_layers,
+            "over_accumulation_watch_layers": self.over_accumulation_watch_layers,
+            "over_accumulation_max_score": round(self.over_accumulation_max_score, 4),
             "eligibility": {
                 "status_a": self.eligibility.status_a.value if self.eligibility.status_a else None,
                 "status_b": self.eligibility.status_b.value if self.eligibility.status_b else None,
@@ -394,6 +409,8 @@ def diagnose_layer(lv_dict: dict[str, Any]) -> LayerDiagnosis:
     n_conflict = lv_dict.get("conflict_dimensions", 0)
     confidence = lv_dict.get("confidence", 0.5)
     suggested_coeffs = lv_dict.get("suggested_coefficients")
+    over_accumulation_score = float(lv_dict.get("over_accumulation_score", 0.0))
+    over_accumulation_band = str(lv_dict.get("over_accumulation_band", "low"))
 
     # Number of principal angles available
     pac = metrics.get("principal_angle_cosines", ())
@@ -421,6 +438,8 @@ def diagnose_layer(lv_dict: dict[str, Any]) -> LayerDiagnosis:
         compress_target_rank_a=target_a,
         compress_target_rank_b=target_b,
         suggested_coefficients=tuple(suggested_coeffs) if suggested_coeffs else None,
+        over_accumulation_score=over_accumulation_score,
+        over_accumulation_band=over_accumulation_band,
     )
 
 
@@ -483,6 +502,11 @@ def diagnose_pair(report: Any) -> PairDiagnosis:
     )
 
     n_compress = sum(1 for ld in layer_diags if ld.compress_first)
+    over_accum = summarize_over_accumulation(
+        layer_scores=[ld.over_accumulation_score for ld in layer_diags],
+        layer_bands=[ld.over_accumulation_band for ld in layer_diags],
+        non_overlap_issue_count=sum(1 for ld in layer_diags if ld.verdict in ("conflicting", "imbalanced")),
+    )
 
     eligibility = _parse_eligibility(report)
 
@@ -492,6 +516,11 @@ def diagnose_pair(report: Any) -> PairDiagnosis:
         compression_needed=n_compress > 0,
         n_layers_needing_compression=n_compress,
         eligibility=eligibility,
+        over_accumulation_advisory=over_accum.advisory,
+        over_accumulation_summary=over_accum.summary,
+        over_accumulation_high_risk_layers=over_accum.high_risk_layer_count,
+        over_accumulation_watch_layers=over_accum.watch_layer_count,
+        over_accumulation_max_score=over_accum.max_score,
     )
 
 

@@ -36,6 +36,8 @@ def _make_lv_dict(
     confidence: float = 0.8,
     suggested_coefficients=None,
     layer_name: str = "model.layers.0.self_attn.q_proj",
+    over_accumulation_score: float = 0.0,
+    over_accumulation_band: str = "low",
 ) -> dict:
     return {
         "layer_name": layer_name,
@@ -47,6 +49,8 @@ def _make_lv_dict(
         "safe_merge_rank": 6,
         "suggested_strategy": verdict,
         "suggested_coefficients": suggested_coefficients,
+        "over_accumulation_score": over_accumulation_score,
+        "over_accumulation_band": over_accumulation_band,
         "metrics": {
             "principal_angle_cosines": [0.1, 0.05, 0.02],
             "mean_overlap": mean_overlap,
@@ -361,6 +365,23 @@ class TestBuildQAReport:
         assert qa.core_space.effective_shared_rank == 6
         assert qa.core_space.status == "compatible"
 
+    def test_over_accumulation_advisory_fields_present_when_triggered(self):
+        report = _FakeReport(
+            [
+                _make_lv_dict(
+                    "redundant",
+                    mean_overlap=0.9,
+                    directional_agreement=0.9,
+                    over_accumulation_score=0.7,
+                    over_accumulation_band="high",
+                ),
+            ]
+        )
+        qa = build_qa_report(report)
+        assert qa.over_accumulation_advisory == "elevated"
+        assert qa.over_accumulation_summary is not None
+        assert qa.over_accumulation_high_risk_layers == 1
+
 
 # ---------------------------------------------------------------------------
 # Tests — format_qa_report
@@ -395,6 +416,22 @@ class TestFormatQAReport:
         assert "Pair risk:" in text
         assert "Dominant issue:" in text
         assert "Confidence" in text
+
+    def test_over_accumulation_line_in_output_when_present(self):
+        report = _FakeReport(
+            [
+                _make_lv_dict(
+                    "redundant",
+                    mean_overlap=0.9,
+                    directional_agreement=0.9,
+                    over_accumulation_score=0.7,
+                    over_accumulation_band="high",
+                ),
+            ]
+        )
+        qa = build_qa_report(report)
+        text = format_qa_report(qa)
+        assert "Over-accumulation:" in text
 
     def test_eligibility_section_present_when_needed(self):
         """Eligibility warning section shows caveats when present."""
@@ -529,6 +566,19 @@ class TestQAReportSerialization:
         assert "confidence" in d
         assert "confidence_note" in d
         assert "caveats" in d
+
+    def test_to_dict_emits_over_accumulation_fields_when_present(self):
+        qa = MergeQAReport.from_dict(
+            _minimal_report_dict(
+                over_accumulation_advisory="watch",
+                over_accumulation_summary="Watch note",
+                over_accumulation_high_risk_layers=1,
+                over_accumulation_watch_layers=3,
+            )
+        )
+        d = qa.to_dict()
+        assert d["over_accumulation_advisory"] == "watch"
+        assert d["over_accumulation_high_risk_layers"] == 1
 
     def test_to_dict_emits_core_space_when_present(self):
         qa = MergeQAReport.from_dict(
@@ -828,6 +878,11 @@ class TestFromDictValidation:
 
     def test_core_space_status_vocabulary_frozen(self):
         assert CORE_SPACE_STATUS_VALUES == {"compatible", "marginal", "incompatible", "not_applicable"}
+
+    def test_bad_over_accumulation_advisory(self):
+        d = _minimal_report_dict(over_accumulation_advisory="extreme")
+        with pytest.raises(QASchemaError, match="over_accumulation_advisory"):
+            MergeQAReport.from_dict(d)
 
 
 # ---------------------------------------------------------------------------

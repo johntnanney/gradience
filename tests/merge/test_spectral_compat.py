@@ -194,8 +194,36 @@ class TestComputeSubspaceMetrics:
         metrics = self._make_pair_from_svd(U_r, S, Vt_r, U_r, S, Vt_r)
 
         assert metrics.mean_overlap > 0.9
+        assert len(metrics.right_principal_angle_cosines) > 0
+        assert sum(metrics.right_principal_angle_cosines) / len(metrics.right_principal_angle_cosines) > 0.9
         assert metrics.directional_agreement > 0.5
         assert metrics.magnitude_ratio == pytest.approx(1.0, abs=0.1)
+
+    def test_v2_geometry_payloads_present_and_ordered(self):
+        """Right-angle spectrum and effective singular spectra are emitted/sane."""
+        torch.manual_seed(10_101)
+        r = 8
+        A_a = torch.randn(r, 64)
+        B_a = torch.randn(64, r)
+        A_b = torch.randn(r, 64)
+        B_b = torch.randn(64, r)
+        metrics = compute_subspace_metrics(A_a, B_a, None, r, A_b, B_b, None, r)
+
+        assert isinstance(metrics.right_principal_angle_cosines, tuple)
+        assert isinstance(metrics.effective_singular_values_a, tuple)
+        assert isinstance(metrics.effective_singular_values_b, tuple)
+        assert len(metrics.right_principal_angle_cosines) > 0
+        assert len(metrics.effective_singular_values_a) == metrics.effective_rank_a
+        assert len(metrics.effective_singular_values_b) == metrics.effective_rank_b
+        assert all(0.0 <= c <= 1.0 for c in metrics.right_principal_angle_cosines)
+        assert all(
+            metrics.effective_singular_values_a[i] >= metrics.effective_singular_values_a[i + 1]
+            for i in range(len(metrics.effective_singular_values_a) - 1)
+        )
+        assert all(
+            metrics.effective_singular_values_b[i] >= metrics.effective_singular_values_b[i + 1]
+            for i in range(len(metrics.effective_singular_values_b) - 1)
+        )
 
     def test_orthogonal_matrices_low_overlap(self):
         """Orthogonal subspaces -> overlap ≈ 0.0."""

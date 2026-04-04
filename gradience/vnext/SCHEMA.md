@@ -102,11 +102,15 @@ Notes:
 ### `metrics`
 
 Required payload fields:
-- `kind`: string (e.g., `lora_audit`, `spectral`, `structural`, `dominance_act`)
+- `kind`: string (e.g., `lora_audit`, `spectral`, `structural`, `dominance_act`, `merge_aware_compatibility`)
 - `metrics`: object
 
 Notes:
 - `kind` is used to namespace metric payloads so new metric blocks can be added without breaking consumers.
+- Current callback integrations may emit merge-aware monitor kinds:
+  - `merge_aware_monitor` (init/status)
+  - `merge_aware_compatibility` (per-checkpoint snapshots)
+  - `merge_aware_summary` (run-end trend summary)
 
 ### `alert`
 

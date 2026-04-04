@@ -55,21 +55,29 @@ from .phase_transitions import (
 )
 from .spectral_extended import (
     FullSpectralSnapshot,
+    HTSRTailEstimate,
     RankTracker,
+    SpectralEdgeGapProbe,
     aggregate_layerwise_spectra,
     compute_full_spectrum,
     compute_layerwise_spectra,
+    compute_spectral_edge_gap,
+    fit_htsr_tail_exponent,
     fit_spectral_decay,
 )
 
 __all__ = [
     # Extended spectral
     "FullSpectralSnapshot",
+    "HTSRTailEstimate",
+    "SpectralEdgeGapProbe",
     "compute_full_spectrum",
     "compute_layerwise_spectra",
     "aggregate_layerwise_spectra",
     "RankTracker",
     "fit_spectral_decay",
+    "fit_htsr_tail_exponent",
+    "compute_spectral_edge_gap",
     # Hessian
     "HessianSnapshot",
     "HessianTracker",

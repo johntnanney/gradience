@@ -63,6 +63,7 @@ CORE_SPACE_STATUS_VALUES = frozenset(
         "not_applicable",
     }
 )
+OVER_ACCUMULATION_ADVISORY_VALUES = frozenset({"none", "watch", "elevated"})
 
 # ---------------------------------------------------------------------------
 # Data structure
@@ -225,6 +226,10 @@ class MergeQAReport:
     core_space: CoreSpaceSummary | None = None
     task_relationship_advisory: str | None = None  # additive advisory when adapters trained on different tasks
     task_relationship: str | None = None  # machine-readable: "same_task", "same_family", "cross_task", or None
+    over_accumulation_advisory: str | None = None  # "watch" | "elevated" (None when no watch)
+    over_accumulation_summary: str | None = None
+    over_accumulation_high_risk_layers: int = 0
+    over_accumulation_watch_layers: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -248,6 +253,11 @@ class MergeQAReport:
             d["task_relationship_advisory"] = self.task_relationship_advisory
         if self.task_relationship is not None:
             d["task_relationship"] = self.task_relationship
+        if self.over_accumulation_advisory is not None:
+            d["over_accumulation_advisory"] = self.over_accumulation_advisory
+            d["over_accumulation_summary"] = self.over_accumulation_summary or ""
+            d["over_accumulation_high_risk_layers"] = int(self.over_accumulation_high_risk_layers)
+            d["over_accumulation_watch_layers"] = int(self.over_accumulation_watch_layers)
         return d
 
     def to_json(self, path: Path | str) -> None:
@@ -371,6 +381,25 @@ class MergeQAReport:
                 task_relationship = raw_rel_str
             # silently ignore unknown values for forward compat
 
+        # --- Optional over-accumulation advisory ---
+        raw_oa_advisory = d.get("over_accumulation_advisory")
+        over_accumulation_advisory: str | None = None
+        over_accumulation_summary: str | None = None
+        over_accumulation_high_risk_layers = 0
+        over_accumulation_watch_layers = 0
+        if raw_oa_advisory is not None:
+            oa_value = str(raw_oa_advisory)
+            if oa_value not in OVER_ACCUMULATION_ADVISORY_VALUES:
+                raise QASchemaError(
+                    "Invalid over_accumulation_advisory "
+                    f"'{oa_value}'. Must be one of: {sorted(OVER_ACCUMULATION_ADVISORY_VALUES)}"
+                )
+            if oa_value != "none":
+                over_accumulation_advisory = oa_value
+                over_accumulation_summary = str(d.get("over_accumulation_summary", ""))
+                over_accumulation_high_risk_layers = int(d.get("over_accumulation_high_risk_layers", 0))
+                over_accumulation_watch_layers = int(d.get("over_accumulation_watch_layers", 0))
+
         return cls(
             adapter_a=adapter_a,
             adapter_b=adapter_b,
@@ -387,6 +416,10 @@ class MergeQAReport:
             core_space=core_space,
             task_relationship_advisory=task_relationship_advisory,
             task_relationship=task_relationship,
+            over_accumulation_advisory=over_accumulation_advisory,
+            over_accumulation_summary=over_accumulation_summary,
+            over_accumulation_high_risk_layers=over_accumulation_high_risk_layers,
+            over_accumulation_watch_layers=over_accumulation_watch_layers,
         )
 
 
@@ -528,6 +561,9 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
         caveats.append(
             "High structural risk. Always validate the merged adapter on your target task before deployment."
         )
+
+    if diag.over_accumulation_advisory != "none" and diag.over_accumulation_summary:
+        caveats.append(diag.over_accumulation_summary)
 
     # From recommendation warnings
     for w in rec.warnings:
@@ -708,6 +744,14 @@ def build_qa_report(report: Any) -> MergeQAReport:
         core_space=core_space_summary,
         task_relationship_advisory=_task_rel[1],
         task_relationship=_task_rel[0],
+        over_accumulation_advisory=(
+            diag.over_accumulation_advisory if diag.over_accumulation_advisory != "none" else None
+        ),
+        over_accumulation_summary=(
+            diag.over_accumulation_summary if diag.over_accumulation_advisory != "none" else None
+        ),
+        over_accumulation_high_risk_layers=diag.over_accumulation_high_risk_layers,
+        over_accumulation_watch_layers=diag.over_accumulation_watch_layers,
     )
 
 
@@ -809,6 +853,13 @@ def format_qa_report(qa: MergeQAReport) -> str:
     lines.append(f"  Dominant issue:  {qa.dominant_issue.upper().replace('_', ' ')}")
     if qa.dominant_issue_detail:
         lines.append(f"                   {qa.dominant_issue_detail}")
+    if qa.over_accumulation_advisory is not None:
+        lines.append(
+            f"  Over-accumulation: {qa.over_accumulation_advisory.upper()} "
+            f"(high={qa.over_accumulation_high_risk_layers}, watch={qa.over_accumulation_watch_layers})"
+        )
+        if qa.over_accumulation_summary:
+            lines.append(f"                     {qa.over_accumulation_summary}")
 
     # Verdict distribution
     dist = qa.verdict_distribution

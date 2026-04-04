@@ -45,6 +45,8 @@ def _make_lv_dict(
     suggested_coefficients=None,
     layer_name: str = "model.layers.0.self_attn.q_proj",
     principal_angle_cosines=(0.1, 0.05, 0.02),
+    over_accumulation_score: float = 0.0,
+    over_accumulation_band: str = "low",
 ) -> dict:
     """Build a synthetic LayerVerdict dict (as stored in MergeAuditReport)."""
     return {
@@ -57,6 +59,8 @@ def _make_lv_dict(
         "safe_merge_rank": 6,
         "suggested_strategy": verdict,
         "suggested_coefficients": suggested_coefficients,
+        "over_accumulation_score": over_accumulation_score,
+        "over_accumulation_band": over_accumulation_band,
         "metrics": {
             "principal_angle_cosines": list(principal_angle_cosines),
             "mean_overlap": mean_overlap,
@@ -692,6 +696,18 @@ class TestDiagnoseLayer:
         assert "verdict" in json_str
         assert "risk_level" in json_str
         assert "mean_overlap" in json_str
+        assert "over_accumulation_score" in json_str
+
+    def test_extracts_over_accumulation_fields(self):
+        """Over-accumulation fields are propagated from layer verdicts."""
+        lv = _make_lv_dict(
+            verdict="redundant",
+            over_accumulation_score=0.53,
+            over_accumulation_band="watch",
+        )
+        diag = diagnose_layer(lv)
+        assert diag.over_accumulation_score == pytest.approx(0.53)
+        assert diag.over_accumulation_band == "watch"
 
 
 class TestEligibilityContext:
@@ -817,6 +833,28 @@ class TestDiagnosePair:
         json_str = json.dumps(d)
         assert "layer_diagnoses" in json_str
         assert "eligibility" in json_str
+        assert "over_accumulation_advisory" in json_str
+
+    def test_over_accumulation_advisory_aggregated(self):
+        """Pair diagnosis aggregates over-accumulation watch/elevated state."""
+        layers = [
+            _make_lv_dict(
+                verdict="redundant",
+                layer_name="layer.0",
+                over_accumulation_score=0.65,
+                over_accumulation_band="high",
+            ),
+            _make_lv_dict(
+                verdict="safe",
+                layer_name="layer.1",
+                over_accumulation_score=0.20,
+                over_accumulation_band="low",
+            ),
+        ]
+        report = _FakeReport(layers)
+        diag = diagnose_pair(report)
+        assert diag.over_accumulation_advisory == "elevated"
+        assert diag.over_accumulation_high_risk_layers == 1
 
 
 # ---------------------------------------------------------------------------

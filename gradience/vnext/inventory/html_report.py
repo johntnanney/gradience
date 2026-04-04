@@ -416,6 +416,13 @@ def _strategy_badge(strategy: str) -> str:
     return _badge(_labels.get(strategy, strategy.replace("_", " ")), colors.get(strategy, "gray"))
 
 
+def _over_accum_badge(advisory: str) -> str:
+    """Badge for additive over-accumulation advisory."""
+    colors = {"none": "gray", "watch": "amber", "elevated": "red"}
+    labels = {"none": "none", "watch": "watch", "elevated": "elevated"}
+    return _badge(labels.get(advisory, advisory.replace("_", " ")), colors.get(advisory, "gray"))
+
+
 def _issue_label(issue: str) -> str:
     """Human-facing label for dominant_issue."""
     return _DOMINANT_ISSUE_LABELS.get(issue, issue.replace("_", " "))
@@ -703,7 +710,7 @@ def _render_pair_reports(reports: list[dict[str, Any]]) -> str:
         if not group_reports:
             continue
         if use_groups:
-            rows += f'<tr class="group-header"><td colspan="5">{_e(_GROUP_LABELS.get(group_key, group_key))}</td></tr>'
+            rows += f'<tr class="group-header"><td colspan="6">{_e(_GROUP_LABELS.get(group_key, group_key))}</td></tr>'
         for r in group_reports:
             a_name = Path(r.get("adapter_a", {}).get("path", "?")).name
             b_name = Path(r.get("adapter_b", {}).get("path", "?")).name
@@ -711,6 +718,9 @@ def _render_pair_reports(reports: list[dict[str, Any]]) -> str:
             issue = _issue_label(r.get("dominant_issue", "?"))
             strategy = r.get("recommended_strategy", "?")
             confidence = r.get("confidence", "?")
+            over_accum = r.get("over_accumulation_advisory", "none")
+            if not isinstance(over_accum, str):
+                over_accum = "none"
             advisory = r.get("task_relationship_advisory")
             advisory_marker = (
                 ' <span style="color:var(--amber);font-size:0.75rem" title="cross-task advisory">&#9888;</span>'
@@ -725,6 +735,7 @@ def _render_pair_reports(reports: list[dict[str, Any]]) -> str:
                 f"<td>{_e(issue)}</td>"
                 f"<td>{_strategy_badge(strategy)}</td>"
                 f"<td>{_badge(confidence)}</td>"
+                f"<td>{_over_accum_badge(over_accum)}</td>"
                 f"</tr>"
             )
 
@@ -732,7 +743,7 @@ def _render_pair_reports(reports: list[dict[str, Any]]) -> str:
         '<details id="sec-pairs"><summary>Pair Summary</summary>'
         '<div class="section-body">'
         '<table class="pair-table"><thead>'
-        "<tr><th>Pair</th><th>Risk</th><th>Issue</th><th>Strategy</th><th>Confidence</th></tr>"
+        "<tr><th>Pair</th><th>Risk</th><th>Issue</th><th>Strategy</th><th>Confidence</th><th>Over-Accum</th></tr>"
         "</thead><tbody>"
         f"{rows}"
         "</tbody></table>"

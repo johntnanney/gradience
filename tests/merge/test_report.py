@@ -65,7 +65,7 @@ class _FakeAdapterInfo:
         self.config = _FakeConfig()
 
 
-def _make_report(n_layers=3, include_conflict=False) -> MergeAuditReport:
+def _make_report(n_layers=3, include_conflict=False, over_accumulation_heavy=False) -> MergeAuditReport:
     """Build a sample report for testing."""
     info_a = _FakeAdapterInfo("/tmp/a", 8, 16.0, n_layers)
     info_b = _FakeAdapterInfo("/tmp/b", 8, 16.0, n_layers)
@@ -77,6 +77,19 @@ def _make_report(n_layers=3, include_conflict=False) -> MergeAuditReport:
                 mean_overlap=0.8,
                 directional_agreement=-0.7,
                 principal_angle_cosines=(0.9, 0.8),
+            )
+        elif over_accumulation_heavy:
+            metrics = _make_metrics(
+                principal_angle_cosines=(0.95, 0.9, 0.85),
+                mean_overlap=0.9,
+                max_overlap=0.95,
+                directional_agreement=0.9,
+                effective_rank_a=8,
+                effective_rank_b=8,
+                nominal_rank_a=64,
+                nominal_rank_b=64,
+                stable_rank_a=1.2,
+                stable_rank_b=1.3,
             )
         else:
             metrics = _make_metrics()
@@ -138,8 +151,21 @@ class TestBuildReport:
             "mean_frob_bounded_ratio",
             "mean_frob_log_ratio",
             "mean_magnitude_ratio",
+            "over_accumulation_advisory",
+            "over_accumulation_summary",
+            "high_risk_layer_count",
+            "watch_layer_count",
+            "max_over_accumulation_score",
         ):
             assert key in agg, f"Missing aggregate key: {key}"
+        for key in (
+            "mean_scale_bounded_ratio",
+            "mean_scale_log_ratio",
+            "mean_frob_bounded_ratio",
+            "mean_frob_log_ratio",
+            "mean_magnitude_ratio",
+            "max_over_accumulation_score",
+        ):
             assert isinstance(agg[key], float), f"{key} should be float"
 
         # Values should match what _make_metrics defaults produce
@@ -203,6 +229,10 @@ class TestToJson:
             "mean_frob_bounded_ratio",
             "mean_frob_log_ratio",
             "mean_magnitude_ratio",
+            "over_accumulation_advisory",
+            "high_risk_layer_count",
+            "watch_layer_count",
+            "max_over_accumulation_score",
         ):
             assert key in agg, f"Missing JSON aggregate key: {key}"
 
@@ -259,6 +289,11 @@ class TestToMarkdown:
         report = _make_report()
         md = to_markdown(report)
         assert "Recommendations" in md
+
+    def test_over_accumulation_section_when_present(self):
+        report = _make_report(n_layers=3, over_accumulation_heavy=True)
+        md = to_markdown(report)
+        assert "Over-accumulation advisory" in md
 
 
 class TestWriteReports:

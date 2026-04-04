@@ -63,10 +63,18 @@ class SubspaceMetrics:
     stable_rank_a: float
     stable_rank_b: float
 
+    # Optional v2 geometry payloads (default-empty for backward compatibility).
+    right_principal_angle_cosines: tuple[float, ...] = ()  # row-space cos(phi_i), descending
+    effective_singular_values_a: tuple[float, ...] = ()  # top effective-rank singular values
+    effective_singular_values_b: tuple[float, ...] = ()  # top effective-rank singular values
+
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         # Convert tuple to list for JSON serialization
         d["principal_angle_cosines"] = list(d["principal_angle_cosines"])
+        d["right_principal_angle_cosines"] = list(d["right_principal_angle_cosines"])
+        d["effective_singular_values_a"] = list(d["effective_singular_values_a"])
+        d["effective_singular_values_b"] = list(d["effective_singular_values_b"])
         return d
 
 
@@ -191,6 +199,12 @@ def compute_subspace_metrics(
     mean_overlap = cos_angles.mean().item() if cos_angles.numel() > 0 else 0.0
     max_overlap = cos_angles.max().item() if cos_angles.numel() > 0 else 0.0
 
+    # Row-space principal angles (between right-singular subspaces).
+    V_a_eff = Vt_a[:eff_rank_a, :].T  # (d_in, eff_rank_a)
+    V_b_eff = Vt_b[:eff_rank_b, :].T  # (d_in, eff_rank_b)
+    cross_right = V_a_eff.T @ V_b_eff
+    cos_angles_right = torch.linalg.svdvals(cross_right).clamp(0.0, 1.0)
+
     # === Directional agreement ===
     # Project ΔW_b = scaling_b * B_b @ A_b into ΔW_a's coordinate system.
     # Instead of materializing the full (d_out × d_in) matrix, chain
@@ -238,6 +252,7 @@ def compute_subspace_metrics(
         principal_angle_cosines=tuple(cos_angles.tolist()),
         mean_overlap=mean_overlap,
         max_overlap=max_overlap,
+        right_principal_angle_cosines=tuple(cos_angles_right.tolist()),
         directional_agreement=agreement,
         magnitude_ratio=mag_ratio,
         frobenius_ratio=frob_ratio,
@@ -253,6 +268,8 @@ def compute_subspace_metrics(
         nominal_rank_b=r_b,
         stable_rank_a=_stable_rank(S_a, eps),
         stable_rank_b=_stable_rank(S_b, eps),
+        effective_singular_values_a=tuple(S_a[:eff_rank_a].tolist()),
+        effective_singular_values_b=tuple(S_b[:eff_rank_b].tolist()),
     )
 
 

@@ -88,6 +88,14 @@ class GradienceCallbackConfig:
     enable_monitor: bool = True
     monitor_config: Any | None = None  # MonitorConfig instance or None for defaults
 
+    # Diagnostic-only merge-aware compatibility monitoring (OFF by default)
+    # When set, this compares the current training adapter state against one
+    # fixed reference adapter at logging cadence and emits telemetry snapshots.
+    merge_target: str | Path | None = None
+    merge_monitor_every: int = 1
+    merge_monitor_energy_threshold: float = 0.90
+    merge_monitor_compute_dtype: str = "float32"
+
 
 def _coerce_task_profile(tp: str | TaskFamily | None) -> TaskFamily:
     if tp is None:
@@ -289,6 +297,9 @@ class GradienceCallback(TrainerCallback):
 
         # Training monitor - initialized in on_train_begin
         self._monitor: Any = None  # TrainingMonitor
+        # Optional merge-aware monitor (diagnostic-only)
+        self._merge_monitor: Any = None
+        self._merge_monitor_snapshots: list[dict[str, Any]] = []
 
     def on_train_begin(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs.get("model")
@@ -329,6 +340,45 @@ class GradienceCallback(TrainerCallback):
                 self._monitor = TrainingMonitor(monitor_cfg)
             except ImportError:
                 self._monitor = None
+
+        # Initialize optional merge-aware compatibility monitor (diagnostic-only)
+        self._merge_monitor = None
+        self._merge_monitor_snapshots = []
+        if self.config.merge_target:
+            try:
+                from .merge_aware_monitor import MergeAwareTrainingMonitor
+
+                self._merge_monitor = MergeAwareTrainingMonitor(
+                    self.config.merge_target,
+                    energy_threshold=self.config.merge_monitor_energy_threshold,
+                    compute_dtype=self.config.merge_monitor_compute_dtype,
+                )
+                if self.writer:
+                    self.writer.metrics(
+                        0,
+                        kind="merge_aware_monitor",
+                        metrics={
+                            "action": "init",
+                            "status": "ok",
+                            "reference_adapter": str(self.config.merge_target),
+                            "cadence": max(1, int(self.config.merge_monitor_every)),
+                        },
+                    )
+            except Exception as exc:
+                self._merge_monitor = None
+                if self.writer:
+                    from ..types import Severity
+
+                    self.writer.alert(
+                        severity=Severity.WARNING,
+                        code="MERGE_AWARE_MONITOR_INIT_FAILED",
+                        message="Merge-aware monitor init failed; continuing without it.",
+                        metadata={
+                            "reference_adapter": str(self.config.merge_target),
+                            "error_type": exc.__class__.__name__,
+                            "error": str(exc),
+                        },
+                    )
 
         # Initialize experimental guard if enabled
         if self.config.enable_guard and model is not None:
@@ -446,6 +496,30 @@ class GradienceCallback(TrainerCallback):
                         code=f"MONITOR_{ma.code}",
                         message=ma.message,
                         metadata=ma.details,
+                    )
+
+        # Optional merge-aware compatibility snapshot (diagnostic-only).
+        if self._merge_monitor is not None and model is not None:
+            cadence = max(1, int(self.config.merge_monitor_every))
+            if step % cadence == 0:
+                try:
+                    snapshot = self._merge_monitor.snapshot_from_model(model)
+                    snap_payload = snapshot.to_metrics_payload()
+                    self._merge_monitor_snapshots.append({"step": step, **snap_payload})
+                    self.writer.metrics(step, kind="merge_aware_compatibility", metrics=snap_payload)
+                except Exception as exc:
+                    from ..types import Severity
+
+                    self.writer.alert(
+                        severity=Severity.WARNING,
+                        code="MERGE_AWARE_MONITOR_SNAPSHOT_FAILED",
+                        message="Merge-aware snapshot failed at this step; training continued.",
+                        metadata={
+                            "step": step,
+                            "reference_adapter": str(self.config.merge_target),
+                            "error_type": exc.__class__.__name__,
+                            "error": str(exc),
+                        },
                     )
 
         # Trigger detection using existing signals
@@ -746,6 +820,28 @@ class GradienceCallback(TrainerCallback):
                     "n_rollbacks": self.guard.n_rollbacks,
                 },
             )
+
+        # Emit conservative run-level merge-aware trend summary if configured.
+        if self._merge_monitor is not None:
+            try:
+                from .merge_aware_monitor import summarize_merge_aware_trends
+
+                summary = summarize_merge_aware_trends(self._merge_monitor_snapshots)
+                summary["reference_adapter"] = str(self.config.merge_target)
+                self.writer.metrics(final_step, kind="merge_aware_summary", metrics=summary)
+            except Exception as exc:
+                from ..types import Severity
+
+                self.writer.alert(
+                    severity=Severity.WARNING,
+                    code="MERGE_AWARE_MONITOR_SUMMARY_FAILED",
+                    message="Merge-aware trend summary failed; continuing run finalization.",
+                    metadata={
+                        "reference_adapter": str(self.config.merge_target),
+                        "error_type": exc.__class__.__name__,
+                        "error": str(exc),
+                    },
+                )
 
         self.writer.run_end(status="ok")
         self.writer.close()

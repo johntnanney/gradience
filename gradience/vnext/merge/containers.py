@@ -155,6 +155,13 @@ class AggregateResult:
     # Legacy magnitude metric
     mean_magnitude_ratio: float = 0.0
 
+    # Additive over-accumulation advisory
+    over_accumulation_advisory: str = "none"  # "none" | "watch" | "elevated"
+    over_accumulation_summary: str = ""
+    high_risk_layer_count: int = 0
+    watch_layer_count: int = 0
+    max_over_accumulation_score: float = 0.0
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "overall_verdict": self.overall_verdict,
@@ -172,6 +179,11 @@ class AggregateResult:
             "mean_frob_bounded_ratio": self.mean_frob_bounded_ratio,
             "mean_frob_log_ratio": self.mean_frob_log_ratio,
             "mean_magnitude_ratio": self.mean_magnitude_ratio,
+            "over_accumulation_advisory": self.over_accumulation_advisory,
+            "over_accumulation_summary": self.over_accumulation_summary,
+            "high_risk_layer_count": self.high_risk_layer_count,
+            "watch_layer_count": self.watch_layer_count,
+            "max_over_accumulation_score": self.max_over_accumulation_score,
         }
 
     @classmethod
@@ -192,6 +204,11 @@ class AggregateResult:
             mean_frob_bounded_ratio=d.get("mean_frob_bounded_ratio", 0.0),
             mean_frob_log_ratio=d.get("mean_frob_log_ratio", 0.0),
             mean_magnitude_ratio=d.get("mean_magnitude_ratio", 0.0),
+            over_accumulation_advisory=d.get("over_accumulation_advisory", "none"),
+            over_accumulation_summary=d.get("over_accumulation_summary", ""),
+            high_risk_layer_count=d.get("high_risk_layer_count", 0),
+            watch_layer_count=d.get("watch_layer_count", 0),
+            max_over_accumulation_score=d.get("max_over_accumulation_score", 0.0),
         )
 
     def __getitem__(self, key: str) -> Any:

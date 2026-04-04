@@ -23,6 +23,7 @@ from gradience.vnext.merge.containers import (
     MatchingSummary,
 )
 from gradience.vnext.merge.core_space_types import CoreSpacePairDiagnostic
+from gradience.vnext.merge.over_accumulation import summarize_over_accumulation
 from gradience.vnext.merge.verdicts import (
     CompatibilityVerdict,
     LayerVerdict,
@@ -104,6 +105,15 @@ def build_report(
     frob_bounded_ratios = [getattr(lv.metrics, "frob_bounded_ratio", 0.0) for lv in layer_verdicts]
     frob_log_ratios = [getattr(lv.metrics, "frob_log_ratio", 0.0) for lv in layer_verdicts]
     mag_ratios = [getattr(lv.metrics, "magnitude_ratio", 0.0) for lv in layer_verdicts]
+    over_accum_pair = summarize_over_accumulation(
+        layer_scores=[getattr(lv, "over_accumulation_score", 0.0) for lv in layer_verdicts],
+        layer_bands=[getattr(lv, "over_accumulation_band", "low") for lv in layer_verdicts],
+        non_overlap_issue_count=sum(
+            1
+            for lv in layer_verdicts
+            if lv.verdict in (CompatibilityVerdict.CONFLICTING, CompatibilityVerdict.IMBALANCED)
+        ),
+    )
 
     # Build source QA section if provided
     source_qa: dict[str, Any] | None = None
@@ -169,6 +179,11 @@ def build_report(
             mean_frob_bounded_ratio=round(safe_mean(frob_bounded_ratios), 4),
             mean_frob_log_ratio=round(safe_mean(frob_log_ratios), 4),
             mean_magnitude_ratio=round(safe_mean(mag_ratios), 4),
+            over_accumulation_advisory=over_accum_pair.advisory,
+            over_accumulation_summary=over_accum_pair.summary,
+            high_risk_layer_count=over_accum_pair.high_risk_layer_count,
+            watch_layer_count=over_accum_pair.watch_layer_count,
+            max_over_accumulation_score=round(over_accum_pair.max_score, 4),
         ),
         recommendations=recommendations,
         issues=[],
@@ -301,6 +316,13 @@ def to_markdown(report: MergeAuditReport) -> str:
         f"{agg.n_conflicting} conflicting, "
         f"{agg.n_imbalanced} imbalanced"
     )
+    if getattr(agg, "over_accumulation_advisory", "none") != "none":
+        lines.append(
+            f"- Over-accumulation advisory: {agg.over_accumulation_advisory.upper()} "
+            f"(high={agg.high_risk_layer_count}, watch={agg.watch_layer_count})"
+        )
+        if getattr(agg, "over_accumulation_summary", ""):
+            lines.append(f"- Over-accumulation note: {agg.over_accumulation_summary}")
     if report.core_space is not None:
         lines.append("- Core-space diagnostic:")
         lines.append(f"  - Shared basis score: {report.core_space.shared_basis_score_mean:.3f}")
@@ -312,13 +334,15 @@ def to_markdown(report: MergeAuditReport) -> str:
     # --- Per-layer analysis ---
     if report.layer_verdicts:
         lines.append("## Per-Layer Analysis\n")
-        lines.append("| Layer | r_a | r_b | Overlap | Agreement | Scale | Mag ratio | Verdict | Strategy |")
-        lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|")
+        lines.append("| Layer | r_a | r_b | Overlap | Agreement | Scale | Mag ratio | Verdict | Strategy | Over-Accum |")
+        lines.append("|---|---:|---:|---:|---:|---:|---:|---|---|---|")
 
         for lv in report.layer_verdicts:
             m = lv["metrics"]
             v_emoji = _VERDICT_EMOJI.get(lv["verdict"], "")
             short_name = _shorten_layer_name(lv["layer_name"])
+            oa_band = lv.get("over_accumulation_band", "low")
+            oa_score = float(lv.get("over_accumulation_score", 0.0))
             lines.append(
                 f"| {short_name} "
                 f"| {m['nominal_rank_a']} "
@@ -328,7 +352,8 @@ def to_markdown(report: MergeAuditReport) -> str:
                 f"| {m.get('scale_bounded_ratio', 0.0):.3f} "
                 f"| {m['magnitude_ratio']:.1f}x "
                 f"| {v_emoji} {lv['verdict']} "
-                f"| {lv['suggested_strategy']} |"
+                f"| {lv['suggested_strategy']} "
+                f"| {oa_band} ({oa_score:.2f}) |"
             )
         lines.append("")
 

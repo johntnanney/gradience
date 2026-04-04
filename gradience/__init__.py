@@ -117,8 +117,10 @@ __all__ = [
     # Inventory summary and action plan
     "InventorySummary",
     "InventoryActionPlan",
-    # Advanced inventory artifact
+    # Advanced inventory artifacts
     "MergeNeighborhoodReport",
+    "PortfolioRow",
+    "PortfolioView",
     # vNext telemetry (canonical)
     "TelemetryWriter",
     "TelemetryReader",
