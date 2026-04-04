@@ -210,6 +210,66 @@ Given the analytical results from Q1-Q5:
    `high_overlap=0.5`, `imbalanced=5.0`) be derived or justified from
    the analytical conditions?
 
+### Q7: Spectral partitioning and subspace convergence
+
+**Motivation.** Tian, Ledent, and Sun (2026; ICLR 2026, arXiv:2603.01526)
+observe empirically that in multi-task LoRA training, the high-SV
+directions of adapter B-matrices show 89% inter-task alignment while
+low-SV directions show only 3%. This partitioning, if it holds for
+independently trained adapters, would provide the generative explanation
+for why Gradience's energy-weighted interaction terms predict merge
+compatibility — the high-energy directions that dominate the cross term
+in Q1 are precisely the shared directions where same-task adapters agree.
+
+**Questions:**
+
+1. **Convergence bound.** Given the pre-trained weight matrix $W_0$ with
+   spectral gap $g_k = \sigma_k(W_0) - \sigma_{k+1}(W_0)$, and two
+   independently trained LoRA updates $\Delta W_a$, $\Delta W_b$ of
+   rank $r \leq k$ satisfying $\|\Delta W\|_2 \leq \epsilon$, can we
+   bound the principal angle between their dominant singular subspaces
+   as a function of $g_k$ and $\epsilon$? The Davis-Kahan theorem
+   provides the tool; the question is whether the bound is tight enough
+   to be informative for typical LoRA parameters.
+
+2. **Partitioning threshold.** Is the boundary between the shared and
+   task-specific spectral bands predictable from $W_0$'s spectrum?
+   Candidate: the Marchenko-Pastur bulk edge (already implemented in
+   `optimal_hard_threshold`). If directions above the noise floor in
+   $W_0$ constrain adaptation, and directions within the bulk are free
+   to specialize, then the `optimal_hard_threshold` policy may
+   approximate the natural partitioning point.
+
+3. **Energy-weighted interaction consequence.** Given partitioning
+   (high-SV aligned, low-SV orthogonal), does the cross-term bound
+   from Q1 simplify? Specifically, if $\cos(\theta_i) \approx 1$ for
+   $i \leq k^*$ (shared band) and $\cos(\theta_i) \approx 0$ for
+   $i > k^*$ (task-specific band), the sum collapses to the top-$k^*$
+   terms. This would formalize the empirical observation that
+   energy-rank concentration predicts merge safety.
+
+4. **Block-level vs. component-level.** Tian et al. find that
+   block-level LoRA (whole attention block) reduces gradient conflict
+   by 76% vs. component-level (individual Q/K/V/O). If block-level
+   becomes standard, does the V-module-specific pathology identified
+   by Gradience (Technical Report §3.2) still manifest? Can the
+   analytical framework predict how spectral signatures redistribute
+   when adapter granularity changes?
+
+**Approach.** Q7.1 is purely mathematical (Davis-Kahan applied to the
+LoRA setting). Q7.2 and Q7.3 are semi-analytical (bounds + numerical
+validation on synthetic matrices with planted spectral gaps). Q7.4 is
+conjectural and should wait for empirical evidence of block-level
+adapters appearing in the audit corpus.
+
+**Connection to existing work.** Q7.1 provides the theoretical
+foundation that Q1's interaction term currently lacks — it explains
+*why* the principal angles take the values they do, rather than merely
+deriving *what happens given those values*. Together, Q1 + Q7 would
+give the full causal chain: pre-trained spectrum constrains adaptation
+→ adaptation produces predictable subspace geometry → subspace geometry
+determines merge interaction → merge interaction predicts outcome.
+
 ## Analytical Approach
 
 ### Phase 1: Linear merge (exact results)

@@ -263,6 +263,62 @@ as scale diagnostics. Large imbalances suggest one adapter will dominate
 the merge unless coefficients are adjusted.
 
 
+### Spectral partitioning: shared vs. task-specific directions
+
+Recent evidence from multi-task LoRA training (Tian, Ledent, & Sun, 2026;
+ICLR 2026, arXiv:2603.01526) indicates that the singular value spectrum of
+LoRA adapters partitions into functionally distinct bands during training:
+
+- **High-SV band** (top 20% by singular value magnitude): 89% inter-task
+  alignment across 16 instruction-following tasks on LLaMA-2-7B,
+  concentrating 54% of total singular value mass. These directions encode
+  structure shared across tasks.
+
+- **Low-SV band** (bottom 50%): only 3% inter-task alignment, encoding
+  task-specific features.
+
+This partitioning has direct theoretical implications for merge analysis.
+The interaction term in the merged spectrum (Technical Report §2.3) is
+weighted by singular values: $z = \text{sign}(\delta) \cdot \cos(\theta)
+\cdot \cos(\phi)$, where $\theta$ and $\phi$ are principal angles between
+singular subspaces. If high-SV directions are shared, then the principal
+angles in the high-energy band will be small for same-task adapters,
+making the energy-weighted interaction constructive. Large angles in the
+low-SV band contribute minimally because those directions carry little
+energy. This explains *why* energy-rank concentration is predictive of
+merge compatibility: the metric naturally emphasizes the shared directions
+where conflict would matter most.
+
+**Perturbation-theoretic explanation.** The Davis-Kahan theorem (§2 above)
+provides a candidate mechanism. If the pre-trained weight matrix $W_0$ has
+a spectrally isolated dominant subspace (large gap $\sigma_k - \sigma_{k+1}$),
+then any bounded perturbation $\Delta W$ of rank $r \leq k$ will have its
+dominant singular directions attracted toward $W_0$'s dominant subspace —
+the angular perturbation is bounded by $\|\Delta W\|_2 / (\sigma_k - \sigma_{k+1})$.
+Different tasks trained on the same backbone experience the same pre-trained
+spectral constraint, so their dominant update directions converge. Low-energy
+directions, which interact with the spectrally flat region of $W_0$'s
+spectrum (where gaps are small), have no such convergence pressure and are
+free to specialize.
+
+This account is conjectural but testable: it predicts that layers with
+larger spectral gaps in $W_0$ should show higher inter-task alignment in
+adapter high-SV directions. It also predicts that the Marchenko-Pastur
+bulk edge (used in Gradience's `optimal_hard_threshold` policy) may
+approximate the boundary between the shared and task-specific spectral
+bands — directions above the noise floor are structurally constrained by
+pre-training, while directions within the bulk are free to diverge.
+
+**Important qualification.** Tian et al.'s alignment measurements come from
+multi-task co-training (shared gradient flow). Whether the same partitioning
+holds for independently trained adapters is the empirical question that
+Gradience's post-hoc principal angle measurements answer on a per-pair
+basis. The perturbation-theoretic argument above suggests the partitioning
+should persist under independent training (since it derives from the
+pre-trained spectrum, not from co-training dynamics), but this prediction
+has not been directly tested.
+
+
 ## 7. Open Theoretical Questions
 
 1. **Spectrum universality.** Do adapters trained on the same task with
@@ -289,7 +345,19 @@ the merge unless coefficients are adjusted.
    geometries, or are there universal patterns? Gradience's architecture-agnostic
    audit can answer this empirically once sufficient data is collected.
 
-6. **Phase transition detection.** Can spectral observables serve as
+6. **Spectral partitioning convergence.** Does independent fine-tuning
+   (not co-training) produce the same high-SV shared / low-SV task-specific
+   partitioning observed by Tian et al. (2026) in multi-task settings?
+   The perturbation-theoretic argument in §6 predicts yes (the mechanism
+   is the pre-trained spectrum's constraint, not shared gradients). Testing
+   this requires measuring inter-adapter singular vector alignment as a
+   function of spectral band on Gradience's existing independently trained
+   adapter corpus. A positive result would provide the generative explanation
+   for why spectral triage works; a negative result would indicate that
+   the partitioning is an artifact of co-training and that Gradience's
+   empirical success rests on a different (as-yet-unidentified) mechanism.
+
+7. **Phase transition detection.** Can spectral observables serve as
    reliable order parameters for detecting training phase transitions
    (grokking, mode collapse, catastrophic forgetting) before they
    manifest in the loss curve?

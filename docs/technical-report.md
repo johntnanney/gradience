@@ -75,6 +75,16 @@ $$\sigma_1(\text{cross}) \leq 2\alpha\beta \sum_i s_{a,i} \, s_{b,i} \cos(\theta
 
 where $\theta_i$ and $\phi_i$ are the $i$-th principal angles between the respective subspaces. The bound is tight when the adapters' singular directions are well-aligned; it is loose when they interact across multiple dimensions. In practice, the spectral profiles of LoRA adapters on small encoders are sharply concentrated — 4 to 8 effective dimensions carry >90% of the Frobenius energy — so the rank-1 intuition extends well.
 
+### 2.3.1 Independent Training-Side Evidence for Spectral Partitioning
+
+The formal sketch above shows that the interaction term governing merge outcome is weighted by singular value magnitudes — high-energy directions dominate the interaction, low-energy directions contribute little. This weighting is not accidental. Independent evidence from multi-task LoRA training suggests that the singular value spectrum partitions into functionally distinct bands during training itself.
+
+Tian, Ledent, and Sun (2026) measure inter-task alignment of LoRA singular vectors across 16 instruction-following tasks on LLaMA-2-7B (Flan-v2→BBH). Using a singular-value-weighted cosine similarity metric across tasks' B-matrix decompositions, they find that the top-20% of the spectrum (by singular value magnitude) shows 89% inter-task alignment and concentrates 54% of total singular value mass, while the bottom-50% shows only 3% alignment. High-energy directions converge to a shared subspace across tasks; low-energy directions diverge to encode task-specific features.
+
+This finding has a direct bearing on why spectral triage works. If high-SV directions are shared across tasks, then the principal angles between high-SV subspaces of same-task or same-family adapters should be small — precisely the geometric condition that the Gradience audit identifies as SAFE or REDUNDANT. Conversely, the large angles between low-SV subspaces contribute minimally to the interaction term because those directions carry little energy. The energy-weighted interaction bound above therefore naturally emphasizes the directions where compatibility matters most: the shared, high-energy directions where conflict would be catastrophic and agreement is common.
+
+Three qualifications are necessary. First, Tian et al.'s alignment measurements come from multi-task *co-training* (shared gradient flow), not from independently trained adapters. Whether the same spectral partitioning holds for independently trained adapters on the same backbone is an empirical question — and it is precisely the question that Gradience's post-hoc principal angle measurements answer on a per-pair basis. Second, their work operates on LLaMA-2-7B and ViT (decoder and vision architectures), while our validation is on small encoders; the convergence of findings across architectures is encouraging but does not constitute mutual validation. Third, they do not derive *why* high-SV directions converge — a theoretical gap that the perturbation-stability argument in THEORY.md §2 (Davis-Kahan) may help close (see §7.5 below).
+
 ### 2.4 Why Per-Layer, Per-Module Analysis Matters
 
 A transformer has many weight matrices — query, key, value, and output projections in each attention layer, plus MLP weights. A LoRA adapter may modify some or all of these. The spectral compatibility story plays out independently at each modified weight matrix, and the layer-level and module-level structure turns out to be critical.
@@ -399,6 +409,22 @@ The Route 2 research program extended compatibility analysis beyond merge to oth
 
 **Behavioral grounding.** Four of five compatibility profiles identified by the structural analysis have distinct behavioral footprints, confirming that the structural distinctions are not artifacts of the measurement but correspond to real differences in model behavior. The three-tier behavioral model: no pathology (neither-source <2%), localized pathology (neither-source ~14%, with collapse/contamination distinction), and stasis (shared failure 65%, evidence gate would catch).
 
+### 7.5 Spectral Partitioning: Toward a Generative Explanation
+
+The technical report's argument currently runs in one direction: spectral observables predict merge outcomes. What it does not yet explain is *why the observables take the values they do* — why independently trained adapters develop the subspace geometries that make spectral triage possible in the first place. Recent training-side evidence suggests the outline of a generative account.
+
+Tian, Ledent, and Sun (2026) observe that during multi-task LoRA training, the singular value spectrum partitions into shared high-energy directions and task-specific low-energy directions (§2.3.1). If this partitioning is not merely an artifact of co-training but reflects constraints imposed by the pre-trained model's geometry, then the Davis-Kahan perturbation theory already in THEORY.md §2 provides the mechanism: the pre-trained weight matrix $W_0$ has a dominant subspace that is perturbation-stable (large spectral gap implies small angular perturbation under bounded updates). Low-rank fine-tuning updates will tend to align their dominant singular directions with this stable subspace, because those are the directions where small perturbations produce the largest representational changes downstream. Task-specific learning is pushed into the lower-energy directions, where the pre-trained structure imposes fewer constraints.
+
+This suggests a concrete theoretical program:
+
+1. **Convergence theorem.** Can we prove, under reasonable assumptions about training objectives, that the dominant singular directions of independently trained LoRA adapters on the same backbone converge to a shared subspace? The Davis-Kahan angle bound implies that if two tasks have similar loss curvature near the pre-trained weights, their dominant update directions will be angularly close. Making this precise — bounding the principal angle between dominant subspaces as a function of the pre-trained spectral gap and the training loss geometry — would give both the Gradience triage pipeline and training-side methods like mtLoRA a shared theoretical foundation.
+
+2. **Partitioning threshold.** The mtLoRA finding shows a sharp empirical boundary between shared and task-specific spectral bands (89% vs. 3% alignment). Is this boundary predictable from the pre-trained spectrum? A natural candidate is the Marchenko-Pastur bulk edge (already used in Gradience's `optimal_hard_threshold` rank policy): directions above the noise floor may be structurally constrained by pre-training, while directions within the bulk are free to specialize.
+
+3. **Block-level vs. component-level implications.** mtLoRA finds that block-level LoRA adaptation (whole attention block as a unit) reduces gradient conflict by 76% compared to component-level adaptation (individual Q, K, V, O matrices). Gradience's key diagnostic finding is that the V-module specifically carries catastrophe-discriminating information at the component level. If block-level LoRA becomes standard practice, the V-module-specific pathology mechanism may need revisiting — the audit would need to determine whether block-level adapters still exhibit module-specific spectral signatures or whether the pathology redistributes.
+
+This program is CPU-only mathematical work, connecting directly to the analytical spectral geometry plan. Its deliverables would upgrade the argument in §2 from "spectral observables predict merge outcomes" to "the spectral structure of fine-tuning is constrained by the pre-trained model's geometry in ways that make the observables predictive" — a generative rather than merely correlational claim.
+
 ---
 
 ## 8. Related Approaches and Positioning
@@ -410,6 +436,8 @@ The merge triage problem can be approached from several directions. Gradience's 
 **Task metadata heuristics** use dataset and task labels to filter pairs. Gradience incorporates this via task-boundary detection, which is its highest-confidence feature. But metadata alone cannot distinguish between same-task pairs that are structurally compatible and those that are not.
 
 **Gradient-based compatibility** measures how similarly two adapters respond to the same training signal. Gradience's own research found that `proxy_gradient` — a gradient-based comparator — is the stronger *operational* default for rank policy selection, outperforming spectral policies on stability. This is worth reporting transparently: in the specific domain of rank-budget allocation, gradient signal beats spectral signal. However, this does not weaken the case for spectral analysis in merge triage, where the main value lies in *structural interpretation and candidate narrowing* rather than optimization-proxy stability. Spectral analysis reveals *why* a pair is incompatible (V-module subspace conflict, magnitude imbalance, redundancy); gradient-based measures provide a scalar compatibility signal without geometric decomposition. The two approaches are complementary, and the current architecture supports both.
+
+**Training-side spectral methods** address the interference problem at training time rather than post-hoc. Tian, Ledent, and Sun (2026) demonstrate that in multi-task LoRA training, the singular value spectrum partitions into shared high-energy directions (89% inter-task alignment in the top quintile) and task-specific low-energy directions (3% alignment in the bottom half). Their *spectral-aware regularization* selectively orthogonalizes low-SV components while preserving high-SV shared structure, improving multi-task scaling. Gradience and this line of work observe the same spectral partitioning from opposite temporal vantage points: mtLoRA sees it during training and intervenes to preserve it; Gradience sees it post-hoc and exploits it for triage. The two approaches are complementary — spectral-aware training could produce adapters that are easier to triage, while spectral triage could identify when training has failed to produce the expected partitioning. One important disanalogy: mtLoRA's alignment measurements come from co-trained adapters sharing gradient flow, while Gradience operates on independently trained adapters. Whether training-side partitioning is a property of co-training or of the tasks themselves is an open question that connects directly to the analytical spectral geometry program (see §7.5).
 
 **Model merging research** (TIES, DARE, Task Arithmetic, etc.) focuses on improving merge *strategies* — better algorithms for combining adapter weights. Gradience is orthogonal to this: it identifies which pairs to attempt merging in the first place, regardless of which strategy is used. The spectral analysis can also inform strategy *selection* — different geometric profiles favor different merge algorithms — but this is secondary to the triage function.
 
@@ -438,6 +466,8 @@ Yadav, P., et al. (2023). TIES-Merging: Resolving Interference When Merging Mode
 Yu, L., et al. (2023). Language Model is Sometimes a Knowledge Base — and Vice Versa: Towards a Principled Approach to Data Augmentation. *arXiv preprint*.
 
 Ilharco, G., et al. (2023). Editing Models with Task Arithmetic. *ICLR 2023*.
+
+Tian, Z., Ledent, A., & Sun, Q. (2026). Scalable Multi-Task Low-Rank Model Adaptation. *ICLR 2026*. arXiv:2603.01526.
 
 ---
 
