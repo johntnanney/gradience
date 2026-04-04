@@ -9,6 +9,7 @@
 
 ## Start here
 
+- [`../technical-report.md`](../technical-report.md) — **the end-to-end argument**: why spectral geometry works, the conjunctive failure mechanism, ruled-out alternatives, and open frontiers (Sections 2, 3, 6, 7 are research-focused)
 - [`research-overview.md`](research-overview.md)
 - [`route2-summary.md`](route2-summary.md)
 

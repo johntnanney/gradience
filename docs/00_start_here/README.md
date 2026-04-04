@@ -9,7 +9,9 @@
 
 Use this section first if you are new to the repository or returning after a break.
 
-## Read in this order
+**If you want one document that covers everything:** [`../technical-report.md`](../technical-report.md) — the full argument from problem through mechanism to validation, in one read. It is self-contained and does not require reading the materials below first.
+
+**If you prefer the incremental path,** read in this order:
 
 1. [`project-map.md`](project-map.md)
 2. [`stable-vs-experimental.md`](stable-vs-experimental.md)
