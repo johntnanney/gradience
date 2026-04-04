@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gradience"
-version = "0.11.0"
+version = "1.0.1"
 description = "Spectral analysis of low-rank adaptation dynamics — measure rank evolution, detect phase transitions, and study training geometry"
 readme = "README_PYPI.md"
 license = "Apache-2.0"

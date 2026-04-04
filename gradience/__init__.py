@@ -60,7 +60,7 @@ except ImportError:
 try:
     __version__ = version("gradience")
 except PackageNotFoundError:
-    __version__ = "0.11.0"
+    __version__ = "1.0.1"
 
 # Current API: vNext components re-exported for convenience
 # Deprecated Guard functionality

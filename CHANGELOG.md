@@ -4,6 +4,25 @@ All notable changes to Gradience are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-04-04
+
+### Changed
+- Bumped package version metadata from `0.11.0` to `1.0.1` in:
+  - `pyproject.toml`
+  - `gradience/__init__.py` fallback `__version__`
+
+### Added
+- Canonical product and consolidation documentation for the CPU phase handoff, including:
+  - one-page product brief (`docs/product_brief.md`)
+  - product surface and shipping-surface definitions
+  - canonical merge triage workflow references
+  - claim-boundary and consolidation/backlog summaries
+  - reorganized docs entry points for getting started, workflows, reference, explanations, and research
+
+### Notes
+- This release focuses on consolidation and packaging/version alignment rather than new merge-policy behavior.
+- Existing tags remain valid: `v1.0.0` is preserved; `v1.0.1` tracks the consolidated follow-up snapshot.
+
 ## [0.11.0] - 2026-02-20
 
 ### Added — Merge Compatibility Audit
