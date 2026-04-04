@@ -5,7 +5,13 @@
 **Purpose:** explicit capability/status matrix  
 **Canonical for:** scope and confidence boundaries  
 **Supersedes:** informal status spread across multiple memos  
-**See also:** [`project-map.md`](project-map.md), [`current-bounded-conclusions.md`](current-bounded-conclusions.md), [`bounded-validation-summary.md`](bounded-validation-summary.md), [`../strategy/public_ecosystem_decoder_census_handoff.md`](../strategy/public_ecosystem_decoder_census_handoff.md)
+**See also:** [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md), [`project-map.md`](project-map.md), [`current-bounded-conclusions.md`](current-bounded-conclusions.md), [`bounded-validation-summary.md`](bounded-validation-summary.md), [`../strategy/public_ecosystem_decoder_census_handoff.md`](../strategy/public_ecosystem_decoder_census_handoff.md)
+
+## Program Snapshot
+
+Use this canonical memo as the top-level status read before matrix details:
+
+1. [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md)
 
 ## Decoder Entry Point
 

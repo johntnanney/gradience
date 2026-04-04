@@ -167,6 +167,8 @@ coverage.xml
 # Experiment and seed outputs (local dev)
 seed_*/
 exp*/
+!docs/explanations/
+!docs/explanations/**
 *_output/
 *_extracted/
 _artifacts/

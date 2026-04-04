@@ -5,9 +5,10 @@
 **Purpose:** single canonical status snapshot of bounded CPU-phase conclusions
 **Canonical for:** what is settled, exploratory, kept, paused, or GPU-blocked right now
 **Supersedes:** fragmented status reading across multiple memos
-**See also:** [`project-map.md`](project-map.md), [`stable-vs-experimental.md`](stable-vs-experimental.md), [`../strategy/cpu_phase_established_summary.md`](../strategy/cpu_phase_established_summary.md)
+**See also:** [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md), [`project-map.md`](project-map.md), [`stable-vs-experimental.md`](stable-vs-experimental.md), [`../strategy/cpu_phase_established_summary.md`](../strategy/cpu_phase_established_summary.md)
 
 For the full project argument (theory, mechanism, validation), see the [Technical Report](../technical-report.md).
+For the canonical full-program April 2026 snapshot, see [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md).
 
 ---
 

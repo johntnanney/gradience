@@ -26,6 +26,13 @@ The technical report is the maintained synthesis. The summaries and sidecar arch
 - [`research-overview.md`](research-overview.md) — orientation to the two research lines (mechanism + Route 2)
 - [`route2-summary.md`](route2-summary.md) — decision-dependent, cross-artifact, aggregation-sensitive, behavioral bridge
 
+## Core research set
+
+- Technical report: [`../technical-report.md`](../technical-report.md)
+- Theory document: [`../THEORY.md`](../THEORY.md)
+- Findings overview: [`../FINDINGS.md`](../FINDINGS.md)
+- Bounded/experimental feature matrix: [`../00_start_here/stable-vs-experimental.md`](../00_start_here/stable-vs-experimental.md)
+
 ## Canonical summaries (deep dives)
 
 These expand on specific topics covered more briefly in the technical report:

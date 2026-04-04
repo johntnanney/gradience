@@ -220,7 +220,7 @@ spectral-based compression beyond the empirical observation that it works.
 between Hessian-space metrics (lambda1, trace_H, gHg) and representation-space
 metrics (participation ratio, anisotropy, CKA) yields CC1 = 0.661, indicating
 a moderate shared signal. The two measurement systems are coupled but not
-redundant. See Findings §7 and `Gradience II/reanalysis/module_e_results.json`.
+redundant. See FINDINGS.md §16 and `Gradience II/reanalysis/module_e_results.json`.
 
 
 ## 6. Subspace Alignment and Merge Analysis
@@ -358,75 +358,168 @@ confirming that the spectral observables are not only structurally meaningful
 but operationally predictive on 7B-parameter decoders.
 
 The remaining open theoretical work is to formalize the concentration-weighted
-convergence bound (see open question 6 in §7).
+convergence bound (see §7.2, "Concentration-weighted convergence bound").
 
 
-## 7. Open Theoretical Questions
+## 7. Theoretical Questions: Status and Agenda
 
-1. **Spectrum universality.** Do adapters trained on the same task with
-   different random seeds converge to the same spectral shape (up to
-   rotation)? Gradience's multi-seed protocol provides the data to test
-   this, but a theoretical framework explaining *why* (or why not) is missing.
+This section classifies the research program's theoretical questions by
+their empirical status as of April 2026. Questions in §7.1 have received
+substantial empirical answers — the phenomenon is confirmed, even if the
+formal theory remains incomplete. Questions in §7.2 are genuinely open:
+neither confirmed nor refuted, and without empirical traction.
 
-2. **Spectral scaling laws.** How does the entropy effective rank of
-   adapters scale with model size, dataset size, and training compute?
-   Scaling laws for loss are well-established; spectral scaling laws
-   would connect capacity allocation to compute budgets.
 
-3. **Generalization bounds from spectra.** Can spectral properties of
-   $\Delta W$ provide tighter generalization bounds than parameter-count-based
-   bounds? The stable rank is a natural candidate for a complexity measure
-   that is smaller than the nominal rank.
+### 7.1 Empirically Resolved or Substantially Constrained
 
-4. **Hessian-spectrum alignment.** Quantifying the correspondence between
-   adapter singular vectors and Hessian eigenvectors would provide a
-   principled theory of why spectral compression works.
+These questions have moved beyond "open" status. The empirical results
+constrain what a theory must explain and, in some cases, identify the
+specific formal object that a proof should target.
 
-5. **Cross-architecture geometry.** Do different architectures (attention
-   vs. MLP, transformer vs. SSM) produce qualitatively different spectral
-   geometries, or are there universal patterns? *Partial answer:* Study 14
-   audited 29 public adapters across 8 base models (Llama-2/3, Mistral-7B,
-   Gemma, Phi; 2B–8B parameters) and found qualitatively consistent spectral
-   profiles — median 50% compression potential, negative rank-utilization
-   correlation, attention vs MLP utilization differences preserved across
-   architectures. The spectral lens appears architecture-agnostic in practice,
-   though quantitative thresholds may need per-architecture calibration.
+**Cross-architecture geometry.** *Original question:* Do different
+architectures produce qualitatively different spectral geometries, or
+are there universal patterns? *Status: answered in the affirmative —
+spectral profiles are architecture-agnostic in practice.* Study 14
+(29 adapters, 8 base models, 2B–8B parameters) found consistent
+spectral profiles across Llama-2/3, Mistral-7B, Gemma, and Phi,
+including median 50% compression potential and negative rank-utilization
+correlation. Post 7 expanded this to 86 adapters across 22 architectures
+and 12 task categories; core findings were unchanged (mean utilization
+0.172, compression potential 50%). The attention/MLP utilization gap
+reported in encoder-only experiments (Finding §5 in FINDINGS.md) does
+not replicate at scale — at n=86, attention and MLP utilization are
+essentially identical (0.167 vs 0.166). The remaining theoretical
+interest is quantitative: *why* does the spectral profile converge
+across architectures? A candidate explanation is that the rank-deficiency
+is dominated by the optimization dynamics (SGD on a low-rank
+parameterization) rather than the model architecture, but this has
+not been formalized.
 
-6. **Spectral partitioning convergence.** Does independent fine-tuning
-   (not co-training) produce the same high-SV shared / low-SV task-specific
-   partitioning observed by Tian et al. (2026) in multi-task settings?
-   *Status: empirically confirmed (N127, April 2026).* The partitioning is
-   present for independently trained adapters, is task-dependent (7.8× H/L
-   ratio same-task vs 2.5× cross-task), and strengthens during training
-   (monotonic convergence, plateau at step ~150). The remaining open question
-   is the formal convergence bound: the naive Davis-Kahan gap metric does not
-   predict per-layer alignment, but W₀ energy concentration does. Formalizing
-   this — bounding subspace convergence as a function of spectral mass
-   concentration rather than adjacent-SV gaps — is the next theoretical step.
-   Cross-architecture support exists: the Mistral-7B merge study (Gradience
-   Series Post 3) found the same same-task/cross-task separation pattern
-   (2.4×, t = 12.985) using unweighted overlap. Full replication of the
-   SV-weighted partition analysis at decoder scale remains desirable.
+**Spectral partitioning convergence.** *Original question:* Does
+independent fine-tuning (not co-training) produce the same high-SV shared
+/ low-SV task-specific partitioning observed by Tian et al. (2026)?
+*Status: empirically confirmed.* N127 (April 2026, DistilBERT-base,
+rank 16, SST-2 and QNLI) showed that independently trained same-task
+adapter pairs exhibit 7.8× higher SV-weighted alignment in the high-SV
+band than the low-SV band, cross-task pairs show 2.5× (t = 23.4,
+p ≈ 10⁻⁴⁶ for the difference), and alignment rises monotonically during
+training, plateauing around step 150 with spectral energy concentration
+increasing from 56% to 86% (FINDINGS.md §§11–14). Cross-architecture
+support comes from Mistral-7B (Post 3): same-task overlap 0.473 vs.
+cross-task 0.200, 2.4× separation, t = 12.985. The phenomenon is
+confirmed; what remains is the formal convergence bound (see §7.2).
 
-7. **Phase transition detection.** Can spectral observables serve as
-   reliable order parameters for detecting training phase transitions
-   (grokking, mode collapse, catastrophic forgetting) before they
-   manifest in the loss curve?
+A critical refinement: the naive Davis-Kahan operationalization (adjacent
+spectral gap σ₁−σ₂ of the pre-trained matrix W₀) does not predict
+per-layer alignment (r = 0.038, p = 0.86). But W₀ *energy concentration*
+— fraction of spectral mass in the top-k subspace — does predict
+alignment for QNLI adapters (r = 0.53–0.58, p < 0.01). This pins down
+the mathematical object: a formal bound should be stated in terms of
+spectral mass concentration, not adjacent-SV gaps. The bound must also
+account for task-dependence (the W₀ concentration → alignment
+relationship holds for QNLI but not SST-2).
 
-   **Partial answer (March 2026 reanalysis).** Hessian trace detects
-   changepoints ~300 steps before loss in a single-run telemetry stream.
-   One candidate phase transition near step 58,450 was identified via
-   susceptibility clustering and trajectory tortuosity. However, critical
-   slowing down in loss *precedes* that of geometric metrics in the same
-   data, complicating the picture. Replication across runs is needed.
-   See Findings §7.
+**Phase transition detection.** *Original question:* Can spectral
+observables serve as reliable order parameters for detecting training
+phase transitions before they manifest in the loss curve? *Status:
+partially confirmed, with important complications.* Hessian trace
+detects changepoints approximately 300 steps before loss in a single-run
+telemetry stream (FINDINGS.md §16). One candidate phase transition near
+step 58,450 was identified via susceptibility clustering and trajectory
+tortuosity. However, critical slowing down in loss *precedes* that of
+geometric metrics in the same data, complicating the "geometry detects
+transitions first" narrative — the priority relationship depends on
+which detection method is used.
 
-   **Update (Study 12, March 2026).** DFA exponents of spectral
-   complexity differ significantly across five hyperparameter regimes
-   (F = 116.86, p ≈ 10⁻²³; n=49 runs, 10 seeds per regime). High
-   learning rate produces α ≈ 1.57 while other regimes cluster at
-   α ≈ 1.90--2.07. This confirms that long-range temporal correlations
-   in spectral observables are regime-dependent, not a generic SGD
-   property. Whether DFA exponents can serve as real-time anomaly
-   detectors (flagging deviation from expected regime dynamics) remains
-   an open engineering question. See Findings §8.
+DFA exponents of spectral complexity differ significantly across five
+hyperparameter regimes (F = 116.86, p ≈ 10⁻²³; n=49 runs, 10 seeds
+per regime; Study 12, FINDINGS.md §18). High learning rate produces
+α ≈ 1.57 while other regimes cluster at α ≈ 1.90–2.07. This confirms
+that long-range temporal correlations in spectral observables are
+regime-dependent, not a generic SGD property. The remaining questions
+are: (a) whether DFA exponents can serve as real-time anomaly detectors,
+(b) whether the three-act gradient alignment structure observed on
+Mistral-7B (FINDINGS.md §17) generalizes across seeds and tasks, and
+(c) replication of the phase transition candidate.
+
+**Structural-behavioral separation.** *Not originally listed as a
+theoretical question, but resolved empirically and theoretically
+significant.* Study 16 (5 Llama-2-7B pairs, Frobenius ratios up to
+19.7×; FINDINGS.md §9) demonstrated that structural compatibility is
+necessary but not sufficient for merge quality. Study 17 (FINDINGS.md
+§10) showed that pre-merge spectral compression does not meaningfully
+improve outcomes. These results constrain the theory: any formal account
+of merge success must include a behavioral component that is not
+reducible to spectral geometry. The implication is that a complete
+theory of merge compatibility has at least two independent factors —
+subspace geometry and source adapter quality — and the spectral
+observables capture only the first.
+
+
+### 7.2 Genuinely Open
+
+These questions have no substantial empirical traction. They represent
+the theoretical frontier of the research program.
+
+**Concentration-weighted convergence bound.** This is the most precisely
+defined open problem. The empirical results from §7.1 (spectral
+partitioning convergence) specify exactly what needs to be proved: that
+the principal angle between dominant subspaces of independently trained
+LoRA adapters on the same backbone converges to a small value, bounded
+as a function of the spectral mass concentration in W₀'s top-k
+subspace. The naive Davis-Kahan bound (using the adjacent spectral gap)
+fails empirically; the bound must use a concentration-weighted metric
+instead. Key constraints: the bound must be task-dependent (it holds
+for QNLI but not SST-2 on the same backbone), must account for plateau
+behavior (convergence saturates around step 150 in the small-encoder
+regime), and should predict the ~2.5× residual cross-task H/L ratio as
+a consequence of backbone-level shared structure. This is a pen-and-paper
+problem in matrix perturbation theory, likely requiring a modified
+Davis-Kahan argument that replaces the gap condition with a spectral
+mass condition. See the discussion in the spectral partitioning
+subsection above (§6) and THEORY.md §2 for the perturbation-theoretic
+setup.
+
+**Spectrum universality.** Do adapters trained on the same task with
+different random seeds converge to the same spectral *shape* (up to
+rotation)? Gradience's multi-seed protocol provides the data to test
+this — cross-seed spectral stability is high for aggregate statistics
+like stable rank (CV < 0.1; FINDINGS.md §4) — but the question about
+*shape* convergence (the full ordered spectrum {σᵢ}, not just summary
+statistics) has not been tested, and the theoretical framework explaining
+why the shape should be seed-invariant is absent. A positive answer
+would imply that the spectral profile is a property of the (task,
+architecture) pair, not the optimization trajectory. A negative answer
+would bound the precision of spectral triage.
+
+**Spectral scaling laws.** How does the entropy effective rank of
+adapters scale with model size, dataset size, and training compute?
+Scaling laws for loss are well-established (Kaplan et al., Hoffmann
+et al.); spectral scaling laws would connect capacity allocation to
+compute budgets. The Post 7 audit (86 adapters, 22 architectures)
+provides a cross-sectional dataset, but the confounds (different
+training recipes, datasets, durations) make scaling analysis difficult.
+A controlled study varying model size while holding other factors
+constant would be needed. This question is empirically accessible but
+resource-intensive.
+
+**Generalization bounds from spectra.** Can spectral properties of
+ΔW provide tighter generalization bounds than parameter-count-based
+bounds? The stable rank is a natural candidate for a complexity measure
+that is smaller than the nominal rank and tracks the actual capacity
+used. PAC-Bayes bounds using spectral norms exist in the literature
+(Neyshabur et al., 2018; Arora et al., 2018) but have not been
+specialized to the low-rank LoRA parameterization where the spectral
+structure is particularly clean.
+
+**Hessian-spectrum alignment.** Quantifying the correspondence between
+adapter singular vectors and Hessian eigenvectors would provide a
+principled theory of why spectral compression works — specifically,
+why truncating low-energy singular directions preserves task performance.
+The canonical correlation between Hessian-space and representation-space
+metrics is moderate (CC1 = 0.661; FINDINGS.md §16), suggesting shared
+signal but not redundancy. A formal alignment result — proving that the
+top-k singular directions of ΔW approximate the top-k eigendirections
+of the task Hessian restricted to the LoRA subspace — would ground
+compression safety in optimization theory rather than empirical
+observation.

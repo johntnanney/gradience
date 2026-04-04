@@ -5,7 +5,15 @@
 **Purpose:** one-page map of product + workflows + architecture + research + development  
 **Canonical for:** overall project orientation  
 **Supersedes:** legacy ad-hoc navigation via root docs list  
-**See also:** [`stable-vs-experimental.md`](stable-vs-experimental.md), [`current-bounded-conclusions.md`](current-bounded-conclusions.md), [`bounded-validation-summary.md`](bounded-validation-summary.md), [`demo-paths.md`](demo-paths.md), [`../strategy/public_ecosystem_decoder_census_handoff.md`](../strategy/public_ecosystem_decoder_census_handoff.md)
+**See also:** [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md), [`../claims.md`](../claims.md), [`stable-vs-experimental.md`](stable-vs-experimental.md), [`current-bounded-conclusions.md`](current-bounded-conclusions.md), [`bounded-validation-summary.md`](bounded-validation-summary.md), [`demo-paths.md`](demo-paths.md), [`../strategy/public_ecosystem_decoder_census_handoff.md`](../strategy/public_ecosystem_decoder_census_handoff.md)
+
+## Program Snapshot
+
+Start here for the canonical April 2026 state snapshot:
+
+- [`../strategy/state-of-program-april-2026.md`](../strategy/state-of-program-april-2026.md)
+- [`../claims.md`](../claims.md) (authoritative outward-facing claim boundary)
+- [`../consolidation_backlog.md`](../consolidation_backlog.md) (structural consolidation checklist)
 
 ## Decoder Entry Point
 
@@ -25,12 +33,22 @@ Gradience is an evidence-aware compatibility and triage system for learned varia
 
 ## What is stable vs bounded
 
+- Product surface scope boundary (canonical): [`../product_surface.md`](../product_surface.md)
+- Product shipping tiers (default vs advanced vs research-only): [`../product_shipping_surface.md`](../product_shipping_surface.md)
 - Stable product behavior and limits: [`../product/overview.md`](../product/overview.md)
 - Product validation record: [`../product/product-validation.md`](../product/product-validation.md)
 - Stability matrix: [`stable-vs-experimental.md`](stable-vs-experimental.md)
 - Decoder census handoff (canonical bounded readout): [`../strategy/public_ecosystem_decoder_census_handoff.md`](../strategy/public_ecosystem_decoder_census_handoff.md)
 - Current bounded decision index: [`current-bounded-conclusions.md`](current-bounded-conclusions.md)
 - Bounded comparator policy freeze: [`bounded-validation-summary.md`](bounded-validation-summary.md)
+
+## Product Docs Hierarchy
+
+- Getting started: [`../getting_started/README.md`](../getting_started/README.md)
+- Workflows: [`../workflows/README.md`](../workflows/README.md)
+- Reference: [`../reference/README.md`](../reference/README.md)
+- Explanations: [`../explanations/README.md`](../explanations/README.md)
+- Research: [`../research/README.md`](../research/README.md)
 
 ## Where to read by purpose
 

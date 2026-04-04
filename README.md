@@ -37,6 +37,7 @@ Given a pool of LoRA adapters you might want to merge, Gradience runs a prefligh
 | I want to... | Go to |
 |--------------|-------|
 | Understand the full argument (theory, mechanism, validation) | **[Technical Report](docs/technical-report.md)** — the end-to-end case for spectral triage |
+| See the canonical April 2026 program status and next GPU gate | **[State of the Program](docs/strategy/state-of-program-april-2026.md)** — validated, bounded, exploratory, paused, and GPU-blocked work in one memo |
 | Read the story behind the field trials | **[Field Trial Retrospective](docs/field-trial-retrospective.md)** — what we expected, what surprised us, what changed |
 | Get the curated docs map by audience/stability/purpose | **[Documentation Map](docs/README.md)** |
 | Run my first inventory preflight | **[Playbook](docs/playbook.md)** — step-by-step for the five most common workflows |

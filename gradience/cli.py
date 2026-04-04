@@ -1,38 +1,14 @@
 """Gradience CLI
 
-Simple command-line interface for common operations.
+Inventory preflight for LoRA adapter merging, with advanced and research utilities.
 
-Usage:
-    gradience verify
-    gradience report FILE
-    gradience check CONFIG [--json] [--verbose] [--overrides ...]
-
-    # Monitor a vNext telemetry run and emit alerts/recommendations
-    gradience monitor RUN.jsonl [--gap-threshold 1.5] [--json] [--verbose]
-
-    # Convenience wrapper (two-file merge):
-    gradience check --task gsm8k --peft adapter_config.json --training training_args.json
-
-    # Convenience wrapper using output directories (auto-detect files):
-    gradience check --task gsm8k --peft-dir ./peft_out --training-dir ./trainer_out
-
-    # Audit a PEFT LoRA adapter directory for rank/utilization waste:
-    gradience audit --peft-dir ./peft_out [--top-wasteful 10] [--json]
-
-    # Produce a single-adapter QA eligibility artifact:
-    gradience audit-adapter --peft-dir ./peft_out --eval-dataset oasst2 --adapter-score 6.81 --base-score 4.66 --out qa.json
-
-    # Audit merge compatibility between two PEFT LoRA adapters:
-    gradience merge-audit --adapter-a ./adapter_a --adapter-b ./adapter_b [--output-dir ./out]
-
-    # Suggest conservative inventory merge neighborhoods from existing reports:
-    gradience suggest-neighborhoods --report-dir ./reports [--qa-dir ./qa]
-
-Notes:
-  * `check` consumes a Gradience vNext `ConfigSnapshot` (JSON/YAML) and emits
-    `Recommendation[]` using the restraint-first policy.
-  * Config files may be in canonical vNext form (nested optimizer/lora/training)
-    or common "flat" / PEFT-style forms (e.g. adapter_config.json).
+Recommended workflow:
+    1) audit one adapter:
+       gradience audit-adapter --peft-dir ./adapters/a --out qa/a_qa.json ...
+    2) audit one pair:
+       gradience merge-audit --adapter-a ./adapters/a --adapter-b ./adapters/b --source-a-qa qa/a_qa.json --source-b-qa qa/b_qa.json --emit-report reports/a_vs_b.json
+    3) analyze inventory:
+       gradience summarize-inventory --qa-dir qa/ --report-dir reports/ --emit-report inventory/summary.json --emit-bundle runs/run_001
 """
 
 from __future__ import annotations
@@ -2863,18 +2839,20 @@ def _display_recommendations(layer_name: str, rationale: dict, is_flagged: bool,
 
 
 def _setup_verify_command(subparsers):
-    verify_parser = subparsers.add_parser("verify", help="Verify installation")
+    verify_parser = subparsers.add_parser("verify", help="[ADVANCED] Verify installation")
     verify_parser.set_defaults(func=cmd_verify)
 
 
 def _setup_report_command(subparsers):
-    report_parser = subparsers.add_parser("report", help="Generate report from telemetry")
+    report_parser = subparsers.add_parser("report", help="[ADVANCED] Generate report from telemetry")
     report_parser.add_argument("file", help="Path to telemetry JSONL file")
     report_parser.set_defaults(func=cmd_report)
 
 
 def _setup_check_command(subparsers):
-    check_parser = subparsers.add_parser("check", help="Validate a config and emit restraint-first recommendations")
+    check_parser = subparsers.add_parser(
+        "check", help="[ADVANCED] Validate a config and emit restraint-first recommendations"
+    )
     check_parser.add_argument(
         "config",
         nargs="?",
@@ -2940,7 +2918,7 @@ def _setup_check_command(subparsers):
 def _setup_audit_command(subparsers):
     audit_parser = subparsers.add_parser(
         "audit",
-        help="Audit a PEFT LoRA adapter directory for rank/utilization waste",
+        help="[ADVANCED] Audit a PEFT LoRA adapter directory for spectral rank/utilization analysis",
     )
     audit_parser.add_argument(
         "--append",
@@ -3052,7 +3030,7 @@ def _setup_audit_command(subparsers):
 def _setup_audit_adapter_command(subparsers):
     p = subparsers.add_parser(
         "audit-adapter",
-        help="Audit a single adapter and produce a QA eligibility artifact",
+        help="[RECOMMENDED] Audit one adapter and produce a QA eligibility artifact",
     )
     p.add_argument(
         "--peft-dir",
@@ -3157,7 +3135,7 @@ def _setup_audit_adapter_command(subparsers):
 def _setup_merge_audit_command(subparsers):
     merge_audit_parser = subparsers.add_parser(
         "merge-audit",
-        help="Audit spectral compatibility between two PEFT LoRA adapters",
+        help="[RECOMMENDED] Audit one adapter pair and produce merge-risk output",
     )
     merge_audit_parser.add_argument(
         "--adapter-a",
@@ -3242,7 +3220,7 @@ def _setup_merge_audit_command(subparsers):
     merge_audit_parser.add_argument(
         "--compute-core-space",
         action="store_true",
-        help="Compute optional shared-basis diagnostics and include them in QA report output",
+        help="[ADVANCED/EXPERIMENTAL] Compute optional shared-basis diagnostics and include them in QA report output",
     )
     merge_audit_parser.set_defaults(func=cmd_merge_audit)
 
@@ -3250,7 +3228,7 @@ def _setup_merge_audit_command(subparsers):
 def _setup_merge_plan_command(subparsers):
     merge_plan_parser = subparsers.add_parser(
         "merge-plan",
-        help="Generate a merge plan from two PEFT LoRA adapters",
+        help="[ADVANCED] Generate a merge plan from two PEFT LoRA adapters",
     )
     merge_plan_parser.add_argument(
         "--adapter-a",
@@ -3300,7 +3278,7 @@ def _setup_merge_plan_command(subparsers):
 def _setup_merge_command(subparsers):
     merge_parser = subparsers.add_parser(
         "merge",
-        help="Execute a merge plan to produce a PEFT-compatible adapter",
+        help="[ADVANCED] Execute a merge plan to produce a PEFT-compatible adapter",
     )
     merge_parser.add_argument(
         "--plan",
@@ -3330,7 +3308,7 @@ def _setup_merge_command(subparsers):
 
 def _setup_explain_command(subparsers):
     explain_parser = subparsers.add_parser(
-        "explain", help="Explain disagreement analysis for a specific layer from audit JSON"
+        "explain", help="[ADVANCED] Explain disagreement analysis for a specific layer from audit JSON"
     )
     explain_parser.add_argument(
         "--audit-json", type=str, required=True, help="Path to audit JSON file containing policy_disagreement_analysis"
@@ -3343,7 +3321,9 @@ def _setup_explain_command(subparsers):
 
 
 def _setup_truncate_command(subparsers):
-    truncate_parser = subparsers.add_parser("truncate", help="SVD truncate a PEFT LoRA adapter to a smaller rank")
+    truncate_parser = subparsers.add_parser(
+        "truncate", help="[ADVANCED] SVD truncate a PEFT LoRA adapter to a smaller rank"
+    )
     truncate_parser.add_argument("--peft-dir", type=str, required=True, help="Path to input PEFT adapter directory")
     truncate_parser.add_argument(
         "--out-dir", type=str, required=True, help="Path to output directory for truncated adapter"
@@ -3369,7 +3349,7 @@ def _setup_truncate_command(subparsers):
 def _setup_monitor_command(subparsers):
     monitor_parser = subparsers.add_parser(
         "monitor",
-        help="Analyze a vNext telemetry JSONL run and emit alerts/recommendations",
+        help="[EXPERIMENTAL] Analyze telemetry JSONL and emit research-side alerts/recommendations",
     )
     monitor_parser.add_argument("file", help="Path to vNext telemetry JSONL file")
     monitor_parser.add_argument(
@@ -3391,7 +3371,7 @@ def _setup_monitor_command(subparsers):
 def _setup_summarize_inventory_command(subparsers):
     p = subparsers.add_parser(
         "summarize-inventory",
-        help="Summarize an inventory of adapter QA artifacts and merge risk reports",
+        help="[RECOMMENDED] Analyze inventory QA + merge reports and produce action-plan summary",
     )
     p.add_argument("--qa-dir", type=str, default=None, help="Directory to scan for QA artifact JSON files")
     p.add_argument("--report-dir", type=str, default=None, help="Directory to scan for merge report JSON files")
@@ -3432,7 +3412,7 @@ def _setup_summarize_inventory_command(subparsers):
 def _setup_portfolio_command(subparsers: Any) -> None:
     p = subparsers.add_parser(
         "portfolio",
-        help="Scan a directory of inventory artifacts and display a cross-inventory portfolio table",
+        help="[ADVANCED] Scan inventory artifacts and display a cross-inventory portfolio table",
     )
     p.add_argument(
         "directory",
@@ -3489,7 +3469,7 @@ def cmd_portfolio(args: argparse.Namespace) -> None:
 def _setup_suggest_neighborhoods_command(subparsers):
     p = subparsers.add_parser(
         "suggest-neighborhoods",
-        help="Suggest conservative merge neighborhoods from QA artifacts and merge reports",
+        help="[ADVANCED] Suggest conservative merge neighborhoods (optional companion, non-default workflow)",
     )
     p.add_argument("--qa-dir", type=str, default=None, help="Directory to scan for QA artifact JSON files")
     p.add_argument("--report-dir", type=str, required=True, help="Directory to scan for merge report JSON files")
@@ -3729,7 +3709,7 @@ def cmd_suggest_neighborhoods(args: argparse.Namespace) -> None:
 def _setup_batch_summary_command(subparsers):
     p = subparsers.add_parser(
         "batch-summary",
-        help="Summarize multiple preflight runs into a cross-run comparison table",
+        help="[ADVANCED] Summarize multiple preflight runs into a cross-run comparison table",
     )
     p.add_argument(
         "--run-dir",
@@ -3786,7 +3766,7 @@ def cmd_batch_summary(args: argparse.Namespace) -> None:
 def _setup_preflight_report_command(subparsers):
     p = subparsers.add_parser(
         "preflight-report",
-        help="Generate a static HTML preflight report from a run bundle",
+        help="[RECOMMENDED] Generate a static HTML preflight report from a run bundle",
     )
     p.add_argument(
         "--bundle-dir",
@@ -3841,25 +3821,43 @@ def cmd_preflight_report(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="gradience",
-        description="Spectral telemetry and restraint-first diagnostics for neural network training",
+        description="Inventory preflight for LoRA adapter merging: QA gate -> pair audit -> inventory action plan.",
+        epilog=(
+            "Recommended front door:\n"
+            "  1) gradience audit-adapter ...\n"
+            "  2) gradience merge-audit ...\n"
+            "  3) gradience summarize-inventory ...\n"
+            "Optional: gradience preflight-report --bundle-dir runs/run_001\n"
+            "\n"
+            "Command labels:\n"
+            "  [RECOMMENDED] validated product workflow\n"
+            "  [ADVANCED] optional power-user analysis\n"
+            "  [EXPERIMENTAL] research/internal diagnostics"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    subparsers = parser.add_subparsers(
+        dest="command", metavar="COMMAND", help="Command to run (recommended: audit-adapter -> merge-audit -> summarize-inventory)"
+    )
 
-    _setup_verify_command(subparsers)
-    _setup_report_command(subparsers)
-    _setup_check_command(subparsers)
-    _setup_audit_command(subparsers)
+    # Recommended product workflow (front door)
     _setup_audit_adapter_command(subparsers)
     _setup_merge_audit_command(subparsers)
+    _setup_summarize_inventory_command(subparsers)
+    _setup_preflight_report_command(subparsers)
+
+    # Advanced / experimental commands
+    _setup_audit_command(subparsers)
+    _setup_check_command(subparsers)
+    _setup_verify_command(subparsers)
+    _setup_report_command(subparsers)
     _setup_merge_plan_command(subparsers)
     _setup_merge_command(subparsers)
     _setup_explain_command(subparsers)
     _setup_truncate_command(subparsers)
     _setup_monitor_command(subparsers)
-    _setup_summarize_inventory_command(subparsers)
     _setup_suggest_neighborhoods_command(subparsers)
     _setup_batch_summary_command(subparsers)
-    _setup_preflight_report_command(subparsers)
     _setup_portfolio_command(subparsers)
 
     args = parser.parse_args()

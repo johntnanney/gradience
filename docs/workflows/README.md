@@ -7,10 +7,15 @@
 **Supersedes:** mixed run instructions across root docs  
 **See also:** [`../product/README.md`](../product/README.md)
 
-## Run guides
+## Canonical product workflows
+
+1. [`canonical_merge_triage_workflow.md`](canonical_merge_triage_workflow.md)
+2. [`adapter-qa-workflow.md`](adapter-qa-workflow.md)
+3. [`inventory-preflight.md`](inventory-preflight.md)
+
+## Additional run guides
 
 - [`getting-started-preflight.md`](getting-started-preflight.md)
-- [`inventory-preflight.md`](inventory-preflight.md)
 - [`adapter-preflight-workflow.md`](adapter-preflight-workflow.md)
 - [`checkpoint-triage-workflow.md`](checkpoint-triage-workflow.md)
 
