@@ -6,6 +6,23 @@
 **Script:** `scripts/mp_partition_test.py` (base), `scripts/mp_partition_extensions.py` (extensions)
 **Data:** `sidecar/results/mp_partition_test/` (results.json, extension_results.json)
 
+> **Abstract.** Independent fine-tuning preserves a meaningful spectral
+> partition between shared high-SV structure and task-specific low-SV
+> structure. Using the Gavish-Donoho optimal hard threshold as the partition
+> point on Gradience's independently trained adapter corpus (DistilBERT-base,
+> rank 16), same-task adapter pairs show 7.8× higher SV-weighted alignment
+> in the high-SV band than the low-SV band; cross-task pairs drop to 2.5×
+> (t = 23.4, p ≈ 10⁻⁴⁶). High-SV alignment rises monotonically during
+> training (0.24 → 0.61 over steps 50–200, plateau at step 150), while
+> low-SV alignment barely changes. W₀ energy concentration — not raw
+> spectral gap — predicts per-layer alignment (r = 0.53–0.58, p < 0.01
+> for QNLI). These results provide converging-operations support for the
+> spectral partitioning observed by Tian et al. (2026) during co-training,
+> now confirmed in the independent-training regime that Gradience operates
+> in. The finding grounds task-relationship classification in measurable
+> geometry and identifies concentration-weighted subspace stability as the
+> next formal target.
+
 ## Question
 
 Does the Gavish-Donoho optimal hard threshold (Marchenko-Pastur noise floor)
