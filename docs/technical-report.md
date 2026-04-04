@@ -1,9 +1,9 @@
-# Spectral Triage of LoRA Adapter Merging: Theory, Mechanism, and Validation
+# Spectral Triage for LoRA Adapter Merging: Mechanism, Workflow, and Bounded Validation
 
 **John T. Nanney**
 **Gradience v0.11.0 — April 2026**
 
-> **Abstract.** Merging independently fine-tuned LoRA adapters is attractive because it promises to combine capabilities without retraining, but the failure rate is high and the failures are expensive to discover. This report presents a spectral-geometric approach to *merge triage*: using the singular value structure of low-rank weight matrices to predict, before any behavioral evaluation, which adapter pairs are worth merging and which will fail. We describe the theoretical argument for why spectral observables should carry compatibility information (Section 2), present a mechanistic account of merge failure grounded in conjunctive V-module pathology and readout incompatibility (Section 3), and report field trial results showing 90–93% candidate elimination with zero false positives on task-boundary detection across 5 inventories, 3 backbone architectures, and 53+ adapter pairs (Section 5). The approach is currently validated for small encoder models on classification tasks; preliminary results from a decoder-only ecosystem census suggest that some findings transfer while others do not (Section 7). Throughout, we maintain explicit boundaries on what the evidence supports and what remains open.
+> **Abstract.** Merging independently fine-tuned LoRA adapters promises to combine capabilities without retraining, but most candidate pairs fail, and discovering failures requires expensive behavioral evaluation. This report presents Gradience, a spectral-geometric triage system that narrows the merge search space before evaluation begins. Across 5 field trial inventories on small encoder models (DistilBERT, BERT-base, RoBERTa), the system eliminates 90–93% of candidate pairs while retaining the correct first choices, with zero false positives on task-boundary detection (53+ pairs, 3 backbones). The triage signal derives from SVD-based analysis of adapter weight matrices: principal angles and singular value structure reveal structural compatibility *a priori*. A mechanistic investigation identifies the specific geometric conditions for catastrophic failure — conjunctive V-module dimensionality mismatch and readout incompatibility — arrived at by systematically eliminating five simpler hypotheses. The approach is currently bounded to small encoders on classification tasks with LoRA rank ≤ 16; a completed decoder-only ecosystem census (n=36, 3 architecture families) finds real spectral structure but inverts the expected architecture-task hierarchy. Throughout, we maintain explicit boundaries on what the evidence supports, what is suggestive, and what remains open.
 
 ---
 
@@ -11,7 +11,7 @@
 
 The LoRA (Low-Rank Adaptation) paradigm has made fine-tuning large language models practical: rather than updating all parameters, one trains a pair of low-rank matrices whose product approximates the full weight update. The result is a small, portable *adapter* that can be stored, shared, and — in principle — merged with other adapters to combine capabilities.
 
-The promise of adapter merging is substantial. If you have adapters fine-tuned for sentiment analysis, topic classification, and irony detection, merging them could yield a single model with all three capabilities. Several merge strategies exist — linear interpolation, TIES (trim, elect sign, merge), DARE (dropout and rescale), and others — and successful merges have been demonstrated across a range of tasks.
+The promise of adapter merging is substantial. If you have adapters fine-tuned for sentiment analysis, topic classification, and irony detection, merging them could in principle yield a single model with multiple retained capabilities — though in practice such merges often fail, and the failures are difficult to predict without evaluation. Several merge strategies exist — linear interpolation, TIES (trim, elect sign, merge), DARE (dropout and rescale), and others — but no strategy eliminates the need to determine which pairs are worth attempting in the first place.
 
 The problem is that merge failure is common, unpredictable, and expensive to detect. A merged model may lose one adapter's capability entirely, produce confident but wrong predictions on a new class of inputs, or degrade subtly in ways that only emerge during evaluation. The standard approach — merge and evaluate — scales quadratically in the number of adapters and requires behavioral evaluation (inference on held-out data) for every candidate pair. For a pool of 9 adapters, that is 36 pairs to evaluate. For 20 adapters, 190 pairs. Most of these evaluations will reveal that the merge failed, and that computational budget was wasted.
 
@@ -58,6 +58,8 @@ Three idealized cases illuminate the space of possibilities.
 The SVD provides exactly the mathematical apparatus to measure where on this spectrum a given adapter pair falls. The *principal angles* between the column spaces of $B_A$ and $B_B$ (and between the row spaces of $A_A$ and $A_B$) quantify subspace overlap. The *directional agreement* between corresponding singular vectors quantifies whether shared dimensions are used cooperatively or antagonistically. The *singular value magnitudes* determine how much energy is at stake in each interaction.
 
 ### 2.3 The Observable–Compatibility Link: A Formal Sketch
+
+*The purpose of this subsection is not to derive a general merge theory, but to show that in the simplest case the key interaction term governing merge outcome is already a function of observable subspace geometry. The later mechanistic findings (Section 3) rest on empirical evidence, not on this sketch — but the sketch explains why the spectral approach was worth pursuing in the first place.*
 
 For the rank-1 case, the connection between spectral observables and merge outcome can be made exact. Given two rank-1 adapters $\Delta W_a = \sigma_a u_a v_a^T$ and $\Delta W_b = \sigma_b u_b v_b^T$, the merged update $\Delta W_m = \alpha \Delta W_a + \beta \Delta W_b$ has leading singular value:
 
@@ -111,6 +113,8 @@ Each elimination narrowed the space of viable explanations. What survived is the
 
 ### 3.2 The Conjunctive Model
 
+The proposed causal ladder has three rungs: *module-level V-module pathology* creates upstream risk, *head-level cancellation* modulates whether that risk produces mild or catastrophic degradation, and *readout geometry* gates whether the upstream pathology reaches the model's output at all. The subsections that follow describe each rung, but the core claim is at the module level:
+
 **Catastrophic merge failure requires the conjunction of two independent conditions:**
 
 1. **V-module pathology** — the value projections of the two adapters occupy incompatible subspaces, as measured by dimensionality ratio (the ratio of the merged V-module's effective rank to the sum of the sources' effective ranks). Catastrophic pairs cluster at 0.64–0.74; safe pairs at 0.79–0.89. The separation is sharp: Cohen's $d$ = 3.36 with zero range overlap across the tested population.
@@ -128,6 +132,8 @@ Neither condition is sufficient alone. V-module pathology without readout incomp
 *Evidence 3: V-module dimensionality ratio.* Sharp separation with no range overlap between catastrophic and safe populations. This is the strongest single metric identified in the research program.
 
 *Evidence 4: CA-01 seed contrast.* Within the catastrophic pair CA-01, severity ranges from 12.1% to 41.7% across seeds, despite virtually identical readout geometry. The variable is head-level V-module cancellation, not readout — confirming that the upstream V-module condition, not the downstream readout, determines severity magnitude.
+
+**Scope of the model.** This conjunctive account is currently best understood as a bounded mechanism of catastrophic-risk identification on two encoder backbones, not a universal theory of merge behavior. It identifies the geometric *preconditions* for catastrophic failure; it does not predict severity, and it does not claim to capture every mode of merge degradation. The DeBERTa adjudication (Section 7.1) is the pre-registered test of whether the model generalizes to a third backbone.
 
 ### 3.3 Head-Level Modulation: Why Seeds Matter
 
@@ -232,13 +238,7 @@ The near-miss category is now implemented as a graduated section in the action p
 
 ### 4.5 Machine-Readable Artifacts
 
-All pipeline outputs conform to frozen, additive-only JSON schemas:
-
-- `gradience.adapter_qa/v1` — per-adapter QA artifact (eligibility, spectral summary, behavioral evidence)
-- `gradience.merge_qa_report/v1` — per-pair risk assessment (pair risk, dominant issue, strategy, task advisory)
-- `gradience.inventory_summary/v1` — aggregated inventory view (status counts, risk distribution, strategy recommendations)
-
-The frozen schema contract means that downstream tooling can depend on these artifacts without fear of breaking changes. New fields may be added; existing fields will not be removed or reinterpreted.
+All pipeline outputs conform to frozen, additive-only JSON schemas (per-adapter QA, per-pair risk assessment, and aggregated inventory summary), ensuring that downstream tooling can depend on these artifacts without fear of breaking changes. Schema definitions and canonical examples are available in the repository documentation.
 
 ---
 
@@ -273,7 +273,7 @@ Across all 16 evaluated merges:
 - **Near-miss pairs:** 1 of 7 improves (14%); average degradation −0.006. Essentially indistinguishable from retained pairs.
 - **Cross-task controls:** 0 of 4 improve; average degradation −0.047. Consistently worse than both retained and near-miss.
 
-The narrowing logic is validated: Gradience correctly identifies the most promising candidates and excludes the least promising. The 90–93% reduction rate means that a practitioner with 28 candidate pairs evaluates 2 instead of 28, and those 2 are the right first choices.
+The narrowing logic is validated: Gradience correctly identifies the most promising candidates and excludes the least promising. The 90–93% reduction rate means that a practitioner with 28 candidate pairs evaluates 2 instead of 28, and those 2 are the right first choices. The strongest operational validation here is of *candidate narrowing and prioritization* — the system reliably separates promising pairs from unpromising ones — not of guaranteed merge success. Retained pairs still require behavioral evaluation; the contribution is that evaluation budget is spent on the right candidates.
 
 ### 5.3 What Validation Covers
 
@@ -343,23 +343,23 @@ The most important next empirical step is the DeBERTa adjudication protocol: tra
 
 This requires approximately 3 hours of GPU compute. It is the single most important experiment for determining whether the mechanistic account is backbone-general or backbone-contingent. Until it is completed, the conjunctive model and V-module pathology findings are formally bounded to two backbones.
 
-### 7.2 Decoder-Only Ecosystem Census
+### 7.2 Decoder-Only Ecosystem Census (Completed)
 
-A CPU-only spectral census of publicly available decoder-only LoRA adapters on HuggingFace Hub is underway, asking: *do spectral fingerprints of decoder-only adapters separate architecture effects from task effects at population scale?*
+A CPU-only spectral census of publicly available decoder-only LoRA adapters on HuggingFace Hub asked: *do spectral fingerprints of decoder-only adapters separate architecture effects from task effects at population scale?* The study progressed through pilot (n=26), pilot-plus (n=49), and task-balanced extension (n=36 fingerprints across 3 architecture families), and closed with a `mixed_but_bounded` decision in April 2026.
 
-**Pilot results (n=26, Llama and Mistral):**
+**What passed:** The pilot-plus cleared all four gate criteria — pipeline viability (49/50 audited, 98%), architecture family coverage (Llama 18, Mistral 15, Qwen 16), residualized signal (4 metrics with residualized η² > 0.05), and subtype coverage (7 subtypes with ≥10 layers each). Real spectral structure exists in the decoder adapter ecosystem: the signals are non-random and survive multiple confound controls.
 
-The pilot achieved partial success — the pipeline works, spectral signal is visible, but operational failures (disk/size constraints) and missing architecture coverage prevented the original gate criteria from being met.
+**Four findings from the completed census:**
 
-Three findings from the pilot warrant early reporting:
+*Finding 1: Task dominates architecture in global variance — inverting the pre-study hypothesis.* In the task-balanced extension, task η² = 0.34 and architecture η² = 0.14. The original hypothesis predicted architecture as the dominant first-order predictor; the data show the opposite. However, architecture kNN purity remains relatively high (0.74 in the augmented cohort, down from 0.90 in the initial pilot), indicating tight local clustering despite lower global variance explained. The interpretation: *architecture determines cluster precision; task determines cluster location.*
 
-*Finding 1: Task dominates architecture in global variance.* Task η² = 0.26, architecture η² = 0.12 — inverting the pre-pilot hypothesis that architecture would be the dominant first-order predictor. However, architecture kNN purity is very high (0.90), indicating tight local clustering despite low global variance explained. Architecture matters locally; task matters globally.
+*Finding 2: Nominal rank is a major confound, and confound pressure increased with scale.* R² between nominal rank and spectral metrics rose from ~0.66 (pilot) to ~0.75 (augmented cohort). Residualization is mandatory; rank-matched subsetting is necessary for causal-adjacent claims. In a rank-matched subset (modal rank=8, n=11), architecture η² drops to 0.08 and task η² to 0.11 — both signals attenuated but still non-random.
 
-*Finding 2: Nominal rank is a major confound.* R² = 0.66 between nominal rank and spectral metrics. Any cross-adapter comparison that does not control for nominal rank is unreliable. Rank-matched analysis is essential for the core program.
+*Finding 3: Encoder-era module-type asymmetry does not replicate on decoders.* In encoder models, attention modules consistently show lower utilization than MLP modules. In the decoder census, this pattern holds in only 15% of adapters (augmented cohort). This non-replication is robust across cohort expansions and is likely architectural: grouped query attention and SwiGLU MLP structures in decoder models change the utilization dynamics. This is a first-class finding — encoder-derived spectral intuitions require revision for decoder-only models.
 
-*Finding 3: Encoder-era module-type asymmetry does not replicate on decoders.* In encoder models, attention modules consistently show lower utilization than MLP modules. In the decoder pilot, this pattern holds in only 25% of adapters. The likely explanation is architectural: grouped query attention and SwiGLU MLP structures in decoder models change the utilization dynamics. This is a first-class finding — it means encoder-derived spectral intuitions require revision for decoder-only models.
+*Finding 4: Broader heterogeneity degrades purity measures.* As the cohort expanded from curated pilot to task-balanced extension, both architecture kNN purity (0.90 → 0.74) and task kNN purity (0.70 → 0.57) decreased. Found-artifact labels are noisy; task categories uneven. The census identifies *where* signal exists, but causal disambiguation requires controlled training under matched conditions — the domain of the GPU-return study, not further observational expansion.
 
-**Pilot-plus status:** A corrected rerun targeting 50–70 audited adapters across 3 architecture families (Llama, Mistral, Qwen) is in progress. Success criteria: ≥3 architecture families with ≥5 adapters each, ≥3 task categories with ≥5 adapters each, rank-matched analyses complete, and non-random structure surviving at least one confound control.
+**Study closure rationale:** Further observational expansion yields diminishing returns. The remaining research questions — causal architecture-task separation, threshold calibration, merge-outcome prediction for decoders — require controlled training experiments, not more public adapter data. The census is closed as a successful ecological complement to the planned GPU-return study.
 
 ### 7.3 The Generalization Landscape
 
@@ -374,8 +374,8 @@ The current evidence base supports a map of where the approach has been tested, 
 **Suggestive (preliminary evidence, not operational):**
 - Instability as portable descriptor (2 backbones, awaiting 3rd)
 - V-module dimensionality ratio as catastrophe discriminator (2 backbones)
-- Task > architecture in global variance for decoder-only adapters (pilot, n=26)
-- Module-type asymmetry non-replication on decoders (pilot observation)
+- Task > architecture in global variance for decoder-only adapters (census, n=36, 3 families, confirmed across confound controls)
+- Module-type asymmetry non-replication on decoders (robust across cohort expansions, 15% replication rate)
 
 **Untested:**
 - Decoder-only models for merge triage (spectral census addresses population-level structure, not merge outcome)
@@ -405,7 +405,7 @@ The merge triage problem can be approached from several directions. Gradience's 
 
 **Task metadata heuristics** use dataset and task labels to filter pairs. Gradience incorporates this via task-boundary detection, which is its highest-confidence feature. But metadata alone cannot distinguish between same-task pairs that are structurally compatible and those that are not.
 
-**Gradient-based compatibility** measures how similarly two adapters respond to the same training signal. Gradience's own research found that `proxy_gradient` — a gradient-based comparator — is the stronger *operational* default for rank policy selection, outperforming spectral policies on stability. This creates a productive tension: spectral analysis is more informative about the *mechanism* of failure (it reveals the geometric structure), while gradient-based measures may be more reliable for *operational* decisions in some contexts. The current system uses spectral analysis for compatibility assessment and triage, where the geometric interpretation is most valuable.
+**Gradient-based compatibility** measures how similarly two adapters respond to the same training signal. Gradience's own research found that `proxy_gradient` — a gradient-based comparator — is the stronger *operational* default for rank policy selection, outperforming spectral policies on stability. This is worth reporting transparently: in the specific domain of rank-budget allocation, gradient signal beats spectral signal. However, this does not weaken the case for spectral analysis in merge triage, where the main value lies in *structural interpretation and candidate narrowing* rather than optimization-proxy stability. Spectral analysis reveals *why* a pair is incompatible (V-module subspace conflict, magnitude imbalance, redundancy); gradient-based measures provide a scalar compatibility signal without geometric decomposition. The two approaches are complementary, and the current architecture supports both.
 
 **Model merging research** (TIES, DARE, Task Arithmetic, etc.) focuses on improving merge *strategies* — better algorithms for combining adapter weights. Gradience is orthogonal to this: it identifies which pairs to attempt merging in the first place, regardless of which strategy is used. The spectral analysis can also inform strategy *selection* — different geometric profiles favor different merge algorithms — but this is secondary to the triage function.
 
@@ -417,9 +417,9 @@ This report has presented a spectral-geometric approach to LoRA adapter merge tr
 
 The intellectual contribution is threefold. First, the formal argument (Section 2) establishes *why* spectral observables should carry compatibility information: the SVD reveals the subspace geometry of learned modifications, and merge outcomes depend on how these subspaces interact. Second, the mechanistic account (Section 3) identifies the specific geometric conditions for catastrophic failure — V-module dimensionality mismatch combined with readout incompatibility — arrived at by systematic elimination of simpler alternatives. Third, the operational system (Section 4) demonstrates that these theoretical insights can be translated into a practical triage pipeline that meaningfully reduces the cost of adapter inventory management.
 
-The approach's limitations are as real as its strengths. Severity cannot be predicted — only risk identified. The mechanistic account rests on two backbones, awaiting a third (DeBERTa) for confirmation. Decoder-only models show intriguing preliminary signals (task dominance in global variance, non-replication of encoder module-type patterns) but have not been validated for merge triage. The gradient-based `proxy_gradient` comparator outperforms spectral policies as an operational default, suggesting that the spectral approach's greatest value is in structural *interpretation* rather than pure prediction.
+The approach's limitations are as real as its strengths. Severity cannot be predicted — only risk identified. The mechanistic account rests on two backbones, awaiting a third (DeBERTa) for confirmation. The completed decoder-only census finds real spectral structure (task dominance in global variance, architecture in local clustering) but also demonstrates that encoder-derived spectral intuitions do not transfer cleanly — module-type asymmetry does not replicate, and confound pressure increases with ecological diversity. Decoder merge triage remains unvalidated.
 
-These limitations define the research frontier. The DeBERTa adjudication (3 hours of GPU compute) is the single highest-value next experiment: it will either confirm the conjunctive model as backbone-general or reveal it as backbone-contingent. The decoder-only census will determine whether spectral triage extends to the models where adapter merging is most practically relevant. And the tension between spectral and gradient-based signals points toward a richer multi-modal compatibility assessment that the current architecture already supports.
+The single highest-value next experiment is the DeBERTa adjudication: 3 hours of GPU compute, 5 pre-registered predictions, and a clear decision tree. It will either confirm the conjunctive model as backbone-general or bound it as backbone-contingent. That result determines whether the mechanistic account described here is a local finding about small encoders or the beginning of a general theory of adapter compatibility.
 
 The code, documentation, and all field trial data are available at [github.com/johntnanney/gradience](https://github.com/johntnanney/gradience).
 
