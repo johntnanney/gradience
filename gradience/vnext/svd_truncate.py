@@ -19,10 +19,10 @@ import json
 import shutil
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import numpy as np
-import torch
+if TYPE_CHECKING:
+    import torch
 
 from gradience.exceptions import AuditError, ConfigError
 
@@ -151,6 +151,8 @@ def _compute_svd_truncation(
         - B_new: (d_out, target_rank)
         - energy_retained: fraction of spectral energy retained
     """
+    import torch
+
     original_dtype = lora_A.dtype
     r, d_in = lora_A.shape
     d_out, r_B = lora_B.shape
@@ -286,6 +288,9 @@ def svd_truncate_peft_dir(
     Returns:
         Report with energy retention and other metrics
     """
+    import numpy as np
+    import torch
+
     peft_dir = Path(peft_dir)
     out_dir = Path(out_dir)
 

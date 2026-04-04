@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
-
 
 def compute_layer_importance_scores(
     layers: list[Any],
@@ -147,6 +145,8 @@ def filter_disagreement_layers(
 
             if not distribution_is_flat:
                 energy_shares = [a["energy_share"] for a in layer_analysis]
+                import numpy as np
+
                 energy_quantile = np.percentile(energy_shares, quantile_pct)
                 analysis["energy_quantile_threshold"] = energy_quantile
                 meets_quantile = energy_share >= energy_quantile

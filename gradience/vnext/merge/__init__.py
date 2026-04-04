@@ -25,8 +25,6 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import torch
-
 from gradience.exceptions import MergeError
 
 # Typed containers
@@ -298,12 +296,16 @@ __all__ = [
 # dtype mapping
 # ---------------------------------------------------------------------------
 
-_DTYPE_MAP = {
-    "float64": torch.float64,
-    "float32": torch.float32,
-    "fp64": torch.float64,
-    "fp32": torch.float32,
-}
+def _get_dtype_map() -> dict:
+    """Build dtype map lazily so torch is not imported at module level."""
+    import torch
+
+    return {
+        "float64": torch.float64,
+        "float32": torch.float32,
+        "fp64": torch.float64,
+        "fp32": torch.float32,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -354,9 +356,10 @@ def merge_audit(
     if thresholds is None:
         thresholds = VerdictThresholds()
 
-    dtype = _DTYPE_MAP.get(compute_dtype)
+    dtype_map = _get_dtype_map()
+    dtype = dtype_map.get(compute_dtype)
     if dtype is None:
-        raise MergeError(f"Unsupported compute_dtype '{compute_dtype}'. Choose from: {list(_DTYPE_MAP.keys())}")
+        raise MergeError(f"Unsupported compute_dtype '{compute_dtype}'. Choose from: {list(dtype_map.keys())}")
 
     # --- Step 1: Load adapters ---
     if verbose:
