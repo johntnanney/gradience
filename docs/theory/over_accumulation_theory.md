@@ -131,16 +131,33 @@ Norm equalization rescales adapters to geometric-mean Frobenius norm:
 - `scale_b = sqrt(||A||_F / ||B||_F)`
 
 This changes the effective σ_1 contributions to the cross-term.
-When `ρ_F ≫ 1`, norm equalization compresses the dominant adapter,
-reducing the cross-term magnitude and thus inflation risk.
+Norm equalization compresses the dominant adapter's spectrum but
+**amplifies the subordinate adapter's spectrum**. If the subspaces
+overlap (non-trivial principal angle cosines), the amplified subordinate
+creates a larger cross-term, potentially *increasing* inflation beyond
+the linear-merge baseline.
+
+**Empirical finding:** For a 30x Frobenius-imbalanced pair with
+moderate subspace overlap, norm equalization inflated the leading
+singular value by 3.26x vs only 1.07x for linear merge. This is not
+an edge case — it occurs precisely when the IMBALANCED verdict fires
+(large `frobenius_ratio` + non-trivial overlap).
+
+**When norm equalization helps:** Low subspace overlap (orthogonal
+adapters) or balanced norms (ρ_F ≈ 1). In these regimes the cross-term
+amplification is negligible.
+
+**Pipeline implication:** The `_derive_strategy` policy routes
+medium-risk imbalanced pairs to `"linear"` with rebalanced coefficients
+rather than `"norm_equalized"`.
 
 Implemented utility: `norm_equalized_over_accumulation_analysis(...)`
 
 The `reduction_factor` field is `normeq_ratio / linear_ratio`:
 - `< 1.0`: norm equalization reduces inflation risk
 - `= 1.0`: no effect (already balanced)
-- `> 1.0`: norm equalization increases risk (unusual, can happen when
-  the smaller adapter has more concentrated spectrum)
+- `> 1.0`: norm equalization increases risk (common for imbalanced
+  pairs with non-trivial subspace overlap)
 
 ## Next derivation targets
 

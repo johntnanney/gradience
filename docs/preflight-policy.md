@@ -39,11 +39,16 @@ A pair is blocked if **either** adapter has:
 
 Merge reports map `pair_risk` to `recommended_strategy`:
 
-| Risk Level | Strategy | Meaning |
-|------------|----------|---------|
-| `low` | `linear` | Safe to merge with simple linear combination |
-| `medium` | `norm_equalized` | Merge with norm equalization to handle imbalance |
-| `high` | `audit_aware` | Requires careful audit-guided merge or manual review |
+| Risk Level | Dominant Verdict | Strategy | Meaning |
+|------------|-----------------|----------|---------|
+| `low` | any | `linear` | Safe to merge with simple linear combination |
+| `medium` | `imbalanced` | `linear` | Merge with rebalanced coefficients (down-weight dominant adapter) |
+| `medium` | other | `norm_equalized` | Merge with norm equalization for redundancy/partial-overlap cases |
+| `high` | any | `audit_aware` | Requires careful audit-guided merge or manual review |
+
+> **Why not norm_equalized for imbalance?** Norm equalization amplifies the weaker
+> adapter's spectrum, increasing cross-term spectral inflation when subspaces
+> overlap. Rebalanced linear coefficients are more appropriate.
 
 The `recommended_action` field is explanatory prose and does not override `recommended_strategy`.
 

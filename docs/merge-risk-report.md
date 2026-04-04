@@ -202,15 +202,22 @@ Extra keys at any level are silently ignored (forward compatible).
 
 ### Recommended strategy derivation
 
-`recommended_strategy` is the primary machine-readable recommendation. It is derived from `pair_risk` and whether compression is needed (any layer has `compress_first=True`).
+`recommended_strategy` is the primary machine-readable recommendation. It is derived from `pair_risk`, the dominant verdict type, and whether compression is needed (any layer has `compress_first=True`).
 
-| `pair_risk` | Compression needed | `recommended_strategy` |
-|-------------|-------------------|----------------------|
-| `low` | no | `"linear"` |
-| `low` | yes | `"audit_aware"` |
-| `medium` | no | `"norm_equalized"` |
-| `medium` | yes | `"audit_aware"` |
-| `high` | any | `"audit_aware"` |
+| `pair_risk` | Dominant verdict | Compression needed | `recommended_strategy` |
+|-------------|-----------------|-------------------|----------------------|
+| `low` | any | no | `"linear"` |
+| `low` | any | yes | `"audit_aware"` |
+| `medium` | `imbalanced` | no | `"linear"` (rebalanced coefficients) |
+| `medium` | other | no | `"norm_equalized"` |
+| `medium` | any | yes | `"audit_aware"` |
+| `high` | any | any | `"audit_aware"` |
+
+> **Note:** Norm equalization is contraindicated for imbalanced pairs. Equalizing
+> norms amplifies the weaker adapter's spectrum into the overlap zone, increasing
+> cross-term spectral inflation (empirically measured at 3.26x vs 1.07x for linear
+> merge). Imbalanced pairs use linear merge with rebalanced coefficients that
+> down-weight the dominant adapter instead.
 
 ### Confidence
 

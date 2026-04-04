@@ -380,13 +380,15 @@ class DARETIESMerge(MergeStrategy):
 class NormEqualizedMerge(MergeStrategy):
     """Scale both adapters to equal Frobenius norm before linear averaging.
 
-    Removes scale imbalance as a confounding factor: both ΔW matrices are
-    rescaled to their geometric-mean Frobenius norm, then combined with
-    the configured coefficients.
+    Both ΔW matrices are rescaled to their geometric-mean Frobenius norm,
+    then combined with the configured coefficients.
 
-    This is one of the strongest validated single interventions for merge
-    quality.  It is simpler than the full audit-aware tree and often
-    competitive, making it a valuable baseline.
+    Effective for medium-risk pairs with redundancy or partial overlap where
+    scale differences confound the linear combination.  **Contraindicated for
+    imbalanced pairs**: amplifying the weaker adapter's spectrum into the
+    overlap zone can increase cross-term spectral inflation (empirically
+    3.26x vs 1.07x for linear merge).  For imbalanced pairs, use linear
+    merge with rebalanced coefficients instead.
 
     ``coefficients`` control the weighted average *after* norm equalization.
     ``trim_fraction`` is unused (ignored).
