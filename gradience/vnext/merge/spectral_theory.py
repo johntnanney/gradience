@@ -921,7 +921,11 @@ def norm_equalized_over_accumulation_analysis(
     before linear combination.
 
     When ρ_F ≫ 1 (one adapter much larger), this compresses the dominant
-    adapter's σ_1, reducing the cross-term and thus inflation risk.
+    adapter's σ_1 but *amplifies* the subordinate adapter's σ_1.  If the
+    subspaces overlap (non-trivial principal angle cosines), the amplified
+    subordinate spectrum creates a larger cross-term, potentially increasing
+    inflation beyond the linear-merge baseline.  Norm equalization reliably
+    reduces inflation only when subspace overlap is low.
     """
     alpha, beta = _normalize_coefficients(coefficients)
 

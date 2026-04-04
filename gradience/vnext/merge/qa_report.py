@@ -579,15 +579,28 @@ def _derive_strategy(diag: PairDiagnosis, rec: MergeRecommendation) -> str:
     """Derive the primary recommended strategy from diagnosis.
 
     Policy:
-      low risk + no compression  -> "linear"
-      medium risk + no compression -> "norm_equalized"
-      otherwise (high risk or compression needed) -> "audit_aware"
+      low risk + no compression                      -> "linear"
+      medium risk + imbalance dominant + no compress  -> "linear"  (rebalanced coefficients)
+      medium risk + no imbalance + no compression     -> "norm_equalized"
+      otherwise (high risk or compression needed)     -> "audit_aware"
+
+    Note: norm equalization is contraindicated for imbalanced pairs because
+    equalizing norms amplifies the weaker adapter's spectrum into the overlap
+    zone, increasing cross-term spectral inflation.  The per-layer rebalanced
+    coefficients (from the imbalanced verdict) are more appropriate.
     """
     if diag.compression_needed:
         return "audit_aware"
     if diag.overall_risk == "low":
         return "linear"
     if diag.overall_risk == "medium":
+        # Check whether the dominant concern is norm imbalance.
+        # Norm equalization can *increase* spectral inflation for imbalanced
+        # pairs by amplifying the weaker adapter into the overlap zone.
+        # Use linear with rebalanced coefficients instead.
+        has_imbalanced = any(ld.verdict == "imbalanced" for ld in diag.layer_diagnoses)
+        if has_imbalanced:
+            return "linear"
         return "norm_equalized"
     return "audit_aware"
 
