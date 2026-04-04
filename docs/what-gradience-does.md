@@ -1,138 +1,132 @@
-# What Gradience Knows How to Do
+# Capabilities Reference
 
-**Last updated:** 2026-03-31
+**Last updated:** 2026-04-04
 
-Plain-language capabilities. No architecture, no theory. What it does, how well it does it, and where it stops.
-
----
-
-## The short version
-
-Gradience looks at a collection of fine-tuned model adapters and tells you which ones are worth merging, which ones need more evidence before you decide, and which ones you should skip. It gets this right — zero false positives across five real inventories — by being conservative: it would rather tell you "not enough evidence" than guess.
+What each Gradience feature does, what it covers, and where it stops. No theory or architecture — for the full argument, see the [Technical Report](technical-report.md).
 
 ---
 
-## What it does today (stable, shipped, tested)
+## Stable capabilities (shipped, tested)
 
 ### Adapter inventory preflight
 
-You have a pile of LoRA adapters. Some are yours, some are from the Hub, some are experiments you half-remember. Gradience triages the pile:
+| Stage | What it does | Key output |
+|-------|-------------|------------|
+| Evidence bootstrap | Evaluates each adapter against base model on a small sample; flags adapters that don't meaningfully improve over base | Per-adapter evaluation delta |
+| QA classification | Assigns eligibility: `eligible`, `uncertain`, `flagged_weak`, or `unknown_no_behavioral_eval` | QA artifact (`gradience.adapter_qa/v1`) |
+| Pairwise compatibility | Per-layer spectral analysis of every eligible pair; assigns risk level, dominant issue, and strategy recommendation | Merge report (`gradience.merge_qa_report/v1`) |
+| Task-boundary detection | Classifies pairs as same-task, same-family, or cross-task using evaluation dataset metadata | Task-relationship advisory on each merge report |
+| Near-miss identification | Identifies structurally plausible pairs blocked only by weak source evidence; ranks by severity (marginal / moderate / substantial) | Near-miss section in action plan |
+| Action plan | Aggregates all pair results into retained / near-miss / skip categories | Inventory summary (`gradience.inventory_summary/v1`) + action plan |
+| Preflight bundle | Packages a complete run: JSON summary, markdown review, optional HTML report, run manifest | `--emit-bundle` output directory |
+| Batch summary | Cross-run comparison table from multiple preflight bundles | `gradience batch-summary` output |
 
-- **Evidence bootstrap.** Before looking at any structural compatibility, it checks: does each adapter actually do something? It evaluates each one against the base model on a small sample. Adapters that don't meaningfully beat base are flagged immediately. This is not optional — without it, the tool produces nothing useful.
+### Merge execution (LoRA only)
 
-- **QA classification.** Each adapter gets an eligibility status: `eligible` (clear evidence it works), `uncertain` (ambiguous), `flagged_weak` (below threshold), or `unknown` (no evaluation data). Weak and unknown adapters are excluded from merge consideration.
+| Strategy | When recommended |
+|----------|-----------------|
+| `linear` | Low-risk same-task pairs |
+| `ties` | Pairs with sign disagreement across layers |
+| `dare_ties` / `dare_linear` | Pairs where dropout may reduce interference |
+| `norm_equalized` | *Not* recommended for imbalanced pairs (contraindicated); used when norm ratio is moderate |
 
-- **Pairwise compatibility.** For every pair of eligible adapters, Gradience computes structural compatibility using spectral analysis (SVD-based measurement of how the adapters' weight spaces relate). Each pair gets a risk level, a dominant structural issue, and a recommended merge strategy.
+Strategy recommendation comes from the triage step. Execution is a separate, explicit command.
 
-- **Action plan.** All of the above rolls up into a single triage output: which pairs to pursue, which are near-misses worth revisiting, and which to skip. Typically filters out 90–93% of candidates.
+### Spectral measurements (per adapter)
+
+| Metric | What it measures |
+|--------|-----------------|
+| Stable rank | Frobenius / spectral norm ratio — effective dimensionality |
+| Energy rank @ 90% | Minimal rank capturing 90% of Frobenius energy |
+| Entropy effective rank | Information-theoretic dimensionality measure |
+| Utilization ratio | Stable rank / nominal rank — how much of the rank budget is used |
+
+### Pairwise compatibility metrics (per layer)
+
+| Metric | What it measures |
+|--------|-----------------|
+| Principal angles | Subspace overlap between the two adapters' column/row spaces |
+| Directional agreement | Whether shared dimensions are used cooperatively or antagonistically |
+| Magnitude balance | Norm ratio between adapters |
+| Subspace overlap | Combined overlap score |
+
+Per-layer verdicts: `SAFE`, `REDUNDANT`, `CONFLICTING`, `IMBALANCED`.
 
 ### Task-boundary detection
 
-The most reliable thing Gradience does. It separates:
+| Classification | Meaning | Validated coverage |
+|---------------|---------|-------------------|
+| Same-task | Both adapters trained on the same dataset | 53+ pairs, 3 backbones, 0 false positives |
+| Same-family | Different datasets, same task type (e.g., SST-2 and IMDB) | Behaviorally confirmed as safe-like |
+| Cross-task | Different task types | Flagged for caution; routed separately in action plan |
 
-- **Same-task pairs** (both adapters trained on the same task) — almost always safe to merge.
-- **Same-family pairs** (different datasets, same task type — e.g., SST-2 and IMDB are both binary sentiment) — treated like same-task for triage purposes. Behaviorally confirmed as safe.
-- **Cross-task pairs** (different task types) — flagged for caution. Not automatically excluded, but the action plan routes them differently.
+Currently validated task family: binary sentiment (SST-2, IMDB, Yelp Polarity, Amazon Polarity).
 
-Zero false positives on this classification across 53+ evaluated pairs and 3 backbones.
+### Machine-readable artifacts
 
-### Near-miss prioritization
+| Schema | Content | Contract |
+|--------|---------|----------|
+| `gradience.adapter_qa/v1` | Per-adapter eligibility, spectral summary, behavioral evidence | Frozen, additive-only |
+| `gradience.merge_qa_report/v1` | Per-pair risk, dominant issue, strategy, task advisory | Frozen, additive-only |
+| `gradience.inventory_summary/v1` | Aggregate counts, risk distribution, strategy recommendations | Frozen, additive-only |
 
-Some pairs are structurally plausible but blocked by weak evidence (one or both source adapters didn't clearly beat base). Instead of silently dropping these, Gradience identifies them as near-misses and ranks them by severity:
-
-- **Marginal** — almost eligible, small evidence gap
-- **Moderate** — fixable with better evaluation
-- **Substantial** — far from eligible
-
-Near-miss merges are behaviorally indistinguishable from safe merges (avg degradation -0.006 vs best source). The structural concern is real; the behavioral concern is not. The right action is to fix the evidence, not to avoid the merge.
-
-### Merge execution
-
-For LoRA adapters specifically, Gradience can execute the merge itself — not just triage. It supports linear, TIES, DARE, and norm-equalized strategies. The strategy recommendation comes from the triage step; execution is a separate command.
-
-### Reports and artifacts
-
-Everything produces structured output:
-
-- **QA artifacts** — per-adapter eligibility records (JSON, frozen v1 schema)
-- **Merge reports** — per-pair risk assessment (JSON, frozen v1 schema)
-- **Inventory summaries** — aggregate triage (JSON, frozen v1 schema)
-- **Action plans** — what to do next (JSON + Markdown)
-- **Preflight bundles** — packaged run with manifest, review packet, and optional HTML report
-- **Batch summaries** — cross-run comparison tables
-
-All schemas are frozen and additive-only. Old outputs remain valid.
+All schemas are frozen. Old outputs remain valid indefinitely. New fields may be added; existing fields will not change meaning.
 
 ---
 
-## What it does in alpha (working, scoped, not yet promoted)
+## Alpha capabilities (working, scoped)
 
 ### Checkpoint triage
 
-The same triage workflow — evidence bootstrap, QA, pairwise comparison, action plan — applied to full fine-tuned checkpoints instead of LoRA adapters. Uses a different representation path (summary statistics instead of factor geometry) but the same workflow shape.
+The same triage workflow applied to full fine-tuned checkpoints instead of LoRA adapters. Uses summary representation (not factor geometry) but the same workflow shape.
 
-**Scope contract:** shared base model, small encoders only, classification only, evidence bootstrap required. Outside these bounds, treat results as experimental.
+| Aspect | Scope |
+|--------|-------|
+| Base model | Shared base required |
+| Architecture | Small encoders only |
+| Task type | Classification only |
+| Evidence | Bootstrap required |
+| Merge execution | **Not supported** — triage generalizes, execution does not |
 
-**What it does:** Triages checkpoint compatibility. **What it doesn't do:** Merge checkpoints. Triage generalizes; merge execution does not.
-
-One canonical instance exists (`field_trials/checkpoint_inventory_t02/`). See the [checkpoint triage README](../field_trials/checkpoint_inventory_t02/README.md).
-
----
-
-## What is validated but not packaged
-
-These experiments confirmed that the underlying analysis generalizes, but the results are not part of the installed tool.
-
-### Routing confusability
-
-The same spectral functions that assess merge compatibility can assess routing confusability — whether two adapters are similar enough that a router might confuse them. Validated with ~370 lines of new code and zero changes to existing code. The analysis substrate is shared; the policy layer (what you do with the measurements) is different.
-
-### LoHa adapter support
-
-The full pipeline (audit, pairwise comparison, inventory) works on LoHa adapters via a ~160-line extraction shim. Zero core code changes. Factor extraction is different; everything downstream is identical.
-
-### Broader PEFT and checkpoint analysis
-
-The workflow shape — evidence first, then structural comparison, then triage — has been validated across three generalization axes (different scenarios, different PEFT methods, different representation paths). The structural metrics are not portable across these axes; the workflow is.
+One canonical instance: `field_trials/checkpoint_inventory_t02/`.
 
 ---
 
-## What is research-only
+## Validated but not packaged
 
-The sidecar research program has established why Gradience's signals work (the mechanism ladder) and how they extend beyond merge (the Route 2 framework). These findings inform the tool's design but are not part of the product:
+These extensions confirmed that the analysis substrate generalizes. They are not part of the installed tool.
 
-- **Why merges fail catastrophically.** V-module pathology in the value-projection attention heads, combined with readout incompatibility, produces catastrophe. Either alone is benign. Ten alternative explanations were tested and eliminated.
-
-- **Why severity is unpredictable.** The same task pair can be catastrophic on one backbone and safe on another. Severity is not portable; instability (the variability of severity) is.
-
-- **Why different decisions need different aggregation.** The same structural evidence produces different operational judgments depending on whether you're merging, routing, or triaging. This is not a presentation choice — it reflects genuine differences in what each decision optimizes for.
-
-- **Behavioral grounding.** Four of five compatibility profiles have distinct behavioral signatures at the example level. The most important distinction: some failures involve the model knowing it's confused (recoverable) vs the model being confidently wrong (dangerous).
-
-For the full research story, see the [research packet](../sidecar/packet/00_packet_index.md) and [Route 2 packet](../sidecar/packet/route2/00_route2_packet_index.md).
+| Extension | What was validated | Effort to ship |
+|-----------|-------------------|----------------|
+| Routing confusability | Same spectral functions assess whether a router might confuse two adapters | ~370 LOC, zero core changes |
+| LoHa adapter support | Full pipeline works via extraction shim | ~160 LOC, zero core changes |
+| Workflow portability | Evidence → structure → triage pattern works across PEFT methods and representation paths | Structural metrics not portable; workflow is |
 
 ---
 
-## What it does not do
+## What Gradience does not do
 
-- **It does not merge for you automatically.** It triages. Merge execution exists but is a separate, explicit step.
-- **It does not work without evidence.** An adapter with no evaluation data gets no useful output. This is by design.
-- **It does not predict severity.** It identifies risk (same-task vs cross-task, structural compatibility) but cannot tell you how bad a failed merge will be. Severity depends on backbone, seed, and conditions that are not measurable without running the merge.
-- **It does not support decoder models.** All validation is on small encoder models (DistilBERT, RoBERTa, BERT-class). Larger models and decoder architectures are untested.
-- **It does not support non-classification tasks.** Generation, extraction, retrieval, and other task types are outside the validated envelope.
-- **It does not detect all failure modes.** The tool is good at task-boundary detection and evidence gating. Subtle within-task incompatibilities at high rank may not be caught.
-- **It is not a universal compatibility platform.** The substrate generalizes further than the product packaging. But the product is a LoRA merge triage tool. The broader capabilities are validated experiments and research findings, not shipped features.
+| Limitation | Detail |
+|-----------|--------|
+| Automatic merging | Triages only. Merge execution exists but is a separate, explicit step |
+| Work without evidence | No evaluation data → no useful output. By design |
+| Predict severity | Identifies risk, not magnitude. Severity depends on backbone, seed, and head-level geometry |
+| Decoder models | All validation is on small encoders (DistilBERT, BERT-base, RoBERTa). Decoder spectral structure exists (census confirmed) but merge triage is unvalidated |
+| Non-classification tasks | Generation, extraction, retrieval are outside the validated envelope |
+| High-rank adapters | Tested at rank ≤ 16. Higher ranks are untested |
+| Large inventories | Largest validated: 9 adapters, 28 pairs |
+| Detect all failure modes | Good at task-boundary detection and evidence gating. Subtle within-task incompatibilities at high rank may not be caught |
+| Universal compatibility | The substrate generalizes further than the product. But the product is a bounded LoRA merge triage tool |
 
 ---
 
-## Where to go from here
+## Quick reference
 
-| You want to... | Start with... |
-|----------------|---------------|
-| Try it | `pip install gradience[hf]` and `gradience verify` |
-| See the full CLI | [CLAUDE.md](../CLAUDE.md) (key commands table) |
-| Understand the product evidence | [Product validation memo](product-validation.md) |
-| Try the checkpoint triage alpha | [Checkpoint triage README](../field_trials/checkpoint_inventory_t02/README.md) |
-| Understand what didn't generalize | [Boundaries and non-generalizations](boundaries-and-non-generalizations.md) |
-| See the research | [Demo path C](demo-paths.md#path-c--the-research-program) |
-| Orient to the full project | [Project map](project-map.md) |
+| You want to... | Go to |
+|----------------|-------|
+| Understand why this approach works | [Technical Report](technical-report.md) |
+| Run your first inventory | [Playbook](playbook.md) |
+| See example scenarios | [Example Gallery](example-gallery.md) |
+| Look up a CLI command | [CLI Reference](cli.md) |
+| Check the validation evidence | [Product Validation](product/product-validation.md) |
+| See what's bounded vs experimental | [Stable vs Experimental](00_start_here/stable-vs-experimental.md) |
