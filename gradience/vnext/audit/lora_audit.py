@@ -1346,27 +1346,6 @@ def compute_udr_metrics(
     return udr, udr_f, sdi
 
 
-def save_base_norms_cache(
-    base_norms: dict[str, dict[str, float]], cache_path: str | Path, model_id: str = "unknown"
-) -> None:
-    """Save base norms to cache file."""
-    cache_data = {"model_id": model_id, "timestamp": time.time(), "base_norms": base_norms}
-
-    with open(cache_path, "w") as f:
-        json.dump(cache_data, f, indent=2)
-
-
-def load_base_norms_cache(cache_path: str | Path) -> dict[str, dict[str, float]] | None:
-    """Load base norms from cache file."""
-    try:
-        with open(cache_path) as f:
-            cache_data = json.load(f)
-        norms: dict[str, dict[str, float]] = cache_data.get("base_norms", {})
-        return norms
-    except (FileNotFoundError, json.JSONDecodeError, KeyError):
-        return None
-
-
 # -----------------------------
 # Base model norms loading
 # -----------------------------

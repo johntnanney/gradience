@@ -181,13 +181,15 @@ def assess_layer(
     # --- Branch 0 (NEW): Frobenius imbalanced + low-to-moderate overlap ---
     if metrics.frobenius_ratio > thresholds.imbalanced_frob and metrics.mean_overlap < thresholds.high_overlap:
         ratio = metrics.frobenius_ratio
-        coeff_strong = 1.0 / (1.0 + ratio)
-        coeff_weak = ratio / (1.0 + ratio)
+        # coeff_dominant is the smaller value (down-weights the stronger adapter)
+        # coeff_subordinate is the larger value (up-weights the weaker adapter)
+        coeff_dominant = 1.0 / (1.0 + ratio)
+        coeff_subordinate = ratio / (1.0 + ratio)
 
         if metrics.frobenius_norm_a >= metrics.frobenius_norm_b:
-            coefficients = (coeff_strong, coeff_weak)
+            coefficients = (coeff_dominant, coeff_subordinate)
         else:
-            coefficients = (coeff_weak, coeff_strong)
+            coefficients = (coeff_subordinate, coeff_dominant)
 
         return LayerVerdict(
             layer_name=layer_name,
@@ -287,13 +289,15 @@ def assess_layer(
     # --- Branch 4: Frobenius imbalanced (high-overlap remainder) ---
     if metrics.frobenius_ratio > thresholds.imbalanced_frob:
         ratio = metrics.frobenius_ratio
-        coeff_strong = 1.0 / (1.0 + ratio)
-        coeff_weak = ratio / (1.0 + ratio)
+        # coeff_dominant is the smaller value (down-weights the stronger adapter)
+        # coeff_subordinate is the larger value (up-weights the weaker adapter)
+        coeff_dominant = 1.0 / (1.0 + ratio)
+        coeff_subordinate = ratio / (1.0 + ratio)
 
         if metrics.frobenius_norm_a >= metrics.frobenius_norm_b:
-            coefficients = (coeff_strong, coeff_weak)
+            coefficients = (coeff_dominant, coeff_subordinate)
         else:
-            coefficients = (coeff_weak, coeff_strong)
+            coefficients = (coeff_subordinate, coeff_dominant)
 
         return LayerVerdict(
             layer_name=layer_name,

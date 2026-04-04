@@ -257,8 +257,9 @@ def rebalance_coefficients(magnitude_ratio: float) -> tuple[float, float]:
     """Compute merge coefficients that compensate for magnitude imbalance.
 
     Given the ratio ``max(σ₁_a, σ₁_b) / min(σ₁_a, σ₁_b)``, returns
-    ``(coeff_strong, coeff_weak)`` such that the weaker adapter is up-weighted
-    proportionally to the imbalance.
+    ``(coeff_dominant, coeff_subordinate)`` where the dominant (stronger)
+    adapter is down-weighted and the subordinate (weaker) adapter is
+    up-weighted proportionally to the imbalance.
 
     This is the per-layer rebalancing used by the ``imbalanced`` verdict path
     and is also available for manual coefficient tuning.
@@ -269,12 +270,12 @@ def rebalance_coefficients(magnitude_ratio: float) -> tuple[float, float]:
 
     Returns
     -------
-    (coeff_strong, coeff_weak) — sum to 1.0
+    (coeff_dominant, coeff_subordinate) — sum to 1.0; coeff_dominant < coeff_subordinate
     """
     ratio = max(magnitude_ratio, 1.0)
-    coeff_strong = round(1.0 / (1.0 + ratio), 4)
-    coeff_weak = 1.0 - coeff_strong
-    return (coeff_strong, coeff_weak)
+    coeff_dominant = round(1.0 / (1.0 + ratio), 4)
+    coeff_subordinate = 1.0 - coeff_dominant
+    return (coeff_dominant, coeff_subordinate)
 
 
 def norm_equalized_coefficients(

@@ -155,7 +155,8 @@ def _compute_svd_truncation(
     r, d_in = lora_A.shape
     d_out, r_B = lora_B.shape
 
-    assert r == r_B, f"Rank mismatch: A has rank {r}, B has rank {r_B}"
+    if r != r_B:
+        raise AuditError(f"Rank mismatch: lora_A has rank {r}, lora_B has rank {r_B}")
 
     # Cast to float32 for numerical stability in QR/SVD operations
     A_work = lora_A.cpu().to(torch.float32)

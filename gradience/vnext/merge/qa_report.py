@@ -565,10 +565,12 @@ def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
     if diag.over_accumulation_advisory != "none" and diag.over_accumulation_summary:
         caveats.append(diag.over_accumulation_summary)
 
-    # From recommendation warnings
+    # From recommendation warnings (deduplicate by exact match)
+    existing = set(caveats)
     for w in rec.warnings:
-        if w not in "\n".join(caveats):
+        if w not in existing:
             caveats.append(w)
+            existing.add(w)
 
     return tuple(caveats)
 
