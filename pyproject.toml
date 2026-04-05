@@ -169,3 +169,35 @@ filterwarnings = [
     "ignore:datetime.datetime.utcnow:DeprecationWarning",
 ]
 timeout = 30
+
+[tool.bandit]
+exclude_dirs = ["tests", "scripts", "dev", "docs", "examples"]
+skips = [
+    "B101",   # assert used (fine outside tests — used for internal invariants)
+    "B108",   # hardcoded /tmp (safe: bench scratch dirs, not security-sensitive)
+    "B404",   # import subprocess (needed for git SHA detection)
+    "B603",   # subprocess call without shell=True (we control the args)
+    "B615",   # HF from_pretrained without revision pin (intentional: load latest models)
+]
+
+[tool.coverage.run]
+source = ["gradience"]
+omit = [
+    "gradience/verify.py",           # Installation verification script
+    "gradience/research/*",           # Research/experimental code
+    "gradience/bench/*",              # GPU-dependent benchmarking suite
+    "gradience/finetune/*",           # HF training integration (needs GPU)
+    "gradience/integrations/*",       # HF callback (needs training loop)
+    "gradience/analysis/*",           # Time-series analysis (needs telemetry data)
+]
+
+[tool.coverage.report]
+fail_under = 65
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+]

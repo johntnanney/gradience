@@ -39,7 +39,7 @@ jobs:
     
     - name: Run unit tests
       run: |
-        pytest tests/ -v --tb=short --cov=gradience --cov-report=xml
+        pytest tests/ -v --tb=short --cov=gradience --cov-report=xml --cov-fail-under=65
     
     - name: Run CPU bench smoke test
       run: |
