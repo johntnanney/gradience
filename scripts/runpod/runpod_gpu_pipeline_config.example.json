@@ -1,0 +1,118 @@
+{
+  "run_name": "runpod_deberta_v3_16_adapter_panel",
+  "output_root": "results/runpod_gpu_pipeline/deberta_v3_16_adapter_panel",
+  "base_model": "microsoft/deberta-v3-base",
+  "training_defaults": {
+    "train_samples": 2000,
+    "eval_samples": 500,
+    "max_steps": 900,
+    "learning_rate": 5e-05,
+    "train_batch_size": 8,
+    "eval_batch_size": 32,
+    "lora_r": 16,
+    "lora_alpha": 16,
+    "lora_dropout": 0.0,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "max_length": 256,
+    "target_modules": [
+      "query_proj",
+      "value_proj"
+    ]
+  },
+  "adapters": [
+    {
+      "name": "qnli_s11",
+      "task": "qnli",
+      "seed": 11
+    },
+    {
+      "name": "qnli_s42",
+      "task": "qnli",
+      "seed": 42
+    },
+    {
+      "name": "qnli_s123",
+      "task": "qnli",
+      "seed": 123
+    },
+    {
+      "name": "qnli_s777",
+      "task": "qnli",
+      "seed": 777
+    },
+    {
+      "name": "rte_s11",
+      "task": "rte",
+      "seed": 11
+    },
+    {
+      "name": "rte_s42",
+      "task": "rte",
+      "seed": 42
+    },
+    {
+      "name": "rte_s123",
+      "task": "rte",
+      "seed": 123
+    },
+    {
+      "name": "rte_s777",
+      "task": "rte",
+      "seed": 777
+    },
+    {
+      "name": "mrpc_s11",
+      "task": "mrpc",
+      "seed": 11
+    },
+    {
+      "name": "mrpc_s42",
+      "task": "mrpc",
+      "seed": 42
+    },
+    {
+      "name": "mrpc_s123",
+      "task": "mrpc",
+      "seed": 123
+    },
+    {
+      "name": "mrpc_s777",
+      "task": "mrpc",
+      "seed": 777
+    },
+    {
+      "name": "sst2_s11",
+      "task": "sst2",
+      "seed": 11
+    },
+    {
+      "name": "sst2_s42",
+      "task": "sst2",
+      "seed": 42
+    },
+    {
+      "name": "sst2_s123",
+      "task": "sst2",
+      "seed": 123
+    },
+    {
+      "name": "sst2_s777",
+      "task": "sst2",
+      "seed": 777
+    }
+  ],
+  "preflight": {
+    "inventory_id": "deberta_v3_16_adapter_panel",
+    "qa_margin": 0.0,
+    "strict_qa": false,
+    "quiet_subprocess": false
+  },
+  "merge_eval": {
+    "retained_limit": 8,
+    "near_miss_limit": 8,
+    "control_sample_size": 10,
+    "control_seed": 17,
+    "max_eval_samples": 500
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "packet_id": "gpu_return_packet_apr2026",
+  "created_date": "2026-04-04",
+  "status": "ready_for_gpu",
+  "release_boundary": "docs/strategy/current-release-state.md",
+  "execution_order": [
+    "deberta_adjudication",
+    "decoder_fingerprinting_merge_triage",
+    "verdict_confidence_validation"
+  ],
+  "studies": [
+    {
+      "id": "deberta_adjudication",
+      "owner": "",
+      "status": "pending",
+      "estimated_gpu_hours": "3",
+      "source_spec": "sidecar/notes/n07_deberta_adjudication_protocol.md",
+      "runbook": "field_trials/gpu_return_packet/deberta_adjudication/runbook.md"
+    },
+    {
+      "id": "decoder_fingerprinting_merge_triage",
+      "owner": "",
+      "status": "pending",
+      "estimated_gpu_hours": "8-12",
+      "source_spec": "docs/plans/2026-04-03-decoder-only-spectral-fingerprinting-gpu-return-plan.md",
+      "runbook": "field_trials/gpu_return_packet/decoder_fingerprinting_merge_triage/runbook.md"
+    },
+    {
+      "id": "verdict_confidence_validation",
+      "owner": "",
+      "status": "pending",
+      "estimated_gpu_hours": "2-4",
+      "source_spec": "docs/plans/2026-04-04-verdict-boundary-stress-test-spec.md",
+      "runbook": "field_trials/gpu_return_packet/verdict_confidence_validation/runbook.md"
+    }
+  ],
+  "closeout_memo": "field_trials/gpu_return_packet/gpu_return_outcome_summary.md",
+  "notes": [
+    "No policy threshold updates are authorized until packet closeout is complete.",
+    "PG3 should consume merged-outcome data from PG1 and PG2."
+  ]
+}
+
