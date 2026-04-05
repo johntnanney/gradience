@@ -159,10 +159,15 @@ class TestWatchdogTimer(unittest.TestCase):
 
             watchdog.stop()
 
-    @unittest.skip("Timeout detection test needs investigation - watchdog not timing out as expected")
     @patch("builtins.print")  # Capture print output to avoid spam
     def test_timeout_detection(self, mock_print):
-        """Test that timeout is detected and diagnostics are triggered."""
+        """Test that timeout is detected and diagnostics are triggered.
+
+        Uses a 3-second timeout (0.05 min).  With check_interval =
+        max(1, 3/4) = 1 s the watchdog should detect the hang within
+        ~4 seconds.  We wait 8 seconds to give ample room for the
+        diagnostic collection (psutil, nvidia-smi) to finish.
+        """
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
@@ -174,8 +179,11 @@ class TestWatchdogTimer(unittest.TestCase):
 
             watchdog.start()
 
-            # Wait for timeout (longer than timeout + check interval)
-            time.sleep(5)
+            # Wait for timeout + diagnostics to complete.  The check
+            # interval is 1 s and timeout is 3 s, so detection happens
+            # around t ≈ 4 s.  is_running is set False immediately on
+            # detection, before the (potentially slow) diagnostic dump.
+            time.sleep(8)
 
             # Should have triggered hang detection
             self.assertFalse(watchdog.is_running)

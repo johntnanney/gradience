@@ -12,6 +12,10 @@ This directory is organized by **audience**, **stability**, and **purpose**.
 
 **[`docs/strategy/state-of-program-april-2026.md`](strategy/state-of-program-april-2026.md)** — canonical April 2026 decision memo covering validated, bounded, exploratory, paused, and GPU-blocked lines, plus the next proving-ground gate.
 
+**[`docs/strategy/current-release-state.md`](strategy/current-release-state.md)** — frozen internal release-state marker: docs consolidated, CPU phase substantially complete, next proving ground is GPU adjudication.
+
+**[`docs/strategy/gpu-return-packet.md`](strategy/gpu-return-packet.md)** — turn-key packet for the next three GPU proving grounds: DeBERTa adjudication, controlled decoder fingerprinting/merge triage, and verdict-confidence validation.
+
 **[`docs/product_brief.md`](product_brief.md)** — one-page internal product brief: what Gradience is, what it solves now, what it does not do yet, and the next proving grounds.
 
 ## Claims Boundary

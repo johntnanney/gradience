@@ -41,3 +41,17 @@ These lines are research-facing and should not be framed as product behavior:
 3. Exploratory Route 2 and sidecar investigations not promoted into stable workflow logic
 
 Promotion rule: research-only capabilities require bounded validation plus outcome-grounded operational evidence before entering the core product surface.
+
+## Bounded Scope and GPU Gates
+
+Current validated scope:
+
+1. Encoder-heavy inventory preflight and candidate narrowing
+2. Task-boundary-aware pair triage
+3. Structural prefiltering followed by behavioral adjudication
+
+What still requires GPU for scope expansion:
+
+1. Third-backbone adjudication of the conjunctive failure model (DeBERTa gate)
+2. Controlled decoder-side triage validation under matched training conditions
+3. Outcome-linked validation of confidence stratification and related companions

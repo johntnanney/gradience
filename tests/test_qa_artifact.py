@@ -441,8 +441,9 @@ class TestLoadSourceQA:
         p.write_text(json.dumps(d))
 
         from gradience.cli import _load_source_qa
+        from gradience.exceptions import QASchemaError
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(QASchemaError):
             _load_source_qa(str(p))
 
 

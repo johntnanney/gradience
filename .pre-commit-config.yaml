@@ -22,8 +22,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.9
     hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff  # Lint only — does not auto-fix. Run `make format` to fix.
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy

@@ -22,6 +22,12 @@ Use this order:
 5. Inventory summary and action plan
 6. Behavioral evaluation only on retained candidates
 
+Scope note:
+
+1. This workflow is validated primarily in the small-encoder classification regime.
+2. Use it as a prefilter; do not treat it as a universal merge-success predictor.
+3. Broad decoder/generation generalization claims remain GPU-return proving-ground work.
+
 ---
 
 ## Stage 1 — Single-Adapter QA

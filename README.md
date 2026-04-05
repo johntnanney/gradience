@@ -10,7 +10,7 @@
 >   author = {Nanney, John T.},
 >   year = {2026},
 >   url = {https://github.com/johntnanney/gradience},
->   note = {Version 0.11.0}
+>   note = {Version 1.0.1}
 > }
 > ```
 
@@ -22,9 +22,9 @@ Given a pool of LoRA adapters you might want to merge, Gradience runs a prefligh
 
 1. **Screens source quality** -- identifies weak, under-evidenced, or ineligible adapters before they contaminate pairwise analysis
 2. **Assesses pairwise structural compatibility** -- per-layer spectral analysis with risk levels, dominant issues, and strategy recommendations
-3. **Detects task-boundary risk** -- flags cross-task pairs where structural similarity is misleading (validated across 132+ pairs, 0 false positives)
+3. **Detects task-boundary risk** -- flags cross-task pairs where structural similarity is misleading (validated across 53+ pairs, 3 backbones, 0 false positives)
 4. **Compresses the inventory** -- neighborhoods partition a dense pair matrix into same-task safe zones and cross-task caution zones
-5. **Reduces the search space** -- in utility testing across 60 pairs and 5 inventories, the workflow eliminated 65-90% of candidate pairs in mixed-task pools before any behavioral evaluation
+5. **Reduces the search space** -- across 5 field-trial inventories, the workflow eliminated 90–93% of candidate pairs before behavioral merge evaluation
 
 ## Who it's for
 
@@ -304,7 +304,7 @@ gradience suggest-neighborhoods --qa-dir qa/ --report-dir reports/ \
 
 On small encoder models, **task identity is the key regime boundary** for merge safety. Same-task pairs are broadly safe — confirmed across 45 pairs and 3 blind-spot studies with 0 material degradations. Cross-task pairs are where meaningful failure modes appear.
 
-Merge reports include a **task-relationship advisory** when source QA artifacts indicate different evaluation tasks. This is part of the stable interpretive layer, addressing the main cross-task blind spot where structural pair-risk alone is insufficient. Tested across 132+ pairs on two backbones with zero false positives. In mixed-task inventories, it partitions the pair matrix into same-task safe zones and cross-task caution zones. It does not alter structural risk classification. See [Merge Risk Report](https://github.com/johntnanney/gradience/blob/main/docs/merge-risk-report.md) for details.
+Merge reports include a **task-relationship advisory** when source QA artifacts indicate different evaluation tasks. This is part of the stable interpretive layer, addressing the main cross-task blind spot where structural pair-risk alone is insufficient. Tested across 53+ pairs on three backbones with zero false positives. In mixed-task inventories, it partitions the pair matrix into same-task safe zones and cross-task caution zones. It does not alter structural risk classification. See [Merge Risk Report](https://github.com/johntnanney/gradience/blob/main/docs/merge-risk-report.md) for details.
 
 ## Experimental workflow
 
@@ -360,7 +360,7 @@ See **[Configuration Reference](https://github.com/johntnanney/gradience/blob/ma
 
 - **CLI help**: < 3 seconds (no ML dependencies loaded)
 - **Base install**: < 10MB (minimal dependencies)
-- **CPU-only operation**: Full functionality without GPU requirements
+- **CPU-only operation**: Validated preflight workflows run without GPU; broader generalization claims require controlled GPU follow-on studies
 
 ## What we test in CI
 
@@ -377,8 +377,8 @@ Every release is validated with comprehensive CI gates:
 
 Gradience is an **inventory preflight system** for LoRA adapter merging:
 
-- **A search-space reducer** -- In mixed-task inventories, it typically eliminates 65-90% of candidate pairs before evaluation begins (81% average where the advisory is the main discriminator)
-- **A task-boundary detector** -- It partitions inventories into same-task safe zones and cross-task caution zones using validated metadata signals (0 false positives across 132+ pairs, 2 backbones)
+- **A search-space reducer** -- In the validated encoder inventory trials, it eliminated 90–93% of candidate pairs before behavioral merge evaluation
+- **A task-boundary detector** -- It partitions inventories into same-task safe zones and cross-task caution zones using validated metadata signals (0 false positives across 53+ pairs, 3 backbones)
 - **A structural screening tool** -- It audits individual adapters for spectral health and screens merge pairs for geometric compatibility
 - **A merge-risk reporting system** -- It produces machine-readable risk artifacts with per-layer verdicts, strategy recommendations, and strict-QA gating
 - **A companion to your evaluation stack** -- It reduces what you need to evaluate; it does not replace your evaluation pipeline
@@ -394,7 +394,7 @@ Gradience is an **inventory preflight system** for LoRA adapter merging:
 ### What is open research
 
 - Cross-task severity grading (no signal reliably predicts severity within cross-task pairs across backbones)
-- Extension to larger models and decoder-only architectures
+- Controlled decoder-side and generation-task validation under GPU-return conditions
 
 ## API Stability
 
@@ -473,7 +473,7 @@ Licensed under the Apache License, Version 2.0. See [LICENSE](https://github.com
 
 ## Citation
 
-**APA Style:** Nanney, J. T. (2026). *Gradience: Spectral analysis of low-rank adaptation dynamics* (Version 0.11.0) [Computer software]. https://github.com/johntnanney/gradience
+**APA Style:** Nanney, J. T. (2026). *Gradience: Spectral analysis of low-rank adaptation dynamics* (Version 1.0.1) [Computer software]. https://github.com/johntnanney/gradience
 
 **Note for maintainers:** Update version numbers in citation when releasing new versions. Current version should match `pyproject.toml`.
 

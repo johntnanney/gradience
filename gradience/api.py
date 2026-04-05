@@ -156,13 +156,11 @@ def _load_schema_artifacts(
     malformed_label: str,
 ) -> list[Any]:
     """Load typed artifacts from a path list with schema-prefixed filtering."""
-    import sys
-
     loaded: list[Any] = []
     for fp in files:
         try:
             data = _read_json(fp)
-        except Exception:
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError):
             if strict_input:
                 raise
             print(f"WARNING: skipping unreadable file: {fp}", file=sys.stderr)
@@ -172,7 +170,7 @@ def _load_schema_artifacts(
             continue
         try:
             loaded.append(from_dict(data))
-        except Exception:
+        except (KeyError, TypeError, ValueError):
             if strict_input:
                 raise
             print(f"WARNING: skipping malformed {malformed_label}: {fp}", file=sys.stderr)

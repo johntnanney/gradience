@@ -220,7 +220,7 @@ class WatchdogTimer:
     """
 
     def __init__(
-        self, stage_name: str, timeout_minutes: int, log_file: Path | None = None, output_dir: Path | None = None
+        self, stage_name: str, timeout_minutes: float, log_file: Path | None = None, output_dir: Path | None = None
     ):
         self.stage_name = stage_name
         self.timeout_seconds = timeout_minutes * 60
@@ -264,8 +264,9 @@ class WatchdogTimer:
 
     def _watchdog_loop(self):
         """Main watchdog monitoring loop."""
-        # Use shorter check interval for short timeouts
-        check_interval = min(30, max(5, self.timeout_seconds / 4))
+        # Use shorter check interval for short timeouts (min 1s for sub-minute
+        # timeouts used in tests, capped at 30s for production).
+        check_interval = min(30, max(1, self.timeout_seconds / 4))
 
         while self.is_running:
             time.sleep(check_interval)
@@ -277,12 +278,17 @@ class WatchdogTimer:
                 elapsed = time.time() - self.last_progress_time
 
                 if elapsed >= self.timeout_seconds:
+                    # Mark as no longer running immediately so callers see the
+                    # state change without waiting for (potentially slow)
+                    # diagnostic collection.
+                    self.is_running = False
+
                     print(f"\n🚨 HANG DETECTED in stage '{self.stage_name}'!")
                     print(
                         f"⏰ No progress for {elapsed / 60:.1f} minutes (timeout: {self.timeout_seconds / 60:.1f} min)"
                     )
 
-                    # Generate diagnostic dump
+                    # Generate diagnostic dump (may be slow — psutil, nvidia-smi)
                     diagnostic_report = HangDiagnostics.dump_all_diagnostics(
                         self.stage_name, int(self.timeout_seconds / 60), self.log_file, self.output_dir
                     )
@@ -296,8 +302,6 @@ class WatchdogTimer:
                     except (OSError, ValueError):
                         pass
 
-                    # Mark as no longer running to avoid repeated dumps
-                    self.is_running = False
                     break
 
 
@@ -307,7 +311,7 @@ class WatchdogContext:
     def __init__(
         self,
         stage_name: str,
-        timeout_minutes: int = 30,
+        timeout_minutes: float = 30,
         log_file: Path | None = None,
         output_dir: Path | None = None,
         progress_callback: Callable | None = None,

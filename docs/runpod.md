@@ -18,6 +18,12 @@ RunPod provides affordable GPU access for model compression experiments. This gu
 4. **Extract Results**: SCP artifacts to local machine
 5. **Clean Up**: Manage disk space and stop billing
 
+For a resumable single-block adjudication/fingerprint run (train → preflight → merge/eval),
+use the dedicated workflow:
+[`docs/workflows/runpod_gpu_resumable_pipeline.md`](workflows/runpod_gpu_resumable_pipeline.md)
+with
+[`scripts/runpod/run_resumable_gpu_pipeline.py`](../scripts/runpod/run_resumable_gpu_pipeline.py).
+
 ## Environment Setup
 
 ### Automated Setup

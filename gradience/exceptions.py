@@ -37,11 +37,11 @@ class TelemetryError(GradienceError, ValueError):
     """Telemetry read/write errors."""
 
 
-class TelemetrySchemaError(TelemetryError, ValueError):
+class TelemetrySchemaError(TelemetryError):
     """Raised when telemetry schema version does not match expectations."""
 
 
-class TelemetryFormatError(TelemetryError, ValueError):
+class TelemetryFormatError(TelemetryError):
     """Raised when a telemetry record is missing required envelope fields."""
 
 

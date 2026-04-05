@@ -18,6 +18,7 @@
 - [`getting-started-preflight.md`](getting-started-preflight.md)
 - [`adapter-preflight-workflow.md`](adapter-preflight-workflow.md)
 - [`checkpoint-triage-workflow.md`](checkpoint-triage-workflow.md)
+- [`runpod_gpu_resumable_pipeline.md`](runpod_gpu_resumable_pipeline.md)
 
 ## Interpretation guides
 

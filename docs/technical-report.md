@@ -1,9 +1,9 @@
 # Spectral Triage for LoRA Adapter Merging: Mechanism, Workflow, and Bounded Validation
 
 **John T. Nanney**
-**Gradience v0.11.0 — April 2026**
+**Gradience v1.0.1 — April 2026**
 
-> **Abstract.** Merging independently fine-tuned LoRA adapters promises to combine capabilities without retraining, but most candidate pairs fail, and discovering failures requires expensive behavioral evaluation. This report presents Gradience, a spectral-geometric triage system that narrows the merge search space before evaluation begins. Across 5 field trial inventories on small encoder models (DistilBERT, BERT-base, RoBERTa), the system eliminates 90–93% of candidate pairs while retaining the correct first choices, with zero false positives on task-boundary detection (53+ pairs, 3 backbones). The triage signal derives from SVD-based analysis of adapter weight matrices: principal angles and singular value structure reveal structural compatibility *a priori*. A mechanistic investigation identifies the specific geometric conditions for catastrophic failure — conjunctive V-module dimensionality mismatch and readout incompatibility — arrived at by systematically eliminating five simpler hypotheses. The approach is currently bounded to small encoders on classification tasks with LoRA rank ≤ 16; a completed decoder-only ecosystem census (n=36, 3 architecture families) finds real spectral structure but inverts the expected architecture-task hierarchy. Throughout, we maintain explicit boundaries on what the evidence supports, what is suggestive, and what remains open.
+> **Abstract.** Merging independently fine-tuned LoRA adapters promises to combine capabilities without retraining, but most candidate pairs fail, and discovering failures requires expensive behavioral evaluation. This report presents Gradience, a spectral-geometric triage system that narrows the merge search space before evaluation begins. Across 5 field trial inventories on small encoder models (DistilBERT, BERT-base, RoBERTa), the system eliminates 90–93% of candidate pairs while retaining the correct first choices, with zero false positives on task-boundary detection (53+ pairs, 3 backbones). The triage signal derives from SVD-based analysis of adapter weight matrices: principal angles and singular value structure reveal structural compatibility *a priori*. A mechanistic investigation identifies the specific geometric conditions for catastrophic failure — conjunctive V-module dimensionality mismatch and readout incompatibility — arrived at by systematically eliminating five simpler hypotheses. The approach is currently bounded to small encoders on classification tasks with LoRA rank ≤ 16; a completed decoder-only ecosystem census (n=36, 3 architecture families) finds real but confound-sensitive architecture-task structure and is best interpreted as an ecological precursor to controlled GPU studies. Throughout, we maintain explicit boundaries on what the evidence supports, what is suggestive, and what remains open.
 
 ---
 
@@ -486,6 +486,6 @@ Tian, Z., Ledent, A., & Sun, Q. (2026). Scalable Multi-Task Low-Rank Model Adapt
 
 ---
 
-*Gradience v0.11.0. Published on PyPI. Licensed under MIT.*
+*Gradience v1.0.1. Published on PyPI. Licensed under MIT.*
 
 *For the complete research archive including 121 sidecar notes, 126 structured data outputs, and 69 figures, see the `sidecar/` directory in the repository.*

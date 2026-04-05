@@ -29,11 +29,18 @@ COPY gradience/ gradience/
 # Install gradience with bench extras (PyTorch already in base image)
 RUN pip install --no-cache-dir ".[bench]"
 
-# Create workspace directory for cache and outputs
-RUN mkdir -p /workspace/hf_cache /workspace/output
+# Create non-root user for runtime security
+RUN useradd -m -s /bin/bash gradience
 
-# Verify installation
+# Create workspace directory for cache and outputs, owned by non-root user
+RUN mkdir -p /workspace/hf_cache /workspace/output \
+    && chown -R gradience:gradience /workspace
+
+# Verify installation (as root, before switching user)
 RUN gradience --help && gradience-bench --help
+
+# Switch to non-root user
+USER gradience
 
 # Default working directory for outputs
 WORKDIR /workspace

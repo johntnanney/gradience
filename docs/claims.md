@@ -64,6 +64,14 @@ What the workflow is not for:
 - Certifying universal merge success.
 - Supporting broad decoder claims without controlled follow-on evidence.
 
+## What Still Requires GPU
+
+The highest-value next scope-expansion checks are GPU-gated:
+
+1. DeBERTa adjudication for third-backbone mechanism portability.
+2. Controlled decoder fingerprinting and inventory-level merge triage validation.
+3. Outcome-linked validation of confidence stratification and related bounded companions.
+
 ## Outward-Facing Claim Template
 
 When writing externally, use this structure:

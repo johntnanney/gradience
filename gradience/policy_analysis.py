@@ -9,6 +9,22 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
+
+# --- Tunable constants for importance scoring and disagreement filtering ---
+# Weights for the composite importance score (must sum to 1.0).
+FROBENIUS_WEIGHT = 0.6
+PARAM_COUNT_WEIGHT = 0.3
+UTILIZATION_WEIGHT = 0.1
+# Param count is divided by this before weighting (normalisation scale).
+PARAM_COUNT_SCALE = 10_000
+# Utilization is multiplied by this before weighting (rescale from [0,1]).
+UTILIZATION_SCALE = 100
+# Minimum absolute policy spread to count as a disagreement.
+SPREAD_FLOOR = 3
+# Spread threshold as fraction of max_k (whichever is larger wins).
+SPREAD_FRACTION = 0.5
+
 
 def compute_layer_importance_scores(
     layers: list[Any],
@@ -55,7 +71,11 @@ def compute_layer_importance_scores(
             utilization = getattr(layer, "utilization", 0.0) if hasattr(layer, "utilization") else 0.0
             energy_raw = getattr(layer, "frob_sq", 0.0) if hasattr(layer, "frob_sq") else 0.0
 
-            importance_raw = frobenius_norm * 0.6 + (param_count / 10000) * 0.3 + utilization * 100 * 0.1
+            importance_raw = (
+                frobenius_norm * FROBENIUS_WEIGHT
+                + (param_count / PARAM_COUNT_SCALE) * PARAM_COUNT_WEIGHT
+                + utilization * UTILIZATION_SCALE * UTILIZATION_WEIGHT
+            )
 
             importance_scores.append(importance_raw)
             layer_analysis.append(
@@ -131,7 +151,7 @@ def filter_disagreement_layers(
         energy_share = analysis["energy_share"]
         uniform_mult = analysis["uniform_mult"]
 
-        spread_threshold = max(3, int(0.5 * max_k)) if max_k > 0 else 3
+        spread_threshold = max(SPREAD_FLOOR, int(SPREAD_FRACTION * max_k)) if max_k > 0 else SPREAD_FLOOR
         high_spread = policy_spread >= spread_threshold
 
         spread_norm = max(0.0, policy_spread / spread_threshold) if spread_threshold > 0 else 0.0
@@ -145,8 +165,6 @@ def filter_disagreement_layers(
 
             if not distribution_is_flat:
                 energy_shares = [a["energy_share"] for a in layer_analysis]
-                import numpy as np
-
                 energy_quantile = np.percentile(energy_shares, quantile_pct)
                 analysis["energy_quantile_threshold"] = energy_quantile
                 meets_quantile = energy_share >= energy_quantile
