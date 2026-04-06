@@ -13,8 +13,13 @@ def _repo_root() -> Path:
 def _has_gradience_console_script_in_pyproject(pyproject: Path) -> bool:
     try:
         import tomllib  # Python 3.11+
-    except Exception:
-        return False
+    except ModuleNotFoundError:
+        try:
+            import tomli as tomllib  # Python 3.10 fallback
+        except ModuleNotFoundError:
+            # Last resort: regex-based check for the entry point
+            text = pyproject.read_text(encoding="utf-8")
+            return bool(re.search(r'gradience\s*=\s*"gradience\.cli:main"', text))
 
     data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
 
