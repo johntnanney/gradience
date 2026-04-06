@@ -59,11 +59,11 @@ class VerdictThresholds:
     """
 
     low_overlap: float = 0.2
-    high_overlap: float = 0.45
+    high_overlap: float = 0.5
     aligned: float = 0.5
     conflicting: float = -0.3
     imbalanced: float = 5.0
-    imbalanced_frob: float = 3.0
+    imbalanced_frob: float = 5.0
 
     @classmethod
     def conservative(cls) -> VerdictThresholds:

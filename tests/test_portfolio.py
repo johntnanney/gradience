@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from gradience.exceptions import QASchemaError
 from gradience.vnext.inventory.portfolio import (
-    PortfolioRow,
     PortfolioView,
     _derive_dominant_driver,
     _derive_evidence_profile,
@@ -225,7 +225,7 @@ class TestScanPortfolio:
         (tmp_path / "bad.json").write_text(
             json.dumps({"schema": _INVENTORY_SUMMARY_V1, "sources": "not-a-dict"})
         )
-        with pytest.raises(Exception):
+        with pytest.raises(QASchemaError):
             scan_portfolio(tmp_path, strict_input=True)
 
     def test_duplicate_names_uses_newest(self, tmp_path: Path) -> None:

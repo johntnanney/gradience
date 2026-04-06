@@ -14,8 +14,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from conftest import make_audit_data, make_config, write_audit_file
-
 from gradience.bench.compression import (
     _create_shuffled_rank_pattern,
     _resolve_policy_rank_source,
@@ -29,6 +27,7 @@ from gradience.bench.constants import (
     DEFAULT_POST_TUNE_STEPS,
 )
 from gradience.bench.decision_trace import DecisionTrace
+from tests.helpers.bench_fixtures import make_audit_data, make_config, write_audit_file
 
 # ===================================================================
 # Class 1: _resolve_policy_rank_source()

@@ -22,6 +22,10 @@ import sys
 # These symbols are imported by tests and external code.  Re-export them from
 # their new canonical locations so existing ``from gradience.cli import X``
 # continues to work.
+from gradience.cli_format import (
+    _print_policy_disagreement_summary as _print_policy_disagreement_summary,
+)  # noqa: F401, E402
+from gradience.cli_utils import _analyze_policy_disagreements as _analyze_policy_disagreements  # noqa: F401, E402
 from gradience.cli_utils import _load_source_qa as _load_source_qa  # noqa: F401, E402
 from gradience.commands import (
     setup_audit_commands,

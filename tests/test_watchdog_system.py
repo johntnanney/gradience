@@ -193,6 +193,22 @@ class TestWatchdogTimer(unittest.TestCase):
             self.assertIn("HANG DETECTED", printed_output)
             self.assertIn("test_stage", printed_output)
 
+    @unittest.skipIf(not hasattr(signal, "SIGUSR1"), "SIGUSR1 not available on this platform")
+    def test_stack_trace_signal_requires_custom_handler(self):
+        """Only emit SIGUSR1 when a non-default handler is installed."""
+        original_handler = signal.signal(signal.SIGUSR1, signal.SIG_DFL)
+
+        try:
+            self.assertFalse(WatchdogTimer._can_trigger_stack_trace_dump())
+
+            def noop_handler(signum, frame):
+                return None
+
+            signal.signal(signal.SIGUSR1, noop_handler)
+            self.assertTrue(WatchdogTimer._can_trigger_stack_trace_dump())
+        finally:
+            signal.signal(signal.SIGUSR1, original_handler)
+
 
 class TestWatchdogContext(unittest.TestCase):
     """Test watchdog context manager."""

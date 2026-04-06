@@ -21,6 +21,7 @@ import tempfile
 
 # Add gradience to path using repo-root detection
 from pathlib import Path
+from urllib.request import Request, urlopen
 
 import pytest
 import torch
@@ -43,6 +44,34 @@ def check_dependencies():
         return True
     except ImportError as e:
         print(f"Skipping integration test - missing dependency: {e}")
+        return False
+
+
+def can_access_hf_model(model_name: str) -> bool:
+    """Return True when the test model is fully cached locally or HF is reachable."""
+    if not check_dependencies():
+        return False
+
+    try:
+        from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
+
+        AutoModelForCausalLM.from_pretrained(
+            model_name,
+            local_files_only=True,
+            torch_dtype=torch.float32,
+            device_map="cpu",
+        )
+        AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+        GenerationConfig.from_pretrained(model_name, local_files_only=True)
+        return True
+    except Exception:
+        pass
+
+    try:
+        req = Request(f"https://huggingface.co/{model_name}/resolve/main/config.json", method="HEAD")
+        with urlopen(req, timeout=2) as response:
+            return response.status < 400
+    except Exception:
         return False
 
 
@@ -138,6 +167,8 @@ class TestUDRIntegration:
 
             # Use tiny-gpt2 (very small model for testing)
             model_name = "sshleifer/tiny-gpt2"
+            if not can_access_hf_model(model_name):
+                pytest.skip(f"{model_name} is not cached locally and Hugging Face is unreachable in this environment")
 
             print(f"Creating tiny LoRA adapter with {model_name}...")
             if not create_tiny_lora_adapter(model_name, temp_path):
@@ -294,6 +325,9 @@ class TestCLIBehavior:
         # This test requires transformers, so we'll make it conditional
         if not check_dependencies():
             pytest.skip("Missing transformers dependency")
+
+        if not can_access_hf_model("sshleifer/tiny-gpt2"):
+            pytest.skip("sshleifer/tiny-gpt2 is not cached locally and Hugging Face is unreachable in this environment")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)

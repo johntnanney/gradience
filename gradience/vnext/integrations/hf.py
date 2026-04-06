@@ -420,7 +420,12 @@ class GradienceCallback(TrainerCallback):
 
                     # Canonical GUARD_INIT alert
                     self.writer.alert(
-                        severity=Severity.INFO, code="GUARD_INIT", message="LoRA Guard initialized", context=context
+                        severity=Severity.INFO,
+                        code="GUARD_INIT",
+                        message="LoRA Guard initialized",
+                        step=0,
+                        context=context,
+                        metadata=context,
                     )
                     # Canonical guard metrics - include full context
                     init_metrics = {
@@ -550,7 +555,9 @@ class GradienceCallback(TrainerCallback):
                         severity=Severity.INFO,
                         code="GUARD_TRIGGERED",
                         message=f"Guard trigger detected: {trigger} at step {step}",
+                        step=step,
                         context=context,
+                        metadata=context,
                     )
 
                 # Rollback policy (anti-thrash)
@@ -580,7 +587,9 @@ class GradienceCallback(TrainerCallback):
                             severity=Severity.ERROR,
                             code="GUARD_ABORT",
                             message=f"Guard triggered but cannot rollback: {trigger} at step {step} (cooldown or max rollbacks)",
+                            step=step,
                             context=context,
+                            metadata=context,
                         )
                         # Canonical guard metrics for abort - include full context
                         abort_metrics = {
@@ -634,7 +643,9 @@ class GradienceCallback(TrainerCallback):
                             severity=Severity.ERROR,
                             code="GUARD_ABORT_NO_SNAPSHOT",
                             message=f"Guard triggered but no snapshot available: {trigger} at step {step}",
+                            step=step,
                             context=context,
+                            metadata=context,
                         )
                         # Canonical guard metrics for abort (no snapshot) - include full context
                         abort_metrics = {
@@ -685,7 +696,9 @@ class GradienceCallback(TrainerCallback):
                         severity=Severity.WARNING,
                         code="GUARD_ROLLBACK",
                         message=f"Guard rolled back to step {restored_step} (trigger={trigger})",
+                        step=step,
                         context=context,
+                        metadata=context,
                     )
                     # Canonical guard metrics - include full context
                     rollback_metrics = {
@@ -742,6 +755,8 @@ class GradienceCallback(TrainerCallback):
                         code="GUARD_SNAPSHOT",
                         message=f"Guard snapshot taken at step {step}",
                         context=context,
+                        step=step,
+                        metadata=context,
                     )
                     # Canonical guard metrics - include full context
                     snapshot_metrics = {

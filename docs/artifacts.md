@@ -750,7 +750,8 @@ The artifact system transforms Gradience from a compression tool into a **reprod
     "high_overlap": 0.5,
     "aligned": 0.5,
     "conflicting": -0.3,
-    "imbalanced": 5.0
+    "imbalanced": 5.0,
+    "imbalanced_frob": 5.0
   }
 }
 ```

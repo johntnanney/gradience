@@ -297,12 +297,25 @@ class WatchdogTimer:
 
                     # Optional: Send signal to trigger stack trace dump
                     try:
-                        if hasattr(signal, "SIGUSR1"):
+                        if self._can_trigger_stack_trace_dump():
                             os.kill(os.getpid(), signal.SIGUSR1)
                     except (OSError, ValueError):
                         pass
 
                     break
+
+    @staticmethod
+    def _can_trigger_stack_trace_dump() -> bool:
+        """Only emit SIGUSR1 when a custom handler is installed."""
+        if not hasattr(signal, "SIGUSR1"):
+            return False
+
+        try:
+            current_handler = signal.getsignal(signal.SIGUSR1)
+        except (AttributeError, OSError, ValueError):
+            return False
+
+        return current_handler not in (signal.SIG_DFL, signal.SIG_IGN)
 
 
 class WatchdogContext:
