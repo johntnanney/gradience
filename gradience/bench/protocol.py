@@ -19,14 +19,9 @@ from __future__ import annotations
 import datetime
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import yaml
-
-if TYPE_CHECKING:
-    import torch
-    from peft import LoraConfig, TaskType, get_peft_model
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 # ---------------------------------------------------------------------------
 # Re-exports for backward compatibility
@@ -34,7 +29,6 @@ if TYPE_CHECKING:
 # Every symbol that was previously importable from gradience.bench.protocol
 # is re-exported below so that existing code continues to work unchanged.
 # ---------------------------------------------------------------------------
-
 # Gradience imports (always available)
 from gradience.bench._util import (  # noqa: F401
     create_config_hash,
@@ -192,6 +186,10 @@ def setup_model_and_tokenizer(config: dict[str, Any], device: str = "cpu"):
             'Bench dependencies not available (transformers, peft). Install with: pip install "gradience[bench]"'
         )
 
+    import torch
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
     model_config = config["model"]
     model_name = model_config["name"]
     model_type = model_config.get("type", "seqcls")  # Default to sequence classification
@@ -256,6 +254,10 @@ def setup_compressed_model_and_tokenizer(
         raise ImportError(
             'Bench dependencies not available (transformers, peft). Install with: pip install "gradience[bench]"'
         )
+
+    import torch
+    from peft import LoraConfig, TaskType, get_peft_model
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     model_config = config["model"]
     model_name = model_config["name"]

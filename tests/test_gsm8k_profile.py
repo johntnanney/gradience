@@ -9,7 +9,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from gradience.bench.task_profiles.gsm8k_causal_lm import GSM8KCausalLMProfile
+datasets = pytest.importorskip("datasets", reason="requires datasets package (install gradience[bench])")
+
+from gradience.bench.task_profiles.gsm8k_causal_lm import GSM8KCausalLMProfile  # noqa: E402
 
 
 class TestGSM8KProfile:
