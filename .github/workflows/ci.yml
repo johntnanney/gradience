@@ -56,7 +56,24 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pytest tests/ -v --tb=short --cov=gradience --cov-report=xml --cov-fail-under=65
+        # pytest-cov can segfault during interpreter shutdown on GHA runners
+        # (after all tests pass and coverage is written). Capture the real
+        # test outcome from the output and tolerate SIGSEGV (139) only when
+        # the summary line shows no failures.
+        set +e
+        pytest tests/ -v --tb=short --cov=gradience --cov-report=xml --cov-fail-under=65 2>&1 | tee pytest_output.txt
+        rc=${PIPESTATUS[0]}
+        set -e
+
+        if [ $rc -eq 0 ]; then
+          exit 0
+        elif [ $rc -eq 139 ] && grep -qE ' passed' pytest_output.txt && ! grep -qE ' failed' pytest_output.txt; then
+          echo "⚠️ pytest segfaulted during shutdown (exit 139) but all tests passed — treating as success"
+          exit 0
+        else
+          echo "❌ Tests failed with exit code $rc"
+          exit $rc
+        fi
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v6
