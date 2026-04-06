@@ -93,6 +93,28 @@ matrix perturbation bounds apply tightly. When UDR is large, the adapter is
 substantially restructuring the representation, and truncation may have
 nonlinear downstream effects that spectral bounds alone cannot predict.
 
+*A qualification is necessary for the post-fine-tuning setting. The Weyl
+perturbation argument supports truncation safety for the **pretrained** model,
+where small singular values reflect dimensions along which the matrix carries
+negligible signal. Fine-tuning may change this: random matrix theory analysis
+of pretrained Transformer weight matrices finds that fine-tuning operates
+preferentially in the low-SV spectral tail — the directions that are quiet in
+the pretrained model but that acquire task-specific content during adaptation
+(Medina & Sørensen, 2025; arXiv:2410.17770). If this holds in the LoRA
+setting, the safety bound $|\sigma_i(M+E) - \sigma_i(M)| \leq \|E\|_2$ still
+holds formally, but what it bounds has changed: the perturbation now has
+content rather than just noise. Two regimes should therefore be distinguished:
+(a) **compression of the pretrained model** — small-SV truncation is safe,
+as the tail carries no signal yet; and (b) **compatibility assessment of two
+fine-tuned adapters** — interference in low-SV directions may be
+task-relevant, even if it does not dominate the merged spectrum's energy.
+Gradience's compression pipeline operates in regime (a); its merge triage
+operates in regime (b). Whether this distinction is operationally consequential
+— whether low-SV band interference produces merge failures that high-SV
+analysis misses — is an open empirical question addressed by the tail
+interference probe (§7.2, "Tail-band interference as an independent
+compatibility signal"; see also `scripts/tail_interference_probe.py`).*
+
 
 ## 3. Information-Geometric Perspective
 
@@ -360,6 +382,14 @@ but operationally predictive on 7B-parameter decoders.
 The remaining open theoretical work is to formalize the concentration-weighted
 convergence bound (see §7.2, "Concentration-weighted convergence bound").
 
+*Limitation note (N128, April 2026)*: The SV-weighted overlap metric used
+in Gradience's merge pipeline is conservative for same-task pairs: it
+deflates apparent compatibility relative to the unweighted mean cosine by
+a mean of 0.21 (energy masking direction finding). The metric's residual
+bias favors false positives (flagging compatible pairs), not false negatives
+(missing incompatible ones). See FINDINGS.md §8 Limitations for the full
+statement.
+
 
 ## 7. Theoretical Questions: Status and Agenda
 
@@ -479,6 +509,58 @@ Davis-Kahan argument that replaces the gap condition with a spectral
 mass condition. See the discussion in the spectral partitioning
 subsection above (§6) and THEORY.md §2 for the perturbation-theoretic
 setup.
+
+**Tail-band interference as an independent compatibility signal.** The
+energy-weighted interaction bound in the Technical Report (§2.3) and the
+spectral partitioning results (§6, N127) both assume that high-SV directions
+are the primary locus of compatibility-determining interaction between adapter
+pairs. This assumption rests on the weighting structure of the cross-term:
+the interaction $z_i = \text{sign}(\delta_i) \cdot \cos(\theta_i) \cdot
+\cos(\phi_i)$ is weighted by singular value magnitudes, so low-SV directions
+contribute negligibly to the merged spectrum regardless of their angular
+relationship. This is formally correct as a claim about spectral energy in
+the result, but it sidesteps a different question: whether the low-SV band
+carries task-relevant information that is damaged by cross-adapter
+interference, even if the damage does not appear in the dominant singular
+values of the merged output.
+
+Medina and Sørensen (2025) find that fine-tuning refines model behavior
+primarily in low-SV spectral regions — directions quiet before adaptation
+that acquire task-specific content during it. If this holds in the LoRA
+setting, two adapters could be spectrally compatible in the high-SV band
+(same-task, low principal angles, Gradience would classify SAFE) while
+carrying conflicting task-specific modifications in the low-SV band. Whether
+this produces observable merge degradation is unknown.
+
+The open problem has two parts. First, an **empirical test**: for adapter
+pairs in the Gradience validation corpus with known merge outcomes, compute
+subspace overlap separately in the high-SV and low-SV bands (partitioned at
+the Marchenko-Pastur threshold) and look for cases where high-SV compatibility
+is favorable but low-SV conflict is high. If no such cases exist in the
+current corpus, the concern is not operationally urgent at current scales.
+If they exist and correlate with merge degradation, a tail-aware compatibility
+metric is warranted. This test is specified fully in CHG-005
+(`scripts/tail_interference_probe.py`). Second, a **theoretical question**:
+under what conditions does interference in the low-SV band produce measurable
+behavioral degradation, given that the merged spectrum's dominant directions
+are unaffected? A candidate answer involves the readout layer's sensitivity to
+tail-band noise, which would connect this problem to the conjunctive failure
+model's readout-gate condition.
+
+**Empirical handle**: Run CHG-005 on the existing validation corpus before
+the DeBERTa GPU session. If CHG-005 finds false negatives, add a sixth
+prediction to the DeBERTa study (see CHG-004) targeting tail-band partition
+stability. If CHG-005 finds none, the problem remains open but not urgent.
+
+*Empirical status (N128, April 2026)*: The probe found zero false-negative
+candidates across 20 encoder-classification pairs (8 same-task, 12
+cross-task; rank ≤ 16). The concern is not operationally urgent in the
+current validation regime. A supplementary finding: SV-weighting deflates
+rather than inflates apparent overlap for same-task pairs (mean energy
+masking −0.21), meaning Gradience's metric is conservative, not liberal.
+The bound on false-negative rate is 1/8 = 12.5% (empirical) or 37.5%
+(rule of three 95% upper bound). The problem remains open for decoder-scale
+high-rank adapters where the tail carries more absolute energy.
 
 **Spectrum universality.** Do adapters trained on the same task with
 different random seeds converge to the same spectral *shape* (up to

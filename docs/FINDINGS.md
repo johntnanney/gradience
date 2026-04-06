@@ -449,6 +449,14 @@ indicates risk of destructive interference.
   ratio may still merge poorly.
 - Principal angle analysis captures linear subspace geometry but not
   nonlinear interactions that may arise in deep networks.
+- *Energy masking direction (N128, April 2026)*: For same-task pairs,
+  the SV-weighted overlap (Gradience's operational metric) is consistently
+  lower than the unweighted mean cosine by a mean of 0.21. Energy-weighting
+  deflates apparent compatibility for same-task pairs; it does not inflate
+  it. The metric's failure mode is therefore conservative (false positives)
+  rather than liberal (false negatives). N128 found zero false-negative
+  candidates across the encoder validation corpus (N = 8 same-task pairs
+  with known merge outcomes).
 
 ### Reproducibility
 
@@ -1079,6 +1087,149 @@ This is documented in `docs/study17-compression-conclusion.md`.
 
 ---
 
+## 21. External Literature Convergence (2025–2026)
+
+### Claim
+
+Four independent research programs, published in 2025–2026 and working from
+different vantages than Gradience's, have produced results that constitute
+external confirmation of four core Gradience claims: (a) subspace misalignment
+between LoRA adapters predicts merge failure; (b) per-layer singular vector
+geometry is the operative predictor rather than aggregate statistics; (c)
+the cross-term in the merged adapter spectrum is the mathematical object
+governing merge outcome; and (d) structural compatibility is necessary but
+not sufficient for merge quality.
+
+### Evidence
+
+- **Subspace misalignment predicts failure (KnOTS; Stoica et al., ICLR 2025;
+  arXiv:2410.19735).** SVD-based alignment of LoRA task-updates before merging
+  improves outcomes by up to 4.3% across vision and language benchmarks. The
+  core diagnostic is that LoRA fine-tuned models exhibit significantly lower
+  inter-adapter alignment (CKA) than fully fine-tuned counterparts, and that
+  improving this alignment is the mechanism of improvement. Task-vector
+  orthogonality alone does not reliably predict merge difficulty — consistent
+  with Gradience's conjunctive failure model, which shows readout orthogonality
+  alone explains nothing. KnOTS and Gradience address complementary problems:
+  KnOTS improves merges for pairs that proceed; Gradience decides which pairs
+  should proceed. The alignment deficit they diagnose is the same structural
+  condition Gradience's pairwise audit measures.
+
+- **Per-layer principal angles are the operative predictor (Task Singular
+  Vectors; Gargiulo et al., CVPR 2025; arXiv:2412.00081).** Merge interference
+  is proportional to the cosine of the angle between singular vectors of
+  different task matrices — formally equivalent to Gradience's principal-angle
+  compatibility metrics. Independent compression experiments confirm that task
+  matrices are low-rank and that dominant singular directions carry nearly all
+  task-relevant content, replicating §§1–3 above on different data and
+  architectures.
+
+- **Cross-term formalization (Akbar et al., ICML 2025 Workshop;
+  OpenReview:t9FrMviTaP).** Formal proof that direct LoRA merging (combining
+  A and B matrices separately) introduces an interfering cross-term that
+  degrades performance, while multiplied merging avoids it via linear mode
+  connectivity. The cross-term they identify is algebraically the same
+  interaction quantity $z = \text{sign}(\delta) \cdot \cos(\theta) \cdot
+  \cos(\phi)$ derived in the Technical Report §2.3. Two independent
+  theoretical programs arrive at the same mathematical object from opposite
+  directions — one predicting which pairs to avoid, one improving how to merge
+  the rest.
+
+- **Structural ≠ behavioral quality at ecosystem scale (Badirli et al.,
+  arXiv:2602.12323).** A survey of public LoRA adapter reuse on HuggingFace
+  Hub finds that structural compatibility is not sufficient for merge quality,
+  and that source adapter behavioral quality is an independent determinant.
+  This is an independent ecosystem-scale replication of Study 16's
+  structural-behavioral separation (§9). The paper additionally documents that
+  Hub adapter quality is often poor or poorly characterized, confirming the
+  evidence gate design (§19) at scale: behavioral screening before merging
+  is not a conservative edge case but a routine necessity.
+
+### Limitations
+
+- These are not direct replications of Gradience's experiments. Architectural
+  differences, task domains, adapter training procedures, merge methods, and
+  evaluation criteria are all distinct. The convergence is structural — the
+  same geometric claims and the same mathematical objects — not numerical.
+- KnOTS and TSV operate on vision transformers and larger NLP models; the
+  cross-term paper uses image classification. No paper directly studies
+  the small-encoder classification regime that constitutes Gradience's primary
+  validation corpus.
+- The conjunctive failure mechanism (V-module pathology + readout incompatibility)
+  has not been independently investigated. External convergence is on the
+  spectral-geometry machinery, not on the specific causal model.
+
+### Reproducibility
+
+Citations with arXiv identifiers in the Technical Report reference section.
+Mathematical correspondences can be verified by comparing: Technical Report
+§2.3 interaction term with Akbar et al. cross-term derivation; Gradience's
+`mean_overlap` metric with Gargiulo et al.'s cosine-angle interference
+measure. Code: `gstoica27/KnOTS`, `AntoAndGar/task_singular_vectors`.
+
+
+---
+
+## 22. Portfolio Rank Collapse (N129, April 2026)
+
+### Claim
+
+Pairwise triage is necessary but not sufficient for portfolio-scale merging.
+Additive combination of retained adapters via Task Arithmetic produces
+spectral concentration (rank collapse) that grows linearly with pool size,
+with onset at k=2–3 in the field trial corpus — below the previously assumed
+safe threshold of k=5.
+
+### Evidence
+
+OLS slope β₁ of skewness ratio ρ = σ₁/mean(σ), normalized by per-inventory
+k=1 baseline, vs pool size k. One-sided t-test for β₁ > 0 (H_null: no
+spectral collapse). Mean(σ) computed over effective (non-noise) singular
+values only (noise floor: 1e-10 × σ₁).
+
+| Inventory | Backbone | |R| | β₁ | p-value | k_collapse_rho (2×baseline) |
+|-----------|----------|-----|------|---------|------------------------------|
+| inv_02 | roberta-base | 2 | 0.380 | <0.001 | extrap 3.6 |
+| inv_03 | distilbert | 4 | 0.923 | 0.024 | 2 |
+| inv_04 | distilbert | 4 | 0.284 | <0.001 | extrap 4.5 |
+| inv_05 | bert-base | 6 | 0.349 | <0.001 | 3 |
+
+Mean β₁ = 0.48 ± 0.15. H_null rejected in all inventories. β₁ < 1.0 in
+all cases (prediction P1 confirmed), consistent with triage selecting
+spectrally compatible subsets relative to the Skorobogat et al. (2025)
+theoretical rate of ~1.0 for random pools. Mixed-task pools collapse faster
+than same-task (P2 confirmed). k_collapse ≤ 5 in ≥ 2 inventories (P3
+disconfirmed). Triage selection (H_selection) did not measurably slow
+collapse relative to full pools.
+
+inv_03 β₁ = 0.923 is driven by rank heterogeneity (mixing rank-1 and
+rank-16 adapters); homogeneous rank-1 pools show β₁ = 0.28–0.35.
+
+### Limitations
+
+- Small inventories: largest retained pool has |R|=6. Linear model fit on
+  2–6 points. Confidence intervals on β₁ are wide.
+- No behavioral validation: collapse curves measure spectral structure only.
+  No merge-then-evaluate results for k > 2 pools.
+- Encoder-only regime: DistilBERT, BERT-base, RoBERTa-base. Decoder-scale
+  models with higher-rank adapters may show different dynamics.
+- Adapter discovery gaps: some retained adapters in inv_04 could not be
+  matched to adapter_cache entries.
+- The k_collapse metric uses ρ (skewness ratio), not ε (energy fraction).
+  For rank-1 adapters, ε crosses 0.80 at k=2 trivially (baseline ε = 1.0
+  by construction). See N129 sidecar note, "Metric clarification" section.
+
+### Reproducibility
+
+Script: `scripts/portfolio_rank_collapse_probe.py`. Results:
+`sidecar/results/N129_rank_collapse/results.json`. Requires field trial
+inventories in `field_trials/inventory_0{2,3,4,5}/`. RNG seed: 42.
+Pre-registration: inline in conversation (April 5, 2026). Study note:
+`sidecar/notes/N129_rank_collapse_probe.md`.
+
+
+---
+
 # Appendix: Cross-Reference Index
 
 | Finding | Primary source | Repository | Key statistic |
@@ -1103,3 +1254,5 @@ This is documented in `docs/study17-compression-conclusion.md`.
 | §18 DFA exponents            | Study 12              | Gradience II | F=116.86, p≈10⁻²³ |
 | §19 Engine design            | Post 8                | Gradience II | Architecture document |
 | §20 Workflow selection        | Studies 16--17        | Both | Product decision |
+| §21 External convergence | Literature survey (April 2026) | External | See §21 citations |
+| §22 Portfolio collapse    | N129 (April 2026)              | Gradience I | β₁ = 0.48, k_collapse 2–3 |

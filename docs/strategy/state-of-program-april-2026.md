@@ -187,7 +187,8 @@ Planned setup: train 8 DeBERTa-v3 adapters (4 GLUE tasks x 2 seeds), evaluate 28
 2. V-module dimensionality ratio separates catastrophic from safe merges,
 3. instability transfers as a portable descriptor,
 4. the mechanism-backbone confound either dissolves or solidifies,
-5. head-level modulation explains seed-to-seed severity variation.
+5. head-level modulation explains seed-to-seed severity variation,
+6. spectral partitioning remains task-discriminating even if the partition boundary shifts (SV-weighted alignment ratio ≥ 2.5× same-task vs. cross-task in the high-SV band; falsified if ratio < 2.0 or p > 0.01).
 
 Everything else about encoder-side mechanism generality is downstream of this answer.
 

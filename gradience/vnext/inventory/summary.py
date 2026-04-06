@@ -417,6 +417,21 @@ def format_inventory_summary(
     else:
         lines.append("  No pair reports available for interpretation.")
 
+    # Portfolio size warning (N129, April 2026)
+    eligible_count = status_counts.get("eligible", 0)
+    if eligible_count > 3:
+        lines.append("")
+        lines.append("  PORTFOLIO SIZE WARNING")
+        lines.append("  " + "-" * 40)
+        lines.append(f"  This inventory has {eligible_count} eligible adapters. Empirical evidence")
+        lines.append("  (N129) shows that additive merging of >3 adapters via Task Arithmetic")
+        lines.append("  produces measurable spectral concentration (rank collapse). Pairwise")
+        lines.append("  triage alone may not be sufficient at this pool size. Consider:")
+        lines.append("  - Monitoring skewness ratio rho(k) as adapters are added to the merge")
+        lines.append("  - Merging in stages rather than combining all retained adapters at once")
+        lines.append("  - Checking for rank heterogeneity among retained adapters, which")
+        lines.append("    amplifies collapse rate (N129 supplementary finding)")
+
     lines.append("")
 
     return "\n".join(lines)

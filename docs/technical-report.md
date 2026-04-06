@@ -75,6 +75,8 @@ $$\sigma_1(\text{cross}) \leq 2\alpha\beta \sum_i s_{a,i} \, s_{b,i} \cos(\theta
 
 where $\theta_i$ and $\phi_i$ are the $i$-th principal angles between the respective subspaces. The bound is tight when the adapters' singular directions are well-aligned; it is loose when they interact across multiple dimensions. In practice, the spectral profiles of LoRA adapters on small encoders are sharply concentrated — 4 to 8 effective dimensions carry >90% of the Frobenius energy — so the rank-1 intuition extends well.
 
+*Independent formal convergence.* The interaction term $z$ identified in this sketch — which arises from mixing the A and B matrices of two adapters — was independently derived and empirically validated by Akbar et al. (2025) at ICML. Working from a strategy-selection rather than a triage perspective, they formally prove that *direct merging* (combining A and B matrices separately) introduces an interfering cross-term that degrades performance, while *multiplied merging* (computing the full product BA before merging) exhibits linear mode connectivity in the loss landscape. The cross-term they identify is algebraically the same quantity as $z$ here. This convergence from an independent research program confirms that the interaction term governing merge outcome is the right object of theoretical attention — and that Gradience's triage is, in structural terms, detecting the pairs for which that term is most damaging before the merge is attempted.
+
 ### 2.3.1 Independent Training-Side Evidence for Spectral Partitioning
 
 The formal sketch above shows that the interaction term governing merge outcome is weighted by singular value magnitudes — high-energy directions dominate the interaction, low-energy directions contribute little. This weighting is not accidental. Independent evidence from multi-task LoRA training suggests that the singular value spectrum partitions into functionally distinct bands during training itself.
@@ -226,6 +228,8 @@ This was discovered empirically in Field Trial Pilot 1, where 4 adapters had no 
 
 The evidence gate is well-calibrated across the tested range. It correctly handles: genuine failures (adapters that don't beat base), misleading evaluations (strong on evaluation set but weak in transfer), marginal passes (delta +0.01 to +0.06 — admitted but flagged as low-contribution), ambiguous ties, and strong performers. The only known calibration issue is at the margin: adapters that barely beat base pass as eligible but contribute little to merges.
 
+This design decision has received independent confirmation at ecosystem scale. A survey of publicly available LoRA adapters on HuggingFace Hub found that structural compatibility — favorable spectral overlap, low conflict — is necessary but not sufficient for merge quality, and that public adapter quality is often poor or poorly characterized (Badirli et al., 2026). The evidence gate is precisely the mechanism that separates structural from behavioral quality; without it, the pipeline would recommend merges between structurally plausible but behaviorally weak adapters at the same rate as the unfiltered baseline.
+
 ### 4.3 Task-Boundary Detection
 
 Task-boundary detection identifies when two adapters target fundamentally different tasks. This is the highest-confidence feature in Gradience: **zero false positives across 53+ pairs, 3 backbones, and 5 inventories.**
@@ -355,6 +359,8 @@ The most important next empirical step is the DeBERTa adjudication protocol: tra
 4. The mechanism–backbone confound (currently: DistilBERT = rotational degeneracy, RoBERTa = feature-set switching) either dissolves (different pairings possible) or solidifies (architecture determines mechanism)
 5. Head-level modulation explains seed-to-seed severity variation
 
+A sixth prediction is added here, motivated by recent findings on the role of small singular values in fine-tuned transformer weight matrices. Random matrix theory analysis of pretrained models finds that fine-tuning operates primarily in the low-SV spectral tail — the directions that carry negligible energy in the pretrained model but acquire task-specific information during adaptation (Medina & Sørensen, 2025). If this is correct, then DeBERTa's distinct pretraining objective (replaced token detection rather than masked language modeling) may produce adapters with a different distribution of task signal across the SV spectrum — potentially more concentrated in low-SV directions than BERT or RoBERTa adapters are. The sixth prediction is therefore: **spectral partitioning** — the high-SV / low-SV alignment ratio that distinguishes same-task from cross-task adapter pairs — **will remain task-discriminating on DeBERTa, even if the partition boundary (Marchenko-Pastur threshold) falls at a different energy level than on the other two backbones.** If this prediction fails, the triage system's reliance on energy-weighted compatibility metrics may require revision to incorporate tail-aware interference detection.
+
 This requires approximately 3 hours of GPU compute. It is the single most important experiment for determining whether the mechanistic account is backbone-general or backbone-contingent. Until it is completed, the conjunctive model and V-module pathology findings are formally bounded to two backbones.
 
 ### 7.2 Decoder-Only Ecosystem Census (Completed)
@@ -382,6 +388,7 @@ A CPU-only spectral census of publicly available decoder-only LoRA adapters on H
 The current evidence base supports a map of where the approach has been tested, where it has suggestive signal, and where it is untested. This landscape has shifted materially since the original report, with several items moving from "untested" to "suggestive" or "validated."
 
 **Validated (operational evidence):**
+
 - Small encoders (DistilBERT, BERT-base, RoBERTa-base) on classification
 - LoRA adapters, rank ≤ 16
 - Task-boundary detection, evidence gating, candidate narrowing
@@ -389,6 +396,7 @@ The current evidence base supports a map of where the approach has been tested, 
 - Spectral metrics as architecture-agnostic audit tool (86 adapters, 22 architectures, 12 task categories; Post 7)
 
 **Suggestive (preliminary evidence, not operational):**
+
 - Instability as portable descriptor (2 backbones, awaiting 3rd)
 - V-module dimensionality ratio as catastrophe discriminator (2 backbones)
 - Task > architecture in global variance for decoder-only adapters (census, n=36, 3 families, confirmed across confound controls)
@@ -398,6 +406,7 @@ The current evidence base supports a map of where the approach has been tested, 
 - Pre-merge compression as ancillary tool: behaviorally low-cost but not transformative (Study 17, 2 pairs, 3 thresholds). Retained as experimental feature only.
 
 **Untested:**
+
 - Decoder-only merge triage at scale (existing evidence is 5 + 27 pairs across two studies; systematic inventory-level validation pending)
 - Generation tasks (existing merge evidence is classification and math/code)
 - Large-scale inventories (>28 pairs) on a single architecture
@@ -436,6 +445,20 @@ This program connects directly to the analytical spectral geometry plan. Items 1
 
 The overarching upgrade is from "spectral observables predict merge outcomes" to "the spectral structure of fine-tuning is constrained by the pre-trained model's geometry in ways that make the observables predictive" — a generative rather than merely correlational claim, now with direct empirical backing in the independent-training regime across both encoder (DistilBERT-base) and decoder (Mistral-7B) architectures.
 
+### 7.6 Portfolio-Level Spectral Structure: From Open Question to Empirical Finding
+
+Gradience's triage evaluates adapter pairs independently. A pair is retained if the spectral geometry between its two members is favorable; it is excluded if conflict, imbalance, or task-boundary risk is detected. This pairwise architecture is well-suited to the inventories studied so far (5–28 pairs, single architecture), but recent theoretical work — now empirically confirmed — establishes that pairwise triage is necessary but not sufficient at larger pool sizes.
+
+Skorobogat et al. (2025) formally prove that Task Arithmetic-based merging is subject to *rank collapse*: as more models are merged, the skewness ratio ρ = σ₁/mean(σ) of the merged task vector grows linearly with pool size k. The mathematical argument shows that, regardless of the merging coefficient, standard task-arithmetic procedures will inevitably overweight shared directions and suppress task-specific information. Rank collapse is not a failure of any particular merge strategy — it is intrinsic to the additive combination of task vectors, and its severity scales with the number of adapters being merged simultaneously.
+
+*Empirical status (N129, April 2026)*: The portfolio rank collapse probe found statistically significant spectral concentration growth in all four tested field trial inventories (p < 0.05). Mean β₁ = 0.48 (skewness ratio ρ = σ₁/mean(σ), per additional adapter, normalized by per-inventory k=1 baseline, unnormalized Task Arithmetic). This is below the Skorobogat et al. theoretical rate of β₁ ≈ 1.0 for random pools, consistent with Gradience triage selecting spectrally compatible subsets. However, observed k_collapse_rho values (k=2 for mixed-rank pools, k=3 for homogeneous rank-1 pools) fall below the previously assumed safe threshold of k=5. As adapters are summed via Task Arithmetic, the leading singular direction of the merged task vector increasingly dominates the mean (ρ rises), indicating that the common-direction structure shared across adapters accumulates while task-specific directions are suppressed. Rank heterogeneity amplifies the effect: mixed rank-1/rank-16 pools reach near-theoretical collapse rates (β₁ = 0.92).
+
+The implication for Gradience is a confirmed structural gap between pairwise triage and pool-level merge quality. A set of adapter pairs that are all individually retained as compatible may nonetheless, when merged together as an ensemble, exhibit the spectral imbalance that produces rank collapse. Pairwise compatibility is necessary but not sufficient for pool-level merge quality when more than two adapters are combined.
+
+This motivates a near-term extension of the triage pipeline from pair-level to *portfolio-level* spectral auditing: given a retained set of k adapters, compute ρ(k) as adapters are added to the merge pool and warn when ρ exceeds 2× the single-adapter baseline. A lightweight implementation — computing ρ during multi-adapter merge and issuing a warning when N_eligible > 3 — is planned for v0.12.0. For retained sets where rank heterogeneity is present, the warning threshold should be lower, as rank-heterogeneous pools exhibit collapse rates 2–3× higher than rank-homogeneous pools (N129 supplementary finding).
+
+See FINDINGS.md §22 for the full evidence table and `sidecar/notes/N129_rank_collapse_probe.md` for the study note including the metric clarification (ρ-based k_collapse vs. ε-based energy fraction) and SVD convention for reproducibility.
+
 ---
 
 ## 8. Related Approaches and Positioning
@@ -455,6 +478,18 @@ The merge triage problem can be approached from several directions. Gradience's 
 **Structural-behavioral separation** is a positioning insight that emerged from end-to-end merge validation. Study 16 (5 Llama-2-7B adapter pairs, Frobenius norm ratios up to 19.7×) demonstrated that structural compatibility — favorable spectral overlap, low conflict — is necessary but not sufficient for merge quality. A structurally compatible pair can produce a behaviorally disappointing merge if one or both source adapters are weak. This finding sharpens Gradience's positioning relative to other merge methods: spectral analysis is not a replacement for behavioral evaluation but a structural pre-filter. It also motivated the introduction of eligibility gating — the requirement that source adapters demonstrate behavioral competence before merge recommendations are issued. Study 17 further clarified scope by showing that pre-merge spectral compression, while behaviorally safe, does not meaningfully improve merge outcomes; Gradience's value lies in triage and diagnosis, not in adapter modification.
 
 **Model merging research** (TIES, DARE, Task Arithmetic, etc.) focuses on improving merge *strategies* — better algorithms for combining adapter weights. Gradience is orthogonal to this: it identifies which pairs to attempt merging in the first place, regardless of which strategy is used. The spectral analysis can also inform strategy *selection* — different geometric profiles favor different merge algorithms — but this is secondary to the triage function.
+
+**SVD-based merge strategy research** has developed rapidly in parallel and deserves explicit positioning, because the surface similarity to Gradience's methods can obscure a fundamental difference of purpose. Three lines of work are especially relevant.
+
+*KnOTS* (Stoica et al., ICLR 2025) uses SVD to jointly transform the task-updates of different LoRA models into a shared representation space before applying existing merge methods. The core diagnostic finding is that LoRA fine-tuned models exhibit significantly lower inter-adapter alignment than fully fine-tuned counterparts — the same misalignment problem that Gradience's triage detects — and that improving this alignment improves merge quality. KnOTS demonstrates this by aligning and then merging; Gradience demonstrates it by measuring alignment and deciding whether to merge. The two approaches are *complementary, not competitive*: a complete production pipeline would use Gradience triage to eliminate low-compatibility pairs, then apply KnOTS-style alignment to the retained pairs before executing the merge. Notably, KnOTS reports that task-vector orthogonality may not reliably predict merge difficulty — a finding consistent with Gradience's conjunctive failure model, which shows that readout orthogonality alone explains nothing.
+
+*Task Singular Vectors* (Gargiulo et al., CVPR 2025) introduces a measure of task interference based on the cosine of the angle between singular vectors from different task matrices — formally equivalent to the principal-angle geometry underlying Gradience's compatibility metrics. The paper uses this measure to compress adapters to 10% of their original size (retaining 99% of accuracy) and to reduce inter-task interference via whitening transformation. Like KnOTS, TSV-Merge improves the merge for pairs that proceed; Gradience decides which pairs should proceed. The formal result that layer task matrices are often low-rank — and that the task-relevant content lives in the dominant singular directions — provides independent confirmation of the same spectral concentration that Gradience's energy-weighted interaction bound assumes.
+
+*ICML 2025 cross-term analysis* (Akbar et al., ICML 2025 Workshop) formally identifies the cross-term that arises from combining A and B matrices of two adapters separately (direct merging) as the source of interference-driven performance degradation, while showing that multiplied merging — computing BA before combining — avoids this by exhibiting linear mode connectivity in the loss landscape. This is the strategy-side formalization of the same interaction term that Section 2.3 of this report identifies as the quantity spectral triage is designed to detect. That two independent research programs, working from opposite directions on the same problem, arrive at the same algebraic quantity is convergent evidence that the cross-term is the right object of theoretical attention.
+
+The structural relationship among these bodies of work and Gradience can be stated compactly: triage (Gradience) determines which pairs enter the merge pipeline; alignment (KnOTS) and interference reduction (TSV) improve the merge for pairs that enter; formal analysis (cross-term paper) explains why the geometry determines the outcome. A principled end-to-end adapter composition workflow would incorporate all three.
+
+**Theoretical foundations.** Panahi et al. (ICLR 2026, OpenReview) provide the first rigorous theoretical justification for the empirical observation that independently trained LoRA adapters can be merged without full retraining. Their analysis shows that, under suitable weight regularization, optimal LoRA adapters align with the max-margin (hard-margin SVM) solution for the fine-tuning data. Through this lens, merging succeeds when the merged weights satisfy the max-margin condition for the union of the fine-tuning datasets, and the optimal mixing coefficients maximize the margin on that union. Gradience's conjunctive failure model — the claim that catastrophic merge failure requires both V-module pathology and readout incompatibility — can be interpreted in this framework as a claim about when the max-margin condition breaks down under composition: V-module subspace conflict disrupts the representation that the readout's margin depends on, and readout incompatibility prevents absorption of the upstream disruption. This connection between geometric spectral analysis and margin-theoretic guarantees is worth developing formally as the theoretical program matures.
 
 ---
 
@@ -483,6 +518,22 @@ Yu, L., et al. (2023). Language Model is Sometimes a Knowledge Base — and Vice
 Ilharco, G., et al. (2023). Editing Models with Task Arithmetic. *ICLR 2023*.
 
 Tian, Z., Ledent, A., & Sun, Q. (2026). Scalable Multi-Task Low-Rank Model Adaptation. *ICLR 2026*. arXiv:2603.01526.
+
+Stoica, G., Ramesh, P., Ecsedi, B., Choshen, L., & Hoffman, J. (2025). Model Merging with SVD to Tie the Knots. *ICLR 2025*. arXiv:2410.19735.
+
+Gargiulo, A. A., Crisostomi, D., Bucarelli, M. S., Scardapane, S., Silvestri, F., & Rodolà, E. (2025). Task Singular Vectors: Reducing Task Interference in Model Merging. *CVPR 2025*. arXiv:2412.00081.
+
+Akbar, S., et al. (2025). LoRA Merging with SVD: Understanding Interference and Preserving Performance. *ICML 2025 R2-FM Workshop*. OpenReview:t9FrMviTaP.
+
+Marczak, D., et al. (2025). No Task Left Behind: Isotropic Model Merging with Common and Task-Specific Subspaces. *arXiv preprint*. arXiv:2502.04959.
+
+Skorobogat, O., et al. (2025). Subspace-Boosted Model Merging. *arXiv preprint*. arXiv:2506.16506.
+
+Panahi, A., et al. (2026). LoRA Provably Reduces Forgetting and Enables Adapter Merging in Multiclass Linear Classification. *ICLR 2026 OpenReview*. OpenReview:FSDxP3ZpAx.
+
+Medina, R., & Sørensen, T. (2025). Small Singular Values Matter: A Random Matrix Theory Analysis of Transformer Models. *arXiv preprint*. arXiv:2410.17770.
+
+Badirli, S., et al. (2026). The Appeal and Reality of Recycling LoRAs with Adaptive Merging. *arXiv preprint*. arXiv:2602.12323.
 
 ---
 

@@ -198,6 +198,21 @@ The joint outcome of D and E determines the priority of O-module analysis:
 | PASS | FAIL or UNTESTABLE | **Likely but unconfirmed.** Module-level risk transfers; head-level modulation may be backbone-specific. O-module analysis should be attempted on DeBERTa but the prediction about head-selective amplification is weaker. Consider whether DeBERTa's disentangled attention changes the head-weighting mechanism. |
 | FAIL | — | **Deferred.** Module-level signal does not transfer. The escalation target should be the disentangled attention structure itself, not the O module. Investigate whether DeBERTa's content/position separation moves the discriminative signal to a different module. |
 
+**Prediction G (spectral partitioning remains task-discriminating):**
+
+*Added after the April 2026 literature integration (CHG-004). This tests whether Gradience's energy-weighted compatibility metrics survive DeBERTa's non-standard pretraining objective (replaced token detection rather than masked language modeling).*
+
+*Setup.* Using the Gavish-Donoho optimal hard threshold as the partition point (the same method used in N127), compute SV-weighted alignment separately in the high-SV and low-SV bands for all 28 DeBERTa adapter pairs.
+
+- PASS if: DeBERTa same-task adapter pairs show SV-weighted alignment in the high-SV band at least 2.5× higher than cross-task pairs (consistent with the Mistral-7B result; N127 found 7.8× on DistilBERT-base), with the difference significant at p < 0.01.
+  Formally: $\text{SV-weighted alignment}_{high, same} / \text{SV-weighted alignment}_{high, cross} \geq 2.5$.
+- FAIL if: Ratio < 2.0 and/or p > 0.01 for the same-task vs. cross-task comparison in the high-SV band. If falsified, the energy-weighted interaction bound may be insufficient for architectures with non-standard pretraining objectives, and tail-aware interference detection becomes the next priority experiment.
+- PARTIAL if: Ratio is between 2.0 and 2.5, or significance is borderline (0.01 < p < 0.05).
+
+*Pre-training status (N128, April 2026).* N128 found zero false-negative candidates in the encoder validation corpus. H0 confirmed — tail-band interference is not operationally urgent at encoder scale. Prediction G stays as written; no sharpening or module-specific targeting needed per CHG-004 Decision A.
+
+*Note.* The prediction is specifically that the task-discriminating partition survives even if DeBERTa's pretraining objective shifts the absolute location of the Marchenko-Pastur bulk edge. The N127 result (7.8× on DistilBERT) used MLM-pretrained weights; DeBERTa-v3 uses replaced token detection, which may produce a different spectral structure in $W_0$. The test is whether the *relative* separation (same-task vs. cross-task) persists, not whether the absolute alignment magnitudes match.
+
 ### Step 5 — Per-module geometry analysis (DeBERTa)
 
 This step is new. It produces the data needed for Prediction D and extends the per-module evidence base to three backbones.
@@ -334,6 +349,17 @@ After completing the analysis, the decision depends on the joint outcome of the 
 3. Run the full per-module discrimination analysis on DeBERTa to identify whether any module replaces V
 4. Write promotion assessment for instability as a descriptor; defer structural predictor work
 5. E is moot if D fails — do not run head-level analysis
+
+### G FAILS (partition not task-discriminating on DeBERTa)
+
+**Conclusion:** The energy-weighted compatibility metrics do not generalize to architectures with non-standard pretraining objectives. The spectral partition found on DistilBERT (N127) and partially echoed on Mistral-7B may depend on MLM-style pretraining producing a specific spectral structure in $W_0$.
+
+**Actions:**
+1. Do not generalize Gradience's energy-weighted compatibility metrics to DeBERTa-architecture adapters until the source of the failure is understood.
+2. Escalate `scripts/tail_interference_probe.py` (CHG-005) to the next GPU session: run it on DeBERTa adapters specifically rather than the existing encoder corpus.
+3. Add "tail-aware compatibility metric" to the v0.12.0 spec as a high-priority research item, cross-referencing THEORY.md §7.2 ("Tail-band interference as an independent compatibility signal").
+4. The DeBERTa study result (G failed) should be reported in the technical report under §7.1 "DeBERTa Adjudication" with the decision tree branch taken, rather than treating the failure as a study-terminating event.
+5. Investigate whether DeBERTa's replaced-token-detection pretraining produces a qualitatively different $W_0$ spectral structure (e.g., less concentrated energy in the top-k subspace), which would explain the partition failure.
 
 ### A FAILS (regardless of D and E)
 
