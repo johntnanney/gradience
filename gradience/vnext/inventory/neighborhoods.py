@@ -42,6 +42,11 @@ _REASON_PRIORITY = {
 }
 
 
+def _sorted_pair(a: str, b: str) -> tuple[str, str]:
+    """Return a canonically-sorted pair key with the correct tuple type."""
+    return (a, b) if a <= b else (b, a)
+
+
 @dataclass(frozen=True)
 class CompatibilityEdge:
     adapter_a: str
@@ -137,7 +142,7 @@ def build_compatibility_matrix(
             strict_block_candidate=strict_block,
         )
 
-        key = tuple(sorted((adapter_a, adapter_b)))
+        key = _sorted_pair(adapter_a, adapter_b)
         existing = edges_by_pair.get(key)
         if existing is None:
             edges_by_pair[key] = edge
@@ -228,7 +233,7 @@ def _can_merge_groups(
     edge_lookup: dict[tuple[str, str], CompatibilityEdge],
 ) -> bool:
     for left, right in product(group_a, group_b):
-        key = tuple(sorted((left, right)))
+        key = _sorted_pair(left, right)
         edge = edge_lookup.get(key)
         if edge is None:
             continue
@@ -279,7 +284,7 @@ def suggest_merge_neighborhoods(
         min_compatibility=min_compatibility,
     )
     edge_lookup: dict[tuple[str, str], CompatibilityEdge] = {
-        tuple(sorted((e.adapter_a, e.adapter_b))): e for e in edges
+        _sorted_pair(e.adapter_a, e.adapter_b): e for e in edges
     }
 
     adapter_ids: set[str] = set()
@@ -328,9 +333,9 @@ def suggest_merge_neighborhoods(
 
         intra_edges = []
         for left, right in combinations(members, 2):
-            edge = edge_lookup.get(tuple(sorted((left, right))))
-            if edge is not None:
-                intra_edges.append(edge)
+            intra_edge = edge_lookup.get(_sorted_pair(left, right))
+            if intra_edge is not None:
+                intra_edges.append(intra_edge)
 
         typed_groups.append(
             NeighborhoodGroup(
@@ -354,9 +359,9 @@ def suggest_merge_neighborhoods(
     for g1, g2 in combinations(typed_groups, 2):
         cross_edges: list[CompatibilityEdge] = []
         for left, right in product(g1.members, g2.members):
-            edge = edge_lookup.get(tuple(sorted((left, right))))
-            if edge is not None:
-                cross_edges.append(edge)
+            cross_edge = edge_lookup.get(_sorted_pair(left, right))
+            if cross_edge is not None:
+                cross_edges.append(cross_edge)
         reason = _boundary_reason(cross_edges)
         if reason is None:
             continue

@@ -11,7 +11,7 @@ import torch
 
 def _random_unit_vector(n: int, *, generator: torch.Generator) -> torch.Tensor:
     v = torch.randn(n, generator=generator, dtype=torch.float64)
-    return v / (v.norm() + 1e-12)
+    return v / (v.norm() + 1e-12)  # type: ignore[no-any-return]
 
 
 def _orthonormal_pair(n: int, *, generator: torch.Generator) -> tuple[torch.Tensor, torch.Tensor]:
@@ -70,7 +70,7 @@ def stable_rank(x: torch.Tensor) -> float:
 
 
 def singular_values(x: torch.Tensor) -> list[float]:
-    return torch.linalg.svdvals(x.to(torch.float64)).tolist()
+    return torch.linalg.svdvals(x.to(torch.float64)).tolist()  # type: ignore[no-any-return]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -82,7 +82,7 @@ def _random_orthonormal(n: int, k: int, *, generator: torch.Generator) -> torch.
     """Generate a random n×k matrix with orthonormal columns."""
     M = torch.randn(n, k, generator=generator, dtype=torch.float64)
     Q, _ = torch.linalg.qr(M)
-    return Q[:, :k]
+    return Q[:, :k]  # type: ignore[no-any-return]
 
 
 def _rotate_basis(

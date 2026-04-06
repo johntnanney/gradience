@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy import signal as sp_signal  # type: ignore[import-untyped]
+from scipy import signal as sp_signal
 
 # ---------------------------------------------------------------------------
 # Cross-Correlation Functions (CCF)

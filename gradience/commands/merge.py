@@ -154,11 +154,12 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
         and getattr(report, "core_space", None) is not None
     ):
         core = report.core_space
-        print("\nCORE-SPACE DIAGNOSTIC")
-        print(f"- shared basis score: {core.shared_basis_score_mean:.2f}")
-        print(f"- basis distortion: {core.basis_distortion_mean:.2f}")
-        print(f"- effective shared rank: {core.effective_shared_rank_median}")
-        print(f"- status: {core.status}")
+        if core is not None:
+            print("\nCORE-SPACE DIAGNOSTIC")
+            print(f"- shared basis score: {core.shared_basis_score_mean:.2f}")
+            print(f"- basis distortion: {core.basis_distortion_mean:.2f}")
+            print(f"- effective shared rank: {core.effective_shared_rank_median}")
+            print(f"- status: {core.status}")
 
     # --- Strategy Recommendations ---
     user_strategy = getattr(args, "strategy", None)

@@ -27,6 +27,8 @@ def cmd_portfolio(args: argparse.Namespace) -> None:
         raise DependencyError(f"Failed to import portfolio module: {e}") from e
 
     try:
+        if directory is None:
+            directory = "."
         view = scan_portfolio(directory, strict_input=strict_input)
     except GradienceError:
         raise

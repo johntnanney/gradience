@@ -5,7 +5,7 @@ GSM8K causal language modeling task profile.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from datasets import Dataset
@@ -155,16 +155,13 @@ class GSM8KCausalLMProfile:
             remove_unused_columns=False,  # Prevent column removal issues
         )
 
-        return cast(
-            "Trainer",
-            Trainer(
-                model=model,
-                args=training_args,
-                train_dataset=tokenized_ds["train"],
-                eval_dataset=None,  # Disable eval dataset to prevent crashes
-                data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-                callbacks=callbacks or [],
-            ),
+        return Trainer(  # type: ignore[arg-type,no-any-return,unused-ignore]
+            model=model,
+            args=training_args,
+            train_dataset=tokenized_ds["train"],
+            eval_dataset=None,  # Disable eval dataset to prevent crashes
+            data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
+            callbacks=callbacks or [],
         )
 
     def evaluate(
@@ -221,7 +218,7 @@ class GSM8KCausalLMProfile:
 
             # Extract numerical answer
             pred_answer = self._extract_answer(generated_text)
-            gold_answer_num = self._extract_answer(gold_answer)
+            gold_answer_num = self._extract_answer(gold_answer)  # type: ignore[arg-type,unused-ignore]
 
             if pred_answer == gold_answer_num:
                 correct += 1

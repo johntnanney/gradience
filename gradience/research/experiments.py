@@ -557,7 +557,7 @@ def setup_experiment(model_type: str, seed: int):
     if model_type == "gpt2-tiny":
         from transformers import GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
 
-        config = GPT2Config(
+        config = GPT2Config(  # type: ignore[call-arg,unused-ignore]
             vocab_size=1000,
             n_embd=128,
             n_layer=4,

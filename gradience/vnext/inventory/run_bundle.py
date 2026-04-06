@@ -1120,7 +1120,7 @@ def emit_run_bundle(
         (run_dir / "compare_to_previous.md").write_text(comparison_md)
 
     # 6. review_packet.md
-    drift = summary_json.get("inventory_drift_summary")
+    drift = summary_json.get("inventory_drift_summary")  # type: ignore[assignment]
     review_md = build_review_packet_md(
         inventory_id=inventory_id,
         run_id=run_id,
