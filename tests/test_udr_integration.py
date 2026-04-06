@@ -157,6 +157,7 @@ class TestUDRIntegration:
     """Integration tests with real tiny HF models."""
 
     @pytest.mark.slow
+    @pytest.mark.timeout(120)
     def test_end_to_end_audit_emits_udr_keys(self):
         """Test 7: End-to-end audit with tiny HF model emits UDR keys."""
         if not check_dependencies():
@@ -320,6 +321,7 @@ class TestCLIBehavior:
             assert len(udr_keys) == 0, f"UDR keys present despite --no-udr flag: {udr_keys}"
 
     @pytest.mark.slow
+    @pytest.mark.timeout(120)
     def test_base_model_flag_enables_udr(self):
         """Test 8b: --base-model flag enables UDR computation."""
         # This test requires transformers, so we'll make it conditional
