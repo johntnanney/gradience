@@ -116,7 +116,7 @@ class GLUESequenceClassificationProfile:
             bf16=bool(cfg.get("model", {}).get("torch_dtype") == "bf16"),
         )
 
-        return Trainer(  # type: ignore[arg-type,no-any-return,unused-ignore]
+        return Trainer(  # type: ignore[arg-type,no-any-return]
             model=model,
             args=training_args,
             train_dataset=tokenized_ds["train"],
@@ -165,14 +165,14 @@ class GLUESequenceClassificationProfile:
 
         # Compute accuracy
         accuracy = (pred_classes == labels).mean()
-        num_samples = len(labels)  # type: ignore[arg-type,unused-ignore]
+        num_samples = len(labels)  # type: ignore[arg-type]
         num_correct = (pred_classes == labels).sum()
 
         return {
             "eval_accuracy": float(accuracy),
             "eval_samples": int(num_samples),
             "eval_correct": int(num_correct),
-            "eval_loss": float(predictions.metrics.get("test_loss", 0.0)),  # type: ignore[union-attr,unused-ignore]
+            "eval_loss": float(predictions.metrics.get("test_loss", 0.0)),  # type: ignore[union-attr]
         }
 
     def probe_gate(self, probe_eval: dict[str, Any], cfg: dict[str, Any]) -> tuple[bool, dict[str, Any]]:

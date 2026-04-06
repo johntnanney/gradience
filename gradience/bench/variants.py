@@ -109,7 +109,7 @@ def run_post_tuning(
         return model
 
     # Setup trainer for post-tuning
-    trainer = Trainer(  # type: ignore[call-arg,unused-ignore]
+    trainer = Trainer(  # type: ignore[call-arg]
         model=model,
         args=post_tune_args,
         train_dataset=train_dataset,

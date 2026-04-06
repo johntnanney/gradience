@@ -155,6 +155,20 @@ module = [
 ]
 ignore_missing_imports = true
 
+# Modules that use type: ignore for transformers API mismatches —
+# these errors vary by transformers version, so suppress unused-ignore
+# warnings to avoid CI failures across Python/transformers versions.
+[[tool.mypy.overrides]]
+module = [
+    "gradience.bench.protocol",
+    "gradience.bench.variants",
+    "gradience.bench.task_profiles.seqcls_glue",
+    "gradience.bench.task_profiles.gsm8k_causal_lm",
+    "gradience.research.experiments",
+    "gradience.vnext.merge.spectral_theory_test_utils",
+]
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

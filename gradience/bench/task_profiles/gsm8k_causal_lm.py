@@ -155,7 +155,7 @@ class GSM8KCausalLMProfile:
             remove_unused_columns=False,  # Prevent column removal issues
         )
 
-        return Trainer(  # type: ignore[arg-type,no-any-return,unused-ignore]
+        return Trainer(  # type: ignore[arg-type,no-any-return]
             model=model,
             args=training_args,
             train_dataset=tokenized_ds["train"],
@@ -218,7 +218,7 @@ class GSM8KCausalLMProfile:
 
             # Extract numerical answer
             pred_answer = self._extract_answer(generated_text)
-            gold_answer_num = self._extract_answer(gold_answer)  # type: ignore[arg-type,unused-ignore]
+            gold_answer_num = self._extract_answer(gold_answer)  # type: ignore[arg-type]
 
             if pred_answer == gold_answer_num:
                 correct += 1
