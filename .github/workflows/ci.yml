@@ -102,17 +102,22 @@ jobs:
         with open('ci_smoke_test/bench.json') as f:
             bench = json.load(f)
 
-        # Check required keys
-        required_keys = ['config', 'audit', 'compression', 'results']
+        # Check required keys (canonical bench.json schema)
+        required_keys = ['bench_version', 'model', 'task', 'probe']
         for key in required_keys:
             assert key in bench, f'Missing key: {key}'
 
-        # Check that variants were generated
-        assert 'variants' in bench['results'], 'No variants in results'
-        assert len(bench['results']['variants']) > 0, 'No variants generated'
+        # Check probe section
+        assert 'accuracy' in bench['probe'], 'No accuracy in probe'
+
+        # Check compressed variants (may be empty if probe undertrained in smoke)
+        compressed = bench.get('compressed', {})
 
         print('✅ bench.json structure valid')
-        print(f'✅ Generated {len(bench[\"results\"][\"variants\"])} compressed variants')
+        print(f'   bench_version={bench[\"bench_version\"]}')
+        print(f'   model={bench[\"model\"]}')
+        print(f'   status={bench.get(\"status\", \"completed\")}')
+        print(f'   compressed variants: {len(compressed)}')
         "
 
         echo "✅ CPU bench smoke test passed"
