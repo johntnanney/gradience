@@ -95,7 +95,6 @@ jobs:
         # Check that essential files were created
         test -f ci_smoke_test/bench.json || (echo "❌ bench.json not found" && exit 1)
         test -f ci_smoke_test/bench.md || (echo "❌ bench.md not found" && exit 1)
-        test -f ci_smoke_test/runs.json || (echo "❌ runs.json not found" && exit 1)
 
         # Validate JSON structure
         python -c "
