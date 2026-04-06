@@ -30,7 +30,7 @@ jobs:
       - name: Run pip-audit
         run: |
           # Export installed deps excluding gradience itself (not on PyPI)
-          pip freeze | grep -iv '^gradience==' > /tmp/audit-requirements.txt
+          pip freeze | grep -iv '^gradience' > /tmp/audit-requirements.txt
           pip-audit --strict --desc -r /tmp/audit-requirements.txt
 
   gitleaks:
