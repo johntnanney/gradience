@@ -545,7 +545,13 @@ training, plateauing around step 150 with spectral energy concentration
 increasing from 56% to 86% (FINDINGS.md §§11–14). Cross-architecture
 support comes from Mistral-7B (Post 3): same-task overlap 0.473 vs.
 cross-task 0.200, 2.4× separation, t = 12.985. The phenomenon is
-confirmed; what remains is the formal convergence bound (see §7.2).
+confirmed on two encoder backbones. A third replication on DeBERTa-v3-base
+(N07, FINDINGS.md §23) showed same-task compatibility 0.449 vs. cross-task
+0.160 (t = 15.87, p < 10⁻¹⁵), extending the partitioning to a backbone
+with a distinct pretraining objective (replaced token detection vs. MLM).
+The stable rank convergence to 1.2–1.6 at nominal rank 16 is quantitatively
+consistent with N127's energy concentration finding. What remains is the
+formal convergence bound (see §7.2).
 
 A critical refinement: the naive Davis-Kahan operationalization (adjacent
 spectral gap σ₁−σ₂ of the pre-trained matrix W₀) does not predict
@@ -590,6 +596,18 @@ lead-lag analysis are different detection methods asking different
 questions. CSD asks whether the system approaches criticality; the CCF
 analysis asks whether curvature dynamics *predict* performance dynamics.
 The latter holds robustly.
+
+Third, cross-architecture replication: the N07 DeBERTa adjudication
+(FINDINGS.md §23) replicated the curvature lead-lag on DeBERTa-v3-base
+(185M parameters) using stochastic Hutchinson estimation rather than
+deterministic finite-difference probes. Median optimal lag = 3 intervals
+(150 steps) across all 8 adapters, consistent with §16a's 3–6 update
+lead. Phase transitions were detected in all 4 large adapters via rolling
+variance analysis (regime shift magnitude 57.8%). This extends the
+lead-lag finding from a single architecture/estimator combination
+(GPT-2/deterministic) to a second (DeBERTa/stochastic), strengthening
+the case that curvature-as-leading-indicator is a general property of
+LoRA fine-tuning dynamics.
 
 DFA exponents of spectral complexity differ significantly across five
 hyperparameter regimes (F = 116.86, p ≈ 10⁻²³; n=49 runs, 10 seeds
@@ -755,12 +773,28 @@ structure has stabilized enough for reliable post-hoc audit — rather
 than waiting until training completes to discover that the partition
 never crystallized.
 
-A single experiment would test this directly: log both Hessian energy
-snapshots and MP-partitioned SV-weighted alignment at each checkpoint
-during a training run, then compute the cross-correlation between
-curvature collapse events and alignment jumps. The N07 DeBERTa study
-(which instruments training with curvature telemetry) provides a
-natural opportunity to collect this data. The prediction is that
-curvature collapse events (defined as $\sum \lambda^2$ dropping below its
-running mean by $>1\sigma$) should coincide with step-wise increases in
-high-SV alignment within a window of $\pm 3$ snapshots.
+*Partial empirical traction (N07, April 2026).* The DeBERTa adjudication
+study (FINDINGS.md §23) instrumented training with both curvature
+telemetry (Hutchinson trace + power iteration every 50 steps) and
+structural SVD snapshots (stable rank, energy_rank_90 at same cadence).
+Two results provide indirect support: (1) curvature lead-lag replicates
+cross-architecture (median lag 3 intervals, consistent with §16a's 3–6
+update lead on GPT-2), confirming that the Hessian temporal dynamics are
+not architecture-specific; (2) phase transitions detected in Hessian
+dynamics (4/4 large adapters) coincide temporally with the training
+regime where structural metrics stabilize (energy_rank_90 plateauing in
+the second third of training, regime shift magnitude 57.8%). However,
+the direct test — cross-correlating curvature collapse events with
+SV-weighted alignment jumps at matched checkpoints — requires denser
+Hessian sampling and MP-partitioned alignment computation at each
+snapshot. The N07 data provides curvature and *aggregate* structural
+metrics but not *per-direction* alignment against the MP partition at
+each step. A follow-up study with finer-grained dual instrumentation
+(both Hessian eigenvectors and per-direction SVD alignment at each
+checkpoint) would resolve this correspondence definitively.
+
+The prediction remains: curvature collapse events (defined as
+$\sum \lambda^2$ dropping below its running mean by $>1\sigma$) should
+coincide with step-wise increases in high-SV alignment within a window
+of $\pm 3$ snapshots. The N07 results are consistent with this but do
+not yet test it directly.
