@@ -79,12 +79,13 @@ LORA_CONFIG = {
     "r": 16,
     "lora_alpha": 16,
     "lora_dropout": 0.1,
-    "target_modules": ["query_proj", "key_proj", "value_proj", "dense"],
+    "target_modules": ["query_proj", "key_proj", "value_proj", "attention.output.dense"],
     # DeBERTa-v3 attention projections:
     #   query_proj, key_proj, value_proj = Q, K, V
-    #   dense = O (output projection in self-attention)
-    # Verify these names on first run — if DeBERTa-v3's module names differ,
-    # the LoRA injection will silently skip unmatched names.
+    #   attention.output.dense = O (output projection in self-attention)
+    # We use the full path "attention.output.dense" to avoid matching the
+    # FFN dense layers (intermediate.dense, output.dense) which also have
+    # the leaf name "dense".
     "bias": "none",
     "task_type": "SEQ_CLS",
 }
@@ -187,13 +188,19 @@ def train_one_adapter(
     print(f"  Trainable: {n_trainable:,} / {n_total:,} ({100 * n_trainable / n_total:.2f}%)")
 
     # --- Sanity check: all 4 projection types should have LoRA ---
-    expected_modules = {"query_proj", "key_proj", "value_proj", "dense"}
+    # Map canonical module type to a substring that should appear in LoRA param names
+    module_checks = {
+        "query_proj": "query_proj",
+        "key_proj": "key_proj",
+        "value_proj": "value_proj",
+        "attention.output.dense": "attention.output.dense",
+    }
     found_modules = set()
     for name in lora_modules:
-        for mod in expected_modules:
-            if mod in name:
-                found_modules.add(mod)
-    missing = expected_modules - found_modules
+        for mod_key, pattern in module_checks.items():
+            if pattern in name:
+                found_modules.add(mod_key)
+    missing = set(module_checks.keys()) - found_modules
     if missing:
         print(f"  WARNING: LoRA not injected into: {missing}")
         print(f"  Available modules in model:")
