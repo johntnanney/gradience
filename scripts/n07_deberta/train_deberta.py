@@ -95,13 +95,14 @@ TRAINING_ARGS = {
     "learning_rate": 2e-4,
     "per_device_train_batch_size": 16,
     "per_device_eval_batch_size": 32,
-    "warmup_ratio": 0.06,
+    # warmup_ratio deprecated in transformers >=5.2; computed as warmup_steps below
+    # "warmup_ratio": 0.06,
     "weight_decay": 0.01,
     "eval_strategy": "steps",
     "eval_steps": 50,
     "logging_steps": 10,
     "save_strategy": "no",       # save manually at end
-    "fp16": True,                # A100/A10G; override to bf16 if needed
+    "bf16": True,                # A100 supports bf16; fp16 causes gradient scaling issues with DeBERTa-v3
     "dataloader_num_workers": 2,
     "remove_unused_columns": True,
     "report_to": "none",         # we use GradienceCallback, not wandb
@@ -257,6 +258,18 @@ def train_one_adapter(
     training_args_dict["seed"] = seed
     training_args_dict["output_dir"] = str(adapter_dir / "trainer_output")
 
+    # Compute warmup_steps from the 6% warmup ratio
+    import math
+    n_train = len(train_dataset)
+    bs = training_args_dict.get("per_device_train_batch_size", 16)
+    epochs = training_args_dict.get("num_train_epochs", 3)
+    max_steps = training_args_dict.get("max_steps", -1)
+    if max_steps > 0:
+        total_steps = max_steps
+    else:
+        total_steps = math.ceil(n_train / bs) * epochs
+    training_args_dict["warmup_steps"] = max(1, int(0.06 * total_steps))
+
     args = TrainingArguments(**training_args_dict)
 
     # --- Callbacks ---
@@ -288,7 +301,7 @@ def train_one_adapter(
         args=args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         compute_metrics=compute_metrics,
         callbacks=[gradience_cb, structural_cb, curvature_cb],
     )
