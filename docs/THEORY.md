@@ -198,10 +198,37 @@ low-rank structure. The crossover point may be a useful diagnostic:
 adapters that never transition to a low-rank regime may be undertrained
 or stuck in a memorization mode.
 
+### Curvature telemetry as a phase-transition probe
+
+The theoretical predictions above — critical slowing down, fluctuation
+amplification, rank phase transitions — describe phenomena that
+second-order geometric signals should detect before first-order signals
+(loss, accuracy) respond. Recent curvature telemetry results provide the
+first empirical evidence for this claim in a fine-tuning context: Hessian
+energy (sum of squared eigenvalues, $\sum \lambda^2$) leads validation accuracy by
+3--6 updates during LoRA fine-tuning, with walk-forward forecasters
+using curvature features alone reducing RMSE by ~36% versus a persistence
+baseline (see FINDINGS.md §16a). This lead-lag relationship is precisely
+the kind of leading indicator hypothesized above — a spectral observable
+that detects geometric events (curvature collapse into flatter basins)
+before they manifest as performance changes.
+
+The three-act gradient alignment structure observed on Mistral-7B
+(FINDINGS.md §17) — explore (low alignment, high curvature), lock-on
+(alignment at edge-of-stability, $R_q \approx 1.06$), destabilize
+(alignment drops, variance increases) — maps directly onto the curvature
+telemetry paper's narrative: high-curvature exploration followed by
+flat-basin consolidation followed by accuracy improvement. The curvature
+telemetry result provides the micro-scale temporal evidence; the three-act
+structure provides the macro-scale phase portrait. Together they suggest
+that the phase-transition detection framework outlined above is not
+merely theoretical but captures real dynamics observable in LoRA
+fine-tuning trajectories.
+
 
 ## 5. The Hessian Connection
 
-### Loss landscape curvature and adapter spectra
+### 5.1 Static correspondence: weight spectra and loss curvature
 
 The Hessian $H = \nabla^2 \mathcal{L}$ describes the local curvature of
 the loss surface. Its eigenspectrum has a well-documented structure in
@@ -223,8 +250,6 @@ Gradience's `research.hessian` module provides tractable Hessian measurements
 via power iteration for top eigenvalues and Hutchinson's estimator for the
 trace, enabling direct investigation of this relationship.
 
-### Computational tractability
-
 Full Hessian computation is $O(p^2)$ in storage and $O(p^3)$ in time, which
 is infeasible for models with $>10^8$ parameters. However, Hessian-vector
 products are $O(p)$ via reverse-mode autodiff, and these suffice for:
@@ -233,16 +258,99 @@ products are $O(p)$ via reverse-mode autodiff, and these suffice for:
 - Trace estimation via Hutchinson's method ($O(n_{\text{samples}})$ Hvps)
 - Spectral density estimation via stochastic Lanczos quadrature
 
-**Open question.** Can we establish a quantitative correspondence between
-the Hessian spectrum (restricted to the adapter subspace) and the adapter's
-singular value spectrum? This would provide a principled justification for
-spectral-based compression beyond the empirical observation that it works.
-
 **Partial answer (March 2026 reanalysis).** Canonical correlation analysis
 between Hessian-space metrics (lambda1, trace_H, gHg) and representation-space
 metrics (participation ratio, anisotropy, CKA) yields CC1 = 0.661, indicating
 a moderate shared signal. The two measurement systems are coupled but not
-redundant. See FINDINGS.md §16 and `Gradience II/reanalysis/module_e_results.json`.
+redundant — they share a dominant axis of variation but capture different
+aspects of the parameter geometry. See FINDINGS.md §16 and
+`Gradience II/reanalysis/module_e_results.json`. This establishes the
+*cross-sectional* evidence: at any given snapshot, Hessian geometry and
+adapter geometry are correlated.
+
+### 5.2 Dynamic correspondence: curvature telemetry
+
+The cross-sectional correlation in §5.1 leaves open whether the
+Hessian-adapter relationship is merely coincidental or reflects a
+genuine dynamic coupling. The curvature telemetry results (FINDINGS.md
+§16a) provide the *temporal* evidence: Hessian energy $\sum \lambda^2$ leads
+validation accuracy by 3--6 updates during LoRA fine-tuning, and
+walk-forward forecasters using only curvature features reduce
+short-horizon accuracy RMSE by ~36% versus a persistence baseline.
+The lead-lag relationship is validated with AR(1) pre-whitening,
+effective sample size correction, contiguous block-bootstrap confidence
+intervals, and surrogate-null tests (phase randomization and circular
+rotation).
+
+This result transforms the Hessian connection from a static correlation
+into a dynamic predictive relationship. The conceptual mechanism:
+Hessian energy rising signals the optimizer entering high-curvature
+regions (exploration, the loss landscape is sharply curved along the
+update directions). Hessian energy collapsing signals escape to flatter
+basins (consolidation, the optimizer has found a low-curvature region
+where the representation can stabilize). Accuracy improving shortly
+after signals the representation locking in within the new basin.
+
+The connection to the spectral partitioning results (§6, FINDINGS.md
+§14) is suggestive: the N127 checkpoint progression showing high-SV
+alignment rising from 0.244 to 0.608 and plateauing around step 150
+is the *SVD-side* view of the same process that curvature telemetry
+captures from the *Hessian side*. The curvature collapse events
+identified in the telemetry paper are plausibly the moments when the
+spectral partition sharpens — when high-SV directions lock in and
+low-SV directions differentiate. This is a testable prediction (see
+§7.2, "Curvature-partition correspondence").
+
+### 5.3 Toward a unified spectral measurement framework
+
+Both the post-training SVD audit and the during-training Hessian
+telemetry are measuring the same underlying object — the spectral
+geometry of the parameter-loss landscape — from different temporal
+vantage points and via different mathematical decompositions (singular
+values of weight matrices vs. eigenvalues of the loss Hessian). The
+static correspondence (§5.1) shows the two views share signal. The
+dynamic correspondence (§5.2) shows that one view *predicts* the
+other across time. Together they suggest that a complete diagnostic
+framework should use Hessian telemetry during training to forecast
+when the representation is stabilizing, then switch to SVD audit
+after training to characterize what the stabilized representation
+looks like and whether it is compatible with other adapters.
+
+This conceptual unification motivates a methodological commitment that
+distinguishes the program from pure ML systems work: *spectral metrics
+are measurement instruments, and the question of whether they can be
+trusted requires the same psychometric analysis that any measurement
+instrument demands.* In classical test theory, no score is reported
+without its reliability coefficient and standard error of measurement.
+The same discipline should apply to spectral diagnostics:
+
+- **Test-retest reliability (cross-seed ICC).** Does $\sum \lambda^2$ at step
+  50 agree across 5 random seeds? If ICC < 0.7, the metric is too
+  noisy to trust at that granularity.
+- **Standard error of measurement (SEM).** Given the ICC, how much
+  does a single $\sum \lambda^2$ reading vary due to measurement noise versus
+  genuine geometric change?
+- **Minimal detectable change (MDC).** How large must a shift in
+  $\sum \lambda^2$ be before we are confident it reflects a real geometric
+  event, not noise?
+- **Information function analog.** At what range of curvature values
+  is $\sum \lambda^2$ most discriminating? (Analogous to where an IRT item's
+  information function peaks.)
+
+No existing ML diagnostic toolkit asks these questions. The reliability
+analysis applies equally to SVD-based audit metrics (stable rank,
+energy concentration, subspace overlap) and to Hessian-based telemetry
+metrics ($\sum \lambda^2$, $\lambda_1$, trace). Both families of metrics require
+empirical reliability characterization before their signals can be
+trusted for operational decisions — and the infrastructure for
+computing that characterization (cross-seed ICC, block-bootstrap CIs,
+surrogate-null tests) is shared between the two.
+
+The practical implication for Gradience v1.0: the `stats.reliability`
+module treats spectral metrics as instruments with quantifiable
+psychometric properties, and the `spectral` layer provides the shared
+computation infrastructure that both the audit pipeline and the
+telemetry recorder consume.
 
 
 ## 6. Subspace Alignment and Merge Analysis
@@ -452,14 +560,36 @@ relationship holds for QNLI but not SST-2).
 **Phase transition detection.** *Original question:* Can spectral
 observables serve as reliable order parameters for detecting training
 phase transitions before they manifest in the loss curve? *Status:
-partially confirmed, with important complications.* Hessian trace
-detects changepoints approximately 300 steps before loss in a single-run
-telemetry stream (FINDINGS.md §16). One candidate phase transition near
-step 58,450 was identified via susceptibility clustering and trajectory
-tortuosity. However, critical slowing down in loss *precedes* that of
-geometric metrics in the same data, complicating the "geometry detects
-transitions first" narrative — the priority relationship depends on
-which detection method is used.
+substantially confirmed, with methodological refinement.* Two
+complementary lines of evidence now support spectral observables as
+leading indicators.
+
+First, macro-scale detection: Hessian trace detects changepoints
+approximately 300 steps before loss in a single-run telemetry stream
+via CUSUM changepoint analysis (FINDINGS.md §16). One candidate phase
+transition near step 58,450 was identified via susceptibility clustering
+and trajectory tortuosity. However, critical slowing down in loss
+*precedes* that of geometric metrics in the same data, complicating the
+"geometry detects transitions first" narrative for CSD specifically.
+
+Second, micro-scale forecasting: the curvature telemetry paper
+(FINDINGS.md §16a) provides a cleaner and statistically more rigorous
+result. Hessian energy $\sum \lambda^2$ leads validation accuracy by 3--6
+updates, and walk-forward forecasters using only curvature features
+reduce short-horizon accuracy RMSE by ~36% versus a persistence
+baseline. The methodology — AR(1) pre-whitening, effective sample size
+correction, contiguous block-bootstrap CIs, and surrogate-null tests —
+validates the lead-lag relationship against the primary threats to
+causal inference in time series (shared autocorrelation, spurious
+cross-correlation from trending). This is the strongest evidence to
+date for the "spectral observables as leading indicators" hypothesis,
+providing actionable *forecasting*, not just retrospective *detection*.
+
+The CSD complication remains but is now contextualized: CSD and CCF-based
+lead-lag analysis are different detection methods asking different
+questions. CSD asks whether the system approaches criticality; the CCF
+analysis asks whether curvature dynamics *predict* performance dynamics.
+The latter holds robustly.
 
 DFA exponents of spectral complexity differ significantly across five
 hyperparameter regimes (F = 116.86, p ≈ 10⁻²³; n=49 runs, 10 seeds
@@ -605,3 +735,32 @@ top-k singular directions of ΔW approximate the top-k eigendirections
 of the task Hessian restricted to the LoRA subspace — would ground
 compression safety in optimization theory rather than empirical
 observation.
+
+**Curvature-partition correspondence.** Does curvature collapse (as
+detected by Hessian telemetry) coincide with spectral partition
+sharpening (as measured by the Marchenko-Pastur partition)? The
+curvature telemetry paper (FINDINGS.md §16a) shows that $\sum \lambda^2$
+collapse precedes accuracy improvement. The N127 checkpoint progression
+(FINDINGS.md §14) shows that high-SV alignment rises and plateaus
+during training. The open question is whether these are the same event
+observed through different instruments — the Hessian eigenspectrum
+collapsing into a flatter basin at the same moment that the SVD-based
+spectral partition sharpens.
+
+If they are the same event, the curvature telemetry signal becomes an
+*online* proxy for the spectral partition quality that the audit
+pipeline measures *offline*. A practitioner could monitor $\sum \lambda^2$
+during training and infer, in real time, whether the adapter's spectral
+structure has stabilized enough for reliable post-hoc audit — rather
+than waiting until training completes to discover that the partition
+never crystallized.
+
+A single experiment would test this directly: log both Hessian energy
+snapshots and MP-partitioned SV-weighted alignment at each checkpoint
+during a training run, then compute the cross-correlation between
+curvature collapse events and alignment jumps. The N07 DeBERTa study
+(which instruments training with curvature telemetry) provides a
+natural opportunity to collect this data. The prediction is that
+curvature collapse events (defined as $\sum \lambda^2$ dropping below its
+running mean by $>1\sigma$) should coincide with step-wise increases in
+high-SV alignment within a window of $\pm 3$ snapshots.

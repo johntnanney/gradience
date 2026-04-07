@@ -779,6 +779,13 @@ remains approximately flat throughout.
 - The plateau could reflect training convergence (no further learning)
   rather than a geometric saturation property. Distinguishing these
   requires training-loss analysis at each checkpoint.
+- The plateau in high-SV alignment at step ~150 may correspond to the
+  curvature collapse events identified in the curvature telemetry paper
+  (§16a). If these are the same phenomenon observed through different
+  instruments (Hessian eigenvalues vs. MP-partitioned SVD alignment),
+  the curvature telemetry signal would serve as an online proxy for
+  spectral partition quality. This correspondence has not been tested
+  (see THEORY.md §7.2, "Curvature-partition correspondence").
 
 ### Reproducibility
 
@@ -788,11 +795,19 @@ Extension 3 in `scripts/mp_partition_extensions.py`. Results in
 
 ---
 
-# Part D — Training Dynamics and Telemetry
+# Part D — Training Dynamics and Curvature Telemetry
 
-This strand addresses what happens during training: can spectral
-and geometric observables detect training regimes, transitions,
-and anomalies in real time?
+This strand establishes the *during-training* face of Gradience's spectral
+measurement framework. Where Parts A--C characterize finished adapters and
+their interactions, Part D asks: can the same spectral lens, applied to
+loss-surface geometry during training, provide leading indicators of model
+learning? The curvature telemetry results (§16a) show that it can — Hessian
+energy forecasts validation accuracy 3--6 updates ahead with ~36% RMSE
+improvement over a persistence baseline. The findings below trace the
+development of this result: from regime classification (§15) through
+Hessian telemetry detection (§16) and curvature telemetry forecasting
+(§16a) to the three-act gradient alignment structure (§17) and DFA scaling
+exponents (§18).
 
 ---
 
@@ -908,6 +923,103 @@ identified near step 58,450.
 Analysis scripts: `Gradience II/reanalysis/module_b_timeseries.py`,
 `module_d_phase_transitions.py`, `module_e_cross_strand.py`.
 Data: `Gradience II/results/telemetry.jsonl` and `telemetry10.csv`.
+
+### Relationship to §16a
+
+The curvature telemetry paper (§16a below) provides a more rigorous
+statistical framework for the lead-lag claim reported here. This section
+(§16) used CUSUM changepoint detection on a single run to establish that
+geometric metrics detect transitions ~300 steps before loss. §16a uses
+CCF with pre-whitening, block-bootstrap CIs, and surrogate-null tests on
+multiple runs to establish that curvature features *forecast* accuracy
+with quantified skill. The two findings are complementary: §16 provides
+macro-scale detection (changepoints over 60,000 steps), §16a provides
+micro-scale forecasting (walk-forward prediction over ~180 updates).
+
+
+---
+
+## 16a. Curvature Telemetry: Hessian Energy as a Leading Indicator of Validation Accuracy (April 2026)
+
+### Claim
+
+Hessian energy ($\sum \lambda^2$) leads validation accuracy by 3--6 updates
+during LoRA fine-tuning, and walk-forward forecasters using only curvature
+features reduce short-horizon accuracy RMSE by ~36% versus a persistence
+baseline. The lead-lag relationship is validated with AR(1) pre-whitening,
+effective sample size correction, contiguous block-bootstrap CIs, and
+surrogate-null tests.
+
+### Evidence
+
+- **Model and setup.** GPT-2 small (124M parameters) with LoRA (~0.59M
+  trainable), AdamW optimizer, moderately aggressive learning rate.
+  Tasks: toy arithmetic (synthetic chain-of-thought), GSM8K-lite.
+  Snapshot cadence: every 5--6 updates, ~180 updates total per run.
+  Deterministic finite-difference Hessian estimators (fixed probe
+  directions, not stochastic Hutchinson).
+
+- **Cross-correlation function.** CCF peak at negative lags ($-2$ to
+  $-6$); representative run: pre-whitened peak at lag $-5$. Curvature
+  changes precede accuracy changes, not the reverse.
+
+- **Curvature dynamics.** First sustained accuracy jump preceded by
+  ~1.4M-unit drop in $\sum \lambda^2$. The pattern: Hessian energy rises
+  during exploration (optimizer in high-curvature regions), collapses
+  during consolidation (escape to flatter basins), accuracy improves
+  shortly after (representation stabilizes in new basin).
+
+- **Walk-forward forecasting.** Expanding-window ridge regression with
+  leakage-free walk-forward evaluation. RMSE ~0.0042 vs. 0.0065
+  persistence baseline (~36% improvement). The improvement is robust
+  to the specific ridge parameter (cross-validated).
+
+- **Statistical validation.** Surrogate-null tests (phase randomization
+  and circular rotation, 1000 surrogates each) reject the null
+  hypothesis that the observed lead-lag is an artifact of shared
+  autocorrelation structure. Block-bootstrap CIs for the CCF peak
+  coefficient exclude zero.
+
+### Connection to existing findings
+
+- **§16 (Hessian Telemetry).** The curvature telemetry paper provides
+  the *forecasting* complement to §16's *detection* results. §16 shows
+  that geometric metrics detect changepoints ~300 steps before loss;
+  §16a shows that $\sum \lambda^2$ can *forecast* near-future accuracy with
+  quantified skill, not just detect that something changed.
+
+- **§17 (Three-Act Structure).** The curvature telemetry paper's core
+  dynamic — high curvature during exploration, collapse during
+  consolidation, accuracy improvement after collapse — is the
+  micro-level version of the three-act structure (explore, lock-on,
+  destabilize) observed at macro scale on Mistral-7B. The two results
+  describe the same phenomenon at different temporal resolutions and
+  model scales.
+
+- **§14 (Spectral Partitioning Converges During Training).** The
+  curvature collapse events are hypothesized to coincide with the
+  moments when high-SV alignment sharpens — the spectral partition
+  crystallizing as the optimizer settles into a flatter basin. This is
+  an open prediction, not yet tested (see THEORY.md §7.2,
+  "Curvature-partition correspondence").
+
+### Limitations
+
+- GPT-2 small + LoRA only; scaling to larger models may require
+  stochastic Hessian estimators (Hutchinson or stochastic Lanczos)
+  rather than the deterministic finite-difference approach used here.
+- Short runs (~180 updates); long pretraining dynamics may differ.
+- Finite-difference estimators assume local quadraticity of the loss
+  surface; strong non-convexity could distort the estimates.
+- Learning rate and snapshot cadence shape the CCF; mitigated by
+  partialling out LR and detrending, but residual confounds are
+  possible.
+
+### Reproducibility
+
+Manuscript, code, and 601-record telemetry dataset available.
+Deterministic finite-difference approach ensures exact replication with
+same probe directions and random seeds.
 
 
 ---
@@ -1250,6 +1362,7 @@ Pre-registration: inline in conversation (April 5, 2026). Study note:
 | §14 Partition convergence    | N127 Ext 3            | Gradience I | Plateau at step 150 |
 | §15 Regime classification    | Reanalysis            | Gradience II | 67% accuracy, p=0.0001 |
 | §16 Hessian telemetry        | Reanalysis            | Gradience II | Geometry leads loss by 300 steps |
+| §16a Curvature telemetry     | Paper 1 (April 2026)  | Gradience II | $\sum \lambda^2$ leads accuracy by 3--6 steps, 36% RMSE improvement |
 | §17 Three-act structure      | Post 5                | Gradience II | Rq mean 0.90, three acts |
 | §18 DFA exponents            | Study 12              | Gradience II | F=116.86, p≈10⁻²³ |
 | §19 Engine design            | Post 8                | Gradience II | Architecture document |
