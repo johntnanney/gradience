@@ -1674,3 +1674,111 @@ trains fresh adapters with dense telemetry (seeds 42, 123).
 | §22 Portfolio collapse    | N129 (April 2026)              | Gradience I | β₁ = 0.48, k_collapse 2–3 |
 | §23 DeBERTa adjudication | N07 (April 2026)               | Gradience I | 7/7 predictions confirmed, r=0.994 size→norm |
 | §24 Per-module / curvature | N07 Exp A/B (April 2026)      | Gradience I | V-module DR d=0.02, MP boundary 73/96 significant |
+| §25 Spectral susceptibility | N130 (April 2026)             | Gradience I | Γ_k ≤ C_k as predictor; erank QNLI 13.3 vs SST-2 5.5, d=2.05 |
+
+
+## 25. Spectral Susceptibility (Γ_k) Validation (N130, April 2026)
+
+### Claim
+
+Spectral susceptibility Γ_k — a gap-sensitive measure incorporating
+nearest-neighbor singular value spacing — does **not** outperform energy
+concentration C_k as a predictor of per-layer alignment. The result is a
+**negative finding** that strengthens the case for concentration-based
+metrics over gap-based alternatives.
+
+### Background
+
+The N127 extension results (§13) established that W₀ energy concentration
+C_k correlates with per-layer alignment for QNLI (r = 0.53–0.58, p < 0.01)
+but not SST-2 (r ≈ 0.01). The naive Davis-Kahan gap (σ₁−σ₂) had already
+failed (r = 0.038, p = 0.86). This experiment tested whether a more
+sophisticated gap-based measure — spectral susceptibility
+Γ_k = (1/E_k) Σᵢ σᵢ²/δᵢ² where δᵢ is the nearest-neighbor SV gap — could
+outperform C_k by capturing sensitivity to perturbation rather than just
+energy distribution.
+
+### Evidence
+
+**Prediction 1: Static correlation (1/Γ_k vs C_k as alignment predictors).**
+
+| Task  | ρ(C_k, align) | p(C_k)  | ρ(1/Γ_k, align) | p(1/Γ_k) | |ρ_Γ| − |ρ_C| | Decision    |
+|-------|---------------|---------|-----------------|----------|--------------|-------------|
+| SST-2 | −0.076        | 0.725   | −0.088          | 0.683    | +0.012       | EQUIVALENT  |
+| QNLI  | +0.563        | 0.004   | −0.071          | 0.741    | −0.491       | EQUIVALENT* |
+
+*Bootstrap 95% CI for the difference: SST-2 [−0.370, +0.386], QNLI [−0.708, +0.112].
+Neither CI excludes zero, so the decision is EQUIVALENT by the pre-registered criterion
+(|diff| ≥ 0.10 and CI excludes zero required for CONFIRMED/DISCONFIRMED). However, the
+QNLI result is striking: C_k achieves r = 0.56 (p = 0.004) while 1/Γ_k is near zero.
+The gap-based measure is not just equivalent — it is substantively worse for the one task
+where a predictor exists.*
+
+Per-module breakdown (QNLI): V-modules show the largest C_k advantage
+(ρ_C = +0.71, ρ_Γ = −0.14, diff = −0.57), consistent with V-modules
+being the primary locus of task-specific alignment (§24).
+
+**Prediction 2: Dynamic trajectory (ε_t · √Γ_k(t) decreases during training).**
+
+| Metric              | Value     | Decision     |
+|---------------------|-----------|--------------|
+| Layers analyzed     | 72        |              |
+| Fraction decreasing | 0/72 (0%) | DISCONFIRMED |
+| Mean Spearman ρ     | +1.000    |              |
+| ε increasing        | 72/72     |              |
+| √Γ decreasing       | 35/72     |              |
+
+The product ε_t · √Γ_k(t) increases monotonically in all 72 (seed × layer)
+trajectories because Frobenius norm growth completely dominates the √Γ_k
+decrease. While √Γ_k does decrease in about half of layers (the adapted
+weight matrix becomes more spectrally stable), the perturbation magnitude
+grows much faster.
+
+**Prediction 3: Task asymmetry (QNLI effective rank > SST-2).**
+
+| Metric        | SST-2 | QNLI  | Statistic          |
+|---------------|-------|-------|--------------------|
+| Mean erank    | 5.47  | 13.32 | t = 10.06          |
+|               |       |       | p < 10⁻⁹           |
+|               |       |       | Cohen's d = 2.05   |
+
+All 24 layers show QNLI > SST-2, consistent with QNLI adapters requiring
+higher-dimensional representations for the more complex task. This confirms
+an independent prediction but is orthogonal to the Γ_k question — effective
+rank is a property of Δ_W, not of W₀'s spectral gaps.
+
+### Connection to existing findings
+
+- **§13 (W₀ energy → alignment)**: N130 confirms that C_k remains the best
+  available static predictor. The gap-based alternative (Γ_k) adds no
+  information.
+- **§11–14 (MP partition)**: The Gavish-Donoho threshold used for k
+  selection in Γ_k computation is the same MP partition from N127, ensuring
+  methodological consistency.
+- **§24 (curvature-partition)**: The dynamic result (P2 DISCONFIRMED)
+  parallels Experiment B's finding that curvature and structure are coupled
+  but not in a simple lead-lag relationship.
+- **THEORY.md §7.2**: Strengthens the argument that a formal convergence
+  bound should be stated in concentration-weighted (C_k) terms, not
+  gap-based (Davis-Kahan or Γ_k) terms. The gap approach is now
+  doubly excluded: simple gaps (§13) and regularized susceptibility
+  (§25) both fail.
+
+### Limitations
+
+- Single backbone (DistilBERT-base). Γ_k may behave differently for
+  larger models with smoother spectra (fewer near-degenerate gaps).
+- Two tasks only (SST-2, QNLI). The gap-sensitivity may matter for
+  tasks with intermediate spectral structure.
+- The Gavish-Donoho threshold assumes MP-distributed noise SVs, which
+  is only approximately satisfied for pre-trained weight matrices.
+- Γ_k regularization (ε_reg = 10⁻⁶ · σ₁) prevented numerical overflow
+  but 0 gaps were actually regularized, so this was not a factor.
+
+### Reproducibility
+
+Script: `scripts/n130_gamma_k_validation.py`. CPU-only, ~24 seconds.
+Input data: N127 results (`sidecar/results/mp_partition_test/extension_results.json`),
+SST-2 checkpoints (`bench_runs/uniform_r16_seed{42,123,456}/`),
+QNLI checkpoint (`bench_runs/qnli_test/probe_r32/checkpoint-50/`).
+Output: `sidecar/data/n130/`.

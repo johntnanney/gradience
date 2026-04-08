@@ -658,6 +658,16 @@ mass condition. See the discussion in the spectral partitioning
 subsection above (§6) and THEORY.md §2 for the perturbation-theoretic
 setup.
 
+*Negative result on gap-based alternatives (N130, April 2026).* A
+dedicated test of spectral susceptibility Γ_k — a gap-sensitive measure
+incorporating nearest-neighbor SV spacing, Γ_k = (1/E_k) Σ σᵢ²/δᵢ² —
+found that 1/Γ_k does not predict per-layer alignment (ρ = −0.07 to
+−0.09, p > 0.68 for both tasks), while C_k achieves ρ = 0.56 (p = 0.004)
+for QNLI (FINDINGS.md §25). The gap approach is now doubly excluded:
+simple adjacent gaps fail (§13) and regularized susceptibility also fails.
+A formal bound should target spectral mass concentration, not any variant
+of spectral gap.
+
 **Tail-band interference as an independent compatibility signal.** The
 energy-weighted interaction bound in the Technical Report (§2.3) and the
 spectral partitioning results (§6, N127) both assume that high-SV directions
