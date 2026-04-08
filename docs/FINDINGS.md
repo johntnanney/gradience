@@ -1675,6 +1675,7 @@ trains fresh adapters with dense telemetry (seeds 42, 123).
 | §23 DeBERTa adjudication | N07 (April 2026)               | Gradience I | 7/7 predictions confirmed, r=0.994 size→norm |
 | §24 Per-module / curvature | N07 Exp A/B (April 2026)      | Gradience I | V-module DR d=0.02, MP boundary 73/96 significant |
 | §25 Spectral susceptibility | N130 (April 2026)             | Gradience I | Γ_k ≤ C_k as predictor; erank QNLI 13.3 vs SST-2 5.5, d=2.05 |
+| §26 Composite predictor     | N131 (April 2026)             | Gradience I | C_k + erank ADDITIVE (ΔR²=0.11, p=0.016); interaction NS |
 
 
 ## 25. Spectral Susceptibility (Γ_k) Validation (N130, April 2026)
@@ -1782,3 +1783,121 @@ Input data: N127 results (`sidecar/results/mp_partition_test/extension_results.j
 SST-2 checkpoints (`bench_runs/uniform_r16_seed{42,123,456}/`),
 QNLI checkpoint (`bench_runs/qnli_test/probe_r32/checkpoint-50/`).
 Output: `sidecar/data/n130/`.
+
+
+## 26. Composite Predictor Validation: C_k × f(erank) (N131, April 2026)
+
+### Claim
+
+C_k and adapter effective rank (erank) contribute **additively** — not
+interactively — to predicting per-layer alignment. Adding erank to C_k
+improves prediction (ΔR² = +0.11, F p = 0.016), but the interaction
+C_k × erank is not significant (p = 0.33). The composite multiplicative
+predictor C_k × f(erank) does **not** outperform C_k alone — in fact,
+all composite products perform worse than C_k by itself.
+
+### Background
+
+N130 (§25) established two facts: (1) C_k predicts alignment for QNLI
+(ρ = 0.56, p = 0.004) but not SST-2 (ρ ≈ −0.08); (2) effective rank
+differs massively between tasks (d = 2.05). The hypothesis was that C_k's
+predictive power is *moderated* by erank: the multiplicative composite
+C_k × erank would unify the two tasks into a single predictive relationship.
+
+### Evidence
+
+**Prediction 1: Hierarchical regression (ADDITIVE, not CONFIRMED).**
+
+| Model                      | R²     | ΔR² vs M1 | Key p-value       |
+|----------------------------|--------|-----------|-------------------|
+| M1: C_k                   | 0.070  | —         |                   |
+| M2: C_k + erank           | 0.184  | +0.114    | F p = 0.016       |
+| M3: C_k + erank + C_k×er  | 0.201  | +0.131    | interaction p = 0.33 |
+
+The interaction term is not significant (p = 0.33; with clustered SEs by
+transformer layer: p = 0.30). Erank adds significant explanatory power
+as a main effect (M2 vs M1: F = 6.27, p = 0.016), but the moderation
+hypothesis is rejected. The formal bound factors as
+alignment ≤ h₁(C_k) + h₂(erank), not alignment ≤ g(C_k × erank).
+
+Crucially, the composite *products* perform worse than C_k alone:
+
+| Predictor            | Spearman ρ | p     | OLS R² | AIC    |
+|----------------------|-----------|-------|--------|--------|
+| C_k alone            | +0.258    | 0.077 | 0.070  | −27.6  |
+| C_k × erank          | +0.043    | 0.773 | 0.001  | −24.1  |
+| C_k × log(erank)     | +0.080    | 0.587 | 0.003  | −24.3  |
+| C_k × I(erank > 9.4) | −0.085    | 0.568 | 0.003  | −24.2  |
+
+All composites have near-zero correlation with alignment (|ρ| < 0.09) and
+higher AIC than C_k alone (ΔAIC = +3.3). The multiplication destroys
+C_k's signal rather than amplifying it.
+
+**Prediction 2: Within-task replication (CONFIRMED).**
+
+| Task  | ρ(C_k, alignment) | p     |
+|-------|-------------------|-------|
+| SST-2 | −0.076            | 0.725 |
+| QNLI  | +0.563            | 0.004 |
+
+Exact replication of N130 values. C_k predicts alignment within QNLI
+but not within SST-2. The task asymmetry is robust.
+
+**Prediction 3: Functional form (UNDERDETERMINED).**
+
+All three composite forms (linear, log, threshold) fit equally poorly
+(ΔAIC range = 0.1 across forms). The functional form cannot be
+discriminated because the composite predictor itself is invalid.
+
+### Interpretation
+
+The additive result has a clear interpretation. The task asymmetry
+observed in N130 does not operate through a layer-level interaction
+between C_k and erank. Instead:
+
+- **C_k** captures a within-QNLI effect: layers with higher W₀ spectral
+  concentration produce higher alignment, but only for a task (QNLI) that
+  is complex enough to engage the full spectral structure.
+- **Erank** captures a between-task effect: QNLI adapters use more
+  dimensions than SST-2 adapters. This shifts alignment levels (QNLI
+  mean = 0.448, SST-2 mean = 0.634) but does not change C_k's slope.
+
+The fact that SST-2 has *higher* mean alignment despite *lower* erank is
+notable: simpler tasks concentrate their adaptation into fewer directions
+that align well across seeds, while complex tasks spread adaptation
+across more directions with lower per-direction consistency.
+
+### Connection to existing findings
+
+- **§25 (Γ_k validation)**: N131 completes the N130 follow-up program.
+  The composite predictor that N130 motivated does not work as a product,
+  but C_k and erank are independently informative.
+- **§13 (W₀ energy → alignment)**: The within-task replication confirms
+  C_k's QNLI-specific predictive power. The bound should be stated in
+  terms of C_k (concentration) with erank as an independent moderator
+  at the task level, not the layer level.
+- **THEORY.md §7.2**: The formal convergence bound should factor as
+  alignment ≤ h₁(C_k) + h₂(erank), where h₁ is the concentration term
+  (significant for complex tasks) and h₂ is the task-dimensionality
+  term (shifts the baseline). This is simpler than the originally
+  hypothesized joint function.
+
+### Limitations
+
+- n = 48 (24 layers × 2 tasks). The interaction test has limited power
+  (post-hoc power ≈ 0.15 for the observed effect size). A true interaction
+  might exist but be undetectable at this sample size.
+- Two tasks only. The additive vs interactive distinction requires more
+  tasks spanning a wider erank range to resolve definitively.
+- Layers within a model are not independent. Clustered SEs by transformer
+  layer (6 clusters) do not change the qualitative result.
+- The direction of the alignment–erank relationship (higher erank →
+  *lower* alignment) was unexpected and should be confirmed on other
+  backbones.
+
+### Reproducibility
+
+Script: `scripts/n131_composite_predictor.py`. CPU-only, <1 second.
+Input data: N130 outputs (`sidecar/data/n130/`), N127 results
+(`sidecar/results/mp_partition_test/extension_results.json`).
+Output: `sidecar/data/n131/` (CSV, summary JSON, 4 diagnostic figures).

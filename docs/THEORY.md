@@ -666,7 +666,12 @@ found that 1/Γ_k does not predict per-layer alignment (ρ = −0.07 to
 for QNLI (FINDINGS.md §25). The gap approach is now doubly excluded:
 simple adjacent gaps fail (§13) and regularized susceptibility also fails.
 A formal bound should target spectral mass concentration, not any variant
-of spectral gap.
+of spectral gap. A follow-up test (N131, FINDINGS.md §26) showed that
+C_k and adapter effective rank contribute *additively* — not interactively
+— to predicting alignment (interaction p = 0.33, clustered p = 0.30).
+The bound should factor as alignment ≤ h₁(C_k) + h₂(erank), where h₁
+is the concentration term (active for complex tasks like QNLI) and h₂
+is a task-dimensionality baseline shift.
 
 **Tail-band interference as an independent compatibility signal.** The
 energy-weighted interaction bound in the Technical Report (§2.3) and the
