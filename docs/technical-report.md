@@ -99,7 +99,9 @@ This is a *consistency* argument, not a proven causal chain. The curvature telem
 
 A transformer has many weight matrices — query, key, value, and output projections in each attention layer, plus MLP weights. A LoRA adapter may modify some or all of these. The spectral compatibility story plays out independently at each modified weight matrix, and the layer-level and module-level structure turns out to be critical.
 
-This is not obvious a priori. One might expect that aggregate statistics — average subspace overlap across all layers, total spectral energy — would be sufficient. The research program behind Gradience tested this hypothesis and found it false. Concatenating Q, K, V, and O projections into a single analysis produces backbone-dominated noise that obscures the signal. It was only when analysis was decomposed to the *per-module* level that the key finding emerged: the value projection (V-module) carries nearly all the catastrophe-discriminating information (Cohen's $d$ = 3.36 for dimensionality ratio), while the query and output projections carry none.
+This is not obvious a priori. One might expect that aggregate statistics — average subspace overlap across all layers, total spectral energy — would be sufficient. The research program behind Gradience tested this hypothesis and found it false. Concatenating Q, K, V, and O projections into a single analysis produces backbone-dominated noise that obscures the signal. It was only when analysis was decomposed to the *per-module* level that the key finding emerged on DistilBERT and RoBERTa: the value projection (V-module) carries nearly all the catastrophe-discriminating information (Cohen's $d$ = 3.36 for dimensionality ratio), while the query and output projections carry none.
+
+**Update (N07 Experiment A, April 2026):** The V-module specificity does *not* replicate on DeBERTa-v3. Per-module decomposition across 28 adapter pairs on DeBERTa shows all four module types (Q/K/V/O) with nearly identical dimensionality ratio distributions for catastrophic versus safe pairs (V-module Cohen's $d$ = 0.02, p = 0.96). See FINDINGS.md §24. This suggests the V-module dominance observed on DistilBERT may reflect that architecture's attention mechanism rather than a universal feature of transformer merge geometry. On DeBERTa-v3 (which uses disentangled attention), merge degradation appears to be a *collective* phenomenon across modules rather than localizable to V.
 
 The reason is structural. The V-module is where the transformer decides *what information to pass forward* from each attention head. When two adapters learn V-module updates in incompatible subspaces — when they disagree about what information matters — the merged model receives contradictory instructions about what to attend to. This is the *upstream* failure mode. It manifests at the head level as cancellation: opposite-sign incompatibilities across heads can average out (producing a mild merge) or compound (producing a catastrophic one), depending on the specific head-level geometry. This explains seed sensitivity — the same adapter pair can produce merges ranging from 12.1% to 41.7% degradation across random seeds, because the head-level cancellation pattern is seed-dependent even when module-level statistics are stable.
 
@@ -396,19 +398,38 @@ risk classification is designed to select *strategies* — whether acting
 on the diagnosis (norm equalization, TIES) improves outcomes is addressed
 by Phase 3b.
 
-The original predictions 1–5 (task-boundary zero false positives,
-V-module dimensionality ratio, instability transfer, mechanism–backbone
-confound, head-level modulation) require the conjunctive failure analysis
-pipeline, which operates on merge pathology modes not tested in the N07
-spectral-level protocol. These remain open for a future study using the
-N07 adapters as input.
+**Per-module decomposition (Experiment A, April 2026).** The original
+predictions 2–5 (V-module DR, instability transfer, readout attractors,
+head-level modulation) were directly tested on the N07 adapters. Results
+(FINDINGS.md §24):
 
-**Status upgrade.** The conjunctive model's spectral foundation — the
-claim that independently trained LoRA adapters develop task-discriminating
-subspace geometry that the audit pipeline reads correctly — is now
-validated on three encoder backbones with distinct pretraining objectives.
-The formal boundary statement in §3.2 ("bounded to two backbones") is
-superseded.
+- *P2 (V-module DR)*: **Not supported.** Cohen's d = 0.02 — no separation
+  between catastrophic and safe pairs for any module type. The V-module
+  dominance finding from DistilBERT (d = 3.36) does not replicate on
+  DeBERTa-v3. Merge degradation appears to be a collective phenomenon.
+- *P3 (Instability transfer)*: Not supported at p < 0.05 (p = 0.146) but
+  directionally correct (cross-task σ = 0.112 > same-task σ = 0.067).
+- *P4 (Readout attractors)*: All four tasks show **feature-set switching**
+  — cross-seed classifiers are near-orthogonal (cosine ≈ 0.0, PC overlap
+  < 0.05), resolving the mechanism–backbone confound.
+- *P5 (Head-level modulation)*: Not supported as stated (4/10 pairs).
+
+**Curvature-partition correspondence (Experiment B, April 2026).** Dense
+dual-instrument training (structural SVD every 10 steps, Hessian every 50
+steps) on MRPC with 2 seeds. 73/96 (module, seed) combinations show
+significant Spearman correlation between the MP-partitioned SV count and
+stable rank evolution (CP-2). Curvature-alignment cross-correlation shows
+negative peak lags in 41/96 modules (CP-1). However, the effect does not
+replicate at the individual-module level across seeds (Jaccard 0.08).
+Full results in FINDINGS.md §24.
+
+**Status upgrade.** The spectral foundation — task-discriminating subspace
+geometry — is validated on three encoder backbones. The V-module specificity
+finding (§2.4) is bounded to DistilBERT/RoBERTa and does not extend to
+DeBERTa-v3. The curvature-partition correspondence is statistically real
+but temporally inconsistent. The formal boundary statement in §3.2
+("bounded to two backbones") is superseded for the spectral foundation
+but preserved for V-module specificity.
 
 ### 7.2 Decoder-Only Ecosystem Census (Completed)
 

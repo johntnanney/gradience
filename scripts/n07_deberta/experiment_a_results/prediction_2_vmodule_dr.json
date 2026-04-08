@@ -1,0 +1,88 @@
+{
+  "prediction": "P2: V-module DR separates catastrophic from safe",
+  "results_by_module": {
+    "Q": {
+      "module": "query_proj",
+      "module_short": "Q",
+      "catastrophic_mean_dr": 0.568111824100123,
+      "catastrophic_range": [
+        0.438336203110532,
+        0.7685447489229547
+      ],
+      "safe_mean_dr": 0.5839762902492259,
+      "safe_range": [
+        0.49264872984591207,
+        0.7464519535287567
+      ],
+      "cohens_d": 0.1611437281137131,
+      "t_stat": -0.3481102390265705,
+      "p_value": 0.7315845755584383,
+      "range_overlap": "True",
+      "n_catastrophic": 14,
+      "n_safe": 7
+    },
+    "K": {
+      "module": "key_proj",
+      "module_short": "K",
+      "catastrophic_mean_dr": 0.5624531955665054,
+      "catastrophic_range": [
+        0.4079218633091219,
+        0.7732406393564951
+      ],
+      "safe_mean_dr": 0.5894156618425773,
+      "safe_range": [
+        0.43726700760372067,
+        0.7709758304616062
+      ],
+      "cohens_d": 0.20461545685935592,
+      "t_stat": -0.44201990626391524,
+      "p_value": 0.6634649485829636,
+      "range_overlap": "True",
+      "n_catastrophic": 14,
+      "n_safe": 7
+    },
+    "V": {
+      "module": "value_proj",
+      "module_short": "V",
+      "catastrophic_mean_dr": 0.6219718960831487,
+      "catastrophic_range": [
+        0.5037510449384115,
+        0.8482997607547161
+      ],
+      "safe_mean_dr": 0.624445148708645,
+      "safe_range": [
+        0.5263767777106432,
+        0.8116547730996588
+      ],
+      "cohens_d": 0.022062512455914035,
+      "t_stat": -0.04766047412739082,
+      "p_value": 0.9624842519635025,
+      "range_overlap": "True",
+      "n_catastrophic": 14,
+      "n_safe": 7
+    },
+    "O": {
+      "module": "attention.output.dense",
+      "module_short": "O",
+      "catastrophic_mean_dr": 0.6135791246924095,
+      "catastrophic_range": [
+        0.521868122724045,
+        0.7902708609545134
+      ],
+      "safe_mean_dr": 0.6202677821778562,
+      "safe_range": [
+        0.5493574075360995,
+        0.7867318510371187
+      ],
+      "cohens_d": 0.06901841856152288,
+      "t_stat": -0.14909682470380328,
+      "p_value": 0.8830483972037161,
+      "range_overlap": "True",
+      "n_catastrophic": 14,
+      "n_safe": 7
+    }
+  },
+  "v_module_specific": false,
+  "decision_criterion": "Cohen's d >= 1.0 with no range overlap",
+  "supported": false
+}

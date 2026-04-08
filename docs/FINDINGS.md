@@ -1524,6 +1524,125 @@ HuggingFace `datasets`. Full adapter weights and telemetry at
 `/workspace/n07/` on the RunPod instance.
 
 
+## 24. Per-Module Decomposition and Curvature-Partition Correspondence (N07 Experiments A/B, April 2026)
+
+### Claim
+
+Two follow-up experiments on the N07 DeBERTa-v3 adapters test deeper
+structural predictions from Tech Report §7.1 and THEORY.md §7.2.
+Experiment A decomposes merge compatibility per attention module (Q/K/V/O)
+and per head, testing whether V-module geometry is uniquely predictive of
+merge outcome. Experiment B trains with dense dual-instrument telemetry
+(structural SVD every 10 steps, Hessian curvature every 50 steps) to test
+whether curvature collapse events temporally precede spectral alignment
+sharpening.
+
+### Evidence
+
+**Experiment A: Per-Module Decomposition** (153s, 28 pairs, 8 adapters)
+
+Tested four predictions from Tech Report §7.1:
+
+| Prediction | Result | Statistic | Interpretation |
+|---|---|---|---|
+| P2: V-module DR separates catastrophic/safe | **Not supported** | Cohen's d = 0.02, p = 0.96 | No module separates outcome classes |
+| P3: Instability transfers to DeBERTa | **Not supported** (marginal) | p = 0.146, direction correct | Cross-task σ = 0.112 > same-task σ = 0.067 |
+| P4: Readout attractor structure | **Feature-set switching** all 4 tasks | Mean row cosine ≈ 0.0, PC overlap < 0.05 | Cross-seed classifier weights are near-orthogonal |
+| P5: Head-level modulation | **Not supported** | 4/10 pairs confirmed | Threshold-dependent, partial signal |
+
+Key per-module spectral profiles (stable rank averaged across 12 layers):
+
+| Module | Small-dataset (MRPC/RTE) | Large-dataset (QNLI/SST-2) |
+|---|---|---|
+| Q | 1.55–2.24 | 1.18–1.53 |
+| K | 1.81–2.11 | 1.22–1.53 |
+| V | 1.16–1.43 | 1.15–1.55 |
+| O | 1.09–1.24 | 1.14–1.37 |
+
+The V-module consistently has the **lowest stable rank** among Q/K/V/O
+(most concentrated spectral energy), but this concentration is uniform
+across catastrophic and safe merge pairs — it does not predict merge
+outcome. The dimensionality ratio (DR) distributions for catastrophic
+(mean 0.622) and safe (mean 0.624) pairs overlap completely.
+
+**P4 finding (readout attractors)** is a strong informative null:
+DeBERTa-v3 cross-seed classifier weights are near-orthogonal for all four
+tasks (mean cosine similarity < 0.03, PC overlap < 0.05), classifying
+unambiguously as **feature-set switching** rather than rotational degeneracy.
+This means different random seeds discover essentially unrelated readout
+directions that achieve comparable accuracy, suggesting a high-dimensional
+feature manifold with many viable readout projections.
+
+**Experiment B: Curvature-Partition Correspondence** (205s, MRPC task, seeds 42 & 123)
+
+Trained with dense dual-instrument telemetry: structural SVD snapshots
+every 10 training steps and Hessian top eigenvalue estimation every 50 steps,
+using QR-accelerated low-rank SVD and LoRA-restricted Hessian-vector products.
+
+| Prediction | Result | Statistic | Interpretation |
+|---|---|---|---|
+| CP-1: Curvature precedes alignment | **Supported** | 41/96 modules show negative lag | Median lag -2 to -4 steps where present |
+| CP-2: MP boundary tracks transitions | **Supported** | 73/96 significant (p < 0.05) | Strong Spearman correlations (up to r = -0.89) |
+| CP-3: Negative lag dominates globally | **Not supported** | 43% negative, mean lag +0.51 | Near-chance distribution |
+| CP-4: Cross-seed replication | **Not supported** | Jaccard = 0.08 | Module-level timing is seed-dependent |
+| CP-5: V-module strongest | **Not supported** | V = 0.508 vs K = 0.519 | All module types show similar correlation magnitude |
+
+CP-1 and CP-2 provide partial evidence for the curvature-partition
+correspondence hypothesis: curvature changes do correlate with spectral
+structure changes, and the MP boundary meaningfully tracks alignment
+evolution. However, the temporal ordering is **not consistently
+curvature-first** across all modules (CP-3), the effect is
+**seed-dependent** at the module level (CP-4), and shows **no V-module
+specificity** (CP-5).
+
+The most striking result is CP-2: 76% of (module, seed) combinations show
+a statistically significant Spearman correlation between the count of
+singular values above the Marchenko-Pastur threshold and the module's
+stable rank evolution during training. This confirms that the MP boundary
+is an empirically useful spectral partition criterion, not just a
+theoretical convenience.
+
+### Connection to existing findings
+
+- **§11–14 (spectral partitioning)**: Experiment A confirms V-modules have
+  the lowest stable rank across all DeBERTa adapters but — counter to §7.1
+  predictions — this does not make them uniquely predictive of merge outcome.
+  The per-module DR is uniformly non-discriminative, suggesting merge
+  degradation is a collective phenomenon not localized to specific modules.
+- **§16a (curvature telemetry)**: Experiment B extends §16a's curvature-leads-
+  accuracy finding to the curvature-partition correspondence: curvature
+  changes do correlate with alignment changes (CP-2) and sometimes precede
+  them (CP-1), but the temporal relationship is less clean than the
+  curvature-accuracy lead-lag reported in §16a.
+- **§22 (portfolio collapse)**: P4's feature-set switching result — cross-seed
+  classifiers are orthogonal — is consistent with §22's observation that
+  LoRA portfolios occupy distinct regions of weight space that can collapse
+  during merging.
+
+### Limitations
+
+- Experiment A's P2 null result may reflect DeBERTa's specific architecture
+  (disentangled attention) rather than a general failure of the V-module
+  hypothesis. Testing on DistilBERT/RoBERTa is needed.
+- Experiment B used only MRPC (n=3,668 train). Larger datasets with more
+  training steps would provide more curvature snapshots for cross-correlation.
+- Curvature estimation used 5 power iterations and 3 Hutchinson samples
+  (reduced from original spec for computational tractability). Higher-fidelity
+  estimates may reveal cleaner temporal structure.
+- CP-4's low Jaccard (0.08) suggests the curvature-alignment coupling is
+  fundamentally stochastic at the individual-module level, even if
+  statistically present in aggregate.
+
+### Reproducibility
+
+Scripts: `scripts/n07_deberta/experiment_a_per_module.py` (Experiment A),
+`experiment_b_curvature_partition.py` (Experiment B). Results archived in
+`scripts/n07_deberta/experiment_a_results/` and
+`scripts/n07_deberta/experiment_b_results/`. RunPod A100-SXM4-80GB.
+Experiment A uses existing N07 adapters (no training). Experiment B
+trains fresh adapters with dense telemetry (seeds 42, 123).
+
+
 ---
 
 # Appendix: Cross-Reference Index
@@ -1554,3 +1673,4 @@ HuggingFace `datasets`. Full adapter weights and telemetry at
 | §21 External convergence | Literature survey (April 2026) | External | See §21 citations |
 | §22 Portfolio collapse    | N129 (April 2026)              | Gradience I | β₁ = 0.48, k_collapse 2–3 |
 | §23 DeBERTa adjudication | N07 (April 2026)               | Gradience I | 7/7 predictions confirmed, r=0.994 size→norm |
+| §24 Per-module / curvature | N07 Exp A/B (April 2026)      | Gradience I | V-module DR d=0.02, MP boundary 73/96 significant |

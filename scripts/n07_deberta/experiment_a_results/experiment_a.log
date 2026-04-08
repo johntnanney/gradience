@@ -1,0 +1,83 @@
+
+=== Step 1: Per-Module Spectral Profiles ===
+
+  deberta_mrpc_s42 Q: stable_rank=1.650, frob=0.744
+  deberta_mrpc_s42 K: stable_rank=2.109, frob=0.636
+  deberta_mrpc_s42 V: stable_rank=1.262, frob=0.574
+  deberta_mrpc_s42 O: stable_rank=1.221, frob=0.665
+  deberta_mrpc_s7 Q: stable_rank=1.484, frob=0.792
+  deberta_mrpc_s7 K: stable_rank=1.810, frob=0.556
+  deberta_mrpc_s7 V: stable_rank=1.161, frob=0.599
+  deberta_mrpc_s7 O: stable_rank=1.090, frob=0.651
+  deberta_qnli_s42 Q: stable_rank=1.282, frob=3.874
+  deberta_qnli_s42 K: stable_rank=1.531, frob=3.553
+  deberta_qnli_s42 V: stable_rank=1.548, frob=2.687
+  deberta_qnli_s42 O: stable_rank=1.369, frob=3.030
+  deberta_qnli_s7 Q: stable_rank=1.534, frob=4.048
+  deberta_qnli_s7 K: stable_rank=1.290, frob=3.830
+  deberta_qnli_s7 V: stable_rank=1.412, frob=2.828
+  deberta_qnli_s7 O: stable_rank=1.279, frob=3.125
+  deberta_rte_s42 Q: stable_rank=2.238, frob=0.703
+  deberta_rte_s42 K: stable_rank=2.099, frob=0.639
+  deberta_rte_s42 V: stable_rank=1.433, frob=0.631
+  deberta_rte_s42 O: stable_rank=1.223, frob=0.783
+  deberta_rte_s7 Q: stable_rank=1.816, frob=0.693
+  deberta_rte_s7 K: stable_rank=1.862, frob=0.607
+  deberta_rte_s7 V: stable_rank=1.263, frob=0.654
+  deberta_rte_s7 O: stable_rank=1.242, frob=0.768
+  deberta_sst2_s42 Q: stable_rank=1.281, frob=3.339
+  deberta_sst2_s42 K: stable_rank=1.221, frob=3.059
+  deberta_sst2_s42 V: stable_rank=1.280, frob=2.159
+  deberta_sst2_s42 O: stable_rank=1.223, frob=2.413
+  deberta_sst2_s7 Q: stable_rank=1.176, frob=3.299
+  deberta_sst2_s7 K: stable_rank=1.298, frob=2.904
+  deberta_sst2_s7 V: stable_rank=1.145, frob=2.405
+  deberta_sst2_s7 O: stable_rank=1.141, frob=2.428
+
+=== Step 2: Per-Module Pairwise Compatibility ===
+
+  Cached 8 adapters
+  Computed 7/28 pairs
+  Computed 14/28 pairs
+  Computed 21/28 pairs
+  Computed 28/28 pairs
+  Done: 28 pairs
+
+=== Step 3: Classify Pairs ===
+
+  Catastrophic: 14, Safe: 7, Intermediate: 7
+
+=== Step 4: Prediction 2 — V-Module Dimensionality Ratio ===
+
+  Q-module: cat=0.5681 safe=0.5840 d=0.16 p=0.7316 overlap=True
+  K-module: cat=0.5625 safe=0.5894 d=0.20 p=0.6635 overlap=True
+  V-module: cat=0.6220 safe=0.6244 d=0.02 p=0.9625 overlap=True
+  O-module: cat=0.6136 safe=0.6203 d=0.07 p=0.8830 overlap=True
+
+=== Step 5: Prediction 3 — Instability Transfer ===
+
+  Same-task instability: mean=0.0674 (n=4)
+  Cross-task instability: mean=0.1121 (n=24)
+  Mann-Whitney U p=0.1456
+
+=== Step 6: Prediction 4 — Readout Attractor Structure ===
+
+  mrpc: mean_row_cos=0.020 flat_cos=0.021 pc_overlap=0.038 → orthogonal (feature_set_switching)
+  qnli: mean_row_cos=0.008 flat_cos=0.006 pc_overlap=0.036 → orthogonal (feature_set_switching)
+  rte: mean_row_cos=-0.016 flat_cos=-0.016 pc_overlap=0.046 → orthogonal (feature_set_switching)
+  sst2: mean_row_cos=-0.008 flat_cos=-0.008 pc_overlap=0.035 → orthogonal (feature_set_switching)
+
+=== Step 7: Prediction 5 — Head-Level Modulation ===
+
+  Pairs analyzed: 10
+  Head-level modulation confirmed: 4/10
+
+============================================================
+  Experiment A Summary (153s)
+============================================================
+  P2 (V-module DR): ✗ (V-specific: False)
+  P3 (Instability): ✗
+  P4 (Readout attractors): {'mrpc': 'feature_set_switching', 'qnli': 'feature_set_switching', 'rte': 'feature_set_switching', 'sst2': 'feature_set_switching'}
+  P5 (Head modulation): ✗ (4/10)
+
+  Output: /workspace/n07/per_module

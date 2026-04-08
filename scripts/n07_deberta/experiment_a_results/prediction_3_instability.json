@@ -1,0 +1,234 @@
+{
+  "prediction": "P3: Instability transfers to third backbone",
+  "same_task_instability_mean": 0.06743301946976554,
+  "cross_task_instability_mean": 0.11212626464743329,
+  "mannwhitney_p": 0.1455921855921856,
+  "cross_gt_same": true,
+  "supported": "False",
+  "per_pair_instability": {
+    "deberta_mrpc_s42_vs_deberta_mrpc_s7": {
+      "std": 0.0,
+      "range": 0.0,
+      "n_conditions": 2,
+      "task_a": "mrpc",
+      "task_b": "mrpc",
+      "same_task": true
+    },
+    "deberta_mrpc_s42_vs_deberta_qnli_s42": {
+      "std": 0.13496556822386468,
+      "range": 0.36764705882352944,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "qnli",
+      "same_task": false
+    },
+    "deberta_mrpc_s42_vs_deberta_qnli_s7": {
+      "std": 0.1349312969834421,
+      "range": 0.36764705882352944,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "qnli",
+      "same_task": false
+    },
+    "deberta_mrpc_s42_vs_deberta_rte_s42": {
+      "std": 0.07011346293867801,
+      "range": 0.16738337934451764,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_mrpc_s42_vs_deberta_rte_s7": {
+      "std": 0.03154840445194948,
+      "range": 0.07713067176329014,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_mrpc_s42_vs_deberta_sst2_s42": {
+      "std": 0.12712386859102223,
+      "range": 0.3259803921568627,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_mrpc_s42_vs_deberta_sst2_s7": {
+      "std": 0.12773053495238723,
+      "range": 0.3357843137254902,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_qnli_s42": {
+      "std": 0.12425678738374438,
+      "range": 0.3137254901960784,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "qnli",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_qnli_s7": {
+      "std": 0.13194428555288945,
+      "range": 0.3529411764705883,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "qnli",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_rte_s42": {
+      "std": 0.1331703336111571,
+      "range": 0.3651960784313726,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_rte_s7": {
+      "std": 0.13728416940169316,
+      "range": 0.375,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_sst2_s42": {
+      "std": 0.13121739521496673,
+      "range": 0.26243479042993345,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_mrpc_s7_vs_deberta_sst2_s7": {
+      "std": 0.1390581503254693,
+      "range": 0.28537057024644713,
+      "n_conditions": 4,
+      "task_a": "mrpc",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_qnli_s42_vs_deberta_qnli_s7": {
+      "std": 0.09527732015376167,
+      "range": 0.19055464030752334,
+      "n_conditions": 2,
+      "task_a": "qnli",
+      "task_b": "qnli",
+      "same_task": true
+    },
+    "deberta_qnli_s42_vs_deberta_rte_s42": {
+      "std": 0.07814728258301092,
+      "range": 0.19018127197669132,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_qnli_s42_vs_deberta_rte_s7": {
+      "std": 0.07424997818819429,
+      "range": 0.17575075119725686,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_qnli_s42_vs_deberta_sst2_s42": {
+      "std": 0.115887896262036,
+      "range": 0.2781959369704786,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_qnli_s42_vs_deberta_sst2_s7": {
+      "std": 0.2439191013541267,
+      "range": 0.6745934283511932,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_qnli_s7_vs_deberta_rte_s42": {
+      "std": 0.06837830321059368,
+      "range": 0.16345602943596277,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_qnli_s7_vs_deberta_rte_s7": {
+      "std": 0.07605449184231654,
+      "range": 0.1742863543457101,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "rte",
+      "same_task": false
+    },
+    "deberta_qnli_s7_vs_deberta_sst2_s42": {
+      "std": 0.18900088490464226,
+      "range": 0.45360049339426034,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_qnli_s7_vs_deberta_sst2_s7": {
+      "std": 0.030539118935720828,
+      "range": 0.07476002028659856,
+      "n_conditions": 4,
+      "task_a": "qnli",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_rte_s42_vs_deberta_rte_s7": {
+      "std": 0.13718411552346568,
+      "range": 0.27436823104693137,
+      "n_conditions": 2,
+      "task_a": "rte",
+      "task_b": "rte",
+      "same_task": true
+    },
+    "deberta_rte_s42_vs_deberta_sst2_s42": {
+      "std": 0.07137742835916398,
+      "range": 0.17695740734607363,
+      "n_conditions": 4,
+      "task_a": "rte",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_rte_s42_vs_deberta_sst2_s7": {
+      "std": 0.06721067135900864,
+      "range": 0.18577981651376146,
+      "n_conditions": 4,
+      "task_a": "rte",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_rte_s7_vs_deberta_sst2_s42": {
+      "std": 0.08916758932056641,
+      "range": 0.18778773225582096,
+      "n_conditions": 4,
+      "task_a": "rte",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_rte_s7_vs_deberta_sst2_s7": {
+      "std": 0.1637533475877546,
+      "range": 0.426489583678336,
+      "n_conditions": 4,
+      "task_a": "rte",
+      "task_b": "sst2",
+      "same_task": false
+    },
+    "deberta_sst2_s42_vs_deberta_sst2_s7": {
+      "std": 0.03727064220183485,
+      "range": 0.0745412844036697,
+      "n_conditions": 2,
+      "task_a": "sst2",
+      "task_b": "sst2",
+      "same_task": true
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "experiment": "B: Curvature-Partition Correspondence on DeBERTa-v3",
+  "task": "mrpc",
+  "seeds": [
+    42,
+    123
+  ],
+  "elapsed_s": 204.5841464996338,
+  "predictions": {
+    "CP-1": {
+      "supported": true
+    },
+    "CP-2": {
+      "supported": true
+    },
+    "CP-3": {
+      "supported": false
+    },
+    "CP-4": {
+      "supported": false
+    },
+    "CP-5": {
+      "supported": false
+    }
+  },
+  "n_supported": 2,
+  "n_total": 5
+}

@@ -783,18 +783,29 @@ update lead on GPT-2), confirming that the Hessian temporal dynamics are
 not architecture-specific; (2) phase transitions detected in Hessian
 dynamics (4/4 large adapters) coincide temporally with the training
 regime where structural metrics stabilize (energy_rank_90 plateauing in
-the second third of training, regime shift magnitude 57.8%). However,
-the direct test — cross-correlating curvature collapse events with
-SV-weighted alignment jumps at matched checkpoints — requires denser
-Hessian sampling and MP-partitioned alignment computation at each
-snapshot. The N07 data provides curvature and *aggregate* structural
-metrics but not *per-direction* alignment against the MP partition at
-each step. A follow-up study with finer-grained dual instrumentation
-(both Hessian eigenvectors and per-direction SVD alignment at each
-checkpoint) would resolve this correspondence definitively.
+the second third of training, regime shift magnitude 57.8%).
 
-The prediction remains: curvature collapse events (defined as
-$\sum \lambda^2$ dropping below its running mean by $>1\sigma$) should
-coincide with step-wise increases in high-SV alignment within a window
-of $\pm 3$ snapshots. The N07 results are consistent with this but do
-not yet test it directly.
+*Direct test (N07 Experiment B, April 2026).* A dedicated dual-instrument
+training run (FINDINGS.md §24) directly tested the correspondence with
+dense telemetry: structural SVD every 10 steps, Hessian top eigenvalue
+every 50 steps, on MRPC with two seeds (42, 123). Results are mixed:
+
+- **CP-1/CP-2 (positive)**: Curvature-alignment cross-correlation shows
+  negative peak lags in 41/96 (module, seed) pairs, and 73/96 modules show
+  statistically significant (p < 0.05) Spearman correlation between the
+  count of SVs above the Marchenko-Pastur threshold and the module's
+  stable rank during training. The MP boundary meaningfully tracks spectral
+  structure evolution.
+- **CP-3/CP-4/CP-5 (negative)**: The negative-lag effect does not dominate
+  globally (43% negative, near chance), does not replicate reliably across
+  seeds at the individual-module level (Jaccard 0.08), and shows no
+  V-module specificity (all module types have similar correlation magnitude,
+  V = 0.508 vs K = 0.519).
+
+The emerging picture: curvature and spectral structure are **statistically
+coupled** (CP-2's 76% significance rate is far above chance) but their
+temporal ordering is **not consistently curvature-first** across all modules
+and seeds. The curvature-partition correspondence may be better understood
+as a *mutual information* relationship than a *causal lead-lag* one. The
+question shifts from "does curvature predict alignment?" to "what determines
+which modules show the lead-lag pattern in a given run?"

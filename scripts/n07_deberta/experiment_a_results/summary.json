@@ -1,0 +1,21 @@
+{
+  "experiment": "A: Per-Module Decomposition on DeBERTa-v3",
+  "elapsed_s": 152.5122435092926,
+  "prediction_2": {
+    "supported": false,
+    "v_specific": false
+  },
+  "prediction_3": {
+    "supported": "False"
+  },
+  "prediction_4": {
+    "mrpc": "feature_set_switching",
+    "qnli": "feature_set_switching",
+    "rte": "feature_set_switching",
+    "sst2": "feature_set_switching"
+  },
+  "prediction_5": {
+    "supported": false,
+    "n_confirmed": 4
+  }
+}

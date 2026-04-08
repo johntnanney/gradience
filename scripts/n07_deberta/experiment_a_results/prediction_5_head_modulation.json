@@ -1,0 +1,98 @@
+{
+  "prediction": "P5: Head-level modulation explains severity variation",
+  "per_pair": {
+    "deberta_mrpc_s42_vs_deberta_rte_s7": {
+      "classification": "safe",
+      "module_level_dr_var": 0.004176759882830818,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 10,
+      "head_level_modulation": true,
+      "mean_head_delta": 0.05971552754473778,
+      "max_head_delta": 0.21972184635391856
+    },
+    "deberta_qnli_s42_vs_deberta_rte_s7": {
+      "classification": "intermediate",
+      "module_level_dr_var": 0.0020669920944337773,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 1,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.03967379065523894,
+      "max_head_delta": 0.16164140001914318
+    },
+    "deberta_qnli_s42_vs_deberta_qnli_s7": {
+      "classification": "catastrophic",
+      "module_level_dr_var": 0.002530021773340096,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 1,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.04993306470572033,
+      "max_head_delta": 0.21100797526735793
+    },
+    "deberta_mrpc_s7_vs_deberta_rte_s42": {
+      "classification": "catastrophic",
+      "module_level_dr_var": 0.009075224715660522,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 23,
+      "head_level_modulation": true,
+      "mean_head_delta": 0.08010518189701626,
+      "max_head_delta": 0.2889731105450857
+    },
+    "deberta_qnli_s7_vs_deberta_rte_s42": {
+      "classification": "intermediate",
+      "module_level_dr_var": 0.005162073169739965,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 2,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.06346743226762722,
+      "max_head_delta": 0.1575215791614964
+    },
+    "deberta_mrpc_s7_vs_deberta_sst2_s42": {
+      "classification": "safe",
+      "module_level_dr_var": 0.004175494893788098,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 5,
+      "head_level_modulation": true,
+      "mean_head_delta": 0.05329366553609641,
+      "max_head_delta": 0.18419296031136423
+    },
+    "deberta_rte_s42_vs_deberta_sst2_s42": {
+      "classification": "intermediate",
+      "module_level_dr_var": 0.009566594127136395,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 14,
+      "head_level_modulation": true,
+      "mean_head_delta": 0.0827891650005807,
+      "max_head_delta": 0.2589325459029477
+    },
+    "deberta_mrpc_s42_vs_deberta_mrpc_s7": {
+      "classification": "catastrophic",
+      "module_level_dr_var": 0.0016461116459733402,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 0,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.03776472911095517,
+      "max_head_delta": 0.1297944379579241
+    },
+    "deberta_qnli_s7_vs_deberta_rte_s7": {
+      "classification": "intermediate",
+      "module_level_dr_var": 0.0026982038822924437,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 1,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.04321957180138531,
+      "max_head_delta": 0.17177749463872793
+    },
+    "deberta_mrpc_s42_vs_deberta_qnli_s7": {
+      "classification": "catastrophic",
+      "module_level_dr_var": 0.004347295615945264,
+      "module_level_variation_low": true,
+      "n_deviant_heads": 0,
+      "head_level_modulation": false,
+      "mean_head_delta": 0.055267038619422434,
+      "max_head_delta": 0.14922705740377018
+    }
+  },
+  "n_modulation_confirmed": 4,
+  "n_total": 10,
+  "supported": false
+}

@@ -1,0 +1,67 @@
+{
+  "prediction": "P4: Mechanism\u2013backbone confound dissolves or solidifies",
+  "per_task_analysis": {
+    "mrpc": {
+      "adapters": [
+        "deberta_mrpc_s42",
+        "deberta_mrpc_s7"
+      ],
+      "per_class_cosine": [
+        0.03468157723546028,
+        0.005696738604456186
+      ],
+      "mean_row_cosine": 0.020189157919958234,
+      "flat_cosine": 0.020540783181786537,
+      "attractor_type": "orthogonal",
+      "pc_overlap": 0.0382935106754303,
+      "mechanism": "feature_set_switching"
+    },
+    "qnli": {
+      "adapters": [
+        "deberta_qnli_s42",
+        "deberta_qnli_s7"
+      ],
+      "per_class_cosine": [
+        0.06154826655983925,
+        -0.04649766907095909
+      ],
+      "mean_row_cosine": 0.007525298744440079,
+      "flat_cosine": 0.0064225816167891026,
+      "attractor_type": "orthogonal",
+      "pc_overlap": 0.03553885221481323,
+      "mechanism": "feature_set_switching"
+    },
+    "rte": {
+      "adapters": [
+        "deberta_rte_s42",
+        "deberta_rte_s7"
+      ],
+      "per_class_cosine": [
+        -0.009279316291213036,
+        -0.02219121903181076
+      ],
+      "mean_row_cosine": -0.015735267661511898,
+      "flat_cosine": -0.01593218743801117,
+      "attractor_type": "orthogonal",
+      "pc_overlap": 0.04634443670511246,
+      "mechanism": "feature_set_switching"
+    },
+    "sst2": {
+      "adapters": [
+        "deberta_sst2_s42",
+        "deberta_sst2_s7"
+      ],
+      "per_class_cosine": [
+        -0.03171991556882858,
+        0.016662538051605225
+      ],
+      "mean_row_cosine": -0.007528688758611679,
+      "flat_cosine": -0.00803195871412754,
+      "attractor_type": "orthogonal",
+      "pc_overlap": 0.035184502601623535,
+      "mechanism": "feature_set_switching"
+    }
+  },
+  "cross_task_mean_cosine": -0.0007620310061611235,
+  "decision": "See mechanism field per task"
+}
