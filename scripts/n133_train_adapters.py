@@ -16,12 +16,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import sys
 import time
 from pathlib import Path
 
-import numpy as np
 import torch
 from datasets import load_dataset
 from peft import LoraConfig, TaskType, get_peft_model
@@ -205,12 +202,12 @@ def train_adapter(task: str, seed: int, tokenizer, smoke: bool = False):
     print(f"  Train: {len(train_ds)}, Val: {len(val_ds)}")
 
     # Tokenize
-    print(f"  Tokenizing...")
+    print("  Tokenizing...")
     train_tok = tokenize_dataset(train_ds, tokenizer)
-    val_tok = tokenize_dataset(val_ds, tokenizer)
+    _val_tok = tokenize_dataset(val_ds, tokenizer)  # noqa: F841
 
     # Load model fresh for each adapter
-    print(f"  Loading model...")
+    print("  Loading model...")
     # Try flash_attention_2, fall back to sdpa
     try:
         model = AutoModelForCausalLM.from_pretrained(
@@ -455,7 +452,7 @@ def main():
 
     # Quick source evaluation
     print(f"\n{'='*60}")
-    print(f"  Source Evaluation")
+    print("  Source Evaluation")
     print(f"{'='*60}")
     for task in tasks:
         for seed in seeds:

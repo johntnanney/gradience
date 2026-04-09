@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -156,7 +157,7 @@ def test_bp3(w0: dict, pair_full: dict) -> dict:
 
     # Build C_k lookup
     ck_lookup = {}
-    for layer_name, props in w0.items():
+    for _layer_name, props in w0.items():
         ck_lookup[(props["layer"], props["module"])] = props["C_k"]
 
     # Compute per-layer alignment for same-task pairs
@@ -175,7 +176,7 @@ def test_bp3(w0: dict, pair_full: dict) -> dict:
 
         ck_vals = []
         align_vals = []
-        for pair_key, pair_data in task_pairs.items():
+        for _pair_key, pair_data in task_pairs.items():
             for entry in pair_data["per_layer"]:
                 key = (entry["layer"], entry["module"])
                 if key in ck_lookup:
@@ -223,7 +224,7 @@ def test_bp4(profiles: dict, w0: dict, pair_full: dict) -> dict:
 
     # Collect per-adapter mean erank
     task_eranks = {t: [] for t in TASKS}
-    for adapter_name, profile in profiles.items():
+    for _adapter_name, profile in profiles.items():
         task = profile["task"]
         task_eranks[task].append(profile["mean_erank"])
 
@@ -243,7 +244,7 @@ def test_bp4(profiles: dict, w0: dict, pair_full: dict) -> dict:
 
     # Per-layer ANOVA (more power)
     layer_eranks = {t: [] for t in TASKS}
-    for adapter_name, profile in profiles.items():
+    for _adapter_name, profile in profiles.items():
         task = profile["task"]
         for layer in profile["per_layer"]:
             layer_eranks[task].append(layer["erank"])
@@ -417,7 +418,7 @@ def test_bp6(profiles: dict) -> dict:
     qk_eranks = []
     vo_eranks = []
 
-    for adapter_name, profile in profiles.items():
+    for _adapter_name, profile in profiles.items():
         for layer in profile["per_layer"]:
             if layer["module"] in ("Q", "K"):
                 qk_eranks.append(layer["erank"])
@@ -433,8 +434,8 @@ def test_bp6(profiles: dict) -> dict:
         t_stat, p_val = 0, 1
 
     # Note: LoRA only targets attention modules, so no attn/MLP comparison
-    print(f"\n  Note: LoRA targets q/k/v/o_proj only — no MLP modules to compare.")
-    print(f"  Reporting Q+K vs V+O asymmetry instead.")
+    print("\n  Note: LoRA targets q/k/v/o_proj only — no MLP modules to compare.")
+    print("  Reporting Q+K vs V+O asymmetry instead.")
 
     decision = "CONFIRMED" if p_val > 0.10 else "DISCONFIRMED"
     print(f"  Decision: {decision} (no module-type asymmetry)")
@@ -560,8 +561,8 @@ def main():
     print(f"\n{'='*60}")
     print(f"  N133 Results Summary ({elapsed:.0f}s)")
     print(f"{'='*60}")
-    print(f"\n  | Prediction | Description                    | Decision        |")
-    print(f"  |------------|--------------------------------|-----------------|")
+    print("\n  | Prediction | Description                    | Decision        |")
+    print("  |------------|--------------------------------|-----------------|")
     print(f"  | B-P1       | Task-boundary zero FP          | {bp1['decision']:15s} |")
     print(f"  | B-P2       | Same/cross separation ≥ 2.0×   | {bp2['decision']:15s} |")
     print(f"  | B-P3       | C_k predicts alignment         | {bp3['decision']:15s} |")

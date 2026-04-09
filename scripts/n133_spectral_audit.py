@@ -19,7 +19,6 @@ from pathlib import Path
 import numpy as np
 from numpy.linalg import svd
 from safetensors import safe_open
-from scipy import stats
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -67,7 +66,7 @@ def mp_threshold(S: np.ndarray, shape: tuple[int, int]) -> tuple[float, int]:
     if median_sv < 1e-12:
         return 0.0, len(S)
     tau = omega * median_sv
-    k = int(np.sum(S > tau))
+    k = int(np.sum(tau < S))
     return tau, max(k, 1)
 
 
@@ -302,7 +301,7 @@ def compute_pairwise_alignment(adapter_profiles: dict) -> dict:
 
     # Cache adapter SVD data
     adapter_svd = {}
-    for adapter_name, profile in adapter_profiles.items():
+    for adapter_name, _profile in adapter_profiles.items():
         adapter_dir = ADAPTER_ROOT / adapter_name
         weights = load_adapter_weights(adapter_dir)
         svd_data = {}

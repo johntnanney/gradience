@@ -20,7 +20,6 @@ import json
 import time
 from pathlib import Path
 
-import numpy as np
 import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -54,12 +53,12 @@ def merge_adapters_linear(adapter_a_dir: Path, adapter_b_dir: Path,
     # Load both sets of weights
     weights_a = {}
     with safe_open(str(adapter_a_dir / "adapter_model.safetensors"), framework="pt") as f:
-        for k in f.keys():
+        for k in f:
             weights_a[k] = f.get_tensor(k)
 
     weights_b = {}
     with safe_open(str(adapter_b_dir / "adapter_model.safetensors"), framework="pt") as f:
-        for k in f.keys():
+        for k in f:
             weights_b[k] = f.get_tensor(k)
 
     # Linear interpolation
@@ -240,11 +239,11 @@ def select_priority_pairs() -> list[tuple[str, str]]:
 
     # Select: all same-task + top 6 cross-task + bottom 6 cross-task
     selected = []
-    for a, b, align, key in same_task:
+    for a, b, align, _key in same_task:
         selected.append((a, b, "same_task", align))
-    for a, b, align, key in cross_task[:6]:
+    for a, b, align, _key in cross_task[:6]:
         selected.append((a, b, "cross_top", align))
-    for a, b, align, key in cross_task[-6:]:
+    for a, b, align, _key in cross_task[-6:]:
         selected.append((a, b, "cross_bottom", align))
 
     return selected
