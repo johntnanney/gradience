@@ -671,7 +671,14 @@ C_k and adapter effective rank contribute *additively* — not interactively
 — to predicting alignment (interaction p = 0.33, clustered p = 0.30).
 The bound should factor as alignment ≤ h₁(C_k) + h₂(erank), where h₁
 is the concentration term (active for complex tasks like QNLI) and h₂
-is a task-dimensionality baseline shift.
+is a task-dimensionality baseline shift. *However*, the DeBERTa
+replication (N132, FINDINGS.md §27) showed that C_k does not predict
+per-layer alignment on DeBERTa-v3-base (ρ = 0.11–0.22, all NS), despite
+the erank asymmetry replicating (F = 13.4, p < 10⁻⁸). The C_k term in
+the bound may be architecture-specific — valid for standard-attention
+models (DistilBERT) but not for disentangled-attention models (DeBERTa).
+The concentration-weighted bound remains the best candidate for the
+DistilBERT regime, but its universality is now in question.
 
 **Tail-band interference as an independent compatibility signal.** The
 energy-weighted interaction bound in the Technical Report (§2.3) and the

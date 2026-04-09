@@ -1676,6 +1676,7 @@ trains fresh adapters with dense telemetry (seeds 42, 123).
 | §24 Per-module / curvature | N07 Exp A/B (April 2026)      | Gradience I | V-module DR d=0.02, MP boundary 73/96 significant |
 | §25 Spectral susceptibility | N130 (April 2026)             | Gradience I | Γ_k ≤ C_k as predictor; erank QNLI 13.3 vs SST-2 5.5, d=2.05 |
 | §26 Composite predictor     | N131 (April 2026)             | Gradience I | C_k + erank ADDITIVE (ΔR²=0.11, p=0.016); interaction NS |
+| §27 DeBERTa erank replication | N132 (April 2026)           | Gradience I | Task erank varies (F=13.4, p<10⁻⁸); C_k→alignment does NOT replicate |
 
 
 ## 25. Spectral Susceptibility (Γ_k) Validation (N130, April 2026)
@@ -1901,3 +1902,140 @@ Script: `scripts/n131_composite_predictor.py`. CPU-only, <1 second.
 Input data: N130 outputs (`sidecar/data/n130/`), N127 results
 (`sidecar/results/mp_partition_test/extension_results.json`).
 Output: `sidecar/data/n131/` (CSV, summary JSON, 4 diagnostic figures).
+
+
+## 27. DeBERTa Effective Rank Replication (N132, April 2026)
+
+### Claim
+
+Task dimensionality (effective rank) varies systematically across GLUE
+tasks on DeBERTa-v3-base, replicating the N130 finding. However, the
+C_k → alignment predictive relationship does **not** replicate on
+DeBERTa: no task shows significant C_k–alignment correlation. This is a
+**partial replication** with a significant negative result.
+
+### Background
+
+N130 (§25) found that effective rank differs massively between tasks on
+DistilBERT (QNLI = 13.3, SST-2 = 5.5, d = 2.05) and that C_k predicts
+alignment for QNLI (ρ = 0.56, p = 0.004) but not SST-2. N132 tests
+whether these findings generalize to a second architecture (DeBERTa-v3-base,
+12 layers, disentangled attention) using the existing N07 adapter data
+(4 GLUE tasks × 2 seeds, rank 16).
+
+### Evidence
+
+**A-P1: Task dimensionality varies across GLUE tasks (CONFIRMED).**
+
+| Task  | Mean erank | SD    |
+|-------|-----------|-------|
+| SST-2 | 2.03      | 1.01  |
+| QNLI  | 2.49      | 1.18  |
+| MRPC  | 3.14      | 2.69  |
+| RTE   | 3.95      | 3.22  |
+
+Per-layer ANOVA: F = 13.42, p = 2.4 × 10⁻⁸. Maximum pairwise
+Cohen's d = 11.67 (RTE vs SST-2). The task ordering SST2 < QNLI <
+MRPC < RTE is plausible: binary sentiment (SST-2) requires fewest
+dimensions; textual entailment with small training data (RTE) requires
+the most adaptation flexibility.
+
+Note: DeBERTa eranks (2.0–4.0) are much lower than DistilBERT eranks
+(5.5–13.3) for the same tasks at the same nominal rank (16). This likely
+reflects DeBERTa's disentangled attention and replaced token detection
+pretraining, which produce a more efficient adaptation geometry.
+
+**A-P2: C_k predicts alignment for high-erank tasks (DISCONFIRMED).**
+
+| Task  | ρ(C_k, overlap) | p     |
+|-------|----------------|-------|
+| SST-2 | +0.126          | 0.393 |
+| QNLI  | +0.106          | 0.474 |
+| MRPC  | +0.216          | 0.140 |
+| RTE   | +0.191          | 0.195 |
+
+No task achieves significance. The highest-erank task (RTE, ρ = 0.19)
+does not reach the ρ ≥ 0.30 threshold. The C_k → alignment relationship
+that holds for DistilBERT/QNLI does not generalize to DeBERTa.
+
+The hierarchical regression (N131 replication) confirms the negative
+result: M1 (C_k) R² = 0.015, M2 (C_k + erank) R² = 0.148,
+M3 (interaction) R² = 0.148. Erank adds power (as a between-task
+mean shift), but C_k contributes essentially nothing (R² = 0.015 vs
+0.070 on DistilBERT), and the interaction is completely absent
+(p = 0.90).
+
+**A-P3: Cross-architecture erank ordering preserved (CONFIRMED).**
+
+| Task  | DistilBERT erank | DeBERTa erank |
+|-------|-----------------|---------------|
+| SST-2 | 5.47             | 2.03          |
+| QNLI  | 13.32            | 2.49          |
+
+The rank ordering SST-2 < QNLI is preserved across architectures.
+However, the magnitude ratio is compressed: DistilBERT QNLI/SST-2 =
+2.43× vs DeBERTa QNLI/SST-2 = 1.23×. DeBERTa adapts more
+efficiently, compressing all tasks into a narrower erank range.
+
+### Interpretation
+
+The C_k → alignment finding (§13, §25, §26) is **architecture-specific**,
+not universal. It holds for DistilBERT-base (6-layer, standard attention,
+MLM pretraining) but not for DeBERTa-v3-base (12-layer, disentangled
+attention, RTD pretraining). Two candidate explanations:
+
+1. **Spectral geometry differs.** DeBERTa's disentangled attention
+   separates content and position projections, producing a different
+   W₀ spectral structure. The C_k values have a different relationship
+   to the adapter subspace because the pre-trained geometry is organized
+   differently.
+
+2. **Adapter eranks are too compressed.** On DeBERTa, all tasks have
+   erank in [2.0, 4.0] — much narrower than DistilBERT's [5.5, 13.3].
+   With less variation in task dimensionality, there may be insufficient
+   dynamic range for C_k to differentiate. The moderation effect exists
+   in principle but requires a wider erank spread to manifest.
+
+This result has important implications for the convergence bound program:
+a bound stated purely in terms of C_k will not generalize across
+architectures. Either C_k needs to be redefined in an
+architecture-invariant way, or the bound must account for
+backbone-specific spectral geometry.
+
+### Connection to existing findings
+
+- **§25 (Γ_k validation)**: N132 replicates the erank asymmetry (A-P1,
+  A-P3) but not the C_k predictive relationship (A-P2). The task-ordering
+  finding is architecture-general; the C_k finding is not.
+- **§26 (composite predictor)**: The N131 additive result
+  (C_k + erank factors) is vacuously confirmed on DeBERTa because
+  C_k contributes nothing — the "additive" model reduces to erank alone.
+- **§13 (W₀ energy → alignment)**: The ρ = 0.53–0.58 correlation is
+  bounded to DistilBERT. DeBERTa shows ρ = 0.11–0.22 (all NS).
+- **§23 (DeBERTa adjudication)**: N07's 7/7 prediction successes were
+  about merge diagnostics and risk classification, not about C_k–alignment
+  prediction. N132 does not contradict N07's results.
+- **THEORY.md §7.2**: The concentration-weighted convergence bound must
+  be qualified: C_k may be the right variable for the DistilBERT regime
+  but not universally. The bound may need to condition on backbone
+  spectral structure.
+
+### Limitations
+
+- Only 2 seeds per task → 1 same-task pair per task, limiting
+  within-task alignment estimation.
+- The "overlap" metric from N07 differs from the SV-weighted alignment
+  used in N127/N130. The metrics capture similar structure but are not
+  directly comparable.
+- DeBERTa adapters have low absolute erank (2–4), reducing the variance
+  available for detecting C_k moderation.
+- 4 tasks on one architecture. More tasks and architectures needed to
+  determine whether the C_k finding is specific to DistilBERT or to
+  standard-attention architectures more broadly.
+
+### Reproducibility
+
+Script: `scripts/n132_deberta_erank.py`. CPU-only, ~5 seconds.
+Input data: N07 experiment_a_results (`scripts/n07_deberta/experiment_a_results/`),
+DeBERTa-v3-base pretrained weights (HuggingFace).
+Output: `sidecar/data/n132/` (CSV files, summary JSON, 2 diagnostic figures).
