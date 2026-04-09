@@ -26,6 +26,7 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any
 
+from gradience.vnext.merge.calibration import ThresholdProfile
 from gradience.vnext.merge.over_accumulation import (
     estimate_over_accumulation,
     summarize_over_accumulation,
@@ -64,6 +65,31 @@ class VerdictThresholds:
     conflicting: float = -0.3
     imbalanced: float = 5.0
     imbalanced_frob: float = 5.0
+
+    @classmethod
+    def from_profile(cls, profile: ThresholdProfile) -> VerdictThresholds:
+        """Create thresholds calibrated from an empirical ThresholdProfile.
+
+        Maps the profile's alignment thresholds to the verdict decision
+        tree boundaries while preserving the directional-agreement
+        thresholds (aligned, conflicting) which are not yet empirically
+        calibrated.
+
+        Parameters
+        ----------
+        profile : ThresholdProfile
+            Architecture-specific calibrated thresholds from
+            ``gradience.vnext.merge.calibration``.
+        """
+        return cls(
+            low_overlap=profile.alignment_safe,
+            high_overlap=profile.alignment_risk,
+            imbalanced_frob=profile.imbalanced_frob,
+            # These remain at defaults — no experimental calibration yet
+            aligned=0.5,
+            conflicting=-0.3,
+            imbalanced=5.0,
+        )
 
     @classmethod
     def conservative(cls) -> VerdictThresholds:
