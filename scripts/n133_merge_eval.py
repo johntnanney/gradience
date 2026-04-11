@@ -53,12 +53,12 @@ def merge_adapters_linear(adapter_a_dir: Path, adapter_b_dir: Path,
     # Load both sets of weights
     weights_a = {}
     with safe_open(str(adapter_a_dir / "adapter_model.safetensors"), framework="pt") as f:
-        for k in f:
+        for k in f.keys():
             weights_a[k] = f.get_tensor(k)
 
     weights_b = {}
     with safe_open(str(adapter_b_dir / "adapter_model.safetensors"), framework="pt") as f:
-        for k in f:
+        for k in f.keys():
             weights_b[k] = f.get_tensor(k)
 
     # Linear interpolation

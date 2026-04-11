@@ -379,29 +379,46 @@ def main():
 
     t0 = time.time()
 
-    # Phase 2a: Per-adapter profiles
-    adapter_profiles = audit_adapters()
-    with open(OUTPUT_DIR / "adapter_profiles.json", "w") as f:
-        json.dump(adapter_profiles, f, indent=2)
+    # Phase 2a: Per-adapter profiles (skip if already done)
+    adapter_profiles_path = OUTPUT_DIR / "adapter_profiles.json"
+    if adapter_profiles_path.exists():
+        print(f"\n[resume] Loading existing {adapter_profiles_path}")
+        with open(adapter_profiles_path) as f:
+            adapter_profiles = json.load(f)
+        print(f"[resume] Loaded {len(adapter_profiles)} adapter profiles")
+    else:
+        adapter_profiles = audit_adapters()
+        with open(adapter_profiles_path, "w") as f:
+            json.dump(adapter_profiles, f, indent=2)
 
-    # Phase 2b: W₀ properties
-    w0_data = audit_w0()
-    with open(OUTPUT_DIR / "w0_properties.json", "w") as f:
-        json.dump(w0_data, f, indent=2)
+    # Phase 2b: W₀ properties (skip if already done)
+    w0_path = OUTPUT_DIR / "w0_properties.json"
+    if w0_path.exists():
+        print(f"\n[resume] Loading existing {w0_path}")
+        with open(w0_path) as f:
+            w0_data = json.load(f)
+    else:
+        w0_data = audit_w0()
+        with open(w0_path, "w") as f:
+            json.dump(w0_data, f, indent=2)
 
-    # Phase 2c: Pairwise alignment
-    pair_results = compute_pairwise_alignment(adapter_profiles)
+    # Phase 2c: Pairwise alignment (skip if already done)
+    pair_full_path = OUTPUT_DIR / "pair_alignment_full.json"
+    if pair_full_path.exists():
+        print(f"\n[resume] Skipping Phase 2c — {pair_full_path} already exists")
+    else:
+        pair_results = compute_pairwise_alignment(adapter_profiles)
 
-    # Save pair results (without per-layer detail for compactness)
-    pair_summary = {}
-    for k, v in pair_results.items():
-        pair_summary[k] = {key: val for key, val in v.items() if key != "per_layer"}
-    with open(OUTPUT_DIR / "pair_alignment_summary.json", "w") as f:
-        json.dump(pair_summary, f, indent=2)
+        # Save pair results (without per-layer detail for compactness)
+        pair_summary = {}
+        for k, v in pair_results.items():
+            pair_summary[k] = {key: val for key, val in v.items() if key != "per_layer"}
+        with open(OUTPUT_DIR / "pair_alignment_summary.json", "w") as f:
+            json.dump(pair_summary, f, indent=2)
 
-    # Save full pair results
-    with open(OUTPUT_DIR / "pair_alignment_full.json", "w") as f:
-        json.dump(pair_results, f, indent=2)
+        # Save full pair results
+        with open(pair_full_path, "w") as f:
+            json.dump(pair_results, f, indent=2)
 
     elapsed = time.time() - t0
     print(f"\n  Total audit time: {elapsed:.0f}s ({elapsed/60:.1f}m)")
