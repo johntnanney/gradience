@@ -352,15 +352,15 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             cache_dir=CACHE_DIR,
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             device_map="auto",
             attn_implementation="flash_attention_2",
         )
-    except (ImportError, ValueError):
+    except (ImportError, ValueError, TypeError):
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             cache_dir=CACHE_DIR,
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             device_map="auto",
             attn_implementation="sdpa",
         )
@@ -469,7 +469,7 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME,
         cache_dir=CACHE_DIR,
-        dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16,
         device_map="auto",
     )
     model = PeftModel.from_pretrained(model, str(adapter_dir))
