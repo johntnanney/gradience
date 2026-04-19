@@ -387,6 +387,47 @@ def phase3_prediction_1(w0_props: dict, alignment_data: dict) -> dict:
             print(f"    Module {m.upper()}: rho_C={r_c_m:+.4f} rho_Gamma={r_g_m:+.4f} "
                   f"diff={abs(r_g_m)-abs(r_c_m):+.4f} (n={mask.sum()})")
 
+        # Within-module residualized correlation (Simpson's paradox guard).
+        # Subtract per-module mean from both sides, then correlate the
+        # residuals. If this differs substantially from the naive pooled
+        # correlation, the pooled number is partly a between-module artifact.
+        # See docs/FINDINGS.md §28 and sidecar/notes/n133b_distilbert_per_module_reanalysis.md
+        mods_arr = np.array(modules)
+        C_res = C_k_arr.astype(float).copy()
+        G_res = inv_Gamma_arr.astype(float).copy()
+        A_res = align_arr.astype(float).copy()
+        for m in ["q", "k", "v", "o"]:
+            mask = mods_arr == m
+            if mask.sum() == 0:
+                continue
+            C_res[mask] -= C_k_arr[mask].mean()
+            G_res[mask] -= inv_Gamma_arr[mask].mean()
+            A_res[mask] -= align_arr[mask].mean()
+        rho_C_wm, p_C_wm = stats.spearmanr(C_res, A_res)
+        rho_G_wm, p_G_wm = stats.spearmanr(G_res, A_res)
+        r_C_wm, pp_C_wm = stats.pearsonr(C_res, A_res)
+        print(f"    Within-module residualized rho(C_k, align)     = "
+              f"{rho_C_wm:+.4f}  (p = {p_C_wm:.4f})")
+        print(f"    Within-module residualized rho(1/Gamma_k, align) = "
+              f"{rho_G_wm:+.4f}  (p = {p_G_wm:.4f})")
+        print(f"    Within-module residualized Pearson r(C_k, align) = "
+              f"{r_C_wm:+.4f}  (p = {pp_C_wm:.4f})")
+
+        # Flag Simpson's-paradox-like discrepancies
+        if abs(rho_C) >= 0.25 and abs(rho_C_wm) < 0.15:
+            print(f"    ⚠ Simpson warning: pooled rho_C={rho_C:+.3f} but "
+                  f"within-module rho_C={rho_C_wm:+.3f} "
+                  f"— pooled may be a between-module artifact.")
+        if np.sign(rho_C) != np.sign(rho_C_wm) and abs(rho_C) >= 0.15:
+            print(f"    ⚠ Simpson warning: pooled and within-module C_k "
+                  f"correlations have OPPOSITE SIGN.")
+
+        within_module = {
+            "rho_C": float(rho_C_wm), "p_C": float(p_C_wm),
+            "rho_Gamma": float(rho_G_wm), "p_Gamma": float(p_G_wm),
+            "pearson_r_C": float(r_C_wm), "pearson_p_C": float(pp_C_wm),
+        }
+
         results[task] = {
             "n_layers": n,
             "rho_C": float(rho_C), "p_C": float(p_C),
@@ -395,6 +436,7 @@ def phase3_prediction_1(w0_props: dict, alignment_data: dict) -> dict:
             "bootstrap_ci": [ci_lo, ci_hi],
             "decision": decision,
             "per_module": module_results,
+            "within_module": within_module,
             "per_layer": [
                 {"layer": per_layer[i]["layer"], "module": modules[i],
                  "C_k": float(C_k_arr[i]), "inv_Gamma_k": float(inv_Gamma_arr[i]),

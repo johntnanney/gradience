@@ -177,6 +177,35 @@ def phase2_prediction_1(df: pd.DataFrame) -> dict:
     print(f"\n  Spearman ρ(C_k, align) pooled:        {rho_ck_alone:+.4f} (p = {p_ck_alone:.4f})")
     print(f"  Spearman ρ(C_k × erank, align) pooled: {rho_composite:+.4f} (p = {p_composite:.4f})")
 
+    # Within-module residualized correlation (Simpson's paradox guard).
+    # Subtract per-module mean C_k and per-module mean alignment, then
+    # correlate residuals. See docs/FINDINGS.md §28 and
+    # sidecar/notes/n133b_distilbert_per_module_reanalysis.md
+    C_res = df["C_k"].astype(float).to_numpy().copy()
+    A_res = df["mean_alignment"].astype(float).to_numpy().copy()
+    Comp_res = (df["C_k"] * df["mean_erank"]).astype(float).to_numpy().copy()
+    mods = df["module_type"].to_numpy()
+    for m in np.unique(mods):
+        mask = mods == m
+        if mask.sum() == 0:
+            continue
+        C_res[mask] -= C_res[mask].mean()
+        A_res[mask] -= A_res[mask].mean()
+        Comp_res[mask] -= Comp_res[mask].mean()
+    rho_ck_wm, p_ck_wm = stats.spearmanr(C_res, A_res)
+    r_ck_wm, pr_ck_wm = stats.pearsonr(C_res, A_res)
+    rho_comp_wm, p_comp_wm = stats.spearmanr(Comp_res, A_res)
+    print(f"  Within-module ρ(C_k, align):          {rho_ck_wm:+.4f} (p = {p_ck_wm:.4f})")
+    print(f"  Within-module Pearson r(C_k, align):  {r_ck_wm:+.4f} (p = {pr_ck_wm:.4f})")
+    print(f"  Within-module ρ(C_k×erank, align):    {rho_comp_wm:+.4f} (p = {p_comp_wm:.4f})")
+    if abs(rho_ck_alone) >= 0.25 and abs(rho_ck_wm) < 0.15:
+        print(f"  ⚠ Simpson warning: pooled ρ(C_k)={rho_ck_alone:+.3f} but "
+              f"within-module ρ={rho_ck_wm:+.3f} — pooled may be a "
+              f"between-module artifact.")
+    if np.sign(rho_ck_alone) != np.sign(rho_ck_wm) and abs(rho_ck_alone) >= 0.15:
+        print(f"  ⚠ Simpson warning: pooled and within-module C_k correlations "
+              f"have OPPOSITE SIGN.")
+
     # Decision
     delta_r2 = m3.rsquared - m1.rsquared
     if ix_p < 0.05 and delta_r2 >= 0.10:
@@ -212,6 +241,11 @@ def phase2_prediction_1(df: pd.DataFrame) -> dict:
         "delta_R2_m3_vs_m1": float(delta_r2),
         "spearman_ck_pooled": {"rho": float(rho_ck_alone), "p": float(p_ck_alone)},
         "spearman_composite_pooled": {"rho": float(rho_composite), "p": float(p_composite)},
+        "within_module": {
+            "rho_ck": float(rho_ck_wm), "p_ck": float(p_ck_wm),
+            "pearson_r_ck": float(r_ck_wm), "pearson_p_ck": float(pr_ck_wm),
+            "rho_composite": float(rho_comp_wm), "p_composite": float(p_comp_wm),
+        },
         "decision": decision,
     }
 

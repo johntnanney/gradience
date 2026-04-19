@@ -2039,3 +2039,670 @@ Script: `scripts/n132_deberta_erank.py`. CPU-only, ~5 seconds.
 Input data: N07 experiment_a_results (`scripts/n07_deberta/experiment_a_results/`),
 DeBERTa-v3-base pretrained weights (HuggingFace).
 Output: `sidecar/data/n132/` (CSV files, summary JSON, 2 diagnostic figures).
+
+## 28. Decoder-Scale Controlled Merge Triage (N133, April 2026)
+
+> **Status:** complete. All six behavioral predictions (B-P1 … B-P6)
+> and the follow-up N133b per-module re-analysis of DistilBERT are
+> locked. The B-P5 "partial confirmation" in the raw Phase 4 summary
+> is revised to an explicit null after the B-P5 diagnostic showed the
+> apparent triage recall was a task-family and metric-range confound
+> (see `sidecar/notes/n133_bp5_diagnostic.md`). The N134 follow-up
+> spec (`sidecar/notes/n134_spec.md`) is the confirmatory design
+> that addresses the confounds catalogued here.
+
+### Claim
+
+At decoder scale (Mistral-7B-v0.3, 32-layer, standard attention),
+spectral alignment cleanly separates same-task from cross-task adapter
+pairs (B-P1, B-P2 strongly confirmed), and adapter effective rank varies
+systematically by task (B-P4, first half). Two encoder-era findings —
+C_k predicts alignment (§13, §25, §26) and no module-type asymmetry —
+**do not replicate** at decoder scale: the within-module C_k → alignment
+correlation is null (B-P3 disconfirmed after Simpson's-paradox
+correction), and there is a significant Q/K vs V/O asymmetry in both
+erank and same-task alignment (B-P6 disconfirmed). The pre-specified
+alignment-based triage (B-P5) **does not work** at decoder scale — not
+because the geometric signal is absent, but because the original 3/3
+recall in the raw Phase 4 output was driven by the interaction of a
+task-family confound (MNLI-heavy pairs vs generation-heavy pairs) with
+a metric-range confound (four of six source baselines saturated at
+ceilings or floors). N133 is the first decoder-scale test of the
+spectral triage pipeline, the first decoder-scale replication of
+N132's negative C_k result, and the first experiment to flag per-module
+stratification as a blocker for cross-architecture C_k claims.
+
+### Background
+
+Prior N127–N132 work established the spectral audit pipeline on encoder
+models: DistilBERT-base (6 layers, standard attention, MLM pretraining)
+and DeBERTa-v3-base (12 layers, disentangled attention, RTD pretraining).
+The pipeline measures per-layer effective rank (erank), SV-weighted
+alignment between adapter pairs, and pretrained-weight energy
+concentration (C_k). N131 (§26) proposed a composite predictor
+C_k × f(erank); N132 (§27) showed that the C_k component fails to
+replicate on DeBERTa, leaving erank as the dominant signal.
+
+N133 tests whether the same pipeline transfers to a 7B decoder — the
+scale at which LoRA is most commonly deployed — and whether the N132
+negative result on C_k replicates under architecture × scale change.
+
+**Experimental design.** 6 tasks × 2 seeds = 12 LoRA adapters on
+Mistral-7B-v0.3 with r = 16 targeting `q_proj`, `k_proj`, `v_proj`,
+`o_proj`. Tasks span discriminative (SST-2, MNLI), extractive (SQuAD),
+generative (GSM8K, code via CodeAlpaca-20k, summarization). All 12
+adapters achieved the expected source accuracy (SST-2 0.98–0.99,
+MNLI 0.97, SQuAD 1.00, GSM8K 0.23–0.32, code 1.00, summarization 1.00).
+
+Phase 2 computes per-adapter spectral profiles, W₀ properties for the
+128 attention projections (32 layers × 4 modules), and SV-weighted
+alignment for all 66 adapter pairs. Phase 3 evaluates 18 priority merges
+(6 same-task + top-12 cross-task by alignment). Phase 4 tests the six
+behavioral predictions B-P1 … B-P6.
+
+### Evidence
+
+**B-P1: Task-boundary detection — zero false positives (CONFIRMED).**
+
+| Pair class | n  | Mean alignment |
+|------------|----|----------------|
+| Same-task  |  6 | 0.1249         |
+| Cross-task | 60 | 0.0409         |
+
+Midpoint threshold τ = 0.0829. 0 / 6 same-task pairs fall below τ;
+0 / 60 cross-task pairs rise above τ. The alignment signal perfectly
+discriminates the task boundary on Mistral-7B at this experimental
+budget. This is the third architecture (after DistilBERT and DeBERTa)
+on which the pipeline shows clean task-boundary separation.
+
+**B-P2: Spectral separation ≥ 2.0× (CONFIRMED).**
+
+Same / cross alignment ratio = **3.06×**, t = 35.78, p < 10⁻⁶.
+The separation is smaller than DistilBERT's ~5× (N130) but larger
+than the 2.0× prediction threshold, and the per-pair standard
+deviation is low enough that the two distributions do not overlap.
+
+**B-P3: C_k predicts alignment (DISCONFIRMED — null, not reversed).**
+
+The naive pooled correlation (ignoring module identity) is ρ = −0.216,
+p < 10⁻⁸, n = 768 — i.e. significantly *negative*. Per-task pooled
+correlations all point in the same negative direction, all but
+summarization significantly so:
+
+| Task          | ρ(C_k, alignment) | p      | n   |
+|---------------|-------------------|--------|-----|
+| SST-2         | −0.357            | <0.001 | 128 |
+| MNLI          | −0.304            |  0.001 | 128 |
+| SQuAD         | −0.260            |  0.003 | 128 |
+| GSM8K         | −0.397            | <0.001 | 128 |
+| Code          | −0.277            |  0.002 | 128 |
+| Summarization | −0.022            |  0.807 | 128 |
+| **Pooled**    | **−0.216**        | **<0.001** | **768** |
+
+**However, the naive pooled signal is a Simpson's paradox artifact.**
+Mistral's attention modules have radically different mean C_k and
+different mean alignment from each other:
+
+| Module | mean W₀ C_k | mean same-task align | within-module ρ(C_k,align) | p |
+|--------|-------------|----------------------|---------------------------|---|
+| Q      | 0.564       | 0.1085               | −0.173                    | 0.016 |
+| K      | 0.547       | 0.1325               | −0.172                    | 0.017 |
+| V      | **0.085**   | **0.1450**           | **+0.143**                | 0.047 |
+| O      | 0.316       | 0.1135               | −0.062                    | 0.394 |
+
+V-projection has radically lower W₀ C_k than Q/K/O (0.085 vs 0.32–0.56)
+*and* the highest same-task alignment (0.145). When C_k and alignment
+are pooled across modules, the negative between-module trend
+(low-C_k V-modules tend to be high-alignment; high-C_k Q-modules
+tend to be lower-alignment) dominates the pooled Spearman coefficient.
+Within each module, the story is completely different.
+
+Controlling for module identity via partial correlation:
+
+- Within-module residualized Spearman ρ = −0.066 (p = 0.069, NS)
+- Within-module residualized Pearson r = +0.106 (p = 0.003, right sign)
+
+**The corrected within-module finding is essentially null**, not
+reversed. The naive "wrong sign" reading is a pooling artifact.
+
+The finding is a clean replication-failure of the §13 / §25 / §26
+composite-predictor program's C_k component on Mistral, not an
+unprincipled sign flip. B-P3 is disconfirmed by null effect under
+proper module control.
+
+**Retroactive re-analysis of DistilBERT §13 (N133b).** Motivated by
+the Mistral Simpson's paradox, the original N130 DistilBERT data was
+re-analyzed with per-module stratification to check whether its
+QNLI pooled ρ = +0.56 was also a pooling artifact. The QNLI finding
+**survives**: per-module correlations are consistently positive
+(q +0.43, k +0.60, v +0.71, o +0.77 — all n = 6, all individually
+underpowered but directionally unanimous), and the within-module
+residualized Spearman ρ = +0.546 (p = 0.006), essentially identical
+to the naive pooled +0.563. DistilBERT QNLI is a *real* within-module
+effect, not a Simpson's paradox. (DistilBERT SST-2 was always
+null: pooled ρ = −0.076, within-module residualized ρ = +0.106 NS.)
+
+The explanation is that DistilBERT QNLI has two reinforcing
+gradients: the k-module has both the highest mean C_k (0.465) and
+the highest mean alignment (0.609), so pooling amplifies the
+within-module signal instead of confounding it. Mistral has the
+opposite pattern — V-module has the lowest mean C_k (0.085) but
+the highest mean alignment (0.145) — and the opposing gradients
+produce a spurious pooled negative.
+
+The revised cross-architecture picture is therefore:
+
+| Cell                  | Pooled ρ | Within-module ρ | Verdict |
+|-----------------------|---------|-----------------|---------|
+| DistilBERT QNLI       | **+0.56** | **+0.55**      | **real, robust** |
+| DistilBERT SST-2      |  −0.08  |  +0.11          | null (always) |
+| DeBERTa all 4 tasks   | +0.11…+0.22 | (within-mod not computed, but pooled NS) | null |
+| Mistral all 6 tasks (N133) | **−0.22 pooled** | **−0.07 / +0.11** | **null (Simpson's paradox)** |
+
+The §13 / §25 / §26 program is narrowed, not falsified: C_k → alignment
+is a real, within-module relationship on DistilBERT-base QNLI, and
+essentially nothing else tested so far. It remains unusable as a
+general spectral triage signal, because 10 / 11 architecture × task
+cells give null within-module effects — but the original DistilBERT
+QNLI finding is preserved as a genuine effect.
+
+**B-P4: Erank varies by task and moderates C_k (PARTIAL).**
+
+| Task          | Mean erank | SD   | n |
+|---------------|-----------|------|---|
+| SST-2         |  5.21     | 0.07 | 2 |
+| MNLI          |  6.04     | 0.04 | 2 |
+| SQuAD         |  7.55     | 0.11 | 2 |
+| GSM8K         |  6.86     | 0.04 | 2 |
+| Code          |  6.60     | 0.07 | 2 |
+| Summarization |  8.99     | 0.09 | 2 |
+
+Between-adapter ANOVA: F = 308.53, p < 10⁻⁶. Per-layer ANOVA
+(n = 1536 layer-adapter observations): F = 105.42, p = 9.3 × 10⁻⁹⁶.
+Erank varies dramatically and reliably across tasks, replicating the
+N130 (DistilBERT) and N132 (DeBERTa) erank-asymmetry findings on a
+third architecture. The task ordering SST-2 < MNLI < Code ≈ GSM8K <
+SQuAD < Summarization is consistent with intuition: binary sentiment
+at the low end, long-form generation at the high end.
+
+Hierarchical regression (N131 replication): M1 (C_k) R² = 0.016;
+M3 (C_k + erank + C_k × erank) R² = 0.609; interaction p = 0.261.
+The jump from M1 to M3 is almost entirely driven by the erank main
+effect — erank varies across tasks and layers and carries most of the
+predictive signal, but the interaction with C_k is not significant.
+
+The prediction is downgraded to PARTIAL because erank variation
+(the first half of B-P4) is strongly supported, but the C_k × erank
+interaction (the second half) is absent — consistent with the overall
+breakdown of the C_k signal at decoder scale.
+
+**B-P5: Alignment-based triage eliminates ≥ 70% of cross-task pairs
+with zero good merges missed (NULL — confound cascade).**
+
+The raw Phase 4 summary reports B-P5 at 70.0% elimination with 3/3
+good merges retained, which on its face would place this prediction
+at CONFIRMED. A three-stage post-hoc diagnostic
+(`sidecar/notes/n133_bp5_diagnostic.md`) revealed that every layer
+of this apparent success was a confound, and the pre-specified
+alignment triage does not work at decoder scale once the confounds
+are controlled. B-P5 is reported as **NULL**, not confirmed.
+
+*Stage 1 — sign inversion.* The original B-P5 script retained the
+*top* 30% cross-task pairs by alignment. Under the B-P1/B-P2 semantics
+established in the same experiment, *high* alignment means more shared
+direction and therefore *more* expected interference, not less. The
+published 3/3 recall therefore came from selecting the pairs most
+likely to collide, not least. Re-running with the corrected sign
+(retain *lowest* alignment as safest) preserves 3/3 good merges on
+the 12 evaluated cross-task pairs, so we initially promoted the
+corrected-sign version to a working triage. Spearman ρ(mean_alignment,
+max_degradation) on the 12 pairs was +0.655 (p = 0.021): alignment
+was a real statistical predictor of merge damage with the expected
+sign.
+
+*Stage 2 — task-cluster saturation.* Within that apparent success,
+four of the 12 evaluated cross-task pairs (all the code × GSM8K
+combinations) tied at exactly mean_alignment = 0.0363. The pre-specified
+triage had zero within-cluster resolution on these four pairs and was
+splitting them 2-good / 2-bad essentially by tiebreak. Looking at
+the "good" labels directly (threshold max_degradation < 0.10), the
+three retained good merges were `code–summarization`, `code–squad`,
+and `squad–summarization` — three pairs whose combined source
+baselines are all saturated at metric ceilings (code 1.00, squad 1.00,
+summarization 1.00). Degradation for these pairs is bounded below by
+ceiling floor effects on the *source* metric, independently of any
+merge-geometry property. The three missed good merges (`mnli–squad`,
+`mnli–sst2`, `mnli–summarization`) share the opposite property:
+MNLI and SST-2 have room-for-degradation baselines (0.97 and 0.98)
+and were therefore the only candidates that could produce a
+max_degradation < 0.10 outside the ceiling clusters. Alignment was
+not separating good from bad merges; it was separating
+ceiling-saturated from non-saturated task pairs.
+
+*Stage 3 — full-60-pair ranking.* Applying the corrected-sign
+alignment triage to the full 60 cross-task pairs makes the confound
+explicit. Of the 18 safest (lowest-alignment) cross-task pairs, 0
+involve MNLI and 12 involve GSM8K; 100% of the 20 GSM8K cross-task
+pairs land in the safest-30 bucket, versus 30% of MNLI pairs.
+"Lowest alignment = safest merge" at full scale is indistinguishable
+from a binary classifier that prefers pairs containing a generation
+task with a ceiling-saturated metric. The 60-pair triage is a
+task-family classifier, not a geometric merge-risk model.
+
+*Stage 4 — composite risk reconstruction fails.* We attempted to
+salvage a decoder-scale triage by searching ten post-hoc composite
+scores built from features already local: O-module mean alignment,
+depth-weighted O-module alignment (linear and quadratic), O+V
+depth-weighted mixes, inv_min_erank, and cross-products of O-depth
+with inv_min_erank, together with a z-summed O-depth + inv_min_erank.
+On the same 12 evaluated cross-task pairs the only candidate that
+matched the corrected-sign mean_alignment baseline at 3/3 recall was
+inv_min_erank (ρ = +0.319, p = 0.313; 3/3 good preserved). However,
+a confound check on inv_min_erank dropping the two erank outliers
+(summarization erank 8.99, SST-2 erank 5.21) collapsed the signal:
+on the remaining compressed-erank subset {mnli, code, gsm8k, squad},
+Spearman ρ(inv_min_erank, max_deg) = +0.055 (p = 0.899), and the
+in-subset triage retained 0/3 good merges. inv_min_erank was also
+operating as a task-family classifier; once the binary erank partition
+is removed, nothing remains. Every O-only variant (with or without
+depth weighting) dropped from 3/3 to 1/3 retained goods, disconfirming
+the O-projection triage branch that Phase 2 per-module SNR results
+had suggested. No composite of the locally available features
+reproduces the B-P5 claim after confound control.
+
+The within-task Phase 2 finding that O-projection gives 7.23×
+same/cross separation is not contradicted: it is a statement about
+the source-adapter geometry, not about per-pair merge outcomes.
+Scoring merges with O-projection alignment alone was strictly worse
+than the pooled-module baseline for the actual triage task, because
+the per-pair noise in a single-module score dominates the per-pair
+signal.
+
+*Summary.* B-P5 as pre-specified does not hold at decoder scale on
+this experimental budget. The geometric signal (B-P1, B-P2) is real
+but is not the binding constraint on observed merge outcomes on this
+task set; the binding constraints are task-family identity and
+metric-range saturation. Any decoder-scale merge-triage predictor
+will need a task set whose source baselines are confined to a narrow
+dynamic range and whose task-family structure does not collapse to a
+binary partition. The N134 spec (`sidecar/notes/n134_spec.md`) is
+the confirmatory design that addresses both confounds explicitly.
+
+**Observation B-P5.a: The mean_alignment metric has structural
+resolution ≈ 2 × 10⁻³ and cannot resolve pairs inside that band.**
+
+A standalone tied-pair analysis (`scripts/n133_tied_pairs_analysis.py`,
+`sidecar/data/n133/tied_pairs_analysis.json`) quantifies the tiebreak
+problem exposed by the B-P5 diagnostic. The 60 cross-task pairs are
+compressed into a total alignment range of 0.01315 ([0.0363, 0.0494]).
+At the four-decimal precision used in every reported table,
+**38 of 60 cross-task pairs (63%) fall into at least one tie cluster
+of size ≥ 2**, with the largest cluster containing 11 pairs. Zero
+pairs are bit-equal in IEEE-754 float32: the smallest neighbor gap
+is 4.3 × 10⁻⁷, which is 115× the float32 ULP at this magnitude, so
+**the ties are structural in the metric, not a floating-point
+artifact.** Per-pair layer-level SEM is median 2.15 × 10⁻³ —
+substantially larger than any printable tie cluster — meaning two
+pair means within ~2 SEM of each other are statistically
+indistinguishable at the per-layer sample the audit actually took.
+
+The tie problem is binding on the B-P5 conclusion: three of the
+twelve evaluated cross-task pairs sit inside the single largest tie
+cluster (the four code × GSM8K pairs tied at α = 0.03625, of which
+all four were evaluated), and inside that tie the merge-outcome
+split is 2 good / 2 bad with a max_degradation std of 0.051 on a
+scale where the full-sample std is 0.213. Across the three
+evaluated-containing tie clusters the mean within-tie max_deg std
+is 0.124 (ratio 0.58 to the full-sample std). In other words,
+even if mean_alignment were perfectly calibrated across clusters,
+the metric has no within-tie resolution and cannot account for more
+than roughly (1 − 0.58²) ≈ 66% of the outcome variance, and in
+practice explains far less once across-cluster calibration is
+imperfect. This is a property of the measurement at rank-16 on
+32-layer 4-module LoRA adapters, not of the particular task set.
+
+**Observation B-P5.b: Family-residualized baseline — task-family
+identity alone explains R² = 0.97 of the evaluated merge outcomes,
+leaving ΔR² < 0.02 for every candidate metric.**
+
+A family-residualized partial-correlation analysis
+(`scripts/n133_family_residualized_baseline.py`,
+`sidecar/data/n133/family_residualized_baseline.json`) tested two
+task-family schemes:
+
+- `FAMILY_A` — the coarse binary partition suggested by the metric-range
+  / erank confound (`gen_ceiling` = {code, summarization, squad} vs
+  `disc_headroom` = {mnli, sst2, gsm8k}).
+- `FAMILY_B` — a finer six-family scheme (sentiment, nli, extractive_qa,
+  math_gen, code_gen, nl_gen).
+
+Under `FAMILY_B`, a plain OLS of max_degradation on task-family-pair
+dummies yields **R² = 0.9658** on the 12 evaluated cross-task pairs.
+Task-family identity is a near-complete predictor of merge outcome
+at this experimental budget, and every geometric metric we tested
+collapses to a null increment:
+
+| Metric         | Raw ρ  | Partial ρ (FAMILY_B) | ΔR² (FAMILY_B) |
+|----------------|--------|----------------------|-----------------|
+| mean_alignment | +0.655 | +0.690               | **+0.004**      |
+| inv_min_erank  | +0.319 | +0.248               | **+0.001**      |
+| O_mean         | −0.091 | −0.414               | **+0.006**      |
+| O_depth        | −0.140 | −0.487               | **+0.009**      |
+| O_quad         | −0.182 | −0.487               | **+0.009**      |
+| V_depth        | +0.315 | −0.210               | **+0.001**      |
+| OVmix_depth    | +0.074 | −0.658               | **+0.015**      |
+
+The O-projection-depth metric actually **flips sign** between raw
+and partial correlations (+ → −), demonstrating that its original
+raw correlation was being carried by which family the pair belonged
+to, not by any within-family relationship.
+
+Under the coarser `FAMILY_A` binary scheme, family-only R² is only
+0.0019 and several metrics show ΔR² ≥ 0.10 — but every one passes
+with the **wrong sign** (e.g. `O_depth` ρ_partial = −0.539 when
+B-P5 predicted high alignment → high degradation). The FAMILY_A
+"passes" are the diagnostic signature of a score acting as a
+family classifier under a family model too coarse to fully
+decondition it; FAMILY_B is the stricter test and rejects the same
+metrics completely.
+
+The analysis is also the pre-registered reference implementation of
+the N134 H1 decision rule: a candidate score must achieve
+Spearman partial ρ ≥ 0.50 *and* ΔR² ≥ 0.10 over the family-pair
+baseline on the N134 task set. Applied to N133 as a negative control,
+the rule correctly rejects every metric we have (FAMILY_A passes
+are rejected by the sign constraint; FAMILY_B passes do not exist).
+The rule is therefore known to be well-calibrated against this
+class of confound before any N134 data arrives.
+
+**Observation B-P5.c: No aggregation of per-layer alignment beats the
+family baseline — negative evidence that a faithful KnOTS / TSV
+comparison on this specific N133 sample would escape the confound.**
+
+A faithful head-to-head against KnOTS (Stoica et al. 2024) and TSV
+(Gargiulo et al. 2024) cannot be run from the local artifact bundle
+because both methods require U / V matrices from the adapter
+`.safetensors` files, and the N133 audit JSONs persist only the
+per-layer singular values plus the scalar SV-weighted alignment
+number (not the underlying orthonormal subspaces from which that
+alignment was computed). A faithful comparison is scheduled alongside
+N134 where the U / V access is trivial.
+
+What can be done locally is a non-faithful but informative proxy:
+KnOTS and TSV are themselves aggregations of per-layer subspace-overlap
+quantities, and Gradience's `mean_alignment` is one such aggregation
+over the same underlying values. If *any* alternative aggregation of
+the per-layer alignment scalars beats the family baseline, there is a
+concrete escape route the N133 data already licenses; if none of them
+do, the "try a different aggregation" escape route is closed on this
+sample. `scripts/n133_knots_tsv_proxy.py` sweeps 16 aggregations:
+
+- plain mean (baseline), max, p90, L₂-normalised mean, L∞ norm
+- top-k-layer means at k = 16, 32
+- deep-half and deep-quarter-layer means
+- per-module (Q, K, V, O) means and per-module maxima
+- QK-only and VO-only group means
+
+Under the same FAMILY_B residualization as B-P5.b:
+
+| Aggregation         | Raw ρ  | Partial ρ | ΔR²    | H1  |
+|---------------------|--------|-----------|--------|-----|
+| mean_alignment      | +0.655 | +0.690    | +0.004 | fail |
+| max_alignment       | +0.389 | +0.595    | +0.005 | fail |
+| p90_alignment       | +0.648 | +0.641    | +0.009 | fail |
+| topk16_mean         | +0.613 | +0.431    | +0.004 | fail |
+| topk32_mean         | +0.634 | +0.625    | +0.006 | fail |
+| deep_half_mean      | +0.630 | +0.459    | +0.004 | fail |
+| deep_quarter_mean   | +0.630 | +0.421    | +0.007 | fail |
+| l2_alignment        | +0.571 | +0.533    | +0.005 | fail |
+| l_inf_alignment     | +0.389 | +0.595    | +0.005 | fail |
+| O_mean              | −0.091 | −0.414    | +0.006 | fail |
+| O_max               | +0.074 | +0.133    | +0.000 | fail |
+| V_mean              | +0.252 | +0.116    | +0.000 | fail |
+| Q_mean              | +0.375 | +0.280    | +0.001 | fail |
+| K_mean              | +0.644 | +0.364    | +0.004 | fail |
+| QK_mean             | +0.634 | +0.613    | +0.006 | fail |
+| VO_mean             | +0.214 | −0.288    | +0.007 | fail |
+
+**Zero of the 16 aggregations pass the pre-registered N134 H1 rule.**
+The maximum ΔR² observed over the family-pair baseline is +0.009
+(p90_alignment), an order of magnitude below the 0.10 threshold.
+This is negative evidence that a faithful KnOTS or TSV comparison
+on this specific N133 sample would improve over mean_alignment
+under the same metric-range + task-family confound. It is *not*
+evidence about KnOTS/TSV performance in general, and does not
+substitute for a faithful head-to-head on an N134-style unconfounded
+task set (which the N134 spec schedules in §6 alongside H1).
+
+**B-P6: No module-type asymmetry (DISCONFIRMED).**
+
+The original B-P6 (attention vs MLP) is not directly testable here
+because LoRA targets only q/k/v/o_proj at this experimental budget.
+We report two within-attention module asymmetries instead, both of
+which disconfirm "no asymmetry":
+
+*Erank by module* (adapter side, mean over all layers and tasks):
+
+| Module | Mean erank | n   |
+|--------|-----------|-----|
+| Q      |  7.90     | 384 |
+| O      |  7.61     | 384 |
+| K      |  6.66     | 384 |
+| V      |  5.33     | 384 |
+
+ANOVA F = 114.2, p = 10⁻⁶⁶. Q/K pooled mean erank (7.28) vs V/O
+pooled mean erank (6.47): t = 6.86, p < 10⁻⁶. The 12.5% mean gap
+is reliable and not a seed artifact.
+
+*Alignment by module* (same-task pairs):
+
+| Module | Mean alignment | Note |
+|--------|----------------|------|
+| V      | 0.1450 | highest same-task signal |
+| K      | 0.1325 |                          |
+| O      | 0.1135 |                          |
+| Q      | 0.1085 |                          |
+
+V-projection has the *lowest* erank but the *highest* same-task
+alignment — the archetypal "compressed task-specific subspace"
+pattern. Q-projection has the highest erank but the weakest
+alignment — more directions used but less stable across seeds.
+This decoupling of erank and alignment across modules is itself
+a decoder-scale finding with no encoder analog.
+
+**Bonus: Per-module triage signal-to-noise is highly heterogeneous.**
+
+The B-P2 aggregate 3.06× same/cross ratio masks enormous per-module
+variation when computed module-by-module:
+
+| Module | same_mean | cross_mean | **ratio** | t     |
+|--------|-----------|------------|-----------|-------|
+| O      | 0.1135    | 0.0157     | **7.23×** | 127.0 |
+| V      | 0.1450    | 0.0304     |  4.77×    |  97.3 |
+| Q      | 0.1085    | 0.0417     |  2.60×    |  56.5 |
+| K      | 0.1325    | 0.0756     |  **1.75×** |  41.6 |
+
+**O-projection alone gives 7.23× separation**, nearly matching
+DistilBERT's aggregate signal. **K-projection alone gives only
+1.75× separation — below the B-P2 threshold of 2.0×.** A spectral
+triage pipeline that used only K-projection alignment would fail
+B-P2; one that used only O-projection would outperform the
+aggregate baseline by more than 2×.
+
+The per-module pattern suggests K-projection picks up cross-task-shared
+structure (likely syntactic or positional features), while
+O-projection isolates task-specific downstream routing. V-projection
+is intermediate: compressed and task-specific, but not as clean a
+triage signal as O.
+
+**Bonus: Triage signal grows with layer depth.**
+
+Same-task alignment rises from 0.162 at layer 0 to 0.207 at layer 31
+(ρ = +0.540, p = 0.0014, n = 32), while cross-task alignment is
+roughly flat (ρ = +0.134, p = 0.46). The same/cross ratio therefore
+grows from 2.32× at layer 0 to 4.24× at layer 31. Deep-layer
+O-projection is plausibly the strongest single triage signal
+available — a natural candidate for a minimal-cost spectral
+triage variant.
+
+### Interpretation
+
+N133 separates the N127–N132 findings into two groups:
+
+1. **Architecture-general findings.** Task-boundary detection via
+   spectral alignment (B-P1), same/cross separation ≥ 2× (B-P2), and
+   per-task erank variation (first half of B-P4) replicate cleanly on
+   DistilBERT (6-layer encoder), DeBERTa (12-layer encoder), and now
+   Mistral-7B (32-layer decoder, 7B parameters). These appear to be
+   properties of LoRA as a fitting procedure under task-conditional
+   data distributions, not of any specific backbone.
+
+2. **Architecture-specific findings.** C_k → alignment prediction
+   (§13, §25, §26, first confirmed on DistilBERT) does not replicate
+   on either DeBERTa (N132, NS) or Mistral (N133, null within-module
+   after Simpson's-paradox correction). The absence of module-type
+   asymmetry also does not replicate: Mistral shows a significant
+   Q/K vs V/O erank gap and a still larger alignment asymmetry
+   (O-projection gives 7.23× same/cross separation vs K-projection's
+   1.75×). Any theoretical bound stated in terms of C_k alone will
+   not be cross-architecture, and any module-uniform assumption
+   will not hold at decoder scale.
+
+The Mistral data also uncovers two methodological points that
+should be retroactively checked against the DistilBERT results:
+
+- **Per-module stratification matters.** Mistral's V-projection has
+  mean W₀ C_k ≈ 0.085 vs 0.32–0.56 for Q/K/O, *and* V carries the
+  highest same-task alignment. Pooling C_k and alignment across
+  these four modules produces a spurious negative between-module
+  trend that survives significance testing (ρ = −0.22, p < 10⁻⁸)
+  despite the within-module correlation being essentially zero.
+  The original DistilBERT §13 finding (ρ = 0.53–0.58) used a single
+  module family and did not face this confound, but any
+  cross-architecture claim about C_k must condition on module.
+
+- **The triage signal is not uniform across modules.** O-projection
+  alone gives 7.23× same/cross separation on Mistral — nearly
+  matching DistilBERT's aggregate 5× — while K-projection gives
+  only 1.75× (below the B-P2 threshold). An optimal spectral
+  triage at decoder scale should weight layers/modules by their
+  individual signal-to-noise ratio rather than average uniformly.
+
+Follow-up N134 (specified in `sidecar/notes/n134_spec.md`) is the
+confirmatory design for decoder-scale merge-risk prediction. It is
+pre-registered against the four N133 confounds catalogued above:
+(C1) source-metric dynamic range — task set restricted to a narrow
+accuracy band so degradation is not bounded below by ceiling/floor
+effects; (C2) task-family non-partition — no binary split on
+surface task type, pilot-measured erank compression, and a minimum
+number of distinct families so the alignment score cannot act as a
+family classifier; (C3) within-task variance — ≥ 3 seeds per task so
+same-task merge noise is estimable; (C4) no post-hoc fitting — the
+primary H1 score (O-module depth-weighted alignment) is pre-specified
+with a published threshold (ρ ≥ 0.50, ΔR² ≥ 0.10 over a task-family
+baseline) and any deviation is reported as a null. The retroactive
+N133b per-module re-analysis of DistilBERT is already folded into
+B-P3 above.
+
+### Connection to existing findings
+
+- **§13 (W₀ energy → alignment)**: Retroactively narrowed, not
+  falsified. The ρ = 0.56 QNLI effect survives per-module
+  stratification (within-module residualized ρ = +0.546, p = 0.006,
+  see the N133b re-analysis summarized above). The effect is
+  genuine on DistilBERT-base QNLI and absent on every other
+  architecture × task combination tested so far. On Mistral, an
+  apparently-significant pooled negative effect turns out to be
+  a Simpson's paradox artifact — evidence that any future C_k
+  claims must be stratified by module.
+- **§25 (Γ_k validation)**: Γ_k was validated on the same DistilBERT
+  regime where C_k is predictive. The N133 result raises the
+  question of whether Γ_k transfers to decoder-scale architectures;
+  this was not tested here.
+- **§26 (composite predictor)**: The N131 composite C_k × f(erank)
+  reduces to erank alone on both DeBERTa and Mistral, because the
+  C_k component contributes essentially nothing within modules.
+  Erank remains the robust architecture-independent signal.
+- **§27 (DeBERTa erank replication)**: N133 is a clean second
+  replication of §27's null C_k result. Both decoder-era models
+  (DeBERTa-v3-base, Mistral-7B-v0.3) produce within-module
+  C_k → alignment correlations indistinguishable from zero. The
+  consistency between the two is notable given their very different
+  architectures and training setups.
+- **§23 (DeBERTa adjudication)**: N07's merge-diagnostic predictions
+  were about decision branches and verdict ordering, not C_k. N133
+  does not contradict N07.
+- **THEORY.md §7.2**: The concentration-weighted convergence bound
+  must now be qualified as *DistilBERT-specific* or reformulated
+  in terms of erank. The "C_k is the right variable" hypothesis
+  is effectively falsified for transfer across architectures, even
+  after correcting the pooling error.
+
+### Limitations
+
+- **2 seeds per task** → only 1 same-task pair per task, so the
+  same-task alignment distribution is estimated from 6 observations.
+  The strong B-P1/B-P2 result is robust to this because the
+  same/cross gap is huge (3.06×), but finer discrimination
+  (e.g. within-task outliers) is not possible at this budget.
+- **Single 7B model.** Mistral-7B is one decoder; the sign flip on
+  B-P3 could be specific to Mistral's pretraining data mixture
+  rather than decoder architectures generally. A TinyLlama and /
+  or Llama-3-8B replication is the natural next step.
+- **Attention-only LoRA target.** B-P6's attn-vs-MLP comparison
+  is not directly testable at this budget. The Q/K vs V/O finding
+  is the closest available signal.
+- **GSM8K source accuracy is low** (0.23–0.32) and four of the
+  remaining five task baselines saturate at or near 1.00 (SST-2 0.98,
+  MNLI 0.97, SQuAD 1.00, code 1.00, summarization 1.00). This
+  metric-range spread is the central reason B-P5 collapses: the
+  "good merge" label (max_degradation < 0.10) is bounded below by
+  ceiling/floor effects rather than by merge geometry. See B-P5
+  above and `sidecar/notes/n133_bp5_diagnostic.md`.
+- **Task-family near-binary partition.** At six tasks, the N133 task
+  set is effectively partitioned into a high-erank / generation /
+  ceiling-saturated cluster (code, summarization, SQuAD) and a
+  lower-erank / discriminative / headroom cluster (SST-2, MNLI,
+  GSM8K). Any per-pair score that happens to track this split —
+  alignment, inv_min_erank, O-module depth weighting — will be
+  indistinguishable from a binary task-family classifier on the 60
+  cross-task pairs. N134's task-set constraint (C2) addresses this
+  directly.
+- **Only 12 evaluated cross-task merges.** All post-hoc composite
+  risk scores are validated on a 12-pair sample, so no claim about
+  decoder-scale merge-risk prediction can be statistically licensed
+  from the current dataset. N133 supports B-P1/B-P2/B-P4 (which are
+  adapter-side measurements with n = 12 adapters and n = 66 pairs)
+  and disconfirms B-P3/B-P5/B-P6; it does not establish a positive
+  decoder-scale merge-triage signal.
+
+### Reproducibility
+
+Scripts: `scripts/n133_train_adapters.py`,
+`scripts/n133_spectral_audit.py`, `scripts/n133_merge_eval.py`,
+`scripts/n133_analysis.py`. Single H100 GPU, ~6 hours end-to-end
+(4 h training, 1 h spectral audit, ~1 h merge evaluation, <1 min
+analysis). Resume-friendly: every phase skips its output JSON
+if present. B-P5 diagnostic scripts (CPU-only, local):
+`scripts/n133_bp5_composite_risk.py` (10 composite risk variants
+vs max_degradation on 12 evaluated pairs),
+`scripts/n133_bp5_confound_check.py` (inv_min_erank on
+compressed-erank subset + corrected-sign alignment triage on all
+60 cross-task pairs),
+`scripts/n133_tied_pairs_analysis.py` (tied-pair resolution
+analysis underlying observation B-P5.a; output
+`sidecar/data/n133/tied_pairs_analysis.json`),
+`scripts/n133_family_residualized_baseline.py` (family-residualized
+partial correlations underlying B-P5.b and the pre-registered
+reference implementation of the N134 H1 decision rule; output
+`sidecar/data/n133/family_residualized_baseline.json`),
+`scripts/n133_knots_tsv_proxy.py` (16-aggregation sweep underlying
+B-P5.c and the KnOTS/TSV proxy caveat; output
+`sidecar/data/n133/knots_tsv_proxy.json`). Diagnostic note:
+`sidecar/notes/n133_bp5_diagnostic.md`. N134 spec:
+`sidecar/notes/n134_spec.md`.
+
+Input: Mistral-7B-v0.3 (HuggingFace), 6 datasets
+(SST-2, MNLI, SQuAD v1.1, GSM8K, CodeAlpaca-20k, XSum).
+Output: `sidecar/data/n133/` (12 adapters, 4 audit JSONs, 18 merge
+JSONs + summary, analysis summary.json, 3 diagnostic figures).

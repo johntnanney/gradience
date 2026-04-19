@@ -458,6 +458,38 @@ def phase5_ap2(w0_df: pd.DataFrame, erank_df: pd.DataFrame,
 
     pooled_df = pd.DataFrame(pooled_rows)
     if len(pooled_df) >= 10:
+        # Pooled Spearman + within-module residualized correlation
+        # (Simpson's paradox guard). See docs/FINDINGS.md §28 and
+        # sidecar/notes/n133b_distilbert_per_module_reanalysis.md
+        rho_pool, p_pool = stats.spearmanr(pooled_df["C_k"], pooled_df["mean_alignment"])
+        C_res = pooled_df["C_k"].astype(float).to_numpy().copy()
+        A_res = pooled_df["mean_alignment"].astype(float).to_numpy().copy()
+        mods = pooled_df["module"].to_numpy()
+        for m in np.unique(mods):
+            mask = mods == m
+            if mask.sum() == 0:
+                continue
+            C_res[mask] -= C_res[mask].mean()
+            A_res[mask] -= A_res[mask].mean()
+        rho_wm, p_wm = stats.spearmanr(C_res, A_res)
+        r_wm, pr_wm = stats.pearsonr(C_res, A_res)
+        print(f"  Pooled ρ(C_k, align):        {rho_pool:+.4f} (p = {p_pool:.4f})")
+        print(f"  Within-module ρ(C_k, align): {rho_wm:+.4f} (p = {p_wm:.4f})")
+        print(f"  Within-module Pearson r:     {r_wm:+.4f} (p = {pr_wm:.4f})")
+        if abs(rho_pool) >= 0.25 and abs(rho_wm) < 0.15:
+            print(f"  ⚠ Simpson warning: pooled ρ={rho_pool:+.3f} but "
+                  f"within-module ρ={rho_wm:+.3f} — pooled may be a "
+                  f"between-module artifact.")
+        if np.sign(rho_pool) != np.sign(rho_wm) and abs(rho_pool) >= 0.15:
+            print(f"  ⚠ Simpson warning: pooled and within-module C_k "
+                  f"correlations have OPPOSITE SIGN.")
+        results["within_module"] = {
+            "rho_pooled": float(rho_pool), "p_pooled": float(p_pool),
+            "rho_within": float(rho_wm), "p_within": float(p_wm),
+            "pearson_r_within": float(r_wm), "pearson_p_within": float(pr_wm),
+            "n": int(len(pooled_df)),
+        }
+
         pooled_df["C_k_z"] = (pooled_df["C_k"] - pooled_df["C_k"].mean()) / pooled_df["C_k"].std()
         pooled_df["erank_z"] = (pooled_df["mean_erank"] - pooled_df["mean_erank"].mean()) / pooled_df["mean_erank"].std()
         pooled_df["interaction"] = pooled_df["C_k_z"] * pooled_df["erank_z"]
