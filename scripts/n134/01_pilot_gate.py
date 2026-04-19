@@ -51,7 +51,7 @@ EVAL_ROOT = Path("/workspace/n134/pilot/evals")
 OUTPUT_FILE = Path("/workspace/n134/pilot/pilot_gate.json")
 LEDGER_FILE = Path("/workspace/n134/pilot/retry_ledger.json")
 
-TASKS = ["arc", "hellaswag", "winogrande", "openbookqa", "commonsenseqa", "piqa", "siqa", "boolq"]
+TASKS = ["arc_challenge", "hellaswag", "winogrande", "openbookqa", "commonsenseqa", "piqa", "siqa", "boolq"]
 RESERVE_TASKS = ["logiqa", "anli_r1", "cosmos_qa"]  # §3.2 reserve list
 SEED = 42
 

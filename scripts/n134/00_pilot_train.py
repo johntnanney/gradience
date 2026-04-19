@@ -65,7 +65,7 @@ LORA_CONFIG = {
     "task_type": TaskType.CAUSAL_LM,
 }
 
-TASKS = ["arc", "hellaswag", "winogrande", "openbookqa", "commonsenseqa", "piqa", "siqa", "boolq"]
+TASKS = ["arc_challenge", "hellaswag", "winogrande", "openbookqa", "commonsenseqa", "piqa", "siqa", "boolq"]
 
 MAX_SEQ_LEN = 512
 MAX_TRAIN_SAMPLES = 5000
@@ -196,7 +196,7 @@ def format_boolq(example):
 
 
 FORMATTERS = {
-    "arc": format_arc,
+    "arc_challenge": format_arc,
     "hellaswag": format_hellaswag,
     "winogrande": format_winogrande,
     "openbookqa": format_openbookqa,
@@ -215,7 +215,7 @@ def load_task_dataset(task: str, smoke: bool = False):
     max_train = SMOKE_TRAIN_SAMPLES if smoke else MAX_TRAIN_SAMPLES
     max_eval = SMOKE_EVAL_SAMPLES if smoke else MAX_EVAL_SAMPLES
 
-    if task == "arc":
+    if task == "arc_challenge":
         ds = load_dataset("allenai/ai2_arc", "ARC-Challenge", cache_dir=CACHE_DIR)
         train = ds["train"].select(range(min(max_train, len(ds["train"]))))
         val = ds["validation"].select(range(min(max_eval, len(ds["validation"]))))
@@ -465,7 +465,7 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
 
 def _candidate_labels(task: str) -> list[str]:
     """Valid answer labels per task (MMLU-style scoring)."""
-    if task in ("arc", "openbookqa"):
+    if task in ("arc_challenge", "openbookqa"):
         return ["A", "B", "C", "D"]
     if task in ("hellaswag", "piqa"):
         return ["A", "B", "C", "D"] if task == "hellaswag" else ["A", "B"]
