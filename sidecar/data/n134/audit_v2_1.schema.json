@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "N134 Adapter Spectral Audit v2.1",
+  "description": "Per-adapter spectral audit with U/V factor persistence. Required for KnOTS/TSV/SVC scheduled comparison.",
+  "type": "object",
+  "required": ["adapter_id", "base_model", "layers", "meta"],
+  "properties": {
+    "adapter_id": {
+      "type": "string",
+      "description": "Adapter identifier, e.g. 'arc_challenge_s42'"
+    },
+    "base_model": {
+      "type": "string",
+      "const": "mistralai/Mistral-7B-v0.3"
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "layer_idx", "module", "rank", "singular_values",
+          "u_factor", "v_factor",
+          "stable_rank", "energy_rank_90", "entropy_effective_rank", "frobenius_norm"
+        ],
+        "properties": {
+          "layer_idx": {"type": "integer", "minimum": 0},
+          "module": {"type": "string", "enum": ["q_proj", "k_proj", "v_proj", "o_proj"]},
+          "rank": {"type": "integer", "minimum": 1},
+          "singular_values": {
+            "type": "array",
+            "items": {"type": "number"},
+            "description": "Length = nominal rank, descending order"
+          },
+          "u_factor": {
+            "type": "array",
+            "items": {"type": "array", "items": {"type": "number"}},
+            "description": "Shape (d_out, rank), float32"
+          },
+          "v_factor": {
+            "type": "array",
+            "items": {"type": "array", "items": {"type": "number"}},
+            "description": "Shape (rank, d_in), float32"
+          },
+          "stable_rank": {"type": "number", "minimum": 0},
+          "energy_rank_90": {"type": "integer", "minimum": 0},
+          "entropy_effective_rank": {"type": "number", "minimum": 0},
+          "frobenius_norm": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "required": ["task", "seed", "training_steps", "final_val_accuracy"],
+      "properties": {
+        "task": {"type": "string"},
+        "seed": {"type": "integer"},
+        "training_steps": {"type": "integer"},
+        "final_val_accuracy": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}

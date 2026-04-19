@@ -1,0 +1,868 @@
+"""N134 four-method scheduled comparison.
+
+Compares four merge-risk triage methods on N134 cross-task pairs:
+
+    1. Gradience: S_H1 (O-module depth-weighted alignment)
+    2. KnOTS (Stoica et al. 2024): joint SVD rotation, interference norm
+    3. TSV (Gargiulo et al. 2025): task-singular-vector whitened interference
+    4. SVC (Li et al. 2026): singular-value rescaling, SV-inflation index
+
+Methods 2-4 are implemented from U/V factors stored in audit v2.1 files.
+If a method's adaptation is judged unfaithful (e.g. missing required data),
+it is reported as "adaptation_inadequate".
+
+Comparison protocol:
+    - Rank 45 cross-task pairs by each method's risk score
+    - Select "safe" lowest-half (N=22 pairs)
+    - Measure mean max_degradation in retained set
+    - Block-bootstrap CIs (5000 resamples, family-pair-blocked)
+
+Inputs:
+    /workspace/n134/audit/pair_alignment_full.json
+    /workspace/n134/audit/adapter_profiles.json
+    /workspace/n134/audit/v2.1/*.json  (per-pair audit v2.1 with U/V factors)
+    /workspace/n134/merges/merge_eval_summary.json
+
+Output:
+    /workspace/n134/method_comparison.json
+    /workspace/n134/figures/method_*.png
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+
+WORKSPACE = Path("/workspace/n134")
+AUDIT_DIR = WORKSPACE / "audit"
+AUDIT_V21_DIR = AUDIT_DIR / "v2.1"
+MERGE_DIR = WORKSPACE / "merges"
+FIG_DIR = WORKSPACE / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+N_LAYERS = 32
+N_BOOTSTRAP = 5000
+RNG_SEED = 20260418
+N_RETAIN = 22  # retain lowest-risk half of 45 cross-task pairs (floor(45/2))
+
+# FAMILY_B partition
+FAMILY_B: dict[str, str] = {
+    "arc_challenge": "science_qa",
+    "hellaswag": "commonsense_completion",
+    "winogrande": "coreference_commonsense",
+    "openbookqa": "knowledge_qa",
+    "commonsenseqa": "commonsense_qa",
+    "piqa": "physical_commonsense",
+    "siqa": "social_commonsense",
+    "boolq": "reading_comprehension",
+}
+
+
+# ---------------------------------------------------------------------------
+# Data loading
+# ---------------------------------------------------------------------------
+
+def load_inputs() -> tuple[dict, dict, dict, dict]:
+    pair_full = json.loads((AUDIT_DIR / "pair_alignment_full.json").read_text())
+    profiles = json.loads((AUDIT_DIR / "adapter_profiles.json").read_text())
+    merges = json.loads((MERGE_DIR / "merge_eval_summary.json").read_text())
+
+    # Load v2.1 audit files (per-pair, contain U/V factors)
+    v21 = {}
+    if AUDIT_V21_DIR.exists():
+        for f in sorted(AUDIT_V21_DIR.glob("*.json")):
+            try:
+                data = json.loads(f.read_text())
+                pair_key = data.get("pair_key", f.stem)
+                v21[pair_key] = data
+            except (json.JSONDecodeError, KeyError):
+                print(f"  Warning: could not load v2.1 audit file {f.name}")
+    return pair_full, profiles, merges, v21
+
+
+def max_degradation(merge_entry: dict) -> float:
+    ta, tb = merge_entry["task_a"], merge_entry["task_b"]
+    degs = []
+    for t in [ta, tb]:
+        k = f"degradation_{t}"
+        if k in merge_entry:
+            degs.append(merge_entry[k])
+    return max(degs) if degs else float("nan")
+
+
+def build_eval_pairs(merges: dict) -> dict[str, float]:
+    out = {}
+    for r in merges["results"]:
+        if r.get("category") == "same_task":
+            continue
+        deg = max_degradation(r)
+        if np.isfinite(deg):
+            out[r["pair"]] = deg
+    return out
+
+
+def family_pair_label(task_a: str, task_b: str) -> str:
+    fa = FAMILY_B.get(task_a, task_a)
+    fb = FAMILY_B.get(task_b, task_b)
+    return "|".join(sorted([fa, fb]))
+
+
+# ---------------------------------------------------------------------------
+# Method 1: Gradience S_H1
+# ---------------------------------------------------------------------------
+
+def compute_s_h1(pair: dict) -> float:
+    """O-module depth-weighted alignment (same as 06_analysis_h1.py)."""
+    o_entries = sorted(
+        [(layer["layer"], layer["alignment"])
+         for layer in pair["per_layer"]
+         if layer["module"] == "O"],
+        key=lambda x: x[0],
+    )
+    if not o_entries:
+        return float("nan")
+    depths = np.array([e[0] for e in o_entries], dtype=float)
+    alphas = np.array([e[1] for e in o_entries], dtype=float)
+    weights = (depths + 1.0) / N_LAYERS
+    return float(np.sum(weights * alphas) / np.sum(weights))
+
+
+def gradience_scores(pair_full: dict) -> dict[str, float]:
+    return {key: compute_s_h1(pair) for key, pair in pair_full.items()}
+
+
+# ---------------------------------------------------------------------------
+# Method 2: KnOTS — joint SVD rotation, interference norm
+# ---------------------------------------------------------------------------
+
+def knots_score_from_v21(v21_data: dict) -> float:
+    """KnOTS triage signal from audit v2.1 U/V factors.
+
+    For each layer: project both adapters into a shared SVD basis,
+    compute interference term norm in the shared basis.
+    Aggregate across layers as the risk score.
+    """
+    per_layer = v21_data.get("per_layer", [])
+    if not per_layer:
+        return float("nan")
+
+    interference_norms = []
+    for layer in per_layer:
+        # v2.1 stores U_a, V_a, U_b, V_b, sigma_a, sigma_b as lists
+        U_a = layer.get("U_a")
+        V_a = layer.get("V_a")
+        U_b = layer.get("U_b")
+        V_b = layer.get("V_b")
+        sigma_a = layer.get("sigma_a")
+        sigma_b = layer.get("sigma_b")
+
+        if any(x is None for x in [U_a, V_a, U_b, V_b, sigma_a, sigma_b]):
+            continue
+
+        U_a = np.array(U_a)
+        V_a = np.array(V_a)
+        U_b = np.array(U_b)
+        V_b = np.array(V_b)
+        sigma_a = np.array(sigma_a)
+        sigma_b = np.array(sigma_b)
+
+        # KnOTS: joint SVD rotation
+        # Reconstruct low-rank updates: delta_a = U_a @ diag(sigma_a) @ V_a^T
+        # Shared basis via SVD of stacked U factors
+        r_a = min(U_a.shape[1], len(sigma_a))
+        r_b = min(U_b.shape[1], len(sigma_b))
+        U_a = U_a[:, :r_a]
+        V_a = V_a[:, :r_a]
+        sigma_a = sigma_a[:r_a]
+        U_b = U_b[:, :r_b]
+        V_b = V_b[:, :r_b]
+        sigma_b = sigma_b[:r_b]
+
+        # Stack column spaces to find shared basis
+        U_stacked = np.hstack([U_a, U_b])
+        try:
+            Q, _ = np.linalg.qr(U_stacked)
+        except np.linalg.LinAlgError:
+            continue
+
+        # Project deltas into shared basis Q
+        # delta_a_proj = Q^T @ U_a @ diag(sigma_a) @ V_a^T
+        proj_a = Q.T @ U_a @ np.diag(sigma_a)
+        proj_b = Q.T @ U_b @ np.diag(sigma_b)
+
+        # Interference: cross-term magnitude
+        # || proj_a @ proj_b^T || gives interference in shared left-singular space
+        interference = proj_a @ proj_b.T
+        interference_norms.append(float(np.linalg.norm(interference, "fro")))
+
+    if not interference_norms:
+        return float("nan")
+
+    return float(np.mean(interference_norms))
+
+
+def knots_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
+    """Compute KnOTS scores. Returns (scores, is_faithful)."""
+    if not v21:
+        return {}, False
+
+    scores = {}
+    n_computed = 0
+    n_total = 0
+    for key in pair_full:
+        n_total += 1
+        if key in v21:
+            score = knots_score_from_v21(v21[key])
+            if np.isfinite(score):
+                scores[key] = score
+                n_computed += 1
+            else:
+                scores[key] = float("nan")
+        else:
+            scores[key] = float("nan")
+
+    # Require at least 50% coverage to consider faithful
+    is_faithful = n_computed >= n_total * 0.5
+    return scores, is_faithful
+
+
+# ---------------------------------------------------------------------------
+# Method 3: TSV — task-singular-vector whitened interference
+# ---------------------------------------------------------------------------
+
+def tsv_score_from_v21(v21_data: dict) -> float:
+    """TSV triage signal from audit v2.1 U/V factors.
+
+    Compute task-singular vectors from U factors, whiten the
+    interference between adapters using TSV transformation.
+    Risk = magnitude of whitened interference.
+    """
+    per_layer = v21_data.get("per_layer", [])
+    if not per_layer:
+        return float("nan")
+
+    whitened_norms = []
+    for layer in per_layer:
+        U_a = layer.get("U_a")
+        U_b = layer.get("U_b")
+        sigma_a = layer.get("sigma_a")
+        sigma_b = layer.get("sigma_b")
+
+        if any(x is None for x in [U_a, U_b, sigma_a, sigma_b]):
+            continue
+
+        U_a = np.array(U_a)
+        U_b = np.array(U_b)
+        sigma_a = np.array(sigma_a)
+        sigma_b = np.array(sigma_b)
+
+        r_a = min(U_a.shape[1], len(sigma_a))
+        r_b = min(U_b.shape[1], len(sigma_b))
+        U_a = U_a[:, :r_a]
+        U_b = U_b[:, :r_b]
+        sigma_a = sigma_a[:r_a]
+        sigma_b = sigma_b[:r_b]
+
+        # TSV: task-singular vectors are the dominant U directions
+        # Whitening transform: normalize each adapter's U columns by their SVs
+        # so that interference is measured in variance-normalized space
+        if sigma_a.sum() < 1e-12 or sigma_b.sum() < 1e-12:
+            continue
+
+        # Whitened U: scale columns by 1/sqrt(sigma)
+        inv_sqrt_a = 1.0 / np.sqrt(sigma_a + 1e-12)
+        inv_sqrt_b = 1.0 / np.sqrt(sigma_b + 1e-12)
+
+        U_a_white = U_a * inv_sqrt_a[np.newaxis, :]
+        U_b_white = U_b * inv_sqrt_b[np.newaxis, :]
+
+        # Whitened interference: overlap of whitened column spaces
+        cross = U_a_white.T @ U_b_white
+        whitened_norms.append(float(np.linalg.norm(cross, "fro")))
+
+    if not whitened_norms:
+        return float("nan")
+
+    return float(np.mean(whitened_norms))
+
+
+def tsv_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
+    """Compute TSV scores. Returns (scores, is_faithful)."""
+    if not v21:
+        return {}, False
+
+    scores = {}
+    n_computed = 0
+    n_total = 0
+    for key in pair_full:
+        n_total += 1
+        if key in v21:
+            score = tsv_score_from_v21(v21[key])
+            if np.isfinite(score):
+                scores[key] = score
+                n_computed += 1
+            else:
+                scores[key] = float("nan")
+        else:
+            scores[key] = float("nan")
+
+    is_faithful = n_computed >= n_total * 0.5
+    return scores, is_faithful
+
+
+# ---------------------------------------------------------------------------
+# Method 4: SVC — singular-value rescaling, SV-inflation index
+# ---------------------------------------------------------------------------
+
+def svc_score_from_v21(v21_data: dict) -> float:
+    """SVC triage signal from audit v2.1 U/V factors.
+
+    SV-inflation index: fraction of singular values concentrated
+    in shared directions between adapters.
+
+    inflation_index = sum of SVs in shared directions / sum of all SVs
+    Higher inflation -> higher risk.
+    """
+    per_layer = v21_data.get("per_layer", [])
+    if not per_layer:
+        return float("nan")
+
+    inflation_values = []
+    for layer in per_layer:
+        U_a = layer.get("U_a")
+        U_b = layer.get("U_b")
+        sigma_a = layer.get("sigma_a")
+        sigma_b = layer.get("sigma_b")
+
+        if any(x is None for x in [U_a, U_b, sigma_a, sigma_b]):
+            continue
+
+        U_a = np.array(U_a)
+        U_b = np.array(U_b)
+        sigma_a = np.array(sigma_a)
+        sigma_b = np.array(sigma_b)
+
+        r_a = min(U_a.shape[1], len(sigma_a))
+        r_b = min(U_b.shape[1], len(sigma_b))
+        U_a = U_a[:, :r_a]
+        U_b = U_b[:, :r_b]
+        sigma_a = sigma_a[:r_a]
+        sigma_b = sigma_b[:r_b]
+
+        total_sv_energy = sigma_a.sum() + sigma_b.sum()
+        if total_sv_energy < 1e-12:
+            continue
+
+        # Compute overlap: how much SV energy is in shared directions
+        # Overlap matrix: U_a^T @ U_b gives directional overlap
+        overlap = U_a.T @ U_b  # shape (r_a, r_b)
+
+        # Weight overlaps by the geometric mean of corresponding SVs
+        shared_energy = 0.0
+        for i in range(r_a):
+            for j in range(r_b):
+                shared_energy += abs(overlap[i, j]) * np.sqrt(sigma_a[i] * sigma_b[j])
+
+        inflation = shared_energy / (total_sv_energy + 1e-12)
+        inflation_values.append(float(inflation))
+
+    if not inflation_values:
+        return float("nan")
+
+    return float(np.mean(inflation_values))
+
+
+def svc_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
+    """Compute SVC scores. Returns (scores, is_faithful)."""
+    if not v21:
+        return {}, False
+
+    scores = {}
+    n_computed = 0
+    n_total = 0
+    for key in pair_full:
+        n_total += 1
+        if key in v21:
+            score = svc_score_from_v21(v21[key])
+            if np.isfinite(score):
+                scores[key] = score
+                n_computed += 1
+            else:
+                scores[key] = float("nan")
+        else:
+            scores[key] = float("nan")
+
+    is_faithful = n_computed >= n_total * 0.5
+    return scores, is_faithful
+
+
+# ---------------------------------------------------------------------------
+# Triage evaluation: retain lowest-risk half, measure mean degradation
+# ---------------------------------------------------------------------------
+
+def triage_eval(
+    scores: dict[str, float],
+    eval_degs: dict[str, float],
+    n_retain: int = N_RETAIN,
+) -> dict:
+    """Evaluate triage: retain n_retain lowest-risk pairs, report mean degradation."""
+    eval_pairs = sorted(eval_degs.keys())
+    valid_pairs = [p for p in eval_pairs if p in scores and np.isfinite(scores[p])]
+
+    if len(valid_pairs) < n_retain:
+        return {
+            "status": "insufficient_valid_scores",
+            "n_valid": len(valid_pairs),
+            "n_required": n_retain,
+        }
+
+    # Sort by risk score ascending (lowest risk first)
+    ranked = sorted(valid_pairs, key=lambda p: scores[p])
+    set(ranked[:n_retain])
+    set(ranked[n_retain:])
+
+    retained_degs = [eval_degs[p] for p in ranked[:n_retain]]
+    rejected_degs = [eval_degs[p] for p in ranked[n_retain:] if p in eval_degs]
+
+    mean_retained = float(np.mean(retained_degs))
+    mean_rejected = float(np.mean(rejected_degs)) if rejected_degs else float("nan")
+    mean_all = float(np.mean([eval_degs[p] for p in eval_pairs]))
+
+    # Count "good" merges (max_deg < 0.10) retained vs missed
+    good_retained = sum(1 for d in retained_degs if d < 0.10)
+    good_total = sum(1 for p in eval_pairs if eval_degs[p] < 0.10)
+
+    return {
+        "n_retained": n_retain,
+        "n_rejected": len(valid_pairs) - n_retain,
+        "mean_degradation_retained": mean_retained,
+        "mean_degradation_rejected": mean_rejected,
+        "mean_degradation_all": mean_all,
+        "improvement_over_random": mean_all - mean_retained,
+        "good_merges_retained": good_retained,
+        "good_merges_total": good_total,
+        "recall_good": good_retained / good_total if good_total > 0 else float("nan"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Block bootstrap for triage metric
+# ---------------------------------------------------------------------------
+
+def bootstrap_triage_ci(
+    scores: dict[str, float],
+    eval_degs: dict[str, float],
+    pair_full: dict,
+    n_retain: int = N_RETAIN,
+    n_boot: int = N_BOOTSTRAP,
+    seed: int = RNG_SEED,
+) -> dict:
+    """Block-bootstrap CI for mean degradation in retained set."""
+    rng = np.random.default_rng(seed)
+    eval_pairs = sorted(p for p in eval_degs if p in scores and np.isfinite(scores[p]))
+
+    if len(eval_pairs) < n_retain:
+        return {"status": "insufficient_data"}
+
+    cell_labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"])
+                   for p in eval_pairs]
+    unique_cells = sorted(set(cell_labels))
+    cell_indices = {c: [i for i, lab in enumerate(cell_labels) if lab == c]
+                    for c in unique_cells}
+
+    mean_degs = []
+    for _ in range(n_boot):
+        sampled_cells = rng.choice(unique_cells, size=len(unique_cells), replace=True)
+        idx = []
+        for c in sampled_cells:
+            idx.extend(cell_indices[c])
+        idx = np.array(idx)
+
+        if len(idx) < n_retain:
+            continue
+
+        boot_pairs = [eval_pairs[i] for i in idx]
+        boot_scores = [(p, scores[p]) for p in boot_pairs if np.isfinite(scores[p])]
+        boot_scores.sort(key=lambda x: x[1])
+        k = min(n_retain, len(boot_scores))
+        retained = boot_scores[:k]
+        degs = [eval_degs[p] for p, _ in retained]
+        if degs:
+            mean_degs.append(float(np.mean(degs)))
+
+    if not mean_degs:
+        return {"status": "no_valid_bootstraps"}
+
+    arr = np.array(mean_degs)
+    return {
+        "n_valid_boots": len(arr),
+        "mean_deg_mean": float(arr.mean()),
+        "mean_deg_ci_025": float(np.percentile(arr, 2.5)),
+        "mean_deg_ci_975": float(np.percentile(arr, 97.5)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Figures
+# ---------------------------------------------------------------------------
+
+def plot_method_comparison(method_results: dict, out_path: Path) -> None:
+    """Bar chart: mean degradation in retained set per method."""
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    methods = []
+    means = []
+    ci_lo = []
+    ci_hi = []
+    colors = []
+
+    color_map = {
+        "gradience": "#3498db",
+        "knots": "#e67e22",
+        "tsv": "#2ecc71",
+        "svc": "#9b59b6",
+    }
+
+    for name, result in method_results.items():
+        triage = result.get("triage")
+        boot = result.get("bootstrap")
+        if triage and triage.get("status") is None:
+            methods.append(name)
+            means.append(triage["mean_degradation_retained"] * 100)
+            if boot and boot.get("status") is None:
+                ci_lo.append(boot["mean_deg_ci_025"] * 100)
+                ci_hi.append(boot["mean_deg_ci_975"] * 100)
+            else:
+                ci_lo.append(0)
+                ci_hi.append(0)
+            colors.append(color_map.get(name, "#95a5a6"))
+
+    if not methods:
+        plt.close(fig)
+        return
+
+    x = np.arange(len(methods))
+    yerr_lo = [m - lo for m, lo in zip(means, ci_lo)]
+    yerr_hi = [hi - m for m, hi in zip(means, ci_hi)]
+    ax.bar(x, means, color=colors, edgecolor="white", width=0.6)
+    ax.errorbar(x, means, yerr=[yerr_lo, yerr_hi], fmt="none",
+                ecolor="black", capsize=5, capthick=1.5)
+
+    # Random baseline
+    random_mean = method_results.get("gradience", {}).get("triage", {}).get("mean_degradation_all")
+    if random_mean is not None:
+        ax.axhline(random_mean * 100, color="gray", linestyle="--", linewidth=1.5,
+                   label=f"random baseline: {random_mean * 100:.1f}%")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([m.upper() for m in methods], fontsize=11)
+    ax.set_ylabel("Mean max degradation in retained set (%)", fontsize=11)
+    ax.set_title(f"N134: four-method triage comparison (retain {N_RETAIN} lowest-risk pairs)",
+                 fontsize=12)
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.3, axis="y")
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def plot_rank_correlation(method_results: dict, eval_degs: dict, out_path: Path) -> None:
+    """Scatter: each method's risk score vs max_degradation (2x2 grid)."""
+    eval_pairs = sorted(eval_degs.keys())
+    np.array([eval_degs[p] for p in eval_pairs]) * 100
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    method_names = ["gradience", "knots", "tsv", "svc"]
+    method_labels = ["Gradience (S_H1)", "KnOTS", "TSV", "SVC"]
+    color_list = ["#3498db", "#e67e22", "#2ecc71", "#9b59b6"]
+
+    for ax, name, label, color in zip(axes.flat, method_names, method_labels, color_list):
+        result = method_results.get(name, {})
+        scores = result.get("scores", {})
+
+        if result.get("status") == "adaptation_inadequate":
+            ax.text(0.5, 0.5, f"{label}\n(adaptation inadequate)",
+                    ha="center", va="center", transform=ax.transAxes, fontsize=12)
+            ax.set_title(label, fontsize=11)
+            continue
+
+        x_vals = []
+        y_vals = []
+        for p in eval_pairs:
+            if p in scores and np.isfinite(scores[p]):
+                x_vals.append(scores[p])
+                y_vals.append(eval_degs[p] * 100)
+
+        if not x_vals:
+            ax.text(0.5, 0.5, f"{label}\n(no data)",
+                    ha="center", va="center", transform=ax.transAxes, fontsize=12)
+            ax.set_title(label, fontsize=11)
+            continue
+
+        x_arr = np.array(x_vals)
+        y_arr = np.array(y_vals)
+        rho, p_val = stats.spearmanr(x_arr, y_arr)
+
+        ax.scatter(x_arr, y_arr, c=color, s=60, edgecolors="white", linewidth=0.7, alpha=0.8)
+        ax.axhline(10, color="gray", linestyle="--", alpha=0.5)
+        ax.set_xlabel("Risk score", fontsize=10)
+        ax.set_ylabel("Max degradation (%)", fontsize=10)
+        ax.set_title(f"{label}\nrho = {rho:+.3f}, p = {p_val:.3e}", fontsize=11)
+        ax.grid(True, alpha=0.3)
+
+    fig.suptitle("N134: risk score vs merge degradation per method", fontsize=13)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    print("=" * 74)
+    print("  N134 four-method scheduled comparison")
+    print("=" * 74)
+
+    # ---- Load ----
+    pair_full, profiles, merges, v21 = load_inputs()
+    eval_degs = build_eval_pairs(merges)
+    eval_pairs = sorted(eval_degs.keys())
+    n_eval = len(eval_pairs)
+
+    print(f"\n  Loaded {len(pair_full)} pairs, {len(profiles)} profiles, "
+          f"{n_eval} evaluated cross-task pairs")
+    print(f"  Audit v2.1 files: {len(v21)} pairs")
+    print(f"  Retain threshold: {N_RETAIN} lowest-risk pairs")
+
+    method_results: dict[str, dict] = {}
+
+    # ---- Method 1: Gradience S_H1 ----
+    print("\n" + "-" * 74)
+    print("  Method 1: Gradience (S_H1)")
+    print("-" * 74)
+
+    g_scores = gradience_scores(pair_full)
+    g_triage = triage_eval(g_scores, eval_degs)
+    g_boot = bootstrap_triage_ci(g_scores, eval_degs, pair_full)
+
+    rho_raw, p_raw = stats.spearmanr(
+        [g_scores[p] for p in eval_pairs if np.isfinite(g_scores.get(p, float("nan")))],
+        [eval_degs[p] for p in eval_pairs if np.isfinite(g_scores.get(p, float("nan")))],
+    )
+
+    print(f"  Spearman rho vs max_deg: {rho_raw:+.4f} (p = {p_raw:.4e})")
+    if g_triage.get("status") is None:
+        print(f"  Mean degradation (retained): {g_triage['mean_degradation_retained']:.4f}")
+        print(f"  Mean degradation (all):      {g_triage['mean_degradation_all']:.4f}")
+        print(f"  Improvement over random:     {g_triage['improvement_over_random']:+.4f}")
+        print(f"  Good-merge recall:           {g_triage['recall_good']:.2f}")
+    if g_boot.get("status") is None:
+        print(f"  Bootstrap CI (retained deg): [{g_boot['mean_deg_ci_025']:.4f}, "
+              f"{g_boot['mean_deg_ci_975']:.4f}]")
+
+    method_results["gradience"] = {
+        "scores": g_scores,
+        "triage": g_triage,
+        "bootstrap": g_boot,
+        "spearman_rho": float(rho_raw),
+        "spearman_p": float(p_raw),
+        "status": "computed",
+    }
+
+    # ---- Method 2: KnOTS ----
+    print("\n" + "-" * 74)
+    print("  Method 2: KnOTS (joint SVD rotation, interference norm)")
+    print("-" * 74)
+
+    k_scores, k_faithful = knots_scores(pair_full, v21)
+    if not k_faithful:
+        print("  STATUS: adaptation_inadequate (insufficient v2.1 data for faithful KnOTS)")
+        method_results["knots"] = {"status": "adaptation_inadequate", "scores": {}}
+    else:
+        k_triage = triage_eval(k_scores, eval_degs)
+        k_boot = bootstrap_triage_ci(k_scores, eval_degs, pair_full)
+
+        valid_k = [(k_scores[p], eval_degs[p]) for p in eval_pairs
+                    if np.isfinite(k_scores.get(p, float("nan")))]
+        if len(valid_k) >= 4:
+            rho_k, p_k = stats.spearmanr([v[0] for v in valid_k], [v[1] for v in valid_k])
+            print(f"  Spearman rho vs max_deg: {rho_k:+.4f} (p = {p_k:.4e})")
+        else:
+            rho_k, p_k = float("nan"), float("nan")
+            print("  Insufficient valid scores for Spearman")
+
+        if k_triage.get("status") is None:
+            print(f"  Mean degradation (retained): {k_triage['mean_degradation_retained']:.4f}")
+            print(f"  Improvement over random:     {k_triage['improvement_over_random']:+.4f}")
+        if k_boot.get("status") is None:
+            print(f"  Bootstrap CI (retained deg): [{k_boot['mean_deg_ci_025']:.4f}, "
+                  f"{k_boot['mean_deg_ci_975']:.4f}]")
+
+        method_results["knots"] = {
+            "scores": k_scores,
+            "triage": k_triage,
+            "bootstrap": k_boot,
+            "spearman_rho": float(rho_k),
+            "spearman_p": float(p_k),
+            "status": "computed",
+        }
+
+    # ---- Method 3: TSV ----
+    print("\n" + "-" * 74)
+    print("  Method 3: TSV (task-singular-vector whitened interference)")
+    print("-" * 74)
+
+    t_scores, t_faithful = tsv_scores(pair_full, v21)
+    if not t_faithful:
+        print("  STATUS: adaptation_inadequate (insufficient v2.1 data for faithful TSV)")
+        method_results["tsv"] = {"status": "adaptation_inadequate", "scores": {}}
+    else:
+        t_triage = triage_eval(t_scores, eval_degs)
+        t_boot = bootstrap_triage_ci(t_scores, eval_degs, pair_full)
+
+        valid_t = [(t_scores[p], eval_degs[p]) for p in eval_pairs
+                    if np.isfinite(t_scores.get(p, float("nan")))]
+        if len(valid_t) >= 4:
+            rho_t, p_t = stats.spearmanr([v[0] for v in valid_t], [v[1] for v in valid_t])
+            print(f"  Spearman rho vs max_deg: {rho_t:+.4f} (p = {p_t:.4e})")
+        else:
+            rho_t, p_t = float("nan"), float("nan")
+            print("  Insufficient valid scores for Spearman")
+
+        if t_triage.get("status") is None:
+            print(f"  Mean degradation (retained): {t_triage['mean_degradation_retained']:.4f}")
+            print(f"  Improvement over random:     {t_triage['improvement_over_random']:+.4f}")
+        if t_boot.get("status") is None:
+            print(f"  Bootstrap CI (retained deg): [{t_boot['mean_deg_ci_025']:.4f}, "
+                  f"{t_boot['mean_deg_ci_975']:.4f}]")
+
+        method_results["tsv"] = {
+            "scores": t_scores,
+            "triage": t_triage,
+            "bootstrap": t_boot,
+            "spearman_rho": float(rho_t),
+            "spearman_p": float(p_t),
+            "status": "computed",
+        }
+
+    # ---- Method 4: SVC ----
+    print("\n" + "-" * 74)
+    print("  Method 4: SVC (SV-inflation index)")
+    print("-" * 74)
+
+    s_scores, s_faithful = svc_scores(pair_full, v21)
+    if not s_faithful:
+        print("  STATUS: adaptation_inadequate (insufficient v2.1 data for faithful SVC)")
+        method_results["svc"] = {"status": "adaptation_inadequate", "scores": {}}
+    else:
+        s_triage = triage_eval(s_scores, eval_degs)
+        s_boot = bootstrap_triage_ci(s_scores, eval_degs, pair_full)
+
+        valid_s = [(s_scores[p], eval_degs[p]) for p in eval_pairs
+                    if np.isfinite(s_scores.get(p, float("nan")))]
+        if len(valid_s) >= 4:
+            rho_s, p_s = stats.spearmanr([v[0] for v in valid_s], [v[1] for v in valid_s])
+            print(f"  Spearman rho vs max_deg: {rho_s:+.4f} (p = {p_s:.4e})")
+        else:
+            rho_s, p_s = float("nan"), float("nan")
+            print("  Insufficient valid scores for Spearman")
+
+        if s_triage.get("status") is None:
+            print(f"  Mean degradation (retained): {s_triage['mean_degradation_retained']:.4f}")
+            print(f"  Improvement over random:     {s_triage['improvement_over_random']:+.4f}")
+        if s_boot.get("status") is None:
+            print(f"  Bootstrap CI (retained deg): [{s_boot['mean_deg_ci_025']:.4f}, "
+                  f"{s_boot['mean_deg_ci_975']:.4f}]")
+
+        method_results["svc"] = {
+            "scores": s_scores,
+            "triage": s_triage,
+            "bootstrap": s_boot,
+            "spearman_rho": float(rho_s),
+            "spearman_p": float(p_s),
+            "status": "computed",
+        }
+
+    # ---- Summary table ----
+    print("\n" + "=" * 74)
+    print("  SUMMARY")
+    print("=" * 74)
+    print(f"\n  {'Method':12s} {'Status':22s} {'rho':>8s} {'Retained deg':>14s} {'Improv':>10s}")
+    for name in ["gradience", "knots", "tsv", "svc"]:
+        r = method_results[name]
+        status = r["status"]
+        if status == "adaptation_inadequate":
+            print(f"  {name:12s} {'adaptation_inadequate':22s} {'---':>8s} {'---':>14s} {'---':>10s}")
+        else:
+            rho_str = f"{r.get('spearman_rho', float('nan')):+.3f}"
+            triage = r.get("triage", {})
+            if triage.get("status") is None:
+                deg_str = f"{triage['mean_degradation_retained']:.4f}"
+                imp_str = f"{triage['improvement_over_random']:+.4f}"
+            else:
+                deg_str = "N/A"
+                imp_str = "N/A"
+            print(f"  {name:12s} {'computed':22s} {rho_str:>8s} {deg_str:>14s} {imp_str:>10s}")
+
+    # ---- Figures ----
+    print("\n" + "-" * 74)
+    print("  FIGURES")
+    print("-" * 74)
+
+    p1 = FIG_DIR / "method_comparison_bar.png"
+    plot_method_comparison(method_results, p1)
+    print(f"\n  Saved {p1}")
+
+    p2 = FIG_DIR / "method_scatter_grid.png"
+    plot_rank_correlation(method_results, eval_degs, p2)
+    print(f"  Saved {p2}")
+
+    # ---- Save JSON ----
+    # Strip numpy arrays from scores for JSON serialization
+    serializable = {}
+    for name, r in method_results.items():
+        entry = {k: v for k, v in r.items() if k != "scores"}
+        # Convert scores dict values to plain floats
+        raw_scores = r.get("scores", {})
+        entry["per_pair_scores"] = {
+            k: float(v) if np.isfinite(v) else None
+            for k, v in raw_scores.items()
+        } if raw_scores else {}
+        serializable[name] = entry
+
+    report = {
+        "experiment": "N134 four-method scheduled comparison",
+        "protocol": {
+            "n_cross_task_pairs_evaluated": n_eval,
+            "n_retain": N_RETAIN,
+            "n_bootstrap": N_BOOTSTRAP,
+            "methods": ["gradience (S_H1)", "knots", "tsv", "svc"],
+        },
+        "methods": serializable,
+    }
+
+    out_path = WORKSPACE / "method_comparison.json"
+    out_path.write_text(json.dumps(report, indent=2, default=str))
+    print(f"\n  Saved {out_path}")
+
+    print("\n" + "=" * 74)
+    print("  N134 method comparison complete")
+    print("=" * 74)
+
+
+if __name__ == "__main__":
+    main()
