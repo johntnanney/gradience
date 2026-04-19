@@ -141,7 +141,7 @@ class TestMergeAuditExitCodes:
             assert result.returncode == 0, f"stderr: {result.stderr}"
             with open(out_path) as f:
                 data = json.load(f)
-            assert data["schema"] == "gradience.merge_qa_report/v1"
+            assert data["schema"].startswith("gradience.merge_qa_report/v1")
         finally:
             Path(out_path).unlink(missing_ok=True)
 

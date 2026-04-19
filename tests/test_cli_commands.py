@@ -399,7 +399,7 @@ class TestMergeAuditCommand:
 
         with open(emit_path) as f:
             data = json.load(f)
-        assert data["schema"] == "gradience.merge_qa_report/v1"
+        assert data["schema"].startswith("gradience.merge_qa_report/v1")
         assert "core_space" in data
         assert data["core_space"]["status"] in {"compatible", "marginal", "incompatible", "not_applicable"}
 

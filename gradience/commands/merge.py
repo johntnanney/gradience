@@ -113,8 +113,21 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
     # --- Output ---
     if getattr(args, "json", False):
         from gradience.vnext.merge import to_json
+        from gradience.vnext.merge.scale_detection import detect_scale, needs_risk_provenance_warning
 
-        print(jsonlib.dumps(to_json(report), indent=2))
+        json_data = to_json(report)
+        base_model_for_json = getattr(report.adapter_a, "base_model", "") or ""
+        if base_model_for_json and needs_risk_provenance_warning(base_model_for_json):
+            json_data["scale_validation"] = {
+                "detected_scale": detect_scale(base_model_for_json).value,
+                "risk_prediction_status": "unvalidated",
+                "source_geometry_status": "validated",
+                "note": (
+                    "Per-pair risk prediction not validated at decoder scale (N133). "
+                    "Source-adapter geometry validated."
+                ),
+            }
+        print(jsonlib.dumps(json_data, indent=2))
         return
 
     # Pretty-print summary
@@ -161,8 +174,23 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             print(f"- effective shared rank: {core.effective_shared_rank_median}")
             print(f"- status: {core.status}")
 
+    # --- Scale detection and provenance warning ---
+    from gradience.vnext.merge.scale_detection import detect_scale, needs_risk_provenance_warning
+
+    base_model_str = getattr(report.adapter_a, "base_model", "") or ""
+    _is_decoder = needs_risk_provenance_warning(base_model_str) if base_model_str else False
+    _detected = detect_scale(base_model_str) if base_model_str else None
+    if _is_decoder:
+        print(
+            "\n  Note: Per-pair risk prediction (verdicts, compatibility score, strategy\n"
+            "  recommendations) has not been validated against merge outcomes at decoder\n"
+            "  scale. Source-adapter characterization (spectral metrics, same-task vs.\n"
+            "  cross-task separation) remains valid. See FINDINGS.md \u00a728 for details."
+        )
+
     # --- Strategy Recommendations ---
     user_strategy = getattr(args, "strategy", None)
+    _scale_ctx = _detected.value if _detected and _is_decoder else None
     try:
         from gradience.vnext.merge.recommend import format_recommendation, recommend_merge
 
@@ -171,6 +199,7 @@ def cmd_merge_audit(args: argparse.Namespace) -> None:
             merge_rec,
             adapter_a_path=adapter_a,
             adapter_b_path=adapter_b,
+            scale_context=_scale_ctx,
         )
         print(rec_output)
 

@@ -85,8 +85,9 @@ class TestCalibrationSanity:
         assert DISENTANGLED_ATTENTION.alignment_safe < STANDARD_ATTENTION.alignment_safe
         assert DISENTANGLED_ATTENTION.alignment_risk < STANDARD_ATTENTION.alignment_risk
 
-    def test_standard_ck_predictive(self):
-        assert STANDARD_ATTENTION.ck_predictive is True
+    def test_standard_ck_not_predictive(self):
+        # Updated per N133 Phase 2: C_k is a Simpson's paradox artifact at decoder scale
+        assert STANDARD_ATTENTION.ck_predictive is False
 
     def test_disentangled_ck_not_predictive(self):
         assert DISENTANGLED_ATTENTION.ck_predictive is False

@@ -772,8 +772,18 @@ def format_recommendation(
     rec: MergeRecommendation,
     adapter_a_path: str = "./adapter-a",
     adapter_b_path: str = "./adapter-b",
+    scale_context: str | None = None,
 ) -> str:
-    """Format recommendation as rich CLI output."""
+    """Format recommendation as rich CLI output.
+
+    Parameters
+    ----------
+    rec : MergeRecommendation
+    adapter_a_path, adapter_b_path : str
+    scale_context : str or None
+        When set to ``"decoder"`` (or any non-encoder value), a one-line
+        provenance note is appended to the recommendation block.
+    """
     lines = []
 
     # Header
@@ -851,6 +861,11 @@ def format_recommendation(
     if rec.fallback_strategies:
         alts = ", ".join(rec.fallback_strategies)
         lines.append(f"  Alternative strategies: {alts}")
+        lines.append("")
+
+    # Provenance note for decoder-scale models
+    if scale_context is not None and scale_context != "encoder":
+        lines.append("  [Provenance: risk prediction unvalidated at decoder scale \u2014 N133]")
         lines.append("")
 
     return "\n".join(lines)

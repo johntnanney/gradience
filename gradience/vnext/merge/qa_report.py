@@ -41,7 +41,9 @@ from gradience.vnext.merge.recommend import (
 # Constants
 # ---------------------------------------------------------------------------
 
-SCHEMA_ID = "gradience.merge_qa_report/v1"
+SCHEMA_ID = "gradience.merge_qa_report/v1.1"
+_SCHEMA_V1 = "gradience.merge_qa_report/v1"
+_ACCEPTED_SCHEMAS = frozenset({SCHEMA_ID, _SCHEMA_V1})
 
 DOMINANT_ISSUE_LABELS = frozenset(
     {
@@ -230,10 +232,11 @@ class MergeQAReport:
     over_accumulation_summary: str | None = None
     over_accumulation_high_risk_layers: int = 0
     over_accumulation_watch_layers: int = 0
+    scale_validation: dict[str, str] | None = None  # provenance block for decoder-scale models
 
     def to_dict(self) -> dict[str, Any]:
         d = {
-            "schema": "gradience.merge_qa_report/v1",
+            "schema": SCHEMA_ID,
             "adapter_a": self.adapter_a.to_dict(),
             "adapter_b": self.adapter_b.to_dict(),
             "pair_risk": self.pair_risk,
@@ -258,6 +261,8 @@ class MergeQAReport:
             d["over_accumulation_summary"] = self.over_accumulation_summary or ""
             d["over_accumulation_high_risk_layers"] = int(self.over_accumulation_high_risk_layers)
             d["over_accumulation_watch_layers"] = int(self.over_accumulation_watch_layers)
+        if self.scale_validation is not None:
+            d["scale_validation"] = self.scale_validation
         return d
 
     def to_json(self, path: Path | str) -> None:
@@ -280,8 +285,8 @@ class MergeQAReport:
         # --- Schema identity ---
         if "schema" not in d:
             raise QASchemaError("Missing required field: schema")
-        if d["schema"] != SCHEMA_ID:
-            raise QASchemaError(f"Expected schema '{SCHEMA_ID}', got '{d['schema']}'")
+        if d["schema"] not in _ACCEPTED_SCHEMAS:
+            raise QASchemaError(f"Expected schema in {sorted(_ACCEPTED_SCHEMAS)}, got '{d['schema']}'")
 
         # --- Required adapter sections ---
         for section_name in ("adapter_a", "adapter_b"):
@@ -400,6 +405,12 @@ class MergeQAReport:
                 over_accumulation_high_risk_layers = int(d.get("over_accumulation_high_risk_layers", 0))
                 over_accumulation_watch_layers = int(d.get("over_accumulation_watch_layers", 0))
 
+        # --- Optional scale_validation block (v1.1) ---
+        raw_sv = d.get("scale_validation")
+        scale_validation: dict[str, str] | None = None
+        if raw_sv is not None and isinstance(raw_sv, dict):
+            scale_validation = {str(k): str(v) for k, v in raw_sv.items()}
+
         return cls(
             adapter_a=adapter_a,
             adapter_b=adapter_b,
@@ -420,6 +431,7 @@ class MergeQAReport:
             over_accumulation_summary=over_accumulation_summary,
             over_accumulation_high_risk_layers=over_accumulation_high_risk_layers,
             over_accumulation_watch_layers=over_accumulation_watch_layers,
+            scale_validation=scale_validation,
         )
 
 
@@ -477,6 +489,7 @@ def _recommended_action(
     diag: PairDiagnosis,
     rec: MergeRecommendation,
     agg: Any,
+    is_decoder_scale: bool = False,
 ) -> str:
     """One-sentence recommended action."""
     if diag.eligibility.both_weak:
@@ -487,6 +500,11 @@ def _recommended_action(
 
     if diag.overall_risk == "high":
         n_conf = getattr(agg, "n_conflicting", 0)
+        if is_decoder_scale:
+            return (
+                "Structural analysis suggests caution (risk prediction unvalidated "
+                "at this scale). Validate on downstream task."
+            )
         if n_conf > 0:
             return (
                 f"Merge with caution using audit-aware strategy (DARE-TIES on "
@@ -501,9 +519,16 @@ def _recommended_action(
         )
 
     if diag.overall_risk == "low":
+        if is_decoder_scale:
+            return "Merge appears structurally compatible (not validated at this scale)."
         return "Merge is safe. Use audit-aware strategy or norm-equalized baseline."
 
     # medium risk
+    if is_decoder_scale:
+        return (
+            "Structural analysis suggests moderate compatibility "
+            "(risk prediction unvalidated at this scale). Validate on downstream task."
+        )
     return "Merge with audit-aware strategy. Consider norm-equalized as simpler alternative."
 
 
@@ -532,9 +557,19 @@ def _confidence_note(diag: PairDiagnosis, score: float) -> str:
     return ". ".join(p if p.startswith("—") or p.startswith("(") else p for p in parts[:1]) + " " + " ".join(parts[1:])
 
 
-def _caveats(diag: PairDiagnosis, rec: MergeRecommendation) -> tuple[str, ...]:
+def _caveats(diag: PairDiagnosis, rec: MergeRecommendation, is_decoder_scale: bool = False) -> tuple[str, ...]:
     """Build caveats list from diagnosis and recommendation."""
     caveats: list[str] = []
+
+    # Decoder-scale provenance caveat (most important, goes first)
+    if is_decoder_scale:
+        caveats.append(
+            "DECODER-SCALE PROVENANCE: Verdict thresholds, risk levels, and strategy "
+            "recommendations were calibrated on encoder-scale experiments and have not "
+            "been validated against merge outcomes at this model scale. The spectral "
+            "metrics and same-task/cross-task classification remain valid. "
+            "Treat risk predictions as indicative, not calibrated."
+        )
 
     # Eligibility caveats
     if not diag.eligibility.has_data:
@@ -676,12 +711,22 @@ def build_qa_report(report: Any) -> MergeQAReport:
     -------
     MergeQAReport
     """
+    from gradience.vnext.merge.scale_detection import DetectedScale, detect_scale, needs_risk_provenance_warning
+
     diag = diagnose_pair(report)
     rec = recommend_merge(report)
     agg = report.aggregate
 
     adapter_a_info = report.adapter_a
     adapter_b_info = report.adapter_b
+
+    # Scale detection for provenance warnings
+    base_model_a = getattr(adapter_a_info, "base_model", "") or ""
+    base_model_b = getattr(adapter_b_info, "base_model", "") or ""
+    # Use adapter A's base model as the primary signal (they should match)
+    primary_base = base_model_a or base_model_b
+    is_decoder_scale = needs_risk_provenance_warning(primary_base) if primary_base else False
+    detected_scale = detect_scale(primary_base) if primary_base else DetectedScale.UNKNOWN
 
     adapter_a = AdapterSummary(
         path=getattr(adapter_a_info, "path", "unknown"),
@@ -743,17 +788,30 @@ def build_qa_report(report: Any) -> MergeQAReport:
 
     _task_rel = _task_relationship(report)
 
+    # Build scale_validation block for decoder-scale models
+    scale_validation_block: dict[str, str] | None = None
+    if is_decoder_scale:
+        scale_validation_block = {
+            "detected_scale": detected_scale.value,
+            "risk_prediction_status": "unvalidated",
+            "source_geometry_status": "validated",
+            "note": (
+                "Per-pair risk prediction not validated at decoder scale (N133). "
+                "Source-adapter geometry validated."
+            ),
+        }
+
     return MergeQAReport(
         adapter_a=adapter_a,
         adapter_b=adapter_b,
         pair_risk=diag.overall_risk,
         dominant_issue=issue_label,
         dominant_issue_detail=issue_detail,
-        recommended_action=_recommended_action(diag, rec, agg),
+        recommended_action=_recommended_action(diag, rec, agg, is_decoder_scale=is_decoder_scale),
         recommended_strategy=_derive_strategy(diag, rec),
         confidence=confidence,
         confidence_note=_confidence_note(diag, score),
-        caveats=_caveats(diag, rec),
+        caveats=_caveats(diag, rec, is_decoder_scale=is_decoder_scale),
         verdict_distribution=verdict_dist,
         compatibility_score=score,
         core_space=core_space_summary,
@@ -767,6 +825,7 @@ def build_qa_report(report: Any) -> MergeQAReport:
         ),
         over_accumulation_high_risk_layers=diag.over_accumulation_high_risk_layers,
         over_accumulation_watch_layers=diag.over_accumulation_watch_layers,
+        scale_validation=scale_validation_block,
     )
 
 

@@ -482,6 +482,14 @@ def merge_risk_report(
     -------
     MergeQAReport
         The canonical pair-level merge risk report.
+
+    .. note::
+
+       Risk predictions (verdicts, compatibility scores, strategy
+       recommendations) are calibrated on encoder-scale experiments.
+       At decoder scale (7B+ parameter models), source-adapter spectral
+       characterization is validated, but per-pair risk ranking is not.
+       See FINDINGS.md \u00a728 and the N134 experimental design for details.
     """
     import tempfile
 

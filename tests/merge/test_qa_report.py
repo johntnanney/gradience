@@ -555,7 +555,7 @@ class TestQAReportSerialization:
         qa = build_qa_report(report)
         d = qa.to_dict()
 
-        assert d["schema"] == "gradience.merge_qa_report/v1"
+        assert d["schema"] == "gradience.merge_qa_report/v1.1"
         assert "adapter_a" in d
         assert "adapter_b" in d
         assert "pair_risk" in d

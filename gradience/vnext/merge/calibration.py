@@ -39,7 +39,17 @@ References
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any
+
+
+class ScaleValidation(str, Enum):
+    """Empirical validation status for a claim or threshold."""
+
+    VALIDATED = "validated"  # Confirmed by experiment with merge outcomes
+    PARTIAL = "partial"  # Some aspects confirmed, others not
+    UNVALIDATED = "unvalidated"  # No merge-outcome validation at this scale
+    REFUTED = "refuted"  # Experiment produced a negative result
 
 # ---------------------------------------------------------------------------
 # Reference points — every number traces to a FINDINGS.md section
@@ -152,6 +162,13 @@ class ThresholdProfile:
 
     Each field documents its derivation from the reference points above.
 
+    .. note::
+
+       These profiles are validated for *source-adapter characterization*
+       (spectral metrics, same-task vs. cross-task separation) but not
+       necessarily for *per-pair risk prediction* at decoder scale.  The
+       ``risk_prediction_validation`` field records the empirical status.
+
     Attributes
     ----------
     name : human-readable profile name
@@ -161,6 +178,8 @@ class ThresholdProfile:
     erank_ratio_risk : erank ratio above this → very different tasks
     ck_predictive : whether C_k is a reliable per-layer alignment predictor
     imbalanced_frob : Frobenius norm ratio above this → imbalanced
+    risk_prediction_validation : empirical validation status for risk prediction
+    risk_prediction_note : one-sentence provenance
     """
 
     name: str
@@ -170,6 +189,8 @@ class ThresholdProfile:
     erank_ratio_risk: float
     ck_predictive: bool
     imbalanced_frob: float
+    risk_prediction_validation: ScaleValidation = ScaleValidation.UNVALIDATED
+    risk_prediction_note: str = ""
 
     def to_verdict_thresholds(self) -> dict[str, float]:
         """Convert to VerdictThresholds-compatible kwargs.
@@ -194,6 +215,8 @@ class ThresholdProfile:
             "erank_ratio_risk": self.erank_ratio_risk,
             "ck_predictive": self.ck_predictive,
             "imbalanced_frob": self.imbalanced_frob,
+            "risk_prediction_validation": self.risk_prediction_validation.value,
+            "risk_prediction_note": self.risk_prediction_note,
         }
 
 
@@ -225,9 +248,13 @@ class ThresholdProfile:
 #     appropriately, since it *is* the boundary between "same-category" and
 #     "very different" tasks.
 #
-#   ck_predictive = True
-#     C_k → alignment ρ = 0.56, p = 0.004 for QNLI (§13/§25).
-#     The relationship holds for standard-attention models.
+#   ck_predictive = False
+#     N133 Phase 2 showed the apparent C_k signal at decoder scale is a
+#     Simpson's paradox artifact driven by module-type differences (Q/K/V/O).
+#     Stratified analysis shows no within-module C_k → alignment relationship.
+#     C_k remains predictive on DistilBERT for QNLI (ρ=0.56, §13/§25) but
+#     this is an encoder-scale, within-task finding that does not generalize.
+#     Updated April 2026 per N133 Phase 2 verdict.
 #
 #   imbalanced_frob = 5.0
 #     Retained from original defaults.  No experimental data directly
@@ -239,8 +266,14 @@ STANDARD_ATTENTION = ThresholdProfile(
     alignment_risk=0.40,
     erank_ratio_safe=1.5,
     erank_ratio_risk=2.5,
-    ck_predictive=True,
+    ck_predictive=False,
     imbalanced_frob=5.0,
+    risk_prediction_validation=ScaleValidation.UNVALIDATED,
+    risk_prediction_note=(
+        "Thresholds derived from encoder-scale summary statistics (DistilBERT, "
+        "Mistral-7B same/cross-task separation). Per-pair risk prediction not "
+        "validated against merge outcomes at decoder scale (N133)."
+    ),
 )
 
 
@@ -280,6 +313,12 @@ DISENTANGLED_ATTENTION = ThresholdProfile(
     erank_ratio_risk=1.8,
     ck_predictive=False,
     imbalanced_frob=5.0,
+    risk_prediction_validation=ScaleValidation.PARTIAL,
+    risk_prediction_note=(
+        "Thresholds derived from DeBERTa-v3 summary statistics. "
+        "Same/cross-task separation validated; per-pair risk prediction "
+        "not validated against merge outcomes."
+    ),
 )
 
 
@@ -332,4 +371,12 @@ Known calibration gaps (to be addressed when raw data is available):
 
 5. Scale dependence.  Whether 7B and 70B+ models need different
    thresholds is unknown.
+
+6. Decoder-scale per-pair risk prediction.  N133 (Mistral-7B, 6 tasks,
+   12 cross-task pairs) showed that per-pair alignment metrics do not
+   predict merge degradation beyond task-family membership.  The three
+   diagnosed confounds (metric saturation, task-family aliasing,
+   insufficient seed replication) are addressed in the N134 experimental
+   design.  Until N134 produces results, risk predictions at decoder
+   scale should be treated as unvalidated.
 """
