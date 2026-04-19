@@ -22,6 +22,7 @@ Output:
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import shutil
 import time
@@ -381,13 +382,15 @@ def evaluate_pair(
     # Merge adapters
     merge_adapters_linear(adapter_a_dir, adapter_b_dir, merge_dir)
 
-    # Load base model + merged adapter
+    # Load base model + merged adapter. Avoid device_map="auto" — see
+    # explanation in 00_pilot_train.py about meta-tensor offload under
+    # residual-VRAM fragmentation. Load to CPU then .to(cuda).
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         cache_dir=CACHE_DIR,
         torch_dtype=torch.bfloat16,
-        device_map="auto",
     )
+    model = model.to("cuda")
     model = PeftModel.from_pretrained(model, str(merge_dir))
     model.eval()
 
@@ -455,6 +458,7 @@ def evaluate_pair(
 
     # Cleanup model
     del model
+    gc.collect()
     torch.cuda.empty_cache()
 
     # Remove merged adapter files

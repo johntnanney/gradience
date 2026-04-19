@@ -23,6 +23,7 @@ Output: /workspace/n134/adapters/{task}_s{seed}/
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import shutil
 import time
@@ -363,24 +364,26 @@ def train_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> Path:
     print("  Tokenizing...")
     train_tok = tokenize_dataset(train_ds, tokenizer)
 
-    # Load model fresh for each adapter
+    # Load model fresh for each adapter.
+    # See comment in 00_pilot_train.py: avoid device_map="auto" which can
+    # offload layers to meta/CPU under residual-VRAM fragmentation, causing
+    # Trainer(...) to fail at _move_model_to_device. Load to CPU then .to(cuda).
     print("  Loading model...")
     try:
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             cache_dir=CACHE_DIR,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
             attn_implementation="flash_attention_2",
         )
-    except (ImportError, ValueError):
+    except (ImportError, ValueError, TypeError):
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             cache_dir=CACHE_DIR,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
             attn_implementation="sdpa",
         )
+    model = model.to("cuda")
 
     # Apply LoRA
     lora_config = LoraConfig(**LORA_CONFIG)
@@ -456,6 +459,7 @@ def train_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> Path:
 
     # Clean up GPU memory
     del model, trainer
+    gc.collect()
     torch.cuda.empty_cache()
 
     return output_dir
@@ -485,8 +489,8 @@ def evaluate_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> di
         MODEL_NAME,
         cache_dir=CACHE_DIR,
         torch_dtype=torch.bfloat16,
-        device_map="auto",
     )
+    model = model.to("cuda")
     model = PeftModel.from_pretrained(model, str(adapter_dir))
     model.eval()
 
@@ -557,6 +561,7 @@ def evaluate_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> di
             json.dump(meta, f, indent=2)
 
     del model
+    gc.collect()
     torch.cuda.empty_cache()
 
     return result

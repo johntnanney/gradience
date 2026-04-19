@@ -30,6 +30,7 @@ Output: /workspace/n134/pilot/{task}_s42/
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import time
 from pathlib import Path
@@ -346,14 +347,22 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
     train_tok = tokenize_dataset(train_ds, tokenizer)
     _val_tok = tokenize_dataset(val_ds, tokenizer)  # noqa: F841
 
-    # Load model fresh for each adapter
+    # Load model fresh for each adapter.
+    #
+    # Avoid device_map="auto" — accelerate's auto-placement uses a VRAM
+    # heuristic that can see fragmented residual allocations from prior
+    # tasks and decide to offload some layers to CPU/meta. This produces
+    # a "Some parameters are on the meta device because they were
+    # offloaded to the cpu" warning and causes Trainer(...) to fail at
+    # `model.to(device)` with "Cannot copy out of meta tensor; no data!".
+    # Instead, load into CPU memory (default) then move explicitly to
+    # GPU — a 7B bf16 model is ~14 GB, comfortable in 48 GB VRAM.
     print("  Loading model...")
     try:
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             cache_dir=CACHE_DIR,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
             attn_implementation="flash_attention_2",
         )
     except (ImportError, ValueError, TypeError):
@@ -361,9 +370,9 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
             MODEL_NAME,
             cache_dir=CACHE_DIR,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
             attn_implementation="sdpa",
         )
+    model = model.to("cuda")
 
     # Apply LoRA
     lora_config = LoraConfig(**LORA_CONFIG)
@@ -437,8 +446,12 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
     with open(output_dir / "training_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
 
-    # Clean up GPU memory
+    # Clean up GPU memory. gc.collect() before empty_cache() ensures any
+    # Python-side references are actually dropped before CUDA releases
+    # the backing memory; without it, fragmentation can accumulate across
+    # tasks and trigger accelerate to offload later loads to CPU/meta.
     del model, trainer
+    gc.collect()
     torch.cuda.empty_cache()
 
     return output_dir
@@ -470,8 +483,8 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
         MODEL_NAME,
         cache_dir=CACHE_DIR,
         torch_dtype=torch.bfloat16,
-        device_map="auto",
     )
+    model = model.to("cuda")
     model = PeftModel.from_pretrained(model, str(adapter_dir))
     model.eval()
 
@@ -535,6 +548,7 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
         json.dump(meta, f, indent=2)
 
     del model
+    gc.collect()
     torch.cuda.empty_cache()
 
     return result
