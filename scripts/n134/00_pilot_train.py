@@ -480,32 +480,73 @@ def _candidate_labels(task: str) -> list[str]:
     raise ValueError(f"Unknown task: {task}")
 
 
-def _logprob_of_continuation(model, tokenizer, prompt: str, continuation: str) -> float:
-    """Sum of token log-probabilities for `continuation` appended to `prompt`.
+def _score_candidates(
+    model, tokenizer, prompt: str, candidates: list[str]
+) -> dict[str, float]:
+    """Log-probability of each candidate as the continuation of prompt.
 
-    Uses a single forward pass. Standard MMLU-style scoring.
+    Handles tokenization correctly for SentencePiece-style tokenizers
+    (Mistral, Llama) where the trailing space of "Answer: " gets absorbed
+    into the next token (e.g. " A" is a single token).
+
+    Approach: strip trailing whitespace from prompt so tokenization is
+    stable; tokenize prompt alone and prompt+candidate; align the
+    candidate tokens against the full sequence; score via single forward
+    pass on the longest candidate-appended sequence.
     """
-    full = prompt + continuation
-    full_ids = tokenizer(full, return_tensors="pt", truncation=True,
-                         max_length=MAX_SEQ_LEN).input_ids.to(model.device)
-    prompt_ids = tokenizer(prompt, return_tensors="pt", truncation=True,
-                           max_length=MAX_SEQ_LEN).input_ids.to(model.device)
+    prompt_stripped = prompt.rstrip()  # normalize trailing whitespace
+
+    # Build token sequences for each candidate. Use " " + candidate so the
+    # tokenizer produces the space-prefix token that appears in training.
+    prompt_ids = tokenizer(
+        prompt_stripped, return_tensors="pt", add_special_tokens=True,
+        truncation=True, max_length=MAX_SEQ_LEN,
+    ).input_ids.to(model.device)
     n_prompt = prompt_ids.shape[1]
-    n_cont = full_ids.shape[1] - n_prompt
-    if n_cont <= 0:
-        return float("-inf")
 
-    with torch.no_grad():
-        logits = model(full_ids).logits  # (1, T, V)
-    log_probs = torch.log_softmax(logits.float(), dim=-1)
+    # Per-candidate: encode full = prompt + " " + candidate and keep the
+    # suffix tokens. Some candidates ("yes"/"no") are multi-token.
+    cand_info: dict[str, dict] = {}
+    max_len = n_prompt
+    for cand in candidates:
+        full_text = prompt_stripped + " " + cand
+        full_ids = tokenizer(
+            full_text, return_tensors="pt", add_special_tokens=True,
+            truncation=True, max_length=MAX_SEQ_LEN,
+        ).input_ids.to(model.device)
+        # Suffix tokens = the ones beyond n_prompt
+        n_suffix = full_ids.shape[1] - n_prompt
+        if n_suffix <= 0:
+            # Unusual edge case — fall back to dedicated encoding
+            suffix_ids = tokenizer(
+                " " + cand, add_special_tokens=False, return_tensors="pt",
+            ).input_ids.to(model.device)
+            full_ids = torch.cat([prompt_ids, suffix_ids], dim=1)
+            n_suffix = suffix_ids.shape[1]
+        cand_info[cand] = {"full_ids": full_ids, "n_suffix": n_suffix}
+        max_len = max(max_len, full_ids.shape[1])
 
-    # Token at position t is predicted from logits at t-1
-    total = 0.0
-    for j in range(n_cont):
-        pos = n_prompt + j - 1  # index into logits
-        token_id = full_ids[0, n_prompt + j].item()
-        total += log_probs[0, pos, token_id].item()
-    return total
+    # Score each candidate via a single forward pass on its own sequence.
+    # (Batching would require padding; for small N_candidates <= 5 this is
+    # already fast enough — one forward pass per candidate.)
+    scores: dict[str, float] = {}
+    for cand, info in cand_info.items():
+        full_ids = info["full_ids"]
+        n_suffix = info["n_suffix"]
+        with torch.no_grad():
+            logits = model(full_ids).logits  # (1, T, V)
+        log_probs = torch.log_softmax(logits.float(), dim=-1)
+
+        # Sum logprob over the suffix tokens
+        total = 0.0
+        for j in range(n_suffix):
+            token_pos = n_prompt + j
+            token_id = full_ids[0, token_pos].item()
+            # Predicted from logits at the PREVIOUS position
+            total += log_probs[0, token_pos - 1, token_id].item()
+        scores[cand] = total
+
+    return scores
 
 
 def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
@@ -552,18 +593,12 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
         text = example["text"]
         prompt, expected = _extract_expected_answer(task, text)
 
-        # Score each candidate continuation by summed logprob
-        best_label = None
-        best_lp = float("-inf")
-        for lab in labels:
-            lp = _logprob_of_continuation(model, tokenizer, prompt, lab)
-            if lp > best_lp:
-                best_lp = lp
-                best_label = lab
+        scores = _score_candidates(model, tokenizer, prompt, labels)
+        best_label = max(scores, key=scores.get)
 
-        # Normalize comparison: strip + lower for boolq, exact for others
+        # Normalize comparison: case-insensitive for boolq, exact for others
         if task == "boolq":
-            if best_label.lower() == expected.lower():
+            if best_label.lower() == expected.strip().lower():
                 correct += 1
         else:
             if best_label == expected.strip():
