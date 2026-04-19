@@ -40,7 +40,7 @@ CACHE_DIR = "/workspace/hf_cache"
 ADAPTER_ROOT = Path("/workspace/n134/adapters")
 PAIR_SAMPLE_PATH = Path("/workspace/n134/pair_sample.json")
 OUTPUT_DIR = Path("/workspace/n134/merges")
-AUDIT_DIR = Path("/workspace/n134/audits")
+AUDIT_DIR = Path("/workspace/n134/audit")
 EVAL_DIR = Path("/workspace/n134/evals")
 
 MAX_SEQ_LEN = 512
@@ -130,18 +130,27 @@ def load_spectral_alignment(adapter_a: str, adapter_b: str) -> float | None:
 
 
 def load_source_score(adapter_name: str) -> float | None:
-    """Load source eval accuracy for an adapter."""
-    # Try dedicated eval file first
-    src_file = EVAL_DIR / f"{adapter_name}_source_eval.json"
-    if src_file.exists():
-        data = json.loads(src_file.read_text())
-        return float(data.get("accuracy", 0.0))
+    """Load source eval accuracy for an adapter.
 
-    # Try training meta
+    Checks, in order:
+      1. /workspace/n134/evals/{name}_source_eval.json (seeds 123, 456)
+      2. /workspace/n134/pilot/evals/{name}_source_eval.json (seed 42)
+      3. adapter_dir/training_meta.json (final_val_accuracy or accuracy)
+    """
+    # Try dedicated eval file (seeds 123/456 location)
+    for eval_root in (EVAL_DIR, Path("/workspace/n134/pilot/evals")):
+        src_file = eval_root / f"{adapter_name}_source_eval.json"
+        if src_file.exists():
+            data = json.loads(src_file.read_text())
+            return float(data.get("accuracy", 0.0))
+
+    # Try training meta; training scripts write final_val_accuracy
     meta_file = ADAPTER_ROOT / adapter_name / "training_meta.json"
     if meta_file.exists():
         data = json.loads(meta_file.read_text())
-        return float(data.get("eval_accuracy", data.get("accuracy", 0.0)))
+        for key in ("final_val_accuracy", "eval_accuracy", "accuracy"):
+            if key in data:
+                return float(data[key])
 
     return None
 

@@ -47,6 +47,12 @@ from scipy import stats
 WORKSPACE = Path("/workspace/n134")
 AUDIT_DIR = WORKSPACE / "audit"
 AUDIT_V21_DIR = AUDIT_DIR / "v2.1"
+# NOTE (Phase 5 TODO): 03_spectral_audit.py currently writes per-adapter v2.1
+# files as AUDIT_DIR/{adapter_id}_v2_1.json, not per-pair files under v2.1/.
+# When Phase 5 is ready, either extend 03 to also emit per-pair v2.1 data, or
+# refactor load_inputs below to combine per-adapter U/V factors on the fly.
+# The four methods (KnOTS, TSV, SVC) all operate on per-pair factor products,
+# so this is just a plumbing decision, not a scientific one.
 MERGE_DIR = WORKSPACE / "merges"
 FIG_DIR = WORKSPACE / "figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
