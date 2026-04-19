@@ -155,7 +155,8 @@ def test_dip_test_unimodal_passes():
     rng = np.random.default_rng(seed=7)
     data = rng.normal(8.5, 0.5, size=8)
     dip, p, source = gate.hartigans_dip_test(data)
-    assert p > 0.10, f"unimodal data should pass dip test, got p={p:.3f} ({source})"
+    assert source == "diptest", f"expected diptest, got {source}"
+    assert p > 0.10, f"unimodal data should pass dip test, got p={p:.3f}"
     print(f"  PASS  test_dip_test_unimodal_passes  (p={p:.3f}, source={source})")
 
 
@@ -164,8 +165,9 @@ def test_dip_test_bimodal_rejects():
     # N133 failure mode: discriminative tasks erank ~5, generative ~13
     data = np.array([5.0, 5.2, 5.1, 5.3, 13.0, 13.2, 13.1, 12.9])
     dip, p, source = gate.hartigans_dip_test(data)
-    # With the fallback gap test, p should be small for this obvious gap
-    assert p < 0.20, f"bimodal data should have small p, got p={p:.3f} ({source})"
+    assert source == "diptest", f"expected diptest, got {source}"
+    # Real Hartigan dip on this bimodal pattern gives p ~ 0 (highly significant)
+    assert p < 0.05, f"bimodal data should have p < 0.05, got p={p:.3f}"
     print(f"  PASS  test_dip_test_bimodal_rejects  (p={p:.3f}, source={source})")
 
 
@@ -173,8 +175,38 @@ def test_dip_test_degenerate():
     """All values equal -> degenerate case, no crash."""
     data = np.array([8.0] * 8)
     dip, p, source = gate.hartigans_dip_test(data)
-    assert dip == 0.0 or p >= 1.0 - 1e-9
+    # Degenerate path short-circuits before diptest, so source is "degenerate"
+    assert source == "degenerate", f"expected degenerate, got {source}"
+    assert dip == 0.0 and p >= 1.0 - 1e-9
     print(f"  PASS  test_dip_test_degenerate  (source={source})")
+
+
+def test_dip_test_missing_diptest_raises():
+    """If diptest is not importable, hartigans_dip_test must raise ImportError.
+
+    Simulate missing diptest via sys.modules patching. Verifies that the
+    spec-commitment is enforced: no silent substitution to a different test.
+    """
+    import sys
+    # Use non-degenerate input so we reach the import check
+    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
+    real_diptest = sys.modules.pop("diptest", None)
+    sys.modules["diptest"] = None  # force ImportError on `import diptest`
+    try:
+        raised = False
+        try:
+            gate.hartigans_dip_test(data)
+        except ImportError as e:
+            raised = True
+            assert "§3.2" in str(e) or "spec" in str(e).lower() or "diptest" in str(e).lower()
+        assert raised, "should have raised ImportError when diptest missing"
+    finally:
+        if real_diptest is not None:
+            sys.modules["diptest"] = real_diptest
+        else:
+            sys.modules.pop("diptest", None)
+    print("  PASS  test_dip_test_missing_diptest_raises")
 
 
 # ---------------------------------------------------------------------------
@@ -298,6 +330,7 @@ def main():
         test_dip_test_unimodal_passes,
         test_dip_test_bimodal_rejects,
         test_dip_test_degenerate,
+        test_dip_test_missing_diptest_raises,
         test_run_gate_all_pass_exit_0,
         test_run_gate_missing_evals_exit_3,
         test_run_gate_c1_fail_exit_1,

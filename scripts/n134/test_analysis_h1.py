@@ -168,6 +168,47 @@ def scenario_wrong_sign(pairs: list[dict], seed: int) -> tuple[np.ndarray, np.nd
     return scores, y
 
 
+def scenario_tied_clusters(pairs: list[dict], seed: int) -> tuple[np.ndarray, np.ndarray]:
+    """Several pairs share near-identical S_H1 values (within 1e-6).
+
+    N133's B-P5 analysis found 38/60 pairs tied at 4-decimal precision
+    of mean_alignment. The spec §5 mandates tied-pair detection at
+    |S_A - S_B| < 1e-6. This scenario fabricates three 3-pair tied
+    clusters (9 pairs total) plus a clear-positive signal across the
+    non-tied 36 pairs. The decision should still process cleanly and
+    the tied clusters should be detected.
+
+    Expected:
+      - evaluate_h1_decision runs without crash or NaN
+      - non-tied signal still passes H1 (test picks clear-positive regime)
+      - a separate call to detect_tied_pairs() (done in this test)
+        correctly reports 3 clusters of size 3.
+    """
+    rng = np.random.default_rng(seed)
+    n = len(pairs)
+
+    # Start with a clear-positive scenario
+    scores = rng.uniform(0.02, 0.08, size=n)
+    # Overwrite three 3-pair blocks with tied values
+    # (indices chosen to be spread across cells so no single cell is
+    # all-tied, which would break block bootstrap pathologically)
+    tied_indices = [
+        (0, 1, 2),       # tied at score 0.030
+        (15, 16, 17),    # tied at score 0.050
+        (30, 31, 32),    # tied at score 0.075
+    ]
+    tied_values = [0.030, 0.050, 0.075]
+    for block, value in zip(tied_indices, tied_values):
+        for idx in block:
+            scores[idx] = value  # exact float equality, |diff|=0
+
+    # Clear-positive signal: max_deg increases with score, plus per-pair noise
+    s_std = (scores - scores.mean()) / (scores.std() + 1e-12)
+    y = 0.10 + 0.05 * s_std + rng.normal(0, 0.015, size=n)
+    y = np.clip(y, 0.0, 1.0)
+    return scores, y
+
+
 # ---------------------------------------------------------------------------
 # Test runner
 # ---------------------------------------------------------------------------
@@ -245,6 +286,37 @@ def test_wrong_sign(pairs, seed):
     return True
 
 
+def test_tied_clusters(pairs, seed):
+    """Tied-pair clusters at exact float equality don't crash or silently drop.
+
+    Spec §5 tied-pair handling: detect pairs with |S_A - S_B| < 1e-6 and
+    report cluster count. evaluate_h1_decision should process cleanly
+    (no NaN, no crash) when 9 of 45 pairs form 3 tied clusters.
+    """
+    scores, y = scenario_tied_clusters(pairs, seed)
+    cell_labels = [p["family_pair"] for p in pairs]
+    d = H1.evaluate_h1_decision(scores, y, cell_labels, n_boot=500)
+    print(f"  TIED CLUSTERS  : {_format_decision(d)}")
+
+    # Processing cleanly is the core assertion
+    assert np.isfinite(d["rho_partial"]), "partial rho NaN with tied pairs"
+    assert np.isfinite(d["delta_r2"]), "delta_R2 NaN with tied pairs"
+    assert np.isfinite(d["bootstrap"]["rho_ci_025"]), "bootstrap produced NaN CI"
+
+    # Tied-pair detection should find our 3 clusters of size 3
+    tied = H1.detect_tied_pairs(scores, tol=1e-6)
+    assert tied["n_tied_clusters"] == 3, \
+        f"expected 3 tied clusters, got {tied['n_tied_clusters']}"
+    assert sorted(tied["tied_cluster_sizes"]) == [3, 3, 3], \
+        f"expected three 3-pair clusters, got {tied['tied_cluster_sizes']}"
+
+    # Enough non-tied signal remains that H1 should still be CONFIRMED
+    # (this tests that ties don't block a valid signal from landing)
+    assert d["h1_confirmed"], \
+        f"tied-clusters scenario with clear signal should still confirm: {_format_decision(d)}"
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -266,6 +338,7 @@ def main():
         ("clear_positive",  test_clear_positive, 1002),
         ("confound",        test_confound,       1003),
         ("wrong_sign",      test_wrong_sign,     1004),
+        ("tied_clusters",   test_tied_clusters,  1005),
     ]
 
     failed = 0

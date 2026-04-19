@@ -143,44 +143,34 @@ def compute_adapter_mean_erank(adapter_dir: Path) -> float:
 def hartigans_dip_test(data: np.ndarray) -> tuple[float, float, str]:
     """Hartigan's dip test. Returns (dip_statistic, p_value, source).
 
-    Prefers the ``diptest`` package (wraps the original Fortran).
-    Falls back to a gap-based heuristic that tests for a clear bimodal
-    split in the sorted data — valid for small n (>= 4) but not a
-    formal Hartigan test.  Callers should prefer installing ``diptest``.
-    """
-    try:
-        import diptest
-        dip, p_value = diptest.diptest(np.asarray(data, dtype=float))
-        return float(dip), float(p_value), "diptest"
-    except ImportError:
-        pass
+    Uses the ``diptest`` package (wraps the original Hartigan & Hartigan 1985
+    Fortran implementation). The N134 spec §3.2 commits to Hartigan's dip;
+    substituting a different test (e.g. gap-based bootstrap, k-means
+    silhouette) would be a silent deviation, so this function raises
+    ImportError if ``diptest`` is not installed rather than falling back
+    to a not-Hartigan test.
 
-    # Fallback: sort, find largest gap, test against bootstrap null.
-    # H0: data drawn from a unimodal distribution (we use uniform as a proxy).
-    # Small-sample bootstrap: how often does a uniform sample of the same
-    # range have a largest-gap ratio >= observed?
-    arr = np.sort(np.asarray(data, dtype=float))
+    Install with:  pip install diptest
+    """
+    # Handle degenerate edge cases first (same behavior regardless of library)
+    arr = np.asarray(data, dtype=float)
     n = len(arr)
     if n < 4:
         return 0.0, 1.0, "insufficient_n"
-
-    rng_span = arr[-1] - arr[0]
-    if rng_span < 1e-12:
+    if arr.max() - arr.min() < 1e-12:
         return 0.0, 1.0, "degenerate"
 
-    gaps = np.diff(arr) / rng_span  # normalized gaps, sum to 1
-    observed_max_gap = float(np.max(gaps))
+    try:
+        import diptest
+    except ImportError as exc:
+        raise ImportError(
+            "diptest is required for the N134 pilot gate — §3.2 commits to "
+            "Hartigan's dip test and we will not substitute a different test. "
+            "Install with:  pip install diptest"
+        ) from exc
 
-    # Bootstrap null: uniform samples of size n on [0, 1]
-    rng = np.random.default_rng(seed=134)
-    n_boot = 10000
-    null_max_gaps = np.empty(n_boot)
-    for i in range(n_boot):
-        u = np.sort(rng.uniform(0.0, 1.0, size=n))
-        null_max_gaps[i] = float(np.max(np.diff(u)))
-    p_value = float((null_max_gaps >= observed_max_gap).mean())
-
-    return observed_max_gap, p_value, "gap_bootstrap_fallback"
+    dip, p_value = diptest.diptest(arr)
+    return float(dip), float(p_value), "diptest"
 
 
 # ---------------------------------------------------------------------------

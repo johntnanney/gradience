@@ -1,13 +1,15 @@
 """Minimal v2.1 verification: 1 layer SVD, orthonormality check, no training interference."""
-import sys, json
+import json
+import sys
 from pathlib import Path
+
 import numpy as np
 from safetensors import safe_open
 
 adapter_dir = Path("/workspace/n134/pilot/arc_s42")
 config = json.loads((adapter_dir / "adapter_config.json").read_text())
 scaling = config["lora_alpha"] / config["r"]
-print("LoRA r=%d alpha=%d scaling=%.2f" % (config["r"], config["lora_alpha"], scaling))
+print(f"LoRA r={config['r']} alpha={config['lora_alpha']} scaling={scaling:.2f}")
 
 # Load just ONE layer (layer 0 q_proj) - doesn't require loading all layers
 path = adapter_dir / "adapter_model.safetensors"
@@ -19,12 +21,12 @@ with safe_open(str(path), framework="numpy") as f:
     A = f.get_tensor(A_key).astype(np.float64)
     B = f.get_tensor(B_key).astype(np.float64)
 
-print("A key:    %s  shape=%s" % (A_key, A.shape))
-print("B key:    %s  shape=%s" % (B_key, B.shape))
+print(f"A key:    {A_key}  shape={A.shape}")
+print(f"B key:    {B_key}  shape={B.shape}")
 
 # Construct delta_W = scaling * B @ A and do full SVD
 delta_W = scaling * B @ A  # (d_out, d_in) = (4096, 4096) for Mistral-7B q_proj
-print("delta_W shape: %s  (expect (4096, 4096) for Mistral-7B q_proj)" % (delta_W.shape,))
+print(f"delta_W shape: {delta_W.shape}  (expect (4096, 4096) for Mistral-7B q_proj)")
 
 # Fast rank-r SVD via QR
 B_scaled = scaling * B
@@ -39,9 +41,9 @@ Vt32 = Vt.astype(np.float32)
 S32 = S.astype(np.float32)
 
 print()
-print("U shape:  %s  (expect (4096, 16))" % (U32.shape,))
-print("Vt shape: %s  (expect (16, 4096))" % (Vt32.shape,))
-print("S shape:  %s  (expect (16,))" % (S32.shape,))
+print(f"U shape:  {U32.shape}  (expect (4096, 16))")
+print(f"Vt shape: {Vt32.shape}  (expect (16, 4096))")
+print(f"S shape:  {S32.shape}  (expect (16,))")
 
 # Orthonormality checks
 UtU = U32.T @ U32
@@ -59,17 +61,17 @@ recon_err = float(np.abs(delta_W_recon - delta_W.astype(np.float32)).max())
 
 print()
 print("ORTHONORMALITY CHECK:")
-print("  max |U.T @ U - I_16|    = %.2e  (expect <1e-5 in float32)" % u_err)
-print("  max |V @ V.T - I_16|    = %.2e  (expect <1e-5 in float32)" % v_err)
+print(f"  max |U.T @ U - I_16|    = {u_err:.2e}  (expect <1e-5 in float32)")
+print(f"  max |V @ V.T - I_16|    = {v_err:.2e}  (expect <1e-5 in float32)")
 print()
 print("SV VALIDATION:")
-print("  S[0] (largest)  = %.4f" % S32[0])
-print("  S[-1] (smallest) = %.4f" % S32[-1])
-print("  descending err = %.2e  (expect 0.0)" % s_desc_err)
-print("  non-negative err = %.2e  (expect 0.0)" % s_pos_err)
+print(f"  S[0] (largest)  = {S32[0]:.4f}")
+print(f"  S[-1] (smallest) = {S32[-1]:.4f}")
+print(f"  descending err = {s_desc_err:.2e}  (expect 0.0)")
+print(f"  non-negative err = {s_pos_err:.2e}  (expect 0.0)")
 print()
 print("RECONSTRUCTION CHECK:")
-print("  max |U.S.Vt - delta_W|  = %.2e  (reconstruction error, expect ~1e-6)" % recon_err)
+print(f"  max |U.S.Vt - delta_W|  = {recon_err:.2e}  (reconstruction error, expect ~1e-6)")
 
 ok = u_err < 1e-3 and v_err < 1e-3 and s_desc_err < 1e-6 and s_pos_err < 1e-6
 print()
