@@ -24,9 +24,15 @@ from __future__ import annotations
 import argparse
 import gc
 import json
+import os
 import shutil
 import time
 from pathlib import Path
+
+# Must be set BEFORE torch import. Merge-eval does 69 model loads
+# sequentially; without expandable_segments:True, VRAM fragmentation
+# accumulates and OOMs after ~4 iterations (see 02_train_adapters.py).
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 from peft import PeftModel

@@ -25,9 +25,18 @@ from __future__ import annotations
 import argparse
 import gc
 import json
+import os
 import shutil
 import time
 from pathlib import Path
+
+# Must be set BEFORE torch import. Prevents VRAM fragmentation from
+# accumulating across sequential model loads; without it, ~4 task loads
+# exhaust 48 GB even though each model only uses ~14 GB (confirmed OOM
+# on hellaswag_s456 during N134 Phase 1). The expandable_segments
+# allocator maps GPU memory on-demand in small chunks that can be
+# reclaimed when del/gc.collect/empty_cache fires.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 from datasets import load_dataset

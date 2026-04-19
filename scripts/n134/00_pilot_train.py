@@ -32,8 +32,15 @@ from __future__ import annotations
 import argparse
 import gc
 import json
+import os
 import time
 from pathlib import Path
+
+# Must be set BEFORE torch import. Prevents VRAM fragmentation across
+# sequential model loads. See 02_train_adapters.py for the incident
+# that motivated this fix (OOM at hellaswag_s456 after 3 successful
+# task trainings despite gc.collect + torch.cuda.empty_cache).
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 from datasets import load_dataset
