@@ -245,17 +245,19 @@ def load_task_dataset(task: str, smoke: bool = False):
         val = ds["validation"].select(range(min(max_eval, len(ds["validation"]))))
 
     elif task == "piqa":
-        ds = load_dataset("piqa", cache_dir=CACHE_DIR)
+        # piqa, social_i_qa, boolq have custom loader scripts; newer
+        # datasets library requires explicit consent via trust_remote_code
+        ds = load_dataset("piqa", cache_dir=CACHE_DIR, trust_remote_code=True)
         train = ds["train"].select(range(min(max_train, len(ds["train"]))))
         val = ds["validation"].select(range(min(max_eval, len(ds["validation"]))))
 
     elif task == "siqa":
-        ds = load_dataset("social_i_qa", cache_dir=CACHE_DIR)
+        ds = load_dataset("social_i_qa", cache_dir=CACHE_DIR, trust_remote_code=True)
         train = ds["train"].select(range(min(max_train, len(ds["train"]))))
         val = ds["validation"].select(range(min(max_eval, len(ds["validation"]))))
 
     elif task == "boolq":
-        ds = load_dataset("boolq", cache_dir=CACHE_DIR)
+        ds = load_dataset("boolq", cache_dir=CACHE_DIR, trust_remote_code=True)
         train = ds["train"].select(range(min(max_train, len(ds["train"]))))
         val = ds["validation"].select(range(min(max_eval, len(ds["validation"]))))
 

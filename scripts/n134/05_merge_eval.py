@@ -171,7 +171,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
     from datasets import load_dataset
 
     if task == "arc_challenge":
-        ds = load_dataset("allenai/ai2_arc", "ARC-Challenge", cache_dir=CACHE_DIR, split="test")
+        ds = load_dataset("allenai/ai2_arc", "ARC-Challenge", cache_dir=CACHE_DIR, trust_remote_code=True, split="test")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             choices = ex["choices"]
@@ -188,7 +188,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "hellaswag":
-        ds = load_dataset("Rowan/hellaswag", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("Rowan/hellaswag", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             endings = ex["endings"]
@@ -199,7 +199,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "winogrande":
-        ds = load_dataset("allenai/winogrande", "winogrande_xl", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("allenai/winogrande", "winogrande_xl", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             prompt = (
@@ -213,7 +213,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "openbookqa":
-        ds = load_dataset("allenai/openbookqa", "main", cache_dir=CACHE_DIR, split="test")
+        ds = load_dataset("allenai/openbookqa", "main", cache_dir=CACHE_DIR, trust_remote_code=True, split="test")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             choices = ex["choices"]
@@ -230,7 +230,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "commonsenseqa":
-        ds = load_dataset("tau/commonsense_qa", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("tau/commonsense_qa", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             choices = ex["choices"]
@@ -247,7 +247,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "piqa":
-        ds = load_dataset("ybisk/piqa", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("ybisk/piqa", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             prompt = (
@@ -262,7 +262,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "siqa":
-        ds = load_dataset("lighteval/siqa", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("lighteval/siqa", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             prompt = (
@@ -279,7 +279,7 @@ def load_eval_data(task: str, n_samples: int = EVAL_SAMPLES) -> list[dict]:
         return examples
 
     elif task == "boolq":
-        ds = load_dataset("google/boolq", cache_dir=CACHE_DIR, split="validation")
+        ds = load_dataset("google/boolq", cache_dir=CACHE_DIR, trust_remote_code=True, split="validation")
         examples = []
         for ex in ds.select(range(min(n_samples, len(ds)))):
             prompt = (

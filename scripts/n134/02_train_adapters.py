@@ -268,6 +268,10 @@ def load_task_dataset(task: str, smoke: bool = False):
     load_kwargs: dict = {"cache_dir": CACHE_DIR}
     if cfg["config"] is not None:
         load_kwargs["name"] = cfg["config"]
+    # Custom-loader datasets (piqa, social_i_qa, boolq) require explicit
+    # trust_remote_code=True in newer datasets library versions. Safe for
+    # data-only datasets too (they ignore the kwarg).
+    load_kwargs["trust_remote_code"] = True
 
     ds = load_dataset(cfg["dataset"], **load_kwargs)
 
