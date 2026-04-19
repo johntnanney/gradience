@@ -463,11 +463,60 @@ def train_adapter(task: str, tokenizer, smoke: bool = False):
 # Source evaluation
 # ---------------------------------------------------------------------------
 
+def _candidate_labels(task: str) -> list[str]:
+    """Valid answer labels per task (MMLU-style scoring)."""
+    if task in ("arc", "openbookqa"):
+        return ["A", "B", "C", "D"]
+    if task in ("hellaswag", "piqa"):
+        return ["A", "B", "C", "D"] if task == "hellaswag" else ["A", "B"]
+    if task == "commonsenseqa":
+        return ["A", "B", "C", "D", "E"]
+    if task == "siqa":
+        return ["A", "B", "C"]
+    if task == "winogrande":
+        return ["1", "2"]
+    if task == "boolq":
+        return ["yes", "no"]
+    raise ValueError(f"Unknown task: {task}")
+
+
+def _logprob_of_continuation(model, tokenizer, prompt: str, continuation: str) -> float:
+    """Sum of token log-probabilities for `continuation` appended to `prompt`.
+
+    Uses a single forward pass. Standard MMLU-style scoring.
+    """
+    full = prompt + continuation
+    full_ids = tokenizer(full, return_tensors="pt", truncation=True,
+                         max_length=MAX_SEQ_LEN).input_ids.to(model.device)
+    prompt_ids = tokenizer(prompt, return_tensors="pt", truncation=True,
+                           max_length=MAX_SEQ_LEN).input_ids.to(model.device)
+    n_prompt = prompt_ids.shape[1]
+    n_cont = full_ids.shape[1] - n_prompt
+    if n_cont <= 0:
+        return float("-inf")
+
+    with torch.no_grad():
+        logits = model(full_ids).logits  # (1, T, V)
+    log_probs = torch.log_softmax(logits.float(), dim=-1)
+
+    # Token at position t is predicted from logits at t-1
+    total = 0.0
+    for j in range(n_cont):
+        pos = n_prompt + j - 1  # index into logits
+        token_id = full_ids[0, n_prompt + j].item()
+        total += log_probs[0, pos, token_id].item()
+    return total
+
+
 def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
     """Evaluate a trained adapter on the held-out validation set.
 
-    Measures accuracy by generating the answer token(s) and comparing
-    to the expected answer from the formatted text.
+    Uses log-probability scoring (MMLU-style): at the position immediately
+    after the "Answer: " prompt suffix, compute the summed log-probability
+    of each valid answer label as a continuation and pick the argmax. This
+    is deterministic, faster than greedy generation, and does not suffer
+    from the numeric-prefix bias we observed on hellaswag / commonsenseqa /
+    boolq (model emitted "1" / "3" / etc. before the correct letter label).
     """
     adapter_name = f"{task}_s{SEED}"
     adapter_dir = OUTPUT_ROOT / adapter_name
@@ -493,6 +542,7 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
     # Load eval data
     _, val_ds = load_task_dataset(task, smoke=smoke)
     n_eval = min(SMOKE_EVAL_SAMPLES, len(val_ds)) if smoke else min(MAX_EVAL_SAMPLES, len(val_ds))
+    labels = _candidate_labels(task)
 
     correct = 0
     total = 0
@@ -502,28 +552,22 @@ def evaluate_adapter(task: str, tokenizer, smoke: bool = False) -> dict:
         text = example["text"]
         prompt, expected = _extract_expected_answer(task, text)
 
-        inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=MAX_SEQ_LEN,
-        ).to(model.device)
+        # Score each candidate continuation by summed logprob
+        best_label = None
+        best_lp = float("-inf")
+        for lab in labels:
+            lp = _logprob_of_continuation(model, tokenizer, prompt, lab)
+            if lp > best_lp:
+                best_lp = lp
+                best_label = lab
 
-        with torch.no_grad():
-            outputs = model.generate(
-                **inputs,
-                max_new_tokens=10,
-                do_sample=False,
-                temperature=1.0,
-            )
-
-        generated = tokenizer.decode(
-            outputs[0][inputs["input_ids"].shape[1]:],
-            skip_special_tokens=True,
-        ).strip()
-
-        if _check_answer(task, generated, expected):
-            correct += 1
+        # Normalize comparison: strip + lower for boolq, exact for others
+        if task == "boolq":
+            if best_label.lower() == expected.lower():
+                correct += 1
+        else:
+            if best_label == expected.strip():
+                correct += 1
         total += 1
 
     accuracy = correct / total if total > 0 else 0.0
