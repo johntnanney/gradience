@@ -51,7 +51,6 @@ WORKSPACE = Path("/workspace/n134")
 AUDIT_DIR = WORKSPACE / "audit"
 MERGE_DIR = WORKSPACE / "merges"
 FIG_DIR = WORKSPACE / "figures"
-FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 N_LAYERS = 32
 N_BOOTSTRAP = 5000
@@ -273,6 +272,82 @@ def block_bootstrap_ci(
         "dr2_mean": float(dr2_boots.mean()) if len(dr2_boots) else float("nan"),
         "dr2_ci_025": float(np.percentile(dr2_boots, 2.5)) if len(dr2_boots) else float("nan"),
         "dr2_ci_975": float(np.percentile(dr2_boots, 97.5)) if len(dr2_boots) else float("nan"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# H1 decision rule (extracted for testing)
+# ---------------------------------------------------------------------------
+
+
+def evaluate_h1_decision(
+    scores: np.ndarray,
+    y: np.ndarray,
+    cell_labels: list[str],
+    n_boot: int = N_BOOTSTRAP,
+    seed: int = RNG_SEED,
+) -> dict:
+    """Apply §4 H1 decision rule and return a structured decision dict.
+
+    This is the single source of truth for the H1 gate. Both the live
+    pipeline and the dry-run test harness call this function.
+
+    Parameters
+    ----------
+    scores : (n,) array of S_H1 values, one per evaluated cross-task pair
+    y      : (n,) array of max_degradation values
+    cell_labels : list of family-pair labels, length n
+    n_boot : number of block-bootstrap resamples
+    seed   : RNG seed for reproducibility
+
+    Returns
+    -------
+    dict with keys:
+        rho_raw, p_raw, rho_partial, p_partial, r2_base, r2_full, delta_r2,
+        crit1_pass, crit2_pass, sign_correct, h1_confirmed, bootstrap, X_fam_shape
+    """
+    X_fam = dummy_encode(cell_labels)
+
+    # Raw Spearman
+    rho_raw, p_raw = stats.spearmanr(scores, y)
+    rho_raw = float(rho_raw)
+    p_raw = float(p_raw)
+
+    # Criterion 1: partial Spearman ρ on family-residuals >= 0.50, p < 0.05
+    rho_partial, p_partial = partial_spearman(scores, y, X_fam)
+    crit1_pass = bool(
+        np.isfinite(rho_partial) and rho_partial >= 0.50 and p_partial < 0.05
+    )
+
+    # Criterion 2: Δ R² >= 0.10
+    r2_base = ols_r2(y, X_fam)
+    X_full = np.hstack([X_fam, scores.reshape(-1, 1)])
+    r2_full = ols_r2(y, X_full)
+    delta_r2 = r2_full - r2_base
+    crit2_pass = bool(delta_r2 >= 0.10)
+
+    # Criterion 3: sign check (higher alignment -> higher degradation)
+    sign_correct = bool(np.isfinite(rho_raw) and rho_raw > 0)
+
+    h1_confirmed = crit1_pass and crit2_pass and sign_correct
+
+    boot = block_bootstrap_ci(scores, y, cell_labels, X_fam, n_boot=n_boot, seed=seed)
+
+    return {
+        "rho_raw": rho_raw,
+        "p_raw": p_raw,
+        "rho_partial": rho_partial,
+        "p_partial": p_partial,
+        "r2_base": r2_base,
+        "r2_full": r2_full,
+        "delta_r2": delta_r2,
+        "crit1_pass": crit1_pass,
+        "crit2_pass": crit2_pass,
+        "sign_correct": sign_correct,
+        "h1_confirmed": h1_confirmed,
+        "bootstrap": boot,
+        "n_eval": int(len(scores)),
+        "n_family_pair_cells": int(len(set(cell_labels))),
     }
 
 
@@ -533,6 +608,8 @@ def main() -> None:
     print("  N134 primary H1 analysis: O-module depth-weighted alignment")
     print("=" * 74)
 
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+
     # ---- Load ----
     pair_full, _pair_summary, profiles, pair_sample, merges = load_inputs()
     print(f"\n  Loaded {len(profiles)} adapter profiles, "
@@ -561,7 +638,6 @@ def main() -> None:
     # ---- Family-pair dummies ----
     cell_labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"])
                    for p in eval_pairs]
-    X_fam = dummy_encode(cell_labels)
     n_cells = len(set(cell_labels))
     print(f"  Family-pair cells: {n_cells}")
 
@@ -570,34 +646,31 @@ def main() -> None:
     print("  H1 DECISION RULE")
     print("-" * 74)
 
-    # Raw Spearman
-    rho_raw, p_raw = stats.spearmanr(scores, y)
-    print(f"\n  Raw Spearman rho(S_H1, max_deg): {rho_raw:+.4f} (p = {p_raw:.4e})")
+    decision = evaluate_h1_decision(scores, y, cell_labels)
 
-    # Criterion 1: Partial Spearman rho >= 0.50 with p < 0.05
-    rho_partial, p_partial = partial_spearman(scores, y, X_fam)
-    crit1_pass = np.isfinite(rho_partial) and rho_partial >= 0.50 and p_partial < 0.05
+    rho_raw = decision["rho_raw"]
+    p_raw = decision["p_raw"]
+    rho_partial = decision["rho_partial"]
+    p_partial = decision["p_partial"]
+    r2_base = decision["r2_base"]
+    r2_full = decision["r2_full"]
+    delta_r2 = decision["delta_r2"]
+    crit1_pass = decision["crit1_pass"]
+    crit2_pass = decision["crit2_pass"]
+    sign_correct = decision["sign_correct"]
+    h1_confirmed = decision["h1_confirmed"]
+    boot = decision["bootstrap"]
+
+    print(f"\n  Raw Spearman rho(S_H1, max_deg): {rho_raw:+.4f} (p = {p_raw:.4e})")
     print(f"  Partial Spearman rho (residualized on FAMILY_B): {rho_partial:+.4f} "
           f"(p = {p_partial:.4e})")
     print(f"    Criterion 1 (rho >= 0.50, p < 0.05): {'PASS' if crit1_pass else 'FAIL'}")
-
-    # Criterion 2: Delta R2 >= 0.10
-    r2_base = ols_r2(y, X_fam)
-    X_full = np.hstack([X_fam, scores.reshape(-1, 1)])
-    r2_full = ols_r2(y, X_full)
-    delta_r2 = r2_full - r2_base
-    crit2_pass = delta_r2 >= 0.10
     print(f"\n  R2 (family-only baseline): {r2_base:.4f}")
     print(f"  R2 (family + S_H1):        {r2_full:.4f}")
     print(f"  Delta R2:                  {delta_r2:+.4f}")
     print(f"    Criterion 2 (delta-R2 >= 0.10): {'PASS' if crit2_pass else 'FAIL'}")
-
-    # Criterion 3: Sign check (higher alignment -> higher degradation)
-    sign_correct = rho_raw > 0
     print(f"\n  Sign check (rho_raw > 0 means higher alignment -> higher degradation): "
           f"{'CORRECT' if sign_correct else 'WRONG'}")
-
-    h1_confirmed = crit1_pass and crit2_pass and sign_correct
     print(f"\n  >>> H1 OVERALL: {'CONFIRMED' if h1_confirmed else 'NOT CONFIRMED'} <<<")
 
     # ---- Bootstrap CIs ----
@@ -605,7 +678,6 @@ def main() -> None:
     print(f"  BLOCK-BOOTSTRAP CIs ({N_BOOTSTRAP} resamples, family-pair blocked)")
     print("-" * 74)
 
-    boot = block_bootstrap_ci(scores, y, cell_labels, X_fam)
     print(f"\n  Partial rho: {boot['rho_mean']:.3f} "
           f"[{boot['rho_ci_025']:.3f}, {boot['rho_ci_975']:.3f}]")
     print(f"  Delta R2:    {boot['dr2_mean']:.3f} "
