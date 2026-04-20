@@ -221,22 +221,33 @@ def audit_single_adapter(adapter_name: str) -> dict | None:
 
     weights = load_adapter_weights(adapter_dir)
 
+    # LoRA adapter rank (same for all layers — read from config)
+    lora_rank = int(json.loads((adapter_dir / "adapter_config.json").read_text()).get("r", 16))
+
     layers = []
     for layer_name in sorted(weights.keys()):
         lw = weights[layer_name]
-        A = lw["A"]
-        B = lw["B"]
+        A = lw["A"]          # shape (r, d_in) e.g. (16, 4096)
+        B = lw["B"]          # shape (d_out, r) e.g. (4096, 16)
         scaling = lw["scaling"]
 
-        # Compute delta_W = scaling * B @ A
-        delta_W = scaling * (B @ A)
-        U, S, Vt = svd(delta_W, full_matrices=False)
+        # Fast rank-r SVD via QR. The full delta_W = scaling * B @ A has
+        # shape (d_out, d_in) (e.g. 4096x4096) but rank at most r (e.g. 16).
+        # Naive svd(delta_W) is O(d^3) and produces the correct rank-r
+        # factors padded with zero singular values — but also wastes ~4096x
+        # compute and writes 4096x4096 matrices to JSON (270MB per layer).
+        # Instead: QR on B, then small SVD on the r x r product.
+        B_scaled = scaling * B
+        Q_B, R_B = np.linalg.qr(B_scaled, mode="reduced")    # Q:(d_out,r), R:(r,r)
+        M = R_B @ A                                           # (r, d_in)
+        U_small, S, Vt = np.linalg.svd(M, full_matrices=False)
+        U = Q_B @ U_small                                     # (d_out, r)
 
         layer_idx = extract_layer_idx(layer_name)
         module = detect_module_type(layer_name)
-        rank = len(S)
+        rank = lora_rank  # nominal rank (the LoRA r from config)
 
-        # Truncate U/V to rank and convert to float32 for storage
+        # Store as float32 per v2.1 schema (see sidecar/data/n134/audit_v2_1.schema.json)
         U_trunc = U[:, :rank].astype(np.float32)
         Vt_trunc = Vt[:rank, :].astype(np.float32)
         S_trunc = S[:rank].astype(np.float32)
