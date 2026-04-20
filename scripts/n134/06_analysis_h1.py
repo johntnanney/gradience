@@ -76,6 +76,24 @@ FAMILY_B: dict[str, str] = {
 # Data loading
 # ---------------------------------------------------------------------------
 
+def lookup_pair(pair_key: str, pair_full: dict) -> dict:
+    """Return the pair_full entry for this key, tolerating reversed order.
+
+    merge_eval stores pair keys in committed (pair_sample.json) order;
+    pair_alignment_full keys are alphabetical ({min}_vs_{max}). This
+    helper tries the requested key then the reversed form so downstream
+    code can use merge-eval-style keys against the audit dictionary.
+    """
+    if pair_key in pair_full:
+        return pair_full[pair_key]
+    parts = pair_key.split("_vs_")
+    if len(parts) == 2:
+        reversed_key = f"{parts[1]}_vs_{parts[0]}"
+        if reversed_key in pair_full:
+            return pair_full[reversed_key]
+    raise KeyError(f"Pair key not found in either order: {pair_key}")
+
+
 def load_inputs() -> tuple[dict, dict, dict, dict, dict]:
     pair_full = json.loads((AUDIT_DIR / "pair_alignment_full.json").read_text())
     pair_summary = json.loads((AUDIT_DIR / "pair_alignment_summary.json").read_text())
@@ -476,8 +494,8 @@ def plot_h1_scatter(
     """S_H1 vs max_degradation scatter, colored by family pair."""
     fig, ax = plt.subplots(figsize=(9, 7))
 
-    # Color by family pair
-    labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"]) for p in pairs]
+    # Color by family pair (use symmetric lookup to tolerate reversed keys)
+    labels = [family_pair_label(lookup_pair(p, pair_full)["task_a"], lookup_pair(p, pair_full)["task_b"]) for p in pairs]
     unique_labels = sorted(set(labels))
     cmap = plt.cm.get_cmap("tab20", len(unique_labels))
     color_map = {lab: cmap(i) for i, lab in enumerate(unique_labels)}
@@ -621,9 +639,22 @@ def main() -> None:
     n_eval = len(eval_pairs)
     print(f"  Cross-task pairs with evaluation: {n_eval}")
 
-    # ---- Compute S_H1 for all pairs ----
-    s_h1_all = {key: compute_s_h1(pair) for key, pair in pair_full.items()}
-    scores = np.array([s_h1_all[p] for p in eval_pairs])
+    # ---- Compute S_H1 for all pairs (with symmetric key lookup) ----
+    # merge_eval writes pair keys in the order committed by pair_sample.json
+    # (whichever adapter was "a"); pair_alignment_full.json (Phase 2) uses
+    # alphabetical "{min}_vs_{max}" ordering. Use the module-level symmetric
+    # lookup so both orderings resolve to the same pair entry.
+    s_h1_raw = {key: compute_s_h1(pair) for key, pair in pair_full.items()}
+
+    def _lookup_s_h1(pair_key: str) -> float:
+        entry = lookup_pair(pair_key, pair_full)
+        # map pair_full entry back to its key to fetch s_h1
+        for k, v in pair_full.items():
+            if v is entry:
+                return s_h1_raw[k]
+        raise KeyError(pair_key)
+
+    scores = np.array([_lookup_s_h1(p) for p in eval_pairs])
     y = np.array([eval_degs[p] for p in eval_pairs])
 
     print(f"\n  S_H1 range: [{scores.min():.4f}, {scores.max():.4f}]")
@@ -636,7 +667,8 @@ def main() -> None:
         print(f"  Tied cluster sizes: {tied_info['tied_cluster_sizes']}")
 
     # ---- Family-pair dummies ----
-    cell_labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"])
+    cell_labels = [family_pair_label(lookup_pair(p, pair_full)["task_a"],
+                                     lookup_pair(p, pair_full)["task_b"])
                    for p in eval_pairs]
     n_cells = len(set(cell_labels))
     print(f"  Family-pair cells: {n_cells}")
@@ -777,10 +809,13 @@ def main() -> None:
         "per_pair": [
             {
                 "pair": p,
-                "task_a": pair_full[p]["task_a"],
-                "task_b": pair_full[p]["task_b"],
-                "family_pair": family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"]),
-                "s_h1": float(s_h1_all[p]),
+                "task_a": lookup_pair(p, pair_full)["task_a"],
+                "task_b": lookup_pair(p, pair_full)["task_b"],
+                "family_pair": family_pair_label(
+                    lookup_pair(p, pair_full)["task_a"],
+                    lookup_pair(p, pair_full)["task_b"],
+                ),
+                "s_h1": float(_lookup_s_h1(p)),
                 "max_degradation": float(eval_degs[p]),
             }
             for p in eval_pairs
