@@ -179,6 +179,8 @@ figures/
 !sidecar/figures/route2_claims_ladder.svg
 !sidecar/figures/mixed_evidence_triage_matrix.svg
 !sidecar/figures/collapse_vs_contamination_replication_matrix.svg
+!sidecar/results/n134/figures/
+!sidecar/results/n134/figures/**
 *_results/
 *_results_full/
 intervention_*/
