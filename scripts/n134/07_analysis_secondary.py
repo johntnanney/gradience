@@ -468,16 +468,18 @@ def evaluate_composites(
     eval_pairs = sorted(eval_degs.keys())
     y = np.array([eval_degs[p] for p in eval_pairs])
 
-    def _lookup(p: str) -> dict:
-        if p in pair_full:
-            return pair_full[p]
-        # Tolerate committed-order vs alphabetical pair-key mismatch.
+    def _lookup_in(p: str, d: dict) -> dict:
+        if p in d:
+            return d[p]
         parts = p.split("_vs_")
         if len(parts) == 2:
             rev = f"{parts[1]}_vs_{parts[0]}"
-            if rev in pair_full:
-                return pair_full[rev]
-        raise KeyError(f"Pair not found in pair_full: {p}")
+            if rev in d:
+                return d[rev]
+        raise KeyError(f"Pair not found: {p}")
+
+    def _lookup(p: str) -> dict:
+        return _lookup_in(p, pair_full)
 
     cell_labels = [family_pair_label(_lookup(p)["task_a"], _lookup(p)["task_b"])
                    for p in eval_pairs]
@@ -492,7 +494,7 @@ def evaluate_composites(
 
     results = []
     for v in variants:
-        x = np.array([composite_scores[p].get(v, float("nan")) for p in eval_pairs])
+        x = np.array([_lookup_in(p, composite_scores).get(v, float("nan")) for p in eval_pairs])
 
         if not np.all(np.isfinite(x)):
             n_finite = int(np.isfinite(x).sum())
