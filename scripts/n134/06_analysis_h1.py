@@ -113,10 +113,24 @@ def compute_s_h1(pair: dict) -> float:
     S_H1 = sum(w_l * alpha_O_l) / sum(w_l)  for l in 0..31
     w_l = (l + 1) / N_LAYERS   (so layer 0 gets w=1/32, layer 31 gets w=1)
     """
+    # pair_alignment_full.json stores per-layer entries with:
+    #   - layer_idx (not "layer")
+    #   - module as "q_proj" / "k_proj" / "v_proj" / "o_proj" (not "O")
+    # Accept either naming convention for robustness.
+    def _is_o(mod: str) -> bool:
+        return mod == "O" or mod == "o_proj"
+
+    def _layer_idx(layer: dict) -> int:
+        if "layer_idx" in layer:
+            return int(layer["layer_idx"])
+        if "layer" in layer:
+            return int(layer["layer"])
+        raise KeyError(f"Layer entry missing layer_idx / layer: {layer}")
+
     o_entries = [
-        (layer["layer"], layer["alignment"])
+        (_layer_idx(layer), layer["alignment"])
         for layer in pair["per_layer"]
-        if layer["module"] == "O"
+        if _is_o(layer["module"])
     ]
     o_entries.sort(key=lambda x: x[0])
     if not o_entries:
