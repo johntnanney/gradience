@@ -1,0 +1,1167 @@
+{
+  "adapter_id": "commonsenseqa_s42",
+  "meta": {
+    "task": "commonsenseqa",
+    "seed": 42,
+    "training_steps": 1000,
+    "final_val_accuracy": 0.855
+  },
+  "n_layers": 128,
+  "mean_erank": 7.371514461588382,
+  "mean_stable_rank": 2.746786631845379,
+  "mean_frobenius_norm": 1.3223374420941514,
+  "per_layer": [
+    {
+      "layer_idx": 0,
+      "module": "k_proj",
+      "erank": 1.9166864409076183,
+      "stable_rank": 1.1607705145170648,
+      "frobenius_norm": 0.5982423097859371,
+      "sigma_max": 0.5552696585655212,
+      "energy_rank_90": 2
+    },
+    {
+      "layer_idx": 0,
+      "module": "o_proj",
+      "erank": 6.095456022229802,
+      "stable_rank": 2.145739704779347,
+      "frobenius_norm": 1.1884302273169234,
+      "sigma_max": 0.811306893825531,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 0,
+      "module": "q_proj",
+      "erank": 2.396870871726856,
+      "stable_rank": 1.2469686113134189,
+      "frobenius_norm": 1.1550892180425871,
+      "sigma_max": 1.0343981981277466,
+      "energy_rank_90": 3
+    },
+    {
+      "layer_idx": 0,
+      "module": "v_proj",
+      "erank": 4.166686964196623,
+      "stable_rank": 1.6812731018157605,
+      "frobenius_norm": 0.47893323917789815,
+      "sigma_max": 0.3693650960922241,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 1,
+      "module": "k_proj",
+      "erank": 4.429308509034688,
+      "stable_rank": 2.037700893305841,
+      "frobenius_norm": 0.6673284456708732,
+      "sigma_max": 0.4674868583679199,
+      "energy_rank_90": 4
+    },
+    {
+      "layer_idx": 1,
+      "module": "o_proj",
+      "erank": 8.79950106086282,
+      "stable_rank": 3.2101573357310054,
+      "frobenius_norm": 1.5143445698838514,
+      "sigma_max": 0.8452039957046509,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 1,
+      "module": "q_proj",
+      "erank": 4.361263714825667,
+      "stable_rank": 1.6559155416945173,
+      "frobenius_norm": 1.3477271673106326,
+      "sigma_max": 1.0473284721374512,
+      "energy_rank_90": 6
+    },
+    {
+      "layer_idx": 1,
+      "module": "v_proj",
+      "erank": 4.605113508577586,
+      "stable_rank": 1.8051486694973613,
+      "frobenius_norm": 0.5876446433664325,
+      "sigma_max": 0.4373793601989746,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 10,
+      "module": "k_proj",
+      "erank": 9.182339847688878,
+      "stable_rank": 3.2780370477793483,
+      "frobenius_norm": 0.7025648350823117,
+      "sigma_max": 0.3880426585674286,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 10,
+      "module": "o_proj",
+      "erank": 6.2511029415069155,
+      "stable_rank": 2.120981618711366,
+      "frobenius_norm": 1.4371857611132772,
+      "sigma_max": 0.9868347644805908,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 10,
+      "module": "q_proj",
+      "erank": 8.013706628135036,
+      "stable_rank": 2.57874852411836,
+      "frobenius_norm": 1.517838278894245,
+      "sigma_max": 0.9451941251754761,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 10,
+      "module": "v_proj",
+      "erank": 7.916877101113449,
+      "stable_rank": 3.0066848808374718,
+      "frobenius_norm": 0.6430834261918383,
+      "sigma_max": 0.3708714246749878,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 11,
+      "module": "k_proj",
+      "erank": 8.339350965210722,
+      "stable_rank": 3.4000669776130334,
+      "frobenius_norm": 0.7504184445689759,
+      "sigma_max": 0.40696752071380615,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 11,
+      "module": "o_proj",
+      "erank": 9.457367259935967,
+      "stable_rank": 3.8456296775847023,
+      "frobenius_norm": 1.4912871580598217,
+      "sigma_max": 0.7604620456695557,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 11,
+      "module": "q_proj",
+      "erank": 9.701819944774657,
+      "stable_rank": 4.00373652008204,
+      "frobenius_norm": 1.5162302269151617,
+      "sigma_max": 0.7577612996101379,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 11,
+      "module": "v_proj",
+      "erank": 6.03248090749318,
+      "stable_rank": 2.2816142093145486,
+      "frobenius_norm": 0.647591508532817,
+      "sigma_max": 0.4287262260913849,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 12,
+      "module": "k_proj",
+      "erank": 7.933997069748134,
+      "stable_rank": 3.0603654885097096,
+      "frobenius_norm": 0.7852582098136395,
+      "sigma_max": 0.44887542724609375,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 12,
+      "module": "o_proj",
+      "erank": 7.021379859656021,
+      "stable_rank": 2.2871666949967673,
+      "frobenius_norm": 1.482653516488475,
+      "sigma_max": 0.9803717136383057,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 12,
+      "module": "q_proj",
+      "erank": 10.019684688252063,
+      "stable_rank": 3.5897517281518776,
+      "frobenius_norm": 1.458863382569184,
+      "sigma_max": 0.7699852585792542,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 12,
+      "module": "v_proj",
+      "erank": 7.222591647864888,
+      "stable_rank": 2.7423592439264075,
+      "frobenius_norm": 0.6320447740399711,
+      "sigma_max": 0.38166794180870056,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 13,
+      "module": "k_proj",
+      "erank": 5.504111587348976,
+      "stable_rank": 1.91082469242831,
+      "frobenius_norm": 1.0265974521907812,
+      "sigma_max": 0.7426595091819763,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 13,
+      "module": "o_proj",
+      "erank": 8.344226670568714,
+      "stable_rank": 2.631771425595365,
+      "frobenius_norm": 1.5216465685852631,
+      "sigma_max": 0.9379716515541077,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 13,
+      "module": "q_proj",
+      "erank": 6.823442597608131,
+      "stable_rank": 2.3151001090828145,
+      "frobenius_norm": 1.620247559967674,
+      "sigma_max": 1.06486976146698,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 13,
+      "module": "v_proj",
+      "erank": 7.313042592708327,
+      "stable_rank": 2.693655343561203,
+      "frobenius_norm": 0.6659857717499323,
+      "sigma_max": 0.405783087015152,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 14,
+      "module": "k_proj",
+      "erank": 8.126361902338648,
+      "stable_rank": 2.661809800888896,
+      "frobenius_norm": 0.8699189591362929,
+      "sigma_max": 0.533200204372406,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 14,
+      "module": "o_proj",
+      "erank": 7.2071535836924445,
+      "stable_rank": 3.014140709647679,
+      "frobenius_norm": 1.5653813123147895,
+      "sigma_max": 0.9016508460044861,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 14,
+      "module": "q_proj",
+      "erank": 6.9232261964735455,
+      "stable_rank": 2.339237866266703,
+      "frobenius_norm": 1.6090765497579627,
+      "sigma_max": 1.0520576238632202,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 14,
+      "module": "v_proj",
+      "erank": 6.107227932965325,
+      "stable_rank": 2.3609925573713726,
+      "frobenius_norm": 0.6993919574046625,
+      "sigma_max": 0.455169677734375,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 15,
+      "module": "k_proj",
+      "erank": 6.550913702955378,
+      "stable_rank": 2.3531115390893027,
+      "frobenius_norm": 0.9652155561373291,
+      "sigma_max": 0.6292207837104797,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 15,
+      "module": "o_proj",
+      "erank": 10.527537880736975,
+      "stable_rank": 4.783966543557913,
+      "frobenius_norm": 1.757211585155715,
+      "sigma_max": 0.8033965826034546,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 15,
+      "module": "q_proj",
+      "erank": 8.967206431323739,
+      "stable_rank": 3.138041389367412,
+      "frobenius_norm": 1.6463290927558323,
+      "sigma_max": 0.9293671250343323,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 15,
+      "module": "v_proj",
+      "erank": 7.4726119908261195,
+      "stable_rank": 2.657393369763451,
+      "frobenius_norm": 0.7690234221884359,
+      "sigma_max": 0.4717497229576111,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 16,
+      "module": "k_proj",
+      "erank": 8.392151954400882,
+      "stable_rank": 3.235308983278538,
+      "frobenius_norm": 0.888824769380622,
+      "sigma_max": 0.494149386882782,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 16,
+      "module": "o_proj",
+      "erank": 6.9854756602888175,
+      "stable_rank": 2.2251241757741083,
+      "frobenius_norm": 1.7290538145703749,
+      "sigma_max": 1.159127950668335,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 16,
+      "module": "q_proj",
+      "erank": 8.48300631739238,
+      "stable_rank": 2.6871049968268,
+      "frobenius_norm": 1.6938005561328238,
+      "sigma_max": 1.0332845449447632,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 16,
+      "module": "v_proj",
+      "erank": 7.2771491209455785,
+      "stable_rank": 2.316260932725848,
+      "frobenius_norm": 0.7412645237627355,
+      "sigma_max": 0.4870566427707672,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 17,
+      "module": "k_proj",
+      "erank": 6.4574818924655055,
+      "stable_rank": 2.080207870282114,
+      "frobenius_norm": 0.9131321907688292,
+      "sigma_max": 0.6331115961074829,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 17,
+      "module": "o_proj",
+      "erank": 7.730876048300733,
+      "stable_rank": 2.622147452576311,
+      "frobenius_norm": 1.8116504839998575,
+      "sigma_max": 1.1187829971313477,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 17,
+      "module": "q_proj",
+      "erank": 6.016461700420106,
+      "stable_rank": 1.9910009783965918,
+      "frobenius_norm": 1.7607035510162063,
+      "sigma_max": 1.2478158473968506,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 17,
+      "module": "v_proj",
+      "erank": 7.346267462190409,
+      "stable_rank": 2.9617998504314453,
+      "frobenius_norm": 0.7186020272457107,
+      "sigma_max": 0.41755202412605286,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 18,
+      "module": "k_proj",
+      "erank": 7.992621034137518,
+      "stable_rank": 2.4281946270234576,
+      "frobenius_norm": 0.8986626990775414,
+      "sigma_max": 0.5767066478729248,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 18,
+      "module": "o_proj",
+      "erank": 9.609467369430684,
+      "stable_rank": 3.647680884268318,
+      "frobenius_norm": 1.7585797324241845,
+      "sigma_max": 0.920775294303894,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 18,
+      "module": "q_proj",
+      "erank": 7.922296649441035,
+      "stable_rank": 2.8868782166191482,
+      "frobenius_norm": 1.850983531235082,
+      "sigma_max": 1.089402437210083,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 18,
+      "module": "v_proj",
+      "erank": 6.991930686010075,
+      "stable_rank": 2.5475832233475924,
+      "frobenius_norm": 0.7297223850335719,
+      "sigma_max": 0.45718657970428467,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 19,
+      "module": "k_proj",
+      "erank": 8.182658459395117,
+      "stable_rank": 3.249045284441486,
+      "frobenius_norm": 0.931972066993253,
+      "sigma_max": 0.517041027545929,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 19,
+      "module": "o_proj",
+      "erank": 6.6555156701891836,
+      "stable_rank": 2.084244235048479,
+      "frobenius_norm": 2.0030266969913453,
+      "sigma_max": 1.3874343633651733,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 19,
+      "module": "q_proj",
+      "erank": 7.582651458643525,
+      "stable_rank": 2.810848072736147,
+      "frobenius_norm": 1.8379986503067434,
+      "sigma_max": 1.0962926149368286,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 19,
+      "module": "v_proj",
+      "erank": 7.39766966478811,
+      "stable_rank": 2.535451358612162,
+      "frobenius_norm": 0.8431406771686512,
+      "sigma_max": 0.5295078754425049,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 2,
+      "module": "k_proj",
+      "erank": 9.667938125506236,
+      "stable_rank": 3.762174297528559,
+      "frobenius_norm": 0.6681293125965867,
+      "sigma_max": 0.3444617986679077,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 2,
+      "module": "o_proj",
+      "erank": 7.182638496247787,
+      "stable_rank": 2.4866849735886065,
+      "frobenius_norm": 1.5444130955059856,
+      "sigma_max": 0.979384183883667,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 2,
+      "module": "q_proj",
+      "erank": 9.764125064685524,
+      "stable_rank": 3.2658777143774733,
+      "frobenius_norm": 1.4103381412653204,
+      "sigma_max": 0.7804108262062073,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 2,
+      "module": "v_proj",
+      "erank": 6.221381531213086,
+      "stable_rank": 2.2851161214991644,
+      "frobenius_norm": 0.5939722841763724,
+      "sigma_max": 0.3929271399974823,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 20,
+      "module": "k_proj",
+      "erank": 6.659592343791038,
+      "stable_rank": 2.1101120278091683,
+      "frobenius_norm": 1.0845678996984867,
+      "sigma_max": 0.7466275095939636,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 20,
+      "module": "o_proj",
+      "erank": 11.108963321860356,
+      "stable_rank": 4.6481874199621735,
+      "frobenius_norm": 2.3853729565362487,
+      "sigma_max": 1.1064058542251587,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 20,
+      "module": "q_proj",
+      "erank": 5.738538852912071,
+      "stable_rank": 1.8391256063589543,
+      "frobenius_norm": 2.1727247233042233,
+      "sigma_max": 1.6021345853805542,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 20,
+      "module": "v_proj",
+      "erank": 7.401500474988195,
+      "stable_rank": 2.492724317202972,
+      "frobenius_norm": 0.9757291838531436,
+      "sigma_max": 0.6180052757263184,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 21,
+      "module": "k_proj",
+      "erank": 6.91180607724288,
+      "stable_rank": 2.8841162941381775,
+      "frobenius_norm": 1.1085673727608198,
+      "sigma_max": 0.6527632474899292,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 21,
+      "module": "o_proj",
+      "erank": 11.605751129173482,
+      "stable_rank": 4.484178126433137,
+      "frobenius_norm": 2.5301460991352136,
+      "sigma_max": 1.1948246955871582,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 21,
+      "module": "q_proj",
+      "erank": 9.611897795623026,
+      "stable_rank": 2.9928590015770666,
+      "frobenius_norm": 1.988852215869859,
+      "sigma_max": 1.1496334075927734,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 21,
+      "module": "v_proj",
+      "erank": 5.999917013497268,
+      "stable_rank": 2.281468728173178,
+      "frobenius_norm": 1.0268578218852025,
+      "sigma_max": 0.679834246635437,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 22,
+      "module": "k_proj",
+      "erank": 9.219462583211154,
+      "stable_rank": 4.006412047777722,
+      "frobenius_norm": 1.0186157320572746,
+      "sigma_max": 0.5089001655578613,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 22,
+      "module": "o_proj",
+      "erank": 7.399657094338851,
+      "stable_rank": 3.0062410862710323,
+      "frobenius_norm": 2.238138938091581,
+      "sigma_max": 1.2908481359481812,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 22,
+      "module": "q_proj",
+      "erank": 7.427642099797165,
+      "stable_rank": 2.3085805181648715,
+      "frobenius_norm": 2.1003888111999003,
+      "sigma_max": 1.382379174232483,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 22,
+      "module": "v_proj",
+      "erank": 5.861110722323089,
+      "stable_rank": 2.5239541105273715,
+      "frobenius_norm": 0.9481035592426557,
+      "sigma_max": 0.5967810750007629,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 23,
+      "module": "k_proj",
+      "erank": 6.45442124450572,
+      "stable_rank": 2.174129431972177,
+      "frobenius_norm": 1.1374573667223846,
+      "sigma_max": 0.7714227437973022,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 23,
+      "module": "o_proj",
+      "erank": 8.385888042914488,
+      "stable_rank": 3.350688207993238,
+      "frobenius_norm": 2.23498973574588,
+      "sigma_max": 1.220979928970337,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 23,
+      "module": "q_proj",
+      "erank": 10.97719393523083,
+      "stable_rank": 4.7365323961646695,
+      "frobenius_norm": 2.059232968912767,
+      "sigma_max": 0.9461832046508789,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 23,
+      "module": "v_proj",
+      "erank": 3.9666122172714604,
+      "stable_rank": 1.7285324127302255,
+      "frobenius_norm": 1.0774728765010606,
+      "sigma_max": 0.8195351362228394,
+      "energy_rank_90": 4
+    },
+    {
+      "layer_idx": 24,
+      "module": "k_proj",
+      "erank": 9.10754340447617,
+      "stable_rank": 3.913542640906388,
+      "frobenius_norm": 0.9938734775347942,
+      "sigma_max": 0.5023958683013916,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 24,
+      "module": "o_proj",
+      "erank": 8.475259989138818,
+      "stable_rank": 3.8493460183280894,
+      "frobenius_norm": 2.53634810125077,
+      "sigma_max": 1.2927525043487549,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 24,
+      "module": "q_proj",
+      "erank": 10.54000370075639,
+      "stable_rank": 3.8291110439645024,
+      "frobenius_norm": 2.1033956128045643,
+      "sigma_max": 1.0749096870422363,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 24,
+      "module": "v_proj",
+      "erank": 4.389077900118305,
+      "stable_rank": 1.9506321480498483,
+      "frobenius_norm": 1.0582502717749003,
+      "sigma_max": 0.7577059268951416,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 25,
+      "module": "k_proj",
+      "erank": 5.052356873897144,
+      "stable_rank": 1.8948459137285618,
+      "frobenius_norm": 1.0717830926567844,
+      "sigma_max": 0.7786099314689636,
+      "energy_rank_90": 6
+    },
+    {
+      "layer_idx": 25,
+      "module": "o_proj",
+      "erank": 9.112644108057733,
+      "stable_rank": 3.0104836767140464,
+      "frobenius_norm": 2.2229144154220757,
+      "sigma_max": 1.2811636924743652,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 25,
+      "module": "q_proj",
+      "erank": 8.862937651655512,
+      "stable_rank": 3.4748091597142374,
+      "frobenius_norm": 2.034867306144461,
+      "sigma_max": 1.0916178226470947,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 25,
+      "module": "v_proj",
+      "erank": 4.383436622299875,
+      "stable_rank": 1.8580021786472016,
+      "frobenius_norm": 1.0517682054120085,
+      "sigma_max": 0.7716083526611328,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 26,
+      "module": "k_proj",
+      "erank": 7.2152340316277765,
+      "stable_rank": 2.508778082013316,
+      "frobenius_norm": 0.9606139343914004,
+      "sigma_max": 0.6064817905426025,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 26,
+      "module": "o_proj",
+      "erank": 7.079920956485251,
+      "stable_rank": 2.9405867223874953,
+      "frobenius_norm": 2.3394198528316834,
+      "sigma_max": 1.3642412424087524,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 26,
+      "module": "q_proj",
+      "erank": 7.361831871253933,
+      "stable_rank": 2.3795362693820015,
+      "frobenius_norm": 2.159614375509227,
+      "sigma_max": 1.4000065326690674,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 26,
+      "module": "v_proj",
+      "erank": 5.120773427382318,
+      "stable_rank": 2.0029808887173735,
+      "frobenius_norm": 1.0342270372482,
+      "sigma_max": 0.7307645678520203,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 27,
+      "module": "k_proj",
+      "erank": 7.201166268517427,
+      "stable_rank": 2.5612867993947237,
+      "frobenius_norm": 1.0004375286060094,
+      "sigma_max": 0.6251163482666016,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 27,
+      "module": "o_proj",
+      "erank": 8.100742310609597,
+      "stable_rank": 3.660376511701118,
+      "frobenius_norm": 2.4169377945104182,
+      "sigma_max": 1.2632886171340942,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 27,
+      "module": "q_proj",
+      "erank": 9.633977198238986,
+      "stable_rank": 4.201672237754423,
+      "frobenius_norm": 2.059790906718397,
+      "sigma_max": 1.0048750638961792,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 27,
+      "module": "v_proj",
+      "erank": 4.690485510168299,
+      "stable_rank": 1.8914383980247504,
+      "frobenius_norm": 1.1057189178172329,
+      "sigma_max": 0.8039863109588623,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 28,
+      "module": "k_proj",
+      "erank": 6.768448779689617,
+      "stable_rank": 2.2834953936360933,
+      "frobenius_norm": 1.03001372665057,
+      "sigma_max": 0.6816209554672241,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 28,
+      "module": "o_proj",
+      "erank": 7.420033684288561,
+      "stable_rank": 2.9335789421097274,
+      "frobenius_norm": 2.2986459800870342,
+      "sigma_max": 1.3420639038085938,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 28,
+      "module": "q_proj",
+      "erank": 9.699074767648826,
+      "stable_rank": 3.785861470870536,
+      "frobenius_norm": 2.0945537910047087,
+      "sigma_max": 1.0764878988265991,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 28,
+      "module": "v_proj",
+      "erank": 4.535228867913709,
+      "stable_rank": 1.9281753516134985,
+      "frobenius_norm": 1.0620142172439369,
+      "sigma_max": 0.764816164970398,
+      "energy_rank_90": 4
+    },
+    {
+      "layer_idx": 29,
+      "module": "k_proj",
+      "erank": 9.131538996399117,
+      "stable_rank": 3.5751156256911454,
+      "frobenius_norm": 0.945606773912537,
+      "sigma_max": 0.5001099705696106,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 29,
+      "module": "o_proj",
+      "erank": 8.129962545438357,
+      "stable_rank": 3.0752461396693156,
+      "frobenius_norm": 2.2480909276203804,
+      "sigma_max": 1.2819583415985107,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 29,
+      "module": "q_proj",
+      "erank": 8.578601498303978,
+      "stable_rank": 2.621905734193852,
+      "frobenius_norm": 1.9825403443703362,
+      "sigma_max": 1.2243722677230835,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 29,
+      "module": "v_proj",
+      "erank": 4.139395043975222,
+      "stable_rank": 1.6963032358522316,
+      "frobenius_norm": 1.0663224512399558,
+      "sigma_max": 0.818722665309906,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 3,
+      "module": "k_proj",
+      "erank": 8.494827288807022,
+      "stable_rank": 2.814401090271748,
+      "frobenius_norm": 0.6481217382204374,
+      "sigma_max": 0.3863345980644226,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 3,
+      "module": "o_proj",
+      "erank": 4.059629119288841,
+      "stable_rank": 1.4933664741361903,
+      "frobenius_norm": 1.6784289555781309,
+      "sigma_max": 1.3734718561172485,
+      "energy_rank_90": 6
+    },
+    {
+      "layer_idx": 3,
+      "module": "q_proj",
+      "erank": 7.377870756424954,
+      "stable_rank": 2.4757420265298955,
+      "frobenius_norm": 1.4469949578607335,
+      "sigma_max": 0.9196325540542603,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 3,
+      "module": "v_proj",
+      "erank": 5.258154728330429,
+      "stable_rank": 2.044183041040965,
+      "frobenius_norm": 0.6925476057518366,
+      "sigma_max": 0.4843839406967163,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 30,
+      "module": "k_proj",
+      "erank": 9.095584783236175,
+      "stable_rank": 3.7168526011826155,
+      "frobenius_norm": 0.8285128818211613,
+      "sigma_max": 0.42974576354026794,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 30,
+      "module": "o_proj",
+      "erank": 7.939066358795431,
+      "stable_rank": 3.1046092964285177,
+      "frobenius_norm": 2.189042427569316,
+      "sigma_max": 1.242369294166565,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 30,
+      "module": "q_proj",
+      "erank": 9.020250056647422,
+      "stable_rank": 3.549744222703796,
+      "frobenius_norm": 1.9247873135382048,
+      "sigma_max": 1.0216078758239746,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 30,
+      "module": "v_proj",
+      "erank": 5.32378005446943,
+      "stable_rank": 2.056071247258547,
+      "frobenius_norm": 0.9996248972593028,
+      "sigma_max": 0.6971367597579956,
+      "energy_rank_90": 6
+    },
+    {
+      "layer_idx": 31,
+      "module": "k_proj",
+      "erank": 7.727262811913729,
+      "stable_rank": 2.7519143060532825,
+      "frobenius_norm": 0.9420267532005938,
+      "sigma_max": 0.5678659081459045,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 31,
+      "module": "o_proj",
+      "erank": 4.347695132405354,
+      "stable_rank": 1.6601926273479939,
+      "frobenius_norm": 2.0845875045734803,
+      "sigma_max": 1.6178598403930664,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 31,
+      "module": "q_proj",
+      "erank": 8.94326882241146,
+      "stable_rank": 3.2875365904891227,
+      "frobenius_norm": 1.9676741935228272,
+      "sigma_max": 1.085220217704773,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 31,
+      "module": "v_proj",
+      "erank": 1.927361791833012,
+      "stable_rank": 1.1406754182099648,
+      "frobenius_norm": 1.1136416801565443,
+      "sigma_max": 1.0427122116088867,
+      "energy_rank_90": 2
+    },
+    {
+      "layer_idx": 4,
+      "module": "k_proj",
+      "erank": 6.928906049720542,
+      "stable_rank": 2.326198230153752,
+      "frobenius_norm": 0.7302930318842088,
+      "sigma_max": 0.47882166504859924,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 4,
+      "module": "o_proj",
+      "erank": 7.831595392897782,
+      "stable_rank": 3.253930584374651,
+      "frobenius_norm": 1.550269434006164,
+      "sigma_max": 0.8594152331352234,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 4,
+      "module": "q_proj",
+      "erank": 7.8138766082096796,
+      "stable_rank": 2.3805070917452746,
+      "frobenius_norm": 1.4785114284092629,
+      "sigma_max": 0.9582745432853699,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 4,
+      "module": "v_proj",
+      "erank": 4.245700238222449,
+      "stable_rank": 1.7183161381184155,
+      "frobenius_norm": 0.6735929392149671,
+      "sigma_max": 0.5138614177703857,
+      "energy_rank_90": 5
+    },
+    {
+      "layer_idx": 5,
+      "module": "k_proj",
+      "erank": 9.502329726717763,
+      "stable_rank": 3.326054840062004,
+      "frobenius_norm": 0.7435523352199429,
+      "sigma_max": 0.40770575404167175,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 5,
+      "module": "o_proj",
+      "erank": 9.301010296637164,
+      "stable_rank": 2.909791612142701,
+      "frobenius_norm": 1.6914244676708843,
+      "sigma_max": 0.9915660619735718,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 5,
+      "module": "q_proj",
+      "erank": 6.544809361405499,
+      "stable_rank": 2.0943780738622766,
+      "frobenius_norm": 1.6380185854562157,
+      "sigma_max": 1.1318563222885132,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 5,
+      "module": "v_proj",
+      "erank": 4.459448010049623,
+      "stable_rank": 1.6469318328479212,
+      "frobenius_norm": 0.734630331585465,
+      "sigma_max": 0.5724413990974426,
+      "energy_rank_90": 6
+    },
+    {
+      "layer_idx": 6,
+      "module": "k_proj",
+      "erank": 7.077826543460645,
+      "stable_rank": 2.3665451761880907,
+      "frobenius_norm": 0.7471495626698617,
+      "sigma_max": 0.4856799244880676,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 6,
+      "module": "o_proj",
+      "erank": 8.425951975126639,
+      "stable_rank": 2.668926312639426,
+      "frobenius_norm": 1.5959220830784948,
+      "sigma_max": 0.9768849015235901,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 6,
+      "module": "q_proj",
+      "erank": 8.562770436389131,
+      "stable_rank": 2.5959907128619295,
+      "frobenius_norm": 1.508537207039982,
+      "sigma_max": 0.9362772107124329,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 6,
+      "module": "v_proj",
+      "erank": 7.902939494266671,
+      "stable_rank": 2.687810787377761,
+      "frobenius_norm": 0.690383511497401,
+      "sigma_max": 0.42110565304756165,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 7,
+      "module": "k_proj",
+      "erank": 9.046830959168393,
+      "stable_rank": 3.3305883899249094,
+      "frobenius_norm": 0.7382288120135269,
+      "sigma_max": 0.40451115369796753,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 7,
+      "module": "o_proj",
+      "erank": 7.032601907916753,
+      "stable_rank": 2.1973964542075595,
+      "frobenius_norm": 1.5175710417370543,
+      "sigma_max": 1.0237520933151245,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 7,
+      "module": "q_proj",
+      "erank": 10.853573378221933,
+      "stable_rank": 4.264689054913483,
+      "frobenius_norm": 1.4735948148297542,
+      "sigma_max": 0.7135664224624634,
+      "energy_rank_90": 11
+    },
+    {
+      "layer_idx": 7,
+      "module": "v_proj",
+      "erank": 7.105220036165633,
+      "stable_rank": 2.8717073780841544,
+      "frobenius_norm": 0.7074727746003442,
+      "sigma_max": 0.4174838066101074,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 8,
+      "module": "k_proj",
+      "erank": 10.128635568366944,
+      "stable_rank": 4.046531051245388,
+      "frobenius_norm": 0.7303773412446404,
+      "sigma_max": 0.3630829453468323,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 8,
+      "module": "o_proj",
+      "erank": 7.623968555054395,
+      "stable_rank": 2.6334840002742497,
+      "frobenius_norm": 1.538598032257844,
+      "sigma_max": 0.948112428188324,
+      "energy_rank_90": 9
+    },
+    {
+      "layer_idx": 8,
+      "module": "q_proj",
+      "erank": 9.641835747814099,
+      "stable_rank": 3.4420402638740772,
+      "frobenius_norm": 1.5185153893955352,
+      "sigma_max": 0.8184859156608582,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 8,
+      "module": "v_proj",
+      "erank": 6.4108929885614145,
+      "stable_rank": 2.838687731921547,
+      "frobenius_norm": 0.7120086034051205,
+      "sigma_max": 0.4225970208644867,
+      "energy_rank_90": 7
+    },
+    {
+      "layer_idx": 9,
+      "module": "k_proj",
+      "erank": 7.536913841739943,
+      "stable_rank": 2.8730703607587906,
+      "frobenius_norm": 0.766096955917969,
+      "sigma_max": 0.45197102427482605,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 9,
+      "module": "o_proj",
+      "erank": 6.820416687967832,
+      "stable_rank": 2.4327262966118317,
+      "frobenius_norm": 1.4995512819572088,
+      "sigma_max": 0.961423397064209,
+      "energy_rank_90": 8
+    },
+    {
+      "layer_idx": 9,
+      "module": "q_proj",
+      "erank": 10.225984248527725,
+      "stable_rank": 4.657149669673097,
+      "frobenius_norm": 1.4881867367605366,
+      "sigma_max": 0.6896001100540161,
+      "energy_rank_90": 10
+    },
+    {
+      "layer_idx": 9,
+      "module": "v_proj",
+      "erank": 5.9650169797388255,
+      "stable_rank": 2.4273989940892493,
+      "frobenius_norm": 0.6589913530460064,
+      "sigma_max": 0.4229695796966553,
+      "energy_rank_90": 7
+    }
+  ]
+}

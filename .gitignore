@@ -101,6 +101,8 @@ sidecar/results/*
 !sidecar/results/route2_claims_ladder/**
 !sidecar/results/route2_stress_tests/
 !sidecar/results/route2_stress_tests/**
+!sidecar/results/n134/
+!sidecar/results/n134/**
 # Canonical Route 2 ladder figure
 !sidecar/figures/
 !sidecar/figures/route2_claims_ladder.svg

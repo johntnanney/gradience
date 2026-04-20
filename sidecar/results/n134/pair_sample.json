@@ -1,0 +1,1198 @@
+{
+  "n134_pair_seed": 134,
+  "n_same_task": 24,
+  "n_cross_task": 45,
+  "n_total": 69,
+  "family_b_labels": {
+    "arc_challenge": "science_qa",
+    "hellaswag": "commonsense_completion",
+    "winogrande": "coreference_commonsense",
+    "openbookqa": "knowledge_qa",
+    "commonsenseqa": "commonsense_qa",
+    "piqa": "physical_commonsense",
+    "siqa": "social_commonsense",
+    "boolq": "reading_comprehension"
+  },
+  "same_task_pairs": [
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "arc_challenge_s123",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "arc_challenge_s456",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "arc_challenge_s456",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "hellaswag_s123",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "winogrande_s123",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "winogrande_s456",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "winogrande_s456",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s123",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s123",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "piqa_s456",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s123",
+      "adapter_b": "piqa_s456",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "siqa_s456",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s123",
+      "adapter_b": "siqa_s456",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s42",
+      "adapter_b": "boolq_s123",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s42",
+      "adapter_b": "boolq_s456",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    }
+  ],
+  "cross_task_pairs": [
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "boolq_s456",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_science_qa",
+      "cell": "arc_challenge_x_boolq"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_science_qa",
+      "cell": "arc_challenge_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "arc_challenge",
+      "task_b": "hellaswag",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_science_qa",
+      "cell": "arc_challenge_x_hellaswag"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_science_qa",
+      "cell": "arc_challenge_x_openbookqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_piqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "siqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "science_qa_x_social_commonsense",
+      "cell": "arc_challenge_x_siqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "winogrande_s42",
+      "task_a": "arc_challenge",
+      "task_b": "winogrande",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_winogrande"
+    },
+    {
+      "adapter_a": "commonsenseqa_s456",
+      "adapter_b": "boolq_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_reading_comprehension",
+      "cell": "boolq_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "hellaswag",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_reading_comprehension",
+      "cell": "boolq_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "boolq_s42",
+      "task_a": "openbookqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_reading_comprehension",
+      "cell": "boolq_x_openbookqa"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "boolq_s456",
+      "task_a": "piqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_piqa"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "boolq_s123",
+      "task_a": "siqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_social_commonsense",
+      "cell": "boolq_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "winogrande",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_winogrande"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "hellaswag",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_commonsense_qa",
+      "cell": "commonsenseqa_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "commonsenseqa_s42",
+      "task_a": "openbookqa",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_knowledge_qa",
+      "cell": "commonsenseqa_x_openbookqa"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "piqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_physical_commonsense",
+      "cell": "commonsenseqa_x_piqa"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_social_commonsense",
+      "cell": "commonsenseqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "winogrande",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_coreference_commonsense",
+      "cell": "commonsenseqa_x_winogrande"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_knowledge_qa",
+      "cell": "hellaswag_x_openbookqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "piqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_physical_commonsense",
+      "cell": "hellaswag_x_piqa"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "siqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_social_commonsense",
+      "cell": "hellaswag_x_siqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "winogrande_s123",
+      "task_a": "hellaswag",
+      "task_b": "winogrande",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_coreference_commonsense",
+      "cell": "hellaswag_x_winogrande"
+    },
+    {
+      "adapter_a": "openbookqa_s456",
+      "adapter_b": "piqa_s42",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_physical_commonsense",
+      "cell": "openbookqa_x_piqa"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "siqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_social_commonsense",
+      "cell": "openbookqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "winogrande",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_knowledge_qa",
+      "cell": "openbookqa_x_winogrande"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "siqa_s42",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_social_commonsense",
+      "cell": "piqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s456",
+      "adapter_b": "piqa_s456",
+      "task_a": "winogrande",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_physical_commonsense",
+      "cell": "piqa_x_winogrande"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "winogrande",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_social_commonsense",
+      "cell": "siqa_x_winogrande"
+    },
+    {
+      "adapter_a": "commonsenseqa_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_reading_comprehension",
+      "cell": "boolq_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "piqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_piqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "winogrande",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_winogrande"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_science_qa",
+      "cell": "arc_challenge_x_openbookqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "piqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_physical_commonsense",
+      "cell": "hellaswag_x_piqa"
+    },
+    {
+      "adapter_a": "piqa_s456",
+      "adapter_b": "boolq_s42",
+      "task_a": "piqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_piqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "winogrande",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_knowledge_qa",
+      "cell": "openbookqa_x_winogrande"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_science_qa",
+      "cell": "arc_challenge_x_boolq"
+    },
+    {
+      "adapter_a": "commonsenseqa_s456",
+      "adapter_b": "siqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_social_commonsense",
+      "cell": "commonsenseqa_x_siqa"
+    },
+    {
+      "adapter_a": "piqa_s123",
+      "adapter_b": "siqa_s123",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_social_commonsense",
+      "cell": "piqa_x_siqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "siqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "science_qa_x_social_commonsense",
+      "cell": "arc_challenge_x_siqa"
+    },
+    {
+      "adapter_a": "hellaswag_s456",
+      "adapter_b": "boolq_s42",
+      "task_a": "hellaswag",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_reading_comprehension",
+      "cell": "boolq_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s123",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_knowledge_qa",
+      "cell": "commonsenseqa_x_openbookqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "commonsenseqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_science_qa",
+      "cell": "arc_challenge_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "piqa_s123",
+      "task_a": "winogrande",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_physical_commonsense",
+      "cell": "piqa_x_winogrande"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_social_commonsense",
+      "cell": "openbookqa_x_siqa"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_physical_commonsense",
+      "cell": "openbookqa_x_piqa"
+    }
+  ],
+  "cell_counts": {
+    "arc_challenge_x_boolq": 2,
+    "arc_challenge_x_commonsenseqa": 2,
+    "arc_challenge_x_hellaswag": 1,
+    "arc_challenge_x_openbookqa": 2,
+    "arc_challenge_x_piqa": 2,
+    "arc_challenge_x_siqa": 2,
+    "arc_challenge_x_winogrande": 1,
+    "boolq_x_commonsenseqa": 2,
+    "boolq_x_hellaswag": 2,
+    "boolq_x_openbookqa": 1,
+    "boolq_x_piqa": 2,
+    "boolq_x_siqa": 1,
+    "boolq_x_winogrande": 2,
+    "commonsenseqa_x_hellaswag": 1,
+    "commonsenseqa_x_openbookqa": 2,
+    "commonsenseqa_x_piqa": 1,
+    "commonsenseqa_x_siqa": 2,
+    "commonsenseqa_x_winogrande": 1,
+    "hellaswag_x_openbookqa": 1,
+    "hellaswag_x_piqa": 2,
+    "hellaswag_x_siqa": 1,
+    "hellaswag_x_winogrande": 1,
+    "openbookqa_x_piqa": 2,
+    "openbookqa_x_siqa": 2,
+    "openbookqa_x_winogrande": 2,
+    "piqa_x_siqa": 2,
+    "piqa_x_winogrande": 2,
+    "siqa_x_winogrande": 1
+  },
+  "all_pairs": [
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "arc_challenge_s123",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "arc_challenge_s456",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "arc_challenge_s456",
+      "task_a": "arc_challenge",
+      "task_b": "arc_challenge",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "hellaswag_s123",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "hellaswag",
+      "task_b": "hellaswag",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "winogrande_s123",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "winogrande_s456",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "winogrande_s456",
+      "task_a": "winogrande",
+      "task_b": "winogrande",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "openbookqa_s123",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "openbookqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "commonsenseqa_s123",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "commonsenseqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "piqa_s456",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "piqa_s123",
+      "adapter_b": "piqa_s456",
+      "task_a": "piqa",
+      "task_b": "piqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "siqa_s456",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "siqa_s123",
+      "adapter_b": "siqa_s456",
+      "task_a": "siqa",
+      "task_b": "siqa",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s42",
+      "adapter_b": "boolq_s123",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s42",
+      "adapter_b": "boolq_s456",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "boolq_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "boolq",
+      "task_b": "boolq",
+      "category": "same_task"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "boolq_s456",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_science_qa",
+      "cell": "arc_challenge_x_boolq"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_science_qa",
+      "cell": "arc_challenge_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "hellaswag_s456",
+      "task_a": "arc_challenge",
+      "task_b": "hellaswag",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_science_qa",
+      "cell": "arc_challenge_x_hellaswag"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_science_qa",
+      "cell": "arc_challenge_x_openbookqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_piqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "siqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "science_qa_x_social_commonsense",
+      "cell": "arc_challenge_x_siqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "winogrande_s42",
+      "task_a": "arc_challenge",
+      "task_b": "winogrande",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_winogrande"
+    },
+    {
+      "adapter_a": "commonsenseqa_s456",
+      "adapter_b": "boolq_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_reading_comprehension",
+      "cell": "boolq_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "hellaswag",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_reading_comprehension",
+      "cell": "boolq_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "boolq_s42",
+      "task_a": "openbookqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_reading_comprehension",
+      "cell": "boolq_x_openbookqa"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "boolq_s456",
+      "task_a": "piqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_piqa"
+    },
+    {
+      "adapter_a": "siqa_s42",
+      "adapter_b": "boolq_s123",
+      "task_a": "siqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_social_commonsense",
+      "cell": "boolq_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "boolq_s456",
+      "task_a": "winogrande",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_winogrande"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "hellaswag",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_commonsense_qa",
+      "cell": "commonsenseqa_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "commonsenseqa_s42",
+      "task_a": "openbookqa",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_knowledge_qa",
+      "cell": "commonsenseqa_x_openbookqa"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "piqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_physical_commonsense",
+      "cell": "commonsenseqa_x_piqa"
+    },
+    {
+      "adapter_a": "commonsenseqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_social_commonsense",
+      "cell": "commonsenseqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "commonsenseqa_s123",
+      "task_a": "winogrande",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_coreference_commonsense",
+      "cell": "commonsenseqa_x_winogrande"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_knowledge_qa",
+      "cell": "hellaswag_x_openbookqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "piqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_physical_commonsense",
+      "cell": "hellaswag_x_piqa"
+    },
+    {
+      "adapter_a": "hellaswag_s42",
+      "adapter_b": "siqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_social_commonsense",
+      "cell": "hellaswag_x_siqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "winogrande_s123",
+      "task_a": "hellaswag",
+      "task_b": "winogrande",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_coreference_commonsense",
+      "cell": "hellaswag_x_winogrande"
+    },
+    {
+      "adapter_a": "openbookqa_s456",
+      "adapter_b": "piqa_s42",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_physical_commonsense",
+      "cell": "openbookqa_x_piqa"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "siqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_social_commonsense",
+      "cell": "openbookqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "openbookqa_s123",
+      "task_a": "winogrande",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_knowledge_qa",
+      "cell": "openbookqa_x_winogrande"
+    },
+    {
+      "adapter_a": "piqa_s42",
+      "adapter_b": "siqa_s42",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_social_commonsense",
+      "cell": "piqa_x_siqa"
+    },
+    {
+      "adapter_a": "winogrande_s456",
+      "adapter_b": "piqa_s456",
+      "task_a": "winogrande",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_physical_commonsense",
+      "cell": "piqa_x_winogrande"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "winogrande",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_social_commonsense",
+      "cell": "siqa_x_winogrande"
+    },
+    {
+      "adapter_a": "commonsenseqa_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_reading_comprehension",
+      "cell": "boolq_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "piqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_science_qa",
+      "cell": "arc_challenge_x_piqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "winogrande",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_winogrande"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_science_qa",
+      "cell": "arc_challenge_x_openbookqa"
+    },
+    {
+      "adapter_a": "hellaswag_s123",
+      "adapter_b": "piqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_physical_commonsense",
+      "cell": "hellaswag_x_piqa"
+    },
+    {
+      "adapter_a": "piqa_s456",
+      "adapter_b": "boolq_s42",
+      "task_a": "piqa",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_reading_comprehension",
+      "cell": "boolq_x_piqa"
+    },
+    {
+      "adapter_a": "winogrande_s42",
+      "adapter_b": "openbookqa_s456",
+      "task_a": "winogrande",
+      "task_b": "openbookqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_knowledge_qa",
+      "cell": "openbookqa_x_winogrande"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "boolq_s123",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "reading_comprehension_x_science_qa",
+      "cell": "arc_challenge_x_boolq"
+    },
+    {
+      "adapter_a": "commonsenseqa_s456",
+      "adapter_b": "siqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_social_commonsense",
+      "cell": "commonsenseqa_x_siqa"
+    },
+    {
+      "adapter_a": "piqa_s123",
+      "adapter_b": "siqa_s123",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "physical_commonsense_x_social_commonsense",
+      "cell": "piqa_x_siqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s123",
+      "adapter_b": "siqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "science_qa_x_social_commonsense",
+      "cell": "arc_challenge_x_siqa"
+    },
+    {
+      "adapter_a": "hellaswag_s456",
+      "adapter_b": "boolq_s42",
+      "task_a": "hellaswag",
+      "task_b": "boolq",
+      "category": "cross_task",
+      "family_pair": "commonsense_completion_x_reading_comprehension",
+      "cell": "boolq_x_hellaswag"
+    },
+    {
+      "adapter_a": "openbookqa_s123",
+      "adapter_b": "commonsenseqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_knowledge_qa",
+      "cell": "commonsenseqa_x_openbookqa"
+    },
+    {
+      "adapter_a": "arc_challenge_s456",
+      "adapter_b": "commonsenseqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "category": "cross_task",
+      "family_pair": "commonsense_qa_x_science_qa",
+      "cell": "arc_challenge_x_commonsenseqa"
+    },
+    {
+      "adapter_a": "winogrande_s123",
+      "adapter_b": "piqa_s123",
+      "task_a": "winogrande",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "coreference_commonsense_x_physical_commonsense",
+      "cell": "piqa_x_winogrande"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "siqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_social_commonsense",
+      "cell": "openbookqa_x_siqa"
+    },
+    {
+      "adapter_a": "openbookqa_s42",
+      "adapter_b": "piqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "category": "cross_task",
+      "family_pair": "knowledge_qa_x_physical_commonsense",
+      "cell": "openbookqa_x_piqa"
+    }
+  ]
+}
