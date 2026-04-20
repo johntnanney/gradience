@@ -837,7 +837,19 @@ def main() -> None:
     }
 
     out_path = WORKSPACE / "analysis_h1.json"
-    out_path.write_text(json.dumps(result, indent=2))
+
+    def _json_default(o):
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, np.integer):
+            return int(o)
+        if isinstance(o, np.floating):
+            return float(o)
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+
+    out_path.write_text(json.dumps(result, indent=2, default=_json_default))
     print(f"\n  Saved {out_path}")
 
     print("\n" + "=" * 74)
