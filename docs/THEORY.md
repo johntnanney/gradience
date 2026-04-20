@@ -880,3 +880,155 @@ reconstruct the update-trajectory Gram from the existing checkpoints,
 compute Xu's $k^*$ and adiabatic parameter $A$, and check whether they
 co-vary with the CP-1/CP-2 statistical coupling above at the same
 module-seed granularity.
+
+
+## 8. A Conceptual Map of Modular Adaptation Research
+
+The research community working on LoRA adapter analysis and merging has
+fractured, over the twelve months preceding this writing, into a dozen or
+more methodological programs — some proposing new merge algorithms, some
+proposing new adapter representations, some proposing predictive
+frameworks for which merges will succeed, some proposing theoretical
+formalisms for training dynamics, some proposing interpretability-oriented
+feature analysis. These programs are usually presented as competitors,
+but most are operating on different objects, at different scales, with
+different epistemologies, and in pursuit of different goals. A clean
+five-axis frame organizes the space and locates Gradience within it.
+
+The program-by-program analysis (KnOTS, TSV, SVC, TARA-Merging, Zhou et
+al., Rahamim et al., Roi Paul, Xu, Lindsey et al., etc.) lives in
+`technical-report.md` §8. This section introduces only the frame itself.
+
+### Axis 1 — Substrate: what object is being analyzed?
+
+- **Weight deltas ($\Delta W$).** The LoRA update as a static matrix,
+  analyzed after training. Gradience's primary substrate. Also KnOTS,
+  TSV, SVC, TARA-Merging, Spectral Surgery, OSRM, Roi Paul 2026.
+- **Activations.** Intermediate representations produced by running
+  input through the model. Zhou et al. 2026, AdaMerging, Representation
+  Surgery, Lindsey et al. 2026 (emotion features).
+- **Training trajectories.** The sequence of parameter states or
+  updates across training. Xu 2026 (Spectral Edge Thesis), Gradience's
+  curvature telemetry work (§16a), DFA scaling analyses.
+- **Behavioral outputs.** Merge-and-evaluate trials treated as opaque.
+  Rahamim et al. 2026, Bolton et al. 2026 (SimMerge), MergeBench.
+
+Most programs live on one substrate. Gradience is primarily
+weight-delta-focused but spans into training trajectories (§16a) and
+behavioral outputs (Study 16 evidence-gate design). This breadth is
+partly a feature and partly a liability — it complicates categorization
+and citation discoverability.
+
+### Axis 2 — Epistemology: how are claims licensed?
+
+- **Pre-registered confirmatory.** Hypotheses committed before data;
+  decisions driven by pre-specified thresholds. Gradience's N133 and
+  N134, Roi Paul 2026. Earlier Gradience work (Studies 14, 16, 17;
+  original technical report) shared the measurement-instrument stance
+  but was descriptive. Pre-registration is being adopted progressively,
+  not uniformly. Almost nothing else in the modular-adaptation space
+  pre-registers at all.
+- **Descriptive empirical.** Observe patterns without prior
+  commitments; optimize predictive models post-hoc. Zhou et al. 2026,
+  Cocchieri et al. 2026, MergeBench, the bulk of ablation studies.
+- **Theoretical derivation.** Axioms to predictions. Xu 2026 (Spectral
+  Edge Thesis), Panahi et al. 2026, cross-term analysis (Akbar et al.
+  2025).
+- **Benchmark comparison.** Horse-race new methods against existing
+  ones on standard tasks. The dominant mode of the published merging
+  literature.
+
+Pre-registration is the axis where Gradience is most structurally
+distinctive. The N133 confound-cascade diagnostic (sign error → metric
+saturation → task-family partition → composite overfitting) is the kind
+of artifact that only accumulates when a program commits to this
+epistemology. No competitor has an equivalent document.
+
+### Axis 3 — Scale: what size of model?
+
+- **Vision classifiers (ViT-B/32, small encoders).** Zhou et al. 2026,
+  most task-arithmetic literature, isotropic merging work.
+- **Small LMs (BERT, DistilBERT, DeBERTa, RoBERTa; $<$500M).**
+  Gradience's primary validation regime pre-2026, OSRM, earlier
+  KnOTS/TSV applications.
+- **Mid-scale decoders (1–4B).** Roi Paul 2026 (Llama-3.2-3B),
+  Cocchieri et al. 2026 (Llama 3.2 3B, Qwen3 4B).
+- **Large decoders (7–13B).** N133, N134 (Mistral-7B), Cocchieri et al.
+  (Llama 3.1 8B, Qwen3 8B).
+- **Frontier ($\geq$ 70B).** Effectively absent from this literature;
+  handled by industrial labs rather than academic research.
+
+Most published merging work is validated on vision classifiers or small
+encoders, then marketed as applicable at scale. Cocchieri et al.
+(arXiv:2511.21437) is consequential precisely because it tests existing
+methods at 3–8B decoder scale and documents where most of them fail.
+N134 is the first *pre-registered confirmatory* test at decoder scale in
+any program the author is aware of.
+
+### Axis 4 — Purpose: what decision does the work support?
+
+- **Triage.** Decide whether to merge in the first place. Gradience.
+  A small cell.
+- **Execution.** Given a decision to merge, improve the merge result.
+  KnOTS, TSV, SVC, TARA-Merging, Spectral Surgery, Core Space Merging,
+  STAR, Iso-CTS, DO-Merging. A large cell.
+- **Prediction.** Estimate post-merge performance without running the
+  merge. Zhou et al. 2026, Rahamim et al. 2026, SimMerge. Small but
+  growing.
+- **Theoretical understanding.** Explain why merges succeed or fail.
+  Panahi et al. 2026 (max-margin), Xu 2026 (phase dynamics), Akbar et
+  al. 2025 (cross-term). Moderate cell.
+- **Safety.** Predict or prevent harmful outcomes from fine-tuning or
+  merging. Roi Paul 2026, activation-steering literature, Lindsey et
+  al. 2026. Mostly separate from the merging literature.
+
+The triage cell is nearly empty not because triage is solved, but
+because everyone else in this space is working on execution (where the
+prestige is), prediction (where academic novelty lies), or theory
+(where the depth is). Triage is operationally the most important
+question for a practitioner managing an adapter inventory but has the
+lowest academic reward-to-effort ratio.
+
+### Axis 5 — Measurement stance: how seriously is measurement-as-measurement taken?
+
+- **Measurement instruments with psychometric properties.** Gradience,
+  explicitly. See §5.3.
+- **Features with implicit measurement assumptions.** Most
+  interpretability and SAE work, including Lindsey et al. 2026.
+- **Metrics as convenient scalars.** Most merging and task-arithmetic
+  work.
+- **Benchmarks as ground truth.** MergeBench, most comparison papers.
+
+This is the axis on which Gradience is most uniquely positioned. No
+other program in the modular-adaptation space treats its measurement
+outputs — stable rank, energy rank, subspace overlap, SV-weighted
+alignment — as instruments with reliability, SEM, MDC, construct
+validity, and differential context functioning. §5.3 "Toward a unified
+spectral measurement framework" is a distinctive commitment that does
+not appear elsewhere. It is also why a psychometric-interpretability
+methods paper is a natural downstream output: nobody else has both the
+psychometric training and the spectral-measurement infrastructure to
+write it.
+
+### Gradience's cell
+
+Locating Gradience on each axis:
+
+| Axis | Gradience's position |
+|------|--------------------|
+| Substrate | Primarily weight deltas; spans trajectories (§16a) and behavioral outputs (Study 16) |
+| Epistemology | Increasingly pre-registered confirmatory (N133, N134); earlier work descriptive |
+| Scale | Decoder-LLM scale with explicit confound design (Mistral-7B primary) |
+| Purpose | Triage first, with execution and prediction as downstream references |
+| Measurement | Measurement-instrument stance, with psychometric properties tracked |
+
+No other active program in this literature occupies all five cells
+simultaneously. Most occupy one, some two, a few three. This is not a
+claim of dominance; it is a claim of distinctive positioning. Each
+axis is independently defensible as a research choice, and the
+combination is coherent rather than accidental.
+
+For the short elevator-pitch version of this positioning — including
+the "what Gradience is not best-in-class at" framing — see
+`docs/positioning/gradience_differentiation.md`. For rival-by-rival
+related-work analysis, see `technical-report.md` §8.
