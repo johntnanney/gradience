@@ -482,8 +482,73 @@ def train_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> Path:
 # Source evaluation (validation-set accuracy)
 # ---------------------------------------------------------------------------
 
+def _candidate_labels(task: str) -> list[str]:
+    """Valid answer labels per task (MMLU-style scoring)."""
+    if task in ("arc_challenge", "openbookqa"):
+        return ["A", "B", "C", "D"]
+    if task == "hellaswag":
+        return ["A", "B", "C", "D"]
+    if task == "piqa":
+        return ["A", "B"]
+    if task == "commonsenseqa":
+        return ["A", "B", "C", "D", "E"]
+    if task == "siqa":
+        return ["A", "B", "C"]
+    if task == "winogrande":
+        return ["1", "2"]
+    if task == "boolq":
+        return ["yes", "no"]
+    raise ValueError(f"Unknown task: {task}")
+
+
+def _score_candidates(model, tokenizer, prompt: str, candidates: list[str]) -> dict[str, float]:
+    """Log-probability of each candidate as the continuation of prompt.
+
+    Handles SentencePiece space-absorption: prompt trailing whitespace is
+    normalized, then prompt + " " + candidate is tokenized to get the
+    suffix-token alignment, scored via a forward pass per candidate.
+    See 00_pilot_train.py for the same logic + validation (MMLU-style).
+    """
+    prompt_stripped = prompt.rstrip()
+    prompt_ids = tokenizer(
+        prompt_stripped, return_tensors="pt", add_special_tokens=True,
+        truncation=True, max_length=MAX_SEQ_LEN,
+    ).input_ids.to(model.device)
+    n_prompt = prompt_ids.shape[1]
+
+    scores: dict[str, float] = {}
+    for cand in candidates:
+        full_text = prompt_stripped + " " + cand
+        full_ids = tokenizer(
+            full_text, return_tensors="pt", add_special_tokens=True,
+            truncation=True, max_length=MAX_SEQ_LEN,
+        ).input_ids.to(model.device)
+        n_suffix = full_ids.shape[1] - n_prompt
+        if n_suffix <= 0:
+            suffix_ids = tokenizer(
+                " " + cand, add_special_tokens=False, return_tensors="pt",
+            ).input_ids.to(model.device)
+            full_ids = torch.cat([prompt_ids, suffix_ids], dim=1)
+            n_suffix = suffix_ids.shape[1]
+        with torch.no_grad():
+            logits = model(full_ids).logits
+        log_probs = torch.log_softmax(logits.float(), dim=-1)
+        total = 0.0
+        for j in range(n_suffix):
+            token_pos = n_prompt + j
+            token_id = full_ids[0, token_pos].item()
+            total += log_probs[0, token_pos - 1, token_id].item()
+        scores[cand] = total
+    return scores
+
+
 def evaluate_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> dict:
-    """Evaluate adapter on validation set via generative multiple-choice."""
+    """Evaluate adapter via logprob-based MMLU-style scoring.
+
+    At the position immediately after "Answer: ", compute summed log-prob
+    of each valid label as a continuation and pick argmax. Deterministic,
+    faster than generation, and immune to numeric-prefix bias.
+    """
     adapter_name = f"{task}_s{seed}"
     adapter_dir = OUTPUT_ROOT / adapter_name
     eval_file = EVAL_ROOT / f"{adapter_name}_source_eval.json"
@@ -510,6 +575,7 @@ def evaluate_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> di
     # Load eval data
     _, val_ds = load_task_dataset(task, smoke=smoke)
     n_eval = min(200, len(val_ds)) if not smoke else min(SMOKE_EVAL_SAMPLES, len(val_ds))
+    labels = _candidate_labels(task)
 
     correct = 0
     total = 0
@@ -517,37 +583,21 @@ def evaluate_adapter(task: str, seed: int, tokenizer, smoke: bool = False) -> di
     for i in range(n_eval):
         example = val_ds[i]
         text = example["text"]
-        expected_answer = example["answer"]
 
-        # Split into prompt and expected answer -- remove the answer from text
-        if "Answer: " in text:
-            prompt = text.rsplit("Answer: ", 1)[0] + "Answer: "
-        else:
+        if "Answer: " not in text:
             continue
+        parts = text.rsplit("Answer: ", 1)
+        prompt = parts[0] + "Answer: "
+        expected = parts[1].strip() if len(parts) > 1 else ""
 
-        inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            truncation=True,
-            max_length=MAX_SEQ_LEN,
-        ).to(model.device)
+        scores = _score_candidates(model, tokenizer, prompt, labels)
+        best = max(scores, key=scores.get)
 
-        with torch.no_grad():
-            outputs = model.generate(
-                **inputs,
-                max_new_tokens=10,
-                do_sample=False,
-                temperature=1.0,
-            )
-        generated = tokenizer.decode(
-            outputs[0][inputs["input_ids"].shape[1]:],
-            skip_special_tokens=True,
-        ).strip()
-
-        # Check if the expected answer label appears at the start of generation
-        gen_start = generated[:20].strip().upper()
-        expected_upper = str(expected_answer).strip().upper()
-        correct += int(gen_start.startswith(expected_upper))
+        if task == "boolq":
+            match = best.lower() == expected.lower()
+        else:
+            match = best == expected
+        correct += int(match)
         total += 1
 
     accuracy = correct / total if total > 0 else 0.0
