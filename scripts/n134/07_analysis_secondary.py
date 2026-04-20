@@ -63,8 +63,30 @@ FAMILY_B: dict[str, str] = {
 # Data loading
 # ---------------------------------------------------------------------------
 
+_MODULE_ALIAS = {
+    "q_proj": "Q", "k_proj": "K", "v_proj": "V", "o_proj": "O",
+    "Q": "Q", "K": "K", "V": "V", "O": "O",
+}
+
+
+def _normalize_per_layer(pair_full: dict) -> dict:
+    """Rewrite each layer entry to use short module labels (Q/K/V/O) and
+    an integer "layer" key, tolerating the v2.1 audit schema
+    (o_proj/layer_idx) and the original spec (O/layer).
+    """
+    for pair in pair_full.values():
+        for layer in pair.get("per_layer", []):
+            mod = layer.get("module")
+            if mod in _MODULE_ALIAS:
+                layer["module"] = _MODULE_ALIAS[mod]
+            if "layer" not in layer and "layer_idx" in layer:
+                layer["layer"] = int(layer["layer_idx"])
+    return pair_full
+
+
 def load_inputs() -> tuple[dict, dict, dict, dict, dict]:
     pair_full = json.loads((AUDIT_DIR / "pair_alignment_full.json").read_text())
+    pair_full = _normalize_per_layer(pair_full)
     pair_summary = json.loads((AUDIT_DIR / "pair_alignment_summary.json").read_text())
     profiles = json.loads((AUDIT_DIR / "adapter_profiles.json").read_text())
     pair_sample = json.loads((WORKSPACE / "pair_sample.json").read_text())
