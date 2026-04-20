@@ -280,6 +280,26 @@ def audit_single_adapter(adapter_name: str) -> dict | None:
     with open(output_path, "w") as f:
         json.dump(result, f, indent=2)
 
+    # Also persist a tiny summary (scalars only, no U/V) so resume can
+    # skip reloading the ~400 MB v2.1 JSON just to recompute scalar stats.
+    summary = _build_summary(result)
+    summary_path = OUTPUT_DIR / f"{adapter_name}_summary.json"
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=2)
+
+    # Persist U/S/Vt as a binary .npz (fast load, ~5 MB per adapter vs
+    # ~400 MB for JSON-parsed equivalent). Pairwise alignment uses this.
+    npz_path = OUTPUT_DIR / f"{adapter_name}_svd.npz"
+    npz_data: dict = {}
+    for layer in layers:
+        layer_idx = layer["layer_idx"]
+        module = layer["module"]
+        key = f"layers.{layer_idx}.self_attn.{module}"
+        npz_data[f"{key}__U"] = np.array(layer["u_factor"], dtype=np.float32)
+        npz_data[f"{key}__S"] = np.array(layer["singular_values"], dtype=np.float32)
+        npz_data[f"{key}__Vt"] = np.array(layer["v_factor"], dtype=np.float32)
+    np.savez_compressed(str(npz_path), **npz_data)
+
     n_layers = len(layers)
     mean_erank = float(np.mean([l["entropy_effective_rank"] for l in layers])) if layers else 0.0
     print(f"    {n_layers} layers, mean erank = {mean_erank:.2f}")
@@ -287,50 +307,113 @@ def audit_single_adapter(adapter_name: str) -> dict | None:
     return result
 
 
+def _build_summary(result: dict) -> dict:
+    """Extract scalars-only summary from a v2.1 audit result."""
+    layers = result["layers"]
+    eranks = [l["entropy_effective_rank"] for l in layers]
+    sranks = [l["stable_rank"] for l in layers]
+    norms = [l["frobenius_norm"] for l in layers]
+    return {
+        "adapter_id": result["adapter_id"],
+        "meta": result["meta"],
+        "n_layers": len(layers),
+        "mean_erank": float(np.mean(eranks)) if eranks else 0.0,
+        "mean_stable_rank": float(np.mean(sranks)) if sranks else 0.0,
+        "mean_frobenius_norm": float(np.mean(norms)) if norms else 0.0,
+        "per_layer": [
+            {
+                "layer_idx": l["layer_idx"],
+                "module": l["module"],
+                "erank": l["entropy_effective_rank"],
+                "stable_rank": l["stable_rank"],
+                "frobenius_norm": l["frobenius_norm"],
+                "sigma_max": l["singular_values"][0] if l["singular_values"] else 0.0,
+                "energy_rank_90": l["energy_rank_90"],
+            }
+            for l in layers
+        ],
+    }
+
+
 def audit_all_adapters(adapter_names: list[str]) -> dict:
-    """Compute v2.1 audit for all adapters and build summary profiles."""
+    """Compute v2.1 audit for all adapters and build summary profiles.
+
+    On resume: reads the tiny {adapter}_summary.json (written alongside
+    v2.1) instead of the ~400 MB v2.1 file. This is mandatory for memory
+    safety — loading 24 × 400 MB JSONs via json.load would OOM even with
+    500 GB RAM due to Python's float-object overhead (amplification of
+    ~28 bytes per serialized float).
+    """
+    import gc
+
     print("\n=== Phase 2a: Per-Adapter Spectral Audit (v2.1) ===\n")
 
     all_profiles: dict = {}
 
     for adapter_name in adapter_names:
-        # Try to load existing v2.1 file or compute fresh
-        output_path = OUTPUT_DIR / f"{adapter_name}_v2_1.json"
-        if output_path.exists():
-            print(f"  [resume] Loading {adapter_name}_v2_1.json")
-            with open(output_path) as f:
+        v21_path = OUTPUT_DIR / f"{adapter_name}_v2_1.json"
+        summary_path = OUTPUT_DIR / f"{adapter_name}_summary.json"
+
+        if summary_path.exists():
+            # Resume from tiny summary — no U/V loading
+            print(f"  [resume] {adapter_name}_summary.json")
+            with open(summary_path) as f:
+                summary = json.load(f)
+            all_profiles[adapter_name] = {
+                "task": summary["meta"]["task"],
+                "seed": summary["meta"]["seed"],
+                "n_layers": summary["n_layers"],
+                "mean_erank": summary["mean_erank"],
+                "mean_stable_rank": summary["mean_stable_rank"],
+                "mean_frobenius_norm": summary["mean_frobenius_norm"],
+                "per_layer": summary["per_layer"],
+            }
+        elif v21_path.exists():
+            # Legacy path: v2.1 exists but summary doesn't — extract
+            # summary in-memory, write summary, then release.
+            print(f"  [resume legacy] {adapter_name}_v2_1.json (backfilling summary)")
+            with open(v21_path) as f:
                 result = json.load(f)
+            summary = _build_summary(result)
+            with open(summary_path, "w") as f:
+                json.dump(summary, f, indent=2)
+            del result
+            gc.collect()
+            all_profiles[adapter_name] = {
+                "task": summary["meta"]["task"],
+                "seed": summary["meta"]["seed"],
+                "n_layers": summary["n_layers"],
+                "mean_erank": summary["mean_erank"],
+                "mean_stable_rank": summary["mean_stable_rank"],
+                "mean_frobenius_norm": summary["mean_frobenius_norm"],
+                "per_layer": summary["per_layer"],
+            }
         else:
             result = audit_single_adapter(adapter_name)
             if result is None:
                 continue
-
-        # Build summary profile from result
-        layers = result["layers"]
-        eranks = [l["entropy_effective_rank"] for l in layers]
-        sranks = [l["stable_rank"] for l in layers]
-        norms = [l["frobenius_norm"] for l in layers]
-
-        all_profiles[adapter_name] = {
-            "task": result["meta"]["task"],
-            "seed": result["meta"]["seed"],
-            "n_layers": len(layers),
-            "mean_erank": float(np.mean(eranks)) if eranks else 0.0,
-            "mean_stable_rank": float(np.mean(sranks)) if sranks else 0.0,
-            "mean_frobenius_norm": float(np.mean(norms)) if norms else 0.0,
-            "per_layer": [
-                {
-                    "layer_idx": l["layer_idx"],
-                    "module": l["module"],
-                    "erank": l["entropy_effective_rank"],
-                    "stable_rank": l["stable_rank"],
-                    "frobenius_norm": l["frobenius_norm"],
-                    "sigma_max": l["singular_values"][0] if l["singular_values"] else 0.0,
-                    "energy_rank_90": l["energy_rank_90"],
-                }
-                for l in layers
-            ],
-        }
+            all_profiles[adapter_name] = {
+                "task": result["meta"]["task"],
+                "seed": result["meta"]["seed"],
+                "n_layers": len(result["layers"]),
+                "mean_erank": float(np.mean([l["entropy_effective_rank"] for l in result["layers"]])),
+                "mean_stable_rank": float(np.mean([l["stable_rank"] for l in result["layers"]])),
+                "mean_frobenius_norm": float(np.mean([l["frobenius_norm"] for l in result["layers"]])),
+                "per_layer": [
+                    {
+                        "layer_idx": l["layer_idx"],
+                        "module": l["module"],
+                        "erank": l["entropy_effective_rank"],
+                        "stable_rank": l["stable_rank"],
+                        "frobenius_norm": l["frobenius_norm"],
+                        "sigma_max": l["singular_values"][0] if l["singular_values"] else 0.0,
+                        "energy_rank_90": l["energy_rank_90"],
+                    }
+                    for l in result["layers"]
+                ],
+            }
+            del result
+            gc.collect()
 
     return all_profiles
 
@@ -411,32 +494,62 @@ def audit_w0() -> dict:
 # Phase 2c: Pairwise SV-weighted alignment
 # ---------------------------------------------------------------------------
 
-def _load_svd_from_v21(adapter_name: str) -> dict[str, dict] | None:
-    """Load cached U/S from a v2.1 audit file."""
-    path = OUTPUT_DIR / f"{adapter_name}_v2_1.json"
-    if not path.exists():
+def _load_svd_from_npz(adapter_name: str) -> dict[str, dict] | None:
+    """Load cached U/S/Vt from the binary .npz (fast) or JSON fallback (slow)."""
+    npz_path = OUTPUT_DIR / f"{adapter_name}_svd.npz"
+    if npz_path.exists():
+        with np.load(str(npz_path), allow_pickle=False) as z:
+            svd_data: dict[str, dict] = {}
+            # Group keys by their layer-key prefix
+            keys = list(z.keys())
+            layer_keys = sorted({k.rsplit("__", 1)[0] for k in keys})
+            for lk in layer_keys:
+                svd_data[lk] = {
+                    "U": z[f"{lk}__U"].copy(),
+                    "S": z[f"{lk}__S"].copy(),
+                    "Vt": z[f"{lk}__Vt"].copy(),
+                }
+        return svd_data
+
+    # Fallback: parse v2.1 JSON (slow, ~400 MB load). Used only if the
+    # adapter was produced by an older version of this script that didn't
+    # write the .npz sidecar. The caller should prefer .npz.
+    v21_path = OUTPUT_DIR / f"{adapter_name}_v2_1.json"
+    if not v21_path.exists():
         return None
-
-    with open(path) as f:
+    print(f"    [slow-path] parsing {adapter_name}_v2_1.json (no .npz sidecar)")
+    with open(v21_path) as f:
         data = json.load(f)
-
-    svd_data: dict[str, dict] = {}
+    svd_data = {}
     for layer in data["layers"]:
         layer_idx = layer["layer_idx"]
         module = layer["module"]
         key = f"layers.{layer_idx}.self_attn.{module}"
-
-        U = np.array(layer["u_factor"], dtype=np.float32)
-        S = np.array(layer["singular_values"], dtype=np.float32)
-        Vt = np.array(layer["v_factor"], dtype=np.float32)
-
-        svd_data[key] = {"U": U, "S": S, "Vt": Vt}
-
+        svd_data[key] = {
+            "U": np.array(layer["u_factor"], dtype=np.float32),
+            "S": np.array(layer["singular_values"], dtype=np.float32),
+            "Vt": np.array(layer["v_factor"], dtype=np.float32),
+        }
+    # Write the .npz sidecar so this slow path only runs once per adapter
+    npz_data: dict = {}
+    for lk, d in svd_data.items():
+        npz_data[f"{lk}__U"] = d["U"]
+        npz_data[f"{lk}__S"] = d["S"]
+        npz_data[f"{lk}__Vt"] = d["Vt"]
+    np.savez_compressed(str(npz_path), **npz_data)
+    del data
+    import gc
+    gc.collect()
     return svd_data
 
 
 def compute_pairwise_alignment(adapter_names: list[str], adapter_profiles: dict) -> dict:
-    """Compute per-layer SV-weighted alignment for all C(n,2) pairs."""
+    """Compute per-layer SV-weighted alignment for all C(n,2) pairs.
+
+    Loads all adapters' SVD data from .npz sidecars. Each adapter's
+    SVD is ~5-10 MB in RAM (vs ~400 MB for JSON-parsed equivalent),
+    so 24 adapters fit comfortably (~200 MB total).
+    """
     pair_full_path = OUTPUT_DIR / "pair_alignment_full.json"
     if pair_full_path.exists():
         print(f"\n[resume] Skipping Phase 2c -- {pair_full_path} already exists")
@@ -445,15 +558,15 @@ def compute_pairwise_alignment(adapter_names: list[str], adapter_profiles: dict)
 
     print("\n=== Phase 2c: Pairwise Alignment ===\n")
 
-    # Pre-load all SVD data from v2.1 files
-    print("  Loading SVD data from v2.1 audit files...")
+    # Load all SVD data from .npz sidecars (lightweight — ~200 MB total)
+    print("  Loading SVD data from .npz sidecars...")
     adapter_svd: dict[str, dict] = {}
     for name in adapter_names:
-        svd_data = _load_svd_from_v21(name)
+        svd_data = _load_svd_from_npz(name)
         if svd_data is not None:
             adapter_svd[name] = svd_data
         else:
-            print(f"  WARN: no v2.1 file for {name}, skipping")
+            print(f"  WARN: no SVD data for {name}, skipping")
 
     available = sorted(adapter_svd.keys())
     n_pairs = len(list(combinations(available, 2)))
