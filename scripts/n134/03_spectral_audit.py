@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from itertools import combinations
 from pathlib import Path
@@ -277,18 +278,14 @@ def audit_single_adapter(adapter_name: str) -> dict | None:
         },
     }
 
-    with open(output_path, "w") as f:
-        json.dump(result, f, indent=2)
-
-    # Also persist a tiny summary (scalars only, no U/V) so resume can
-    # skip reloading the ~400 MB v2.1 JSON just to recompute scalar stats.
+    # Write the tiny summary (scalars only, no U/V) — used by Phases 2-4.
     summary = _build_summary(result)
     summary_path = OUTPUT_DIR / f"{adapter_name}_summary.json"
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
 
-    # Persist U/S/Vt as a binary .npz (fast load, ~5 MB per adapter vs
-    # ~400 MB for JSON-parsed equivalent). Pairwise alignment uses this.
+    # Persist U/S/Vt as a binary .npz (~50 MB per adapter compressed,
+    # fast load, needed by pair alignment and Phase 5).
     npz_path = OUTPUT_DIR / f"{adapter_name}_svd.npz"
     npz_data: dict = {}
     for layer in layers:
@@ -299,6 +296,18 @@ def audit_single_adapter(adapter_name: str) -> dict | None:
         npz_data[f"{key}__S"] = np.array(layer["singular_values"], dtype=np.float32)
         npz_data[f"{key}__Vt"] = np.array(layer["v_factor"], dtype=np.float32)
     np.savez_compressed(str(npz_path), **npz_data)
+
+    # The big JSON v2.1 file is no longer written by default — it's ~400 MB
+    # each (JSON text overhead on 4096x16 U/V lists) and the MooseFS mount
+    # on this pod throws silent quota errors after ~6 such files. The .npz
+    # sidecar contains the same U/S/Vt data at ~50 MB compressed and is
+    # what Phase 5 method-comparison actually reads. If a downstream
+    # consumer needs JSON v2.1 specifically, reconstitute it from
+    # summary.json + svd.npz via a helper (not yet written — add if needed).
+    if os.environ.get("N134_WRITE_V21_JSON", "0") == "1":
+        v21_path = OUTPUT_DIR / f"{adapter_name}_v2_1.json"
+        with open(v21_path, "w") as f:
+            json.dump(result, f, indent=2)
 
     n_layers = len(layers)
     mean_erank = float(np.mean([l["entropy_effective_rank"] for l in layers])) if layers else 0.0
