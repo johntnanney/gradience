@@ -225,6 +225,45 @@ that the phase-transition detection framework outlined above is not
 merely theoretical but captures real dynamics observable in LoRA
 fine-tuning trajectories.
 
+### Candidate formal framework: the Spectral Edge Thesis
+
+Xu (2026, arXiv:2603.28964) proposes a formal framework — the *Spectral
+Edge Thesis* — in which phase transitions in neural network training are
+controlled by the spectral gap of the rolling-window Gram matrix of
+parameter updates. The framework identifies the position $k^*$ of the
+largest intra-signal gap as dynamically privileged and derives an
+adiabatic parameter $A = \|\Delta G\|_F / (\eta g^2)$ that classifies
+training regimes (plateau, transition, forgetting). Empirically, $k^*
+\leq 3$ across six model families spanning 150K–124M parameters, and
+$k^*$ is optimizer-dependent (Muon: $k^* = 1$, AdamW: $k^* = 2$). The
+Davis–Kahan stability coefficient per spectral mode links individual
+directions to their learning contribution, and 19 of 20 pre-registered
+predictions were confirmed across the thesis paper and its companion
+(arXiv:2603.15678, "Spectral Edge Dynamics of Training Trajectories").
+
+This framework is structurally aligned with Gradience's curvature
+telemetry findings (§16a: Hessian energy leads validation accuracy by
+3–6 updates) and with N133's observation of extreme stable-rank
+concentration in LoRA adapters (stable rank 1.2–1.6 on DeBERTa). Two
+independent measurement programs converging on "the effective dynamical
+dimensionality is very small" is worth noting as converging evidence,
+not as identity: Xu's object is the Gram matrix of the *update
+trajectory*, whereas Gradience's audits operate on the *weight-space*
+SVD of individual LoRA deltas or checkpoints. Mapping from one object to
+the other requires care — they are not the same SVD.
+
+The Spectral Edge framework offers a candidate formal replacement for
+the heuristic phase-detection thresholds in `research/phase_transitions.py`
+(autocorrelation time, variance ratio), which were validated empirically
+but are not derived from an axiomatic framework. A dedicated replication
+experiment on N07 Experiment B's existing dual-instrument data — in
+which the Gram matrix of parameter updates can be reconstructed from the
+checkpointed parameter trajectory — is warranted before committing to
+framework-based detection. Caveat: solo-authored preprint, March 2026,
+no peer review yet; validation of the derivation chain against Xu's
+track record in random matrix theory or optimization should accompany
+any infrastructure investment.
+
 
 ## 5. The Hessian Connection
 
@@ -831,3 +870,13 @@ and seeds. The curvature-partition correspondence may be better understood
 as a *mutual information* relationship than a *causal lead-lag* one. The
 question shifts from "does curvature predict alignment?" to "what determines
 which modules show the lead-lag pattern in a given run?"
+
+The Spectral Edge Thesis (Xu 2026, arXiv:2603.28964; see §4) proposes
+that both phenomena are manifestations of gap dynamics in a shared
+underlying object — the Gram matrix of parameter updates — providing a
+candidate unified formalism. Testing this correspondence on N07
+Experiment B's dual-instrument data is the natural next empirical step:
+reconstruct the update-trajectory Gram from the existing checkpoints,
+compute Xu's $k^*$ and adiabatic parameter $A$, and check whether they
+co-vary with the CP-1/CP-2 statistical coupling above at the same
+module-seed granularity.

@@ -200,3 +200,37 @@ Gradience II/
 The philosophy separation reflects a deliberate boundary: the Deleuzean
 research program motivated the spectral-geometry tooling, but the two now
 have independent evidentiary standards and audiences.
+
+---
+
+## 9. External Reference Literature
+
+External preprints and publications that intersect with Gradience's
+empirical or theoretical surface. Entries are flagged by *integration
+priority* — whether the work is live for citation, experimental
+replication, or just tracking.
+
+| Paper | arXiv | Integration priority | Notes |
+|-------|-------|---------------------|-------|
+| Xu, Yongzhong — *The Spectral Edge Thesis* | [2603.28964](https://arxiv.org/abs/2603.28964) | **Medium — replicate before integrating** | Formal framework: phase transitions in training controlled by spectral gap of rolling-window Gram matrix of *parameter updates*. Identifies $k^*$ (largest intra-signal gap) as dynamically privileged; $k^* \leq 3$ across six model families. Defines adiabatic parameter $A = \\|\\Delta G\\|_F / (\\eta g^2)$. 19/20 pre-registered predictions confirmed across thesis + companion (arXiv:2603.15678). Structurally aligned with Gradience's curvature telemetry (§16a) and N133's stable-rank concentration. Caveats: solo-authored March 2026, no peer review yet; Xu's object is the update-trajectory Gram, Gradience's is weight-space SVD — mapping requires care. Cited in THEORY.md §4 (candidate formal framework) and §7.2 (curvature-partition correspondence). Dedicated replication on N07 Experiment B's existing dual-instrument data is the natural next step. |
+| Xu, Yongzhong — *Spectral Edge Dynamics of Training Trajectories* (companion) | [2603.15678](https://arxiv.org/abs/2603.15678) | **Medium — tracking** | Companion to the thesis paper, extends the framework. Cited only as the source of the remaining 12/20 predictions validated outside the primary thesis paper. Not an independent integration target. |
+| Roi Paul (et al.) — Spectral Geometry of Fine-Tuning at Decoder Scale | [2604.08844](https://arxiv.org/abs/2604.08844) | **High — already integrated** | Independent validation of spectral fingerprinting at 3B-decoder scale; replicates cross-method failure pattern observed in N133. Already cited in post-N134 thinking and THEORY.md §3. No new action required — confirmatory rather than novel. |
+| Anon. / preprint — *Spectral Surgery for LoRA Refinement* | [2603.03995](https://arxiv.org/abs/2603.03995) | **Low — note only** | Claims trained LoRA updates have inefficient spectra: some directions are not just low-energy but actively detrimental. Gradient-guided SV-level reweighting (subspace directions fixed) shows single-adapter gains. Confirmatory for Gradience's low-utilization finding (Study 14, energy_rank_90 distributions) but operationally orthogonal: (a) requires gradient computation on a calibration set, violating Gradience's training-free CPU-audit regime; (b) targets single-adapter refinement, whereas Gradience §10/Study 17 found that pre-merge spectral compression does not improve merge outcomes (different problem space). Worth a one-line mention in THEORY.md about "gradient-informed SV reweighting" as an adjacent method class; not worth building infrastructure to reproduce. |
+
+### How to use this section
+
+- **Before citing a paper in THEORY.md or technical-report.md**, check
+  here first to see whether it has been assessed and what its integration
+  priority is. Papers at "Low" priority should be cited sparingly;
+  "Medium" papers cited with honest caveats about replication status;
+  "High" papers can be cited as we would cite peer-reviewed literature.
+- **Before building infrastructure around a framework from an external
+  paper**, run a small dedicated replication experiment on existing
+  Gradience data. The Spectral Edge Thesis is the current candidate for
+  this test (N07 Experiment B's dual-instrument data is the natural
+  input).
+- **New external references should be added here** rather than cited
+  directly in THEORY.md or technical-report.md without assessment.
+  This section is the gate between "the agent found a paper" and "we
+  are building on top of a paper."
+
