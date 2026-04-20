@@ -468,7 +468,18 @@ def evaluate_composites(
     eval_pairs = sorted(eval_degs.keys())
     y = np.array([eval_degs[p] for p in eval_pairs])
 
-    cell_labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"])
+    def _lookup(p: str) -> dict:
+        if p in pair_full:
+            return pair_full[p]
+        # Tolerate committed-order vs alphabetical pair-key mismatch.
+        parts = p.split("_vs_")
+        if len(parts) == 2:
+            rev = f"{parts[1]}_vs_{parts[0]}"
+            if rev in pair_full:
+                return pair_full[rev]
+        raise KeyError(f"Pair not found in pair_full: {p}")
+
+    cell_labels = [family_pair_label(_lookup(p)["task_a"], _lookup(p)["task_b"])
                    for p in eval_pairs]
     X_fam = dummy_encode(cell_labels)
     r2_base = ols_r2(y, X_fam)
