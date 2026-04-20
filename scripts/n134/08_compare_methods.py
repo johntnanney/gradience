@@ -47,12 +47,11 @@ from scipy import stats
 WORKSPACE = Path("/workspace/n134")
 AUDIT_DIR = WORKSPACE / "audit"
 AUDIT_V21_DIR = AUDIT_DIR / "v2.1"
-# NOTE (Phase 5 TODO): 03_spectral_audit.py currently writes per-adapter v2.1
-# files as AUDIT_DIR/{adapter_id}_v2_1.json, not per-pair files under v2.1/.
-# When Phase 5 is ready, either extend 03 to also emit per-pair v2.1 data, or
-# refactor load_inputs below to combine per-adapter U/V factors on the fly.
-# The four methods (KnOTS, TSV, SVC) all operate on per-pair factor products,
-# so this is just a plumbing decision, not a scientific one.
+# Phase 5 plumbing resolution (2026-04-20):
+# 03_spectral_audit.py writes per-adapter SVD factors as AUDIT_DIR/{adapter}_svd.npz
+# with keys "layers.{i}.self_attn.{module}__{U|S|Vt}". This module synthesizes the
+# per-pair v2.1 dict shape expected by knots/tsv/svc at read time via LazyPairV21,
+# so the methods code below sees the exact shape documented in the v2.1 schema.
 MERGE_DIR = WORKSPACE / "merges"
 FIG_DIR = WORKSPACE / "figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -79,21 +78,100 @@ FAMILY_B: dict[str, str] = {
 # Data loading
 # ---------------------------------------------------------------------------
 
-def load_inputs() -> tuple[dict, dict, dict, dict]:
+MODULES = ("q_proj", "k_proj", "v_proj", "o_proj")
+
+
+class AdapterSVDCache:
+    """Lazy-loads per-adapter SVD factors from .npz sidecars."""
+
+    def __init__(self, audit_dir: Path):
+        self.audit_dir = audit_dir
+        self._cache: dict[str, dict[str, np.ndarray]] = {}
+
+    def load(self, adapter_id: str) -> dict[str, np.ndarray]:
+        if adapter_id in self._cache:
+            return self._cache[adapter_id]
+        path = self.audit_dir / f"{adapter_id}_svd.npz"
+        if not path.exists():
+            raise FileNotFoundError(f"Missing SVD sidecar: {path}")
+        with np.load(path) as z:
+            self._cache[adapter_id] = {k: z[k] for k in z.files}
+        return self._cache[adapter_id]
+
+
+def _split_pair_key(pair_key: str) -> tuple[str, str]:
+    """Split "{a}_vs_{b}" -> (a, b)."""
+    parts = pair_key.split("_vs_")
+    if len(parts) != 2:
+        raise ValueError(f"Cannot split pair_key: {pair_key}")
+    return parts[0], parts[1]
+
+
+class LazyPairV21:
+    """Synthesizes per-pair v2.1 dicts on demand from per-adapter SVD factors.
+
+    Supported surface (matches what knots/tsv/svc actually read):
+      - len(obj)
+      - key in obj
+      - obj[key] -> {"pair_key": ..., "per_layer": [{"module", "layer_idx",
+                    "U_a", "V_a", "sigma_a", "U_b", "V_b", "sigma_b"}, ...]}
+
+    V factors are transposed from stored Vt so the score functions can use
+    them as right-singular vectors directly.
+    """
+
+    def __init__(self, pair_keys: list[str], cache: AdapterSVDCache):
+        self._keys = set(pair_keys)
+        self._cache = cache
+
+    def __len__(self) -> int:
+        return len(self._keys)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._keys
+
+    def __iter__(self):
+        return iter(self._keys)
+
+    def __getitem__(self, pair_key: str) -> dict:
+        if pair_key not in self._keys:
+            raise KeyError(pair_key)
+        a, b = _split_pair_key(pair_key)
+        fa = self._cache.load(a)
+        fb = self._cache.load(b)
+        per_layer = []
+        for layer_idx in range(N_LAYERS):
+            for mod in MODULES:
+                prefix = f"layers.{layer_idx}.self_attn.{mod}"
+                try:
+                    U_a = fa[f"{prefix}__U"]
+                    S_a = fa[f"{prefix}__S"]
+                    Vt_a = fa[f"{prefix}__Vt"]
+                    U_b = fb[f"{prefix}__U"]
+                    S_b = fb[f"{prefix}__S"]
+                    Vt_b = fb[f"{prefix}__Vt"]
+                except KeyError:
+                    continue
+                per_layer.append({
+                    "layer_idx": layer_idx,
+                    "module": mod,
+                    "U_a": U_a,
+                    "V_a": Vt_a.T,  # right singular vectors
+                    "sigma_a": S_a,
+                    "U_b": U_b,
+                    "V_b": Vt_b.T,
+                    "sigma_b": S_b,
+                })
+        return {"pair_key": pair_key, "per_layer": per_layer}
+
+
+def load_inputs() -> tuple[dict, dict, dict, "LazyPairV21"]:
     pair_full = json.loads((AUDIT_DIR / "pair_alignment_full.json").read_text())
     profiles = json.loads((AUDIT_DIR / "adapter_profiles.json").read_text())
     merges = json.loads((MERGE_DIR / "merge_eval_summary.json").read_text())
 
-    # Load v2.1 audit files (per-pair, contain U/V factors)
-    v21 = {}
-    if AUDIT_V21_DIR.exists():
-        for f in sorted(AUDIT_V21_DIR.glob("*.json")):
-            try:
-                data = json.loads(f.read_text())
-                pair_key = data.get("pair_key", f.stem)
-                v21[pair_key] = data
-            except (json.JSONDecodeError, KeyError):
-                print(f"  Warning: could not load v2.1 audit file {f.name}")
+    cache = AdapterSVDCache(AUDIT_DIR)
+    v21 = LazyPairV21(list(pair_full.keys()), cache)
     return pair_full, profiles, merges, v21
 
 
@@ -129,11 +207,22 @@ def family_pair_label(task_a: str, task_b: str) -> str:
 # ---------------------------------------------------------------------------
 
 def compute_s_h1(pair: dict) -> float:
-    """O-module depth-weighted alignment (same as 06_analysis_h1.py)."""
+    """O-module depth-weighted alignment (same as 06_analysis_h1.py).
+
+    Tolerates both "O"/"layer" (spec) and "o_proj"/"layer_idx" (audit v2.1).
+    """
+    def _is_o(m: str) -> bool:
+        return m == "O" or m == "o_proj"
+
+    def _layer_idx(layer: dict) -> int:
+        if "layer_idx" in layer:
+            return int(layer["layer_idx"])
+        return int(layer["layer"])
+
     o_entries = sorted(
-        [(layer["layer"], layer["alignment"])
+        [(_layer_idx(layer), layer["alignment"])
          for layer in pair["per_layer"]
-         if layer["module"] == "O"],
+         if _is_o(layer["module"])],
         key=lambda x: x[0],
     )
     if not o_entries:
@@ -144,8 +233,25 @@ def compute_s_h1(pair: dict) -> float:
     return float(np.sum(weights * alphas) / np.sum(weights))
 
 
+def _add_reversed_aliases(scores: dict[str, float]) -> dict[str, float]:
+    """Mirror committed-order / alphabetical pair-key alternatives.
+
+    pair_full uses alphabetical keys (a_vs_b with a<b); merge_eval_summary
+    uses committed order. This mirrors each entry under the reversed key
+    so downstream lookups succeed in either convention.
+    """
+    aug = dict(scores)
+    for key, val in list(scores.items()):
+        parts = key.split("_vs_")
+        if len(parts) == 2:
+            rev = f"{parts[1]}_vs_{parts[0]}"
+            if rev not in aug:
+                aug[rev] = val
+    return aug
+
+
 def gradience_scores(pair_full: dict) -> dict[str, float]:
-    return {key: compute_s_h1(pair) for key, pair in pair_full.items()}
+    return _add_reversed_aliases({key: compute_s_h1(pair) for key, pair in pair_full.items()})
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +376,7 @@ def knots_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
 
     # Require at least 50% coverage to consider faithful
     is_faithful = n_computed >= n_total * 0.5
-    return scores, is_faithful
+    return _add_reversed_aliases(scores), is_faithful
 
 
 # ---------------------------------------------------------------------------
@@ -388,7 +494,7 @@ def tsv_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
             scores[key] = float("nan")
 
     is_faithful = n_computed >= n_total * 0.5
-    return scores, is_faithful
+    return _add_reversed_aliases(scores), is_faithful
 
 
 # ---------------------------------------------------------------------------
@@ -519,7 +625,7 @@ def svc_scores(pair_full: dict, v21: dict) -> tuple[dict[str, float], bool]:
             scores[key] = float("nan")
 
     is_faithful = n_computed >= n_total * 0.5
-    return scores, is_faithful
+    return _add_reversed_aliases(scores), is_faithful
 
 
 # ---------------------------------------------------------------------------
@@ -590,7 +696,17 @@ def bootstrap_triage_ci(
     if len(eval_pairs) < n_retain:
         return {"status": "insufficient_data"}
 
-    cell_labels = [family_pair_label(pair_full[p]["task_a"], pair_full[p]["task_b"])
+    def _lookup_pf(p: str) -> dict:
+        if p in pair_full:
+            return pair_full[p]
+        parts = p.split("_vs_")
+        if len(parts) == 2:
+            rev = f"{parts[1]}_vs_{parts[0]}"
+            if rev in pair_full:
+                return pair_full[rev]
+        raise KeyError(f"Pair not found in pair_full: {p}")
+
+    cell_labels = [family_pair_label(_lookup_pf(p)["task_a"], _lookup_pf(p)["task_b"])
                    for p in eval_pairs]
     unique_cells = sorted(set(cell_labels))
     cell_indices = {c: [i for i, lab in enumerate(cell_labels) if lab == c]
