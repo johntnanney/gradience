@@ -25,8 +25,14 @@ Run:
     python scripts/n134/figures/fig_h1_decision.py
 
 Output:
-    papers/n134_workshop/figures/fig1_h1_decision.pdf
-    papers/n134_workshop/figures/fig1_h1_decision.png
+    papers/n134_workshop/figures/h1_decision.pdf
+    papers/n134_workshop/figures/h1_decision.png
+
+Paper-numbering note: this figure is referenced as Figure 1 in the
+paper's LaTeX, but the output filename is descriptive (no numeric
+prefix). Paper-facing numbering comes from \begin{figure} ordering,
+not from filename. Dropping or reordering figures does not force a
+rename of the remaining ones.
 """
 
 from __future__ import annotations
@@ -215,7 +221,7 @@ def build_figure() -> plt.Figure:
 
 def main() -> None:
     fig = build_figure()
-    pdf, png = save_figure(fig, "fig1_h1_decision")
+    pdf, png = save_figure(fig, "h1_decision")
     print(f"wrote {pdf}")
     print(f"wrote {png}")
 

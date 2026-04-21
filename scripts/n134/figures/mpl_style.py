@@ -40,9 +40,12 @@ RNG_SEED = 20260420
 COL_SINGLE = 3.3
 COL_FULL = 7.0
 
-# Paul-Tol-style bright palette (colorblind-safe). Explicit hex codes so
-# regeneration is stable regardless of matplotlib default-palette changes.
-# Source convention: https://personal.sron.nl/~pault/ "bright" scheme.
+# Paul-Tol "bright" palette (colorblind-safe). Deliberately chosen over
+# matplotlib's tab10 default: Paul-Tol's schemes are designed for
+# colorblind-safe scientific visualization and have better perceptual
+# separation in small figures. Explicit hex codes so regeneration is
+# stable regardless of matplotlib default-palette changes.
+# Source: https://personal.sron.nl/~pault/
 PALETTE = {
     "blue":   "#4477AA",
     "cyan":   "#66CCEE",
