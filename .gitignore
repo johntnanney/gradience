@@ -181,6 +181,10 @@ figures/
 !sidecar/figures/collapse_vs_contamination_replication_matrix.svg
 !sidecar/results/n134/figures/
 !sidecar/results/n134/figures/**
+!papers/n134_workshop/figures/
+!papers/n134_workshop/figures/**
+!scripts/n134/figures/
+!scripts/n134/figures/**
 *_results/
 *_results_full/
 intervention_*/
