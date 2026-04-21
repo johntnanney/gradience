@@ -1,0 +1,223 @@
+% ============================================================================
+% N134 Workshop Paper — Bibliography
+% ============================================================================
+%
+% Format conventions:
+% - BibTeX keys follow firstauthorYEARshorttitle (e.g., stoica2024knots)
+% - Every entry is preceded by a comment line with the arXiv or venue URL
+% - Titles use {curly braces} to protect capitalization
+% - @article for arXiv, @inproceedings for proceedings, @misc for anonymized
+%
+% TODO markers:
+% - Two TODO entries at the bottom require verification before submission.
+%   Both are citations referenced in the N134 report whose exact
+%   author/venue could not be confirmed via web search during T4. Resolve
+%   these by direct author-contact or by removing the relevant passages
+%   from the paper draft if the citations cannot be confirmed.
+%
+% ============================================================================
+
+
+% ----------------------------------------------------------------------------
+% Foundational LoRA reference
+% ----------------------------------------------------------------------------
+
+% https://arxiv.org/abs/2106.09685
+@article{hu2021lora,
+  author  = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and
+             Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and
+             Wang, Lu and Chen, Weizhu},
+  title   = {{LoRA: Low-Rank Adaptation of Large Language Models}},
+  journal = {arXiv preprint arXiv:2106.09685},
+  year    = {2021}
+}
+
+
+% ----------------------------------------------------------------------------
+% Four-method comparison — methods cited in §6
+% ----------------------------------------------------------------------------
+
+% https://arxiv.org/abs/2410.19735
+@article{stoica2024knots,
+  author  = {Stoica, George and Ramesh, Pratik and Ecsedi, Boglarka and
+             Choshen, Leshem and Hoffman, Judy},
+  title   = {{Model Merging with SVD to Tie the KnOTS}},
+  journal = {arXiv preprint arXiv:2410.19735},
+  year    = {2024}
+}
+
+% https://arxiv.org/abs/2412.00081
+@article{gargiulo2025tsv,
+  author  = {Gargiulo, Antonio Andrea and Crisostomi, Donato and
+             Bucarelli, Maria Sofia and Scardapane, Simone and
+             Silvestri, Fabrizio and Rodol{\`a}, Emanuele},
+  title   = {{Task Singular Vectors: Reducing Task Interference in Model
+             Merging}},
+  journal = {arXiv preprint arXiv:2412.00081},
+  year    = {2025}
+}
+
+% TODO: Verify arXiv ID and author list before submission. The N134 report
+% quotes "Li et al. (2026)" for SVC ("Singular Value Calibration for
+% Mitigating Over-accumulation in Model Merging") with an arXiv handle of
+% 2602.05536 carried through from the spec template; this was not verified
+% in a web search during T4. Keep this entry as-is pending verification;
+% remove and re-draft §6's SVC framing if the paper cannot be confirmed.
+@article{li2026svc,
+  author  = {Li, {\relax{[TODO: first author]}} and others},
+  title   = {{Singular Value Calibration for Mitigating Over-accumulation
+             in Model Merging}},
+  journal = {arXiv preprint arXiv:2602.05536},
+  year    = {2026},
+  note    = {Arxiv ID and author list not verified at bibliography
+             initialization time; see references.bib TODO block.}
+}
+
+
+% ----------------------------------------------------------------------------
+% Related work cited in discussion / prior-work chain
+% ----------------------------------------------------------------------------
+
+% https://arxiv.org/abs/2505.22934
+% https://aclanthology.org/2025.acl-long.1284/
+@inproceedings{zhang2025osrm,
+  author    = {Zhang, Haobo and Zhou, Jiayu},
+  title     = {{Unraveling LoRA Interference: Orthogonal Subspaces for
+               Robust Model Merging}},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association
+               for Computational Linguistics (ACL 2025)},
+  year      = {2025},
+  note      = {Introduces OSRM. Cited in N134 report as the
+               activation-weighted-overlap-carries-information result
+               motivating the N135-alt activation-informed follow-up.}
+}
+
+% https://arxiv.org/abs/2601.06672
+@article{rahamim2026mergeability,
+  author  = {Rahamim, {\relax{[TODO: first name]}} and others},
+  title   = {{Will it Merge? On The Causes of Model Mergeability}},
+  journal = {arXiv preprint arXiv:2601.06672},
+  year    = {2026},
+  note    = {Proposes mergeability as an intrinsic property of the model
+             update. Cited in N134 discussion as the intrinsic-mergeability
+             follow-up direction. Author list requires verification before
+             submission; the arXiv page should give the canonical ordering.}
+}
+
+% https://arxiv.org/abs/2505.10833
+@article{he2025mergebench,
+  author  = {He, Yifei and Zeng, Siqi and others},
+  title   = {{MergeBench: A Benchmark for Merging Domain-Specialized
+             LLMs}},
+  journal = {arXiv preprint arXiv:2505.10833},
+  year    = {2025},
+  note    = {The N134 report (and earlier Gradience positioning documents)
+             attributed this benchmark to "Cocchieri et al." which was
+             incorrect. The canonical authorship is He et al. 2025.
+             When the paper draft is revised, the prior-work discussion
+             should use this entry and the Cocchieri attribution should
+             be corrected. See RN-002 in revision_notes.md.}
+}
+
+
+% ----------------------------------------------------------------------------
+% Anonymized self-citations (prior Gradience work)
+% ----------------------------------------------------------------------------
+%
+% These entries are placeholders for the N127-N133 prior work referenced in
+% the draft's prior-work chain. For workshop submission they are anonymized
+% pending venue policy confirmation. To de-anonymize: replace {Anonymized}
+% with "Nanney, John T." (or canonical author list), remove the `note`
+% field, and update the titles to match the internal study identifiers.
+
+@misc{anonymized2026n127,
+  author = {Anonymized},
+  title  = {{N127 — same/cross alignment separation on DistilBERT
+           (encoder replication of task-boundary detection)}},
+  year   = {2026},
+  note   = {Anonymized for workshop submission. See repository
+            for de-anonymized reference.}
+}
+
+@misc{anonymized2026n130,
+  author = {Anonymized},
+  title  = {{N130 — DistilBERT task-boundary triage replication}},
+  year   = {2026},
+  note   = {Anonymized for workshop submission. See repository
+            for de-anonymized reference.}
+}
+
+@misc{anonymized2026n132,
+  author = {Anonymized},
+  title  = {{N132 — DeBERTa task-boundary triage replication}},
+  year   = {2026},
+  note   = {Anonymized for workshop submission. See repository
+            for de-anonymized reference.}
+}
+
+@misc{anonymized2026n133,
+  author = {Anonymized},
+  title  = {{N133 — Decoder-scale exploratory merge triage (Mistral-7B,
+           six-task set)}},
+  year   = {2026},
+  note   = {Anonymized for workshop submission. Descriptive-only
+            predecessor to N134. See repository for de-anonymized
+            reference.}
+}
+
+@misc{anonymized2026n134spec,
+  author = {Anonymized},
+  title  = {{N134 pre-registration (v3.1): decoder-scale controlled
+           merge triage}},
+  year   = {2026},
+  note   = {The pre-registration document for the present paper.
+            Anonymized for workshop submission. See repository tag
+            n134-report-v1 for de-anonymized reference.}
+}
+
+
+% ============================================================================
+% TODO BLOCK — unresolved citations requiring verification before submission
+% ============================================================================
+%
+% The following two citations are referenced in the N134 report but could not
+% be confirmed via web search during T4. Neither is currently cited in
+% draft_v1.md (which is a skeleton). If the revision process in
+% draft_current.md re-introduces them, resolve them first; otherwise remove
+% the corresponding paper passages.
+
+
+% TODO (1): Zhou et al. activation-dot-product predictor, r = 0.572
+% ----------------------------------------------------------------
+% The N134 report (§7.2 and §7.3) references "Zhou et al.'s activation-
+% dot-product result (r = 0.572)" as motivation for the N135-alt
+% activation-informed follow-up. Web search in April 2026 did not locate
+% a distinct paper matching this description; the closest match is
+% Zhang & Zhou ACL 2025 OSRM (zhang2025osrm above), which is a different
+% paper and does not appear to report an r=0.572 statistic.
+%
+% Two possibilities:
+%   (a) The report conflates Zhang & Zhou OSRM with a distinct Zhou et al.
+%       activation-based predictor paper that exists but was not surfaced
+%       by our search;
+%   (b) The report misattributes an r=0.572 statistic that actually
+%       appears in a different paper by a different author.
+%
+% Resolution path: check the N134 report's citation trail in
+% sidecar/notes/n133_bp5_diagnostic.md and N133 prior-work notes, where
+% the Zhou et al. reference was likely first introduced. If still
+% unresolvable, drop the specific "r = 0.572" citation from the paper
+% and keep the OSRM-only framing. See RN-001 in revision_notes.md.
+
+
+% TODO (2): Panahi et al. 2026 — LoRA merging theoretical analysis
+% ----------------------------------------------------------------
+% Referenced in Gradience positioning material (not directly in the
+% N134 report, but expected to appear in the paper draft's prior-work
+% section). An April-2026 OpenReview paper titled "LoRA Provably
+% Reduces Forgetting and Enables Adapter Merging in Multiclass Linear
+% Classification" (OpenReview id FSDxP3ZpAx) matches the described
+% theoretical-analysis character but the author's name was not
+% confirmed as "Panahi." Verify via OpenReview authorship before
+% citing. If the author is someone else, update both the bib key and
+% any in-text citations.
