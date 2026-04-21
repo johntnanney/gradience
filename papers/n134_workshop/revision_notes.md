@@ -80,6 +80,17 @@ Operational implication for future attribution audits: treat attributions introd
 Documented here as a repo-wide convention so that subsequent consolidation passes on other studies inherit the pattern.
 **Commit:** `[pending]`.
 
+## RN-011 — Partial-ρ precision observation → paper language amendment
+
+**Trigger:** T6 reproducibility check (2026-04-21).
+**Issue:** Reproduction of `06_analysis_h1.py` in a dev environment (Python 3.14, numpy 2.4, scipy 1.17) against committed audit data produced partial Spearman ρ = −0.5448 versus committed pod-environment ρ = −0.5330, a drift of 1.18e-2. The diagnostic pattern is clean: raw Spearman ρ is bit-identical across environments; OLS fits (R² base, R² full, ΔR²) are bit-identical; only the Spearman-on-OLS-residuals drifts. The drift is a property of rank-based statistics on small-N residuals (n = 45): floating-point perturbations too small to shift aggregate quantities like sum-of-squares can still flip the rank order of near-tied residual pairs, which Spearman is sensitive to. This is not a bug in any library or an environment issue beyond what is expected at this version gap; it is an intrinsic precision property of the statistic class on this data at this observation count.
+**Resolution:** Paper reproducibility-statement prose should name this observation explicitly, with language along the lines of:
+
+> We note that partial Spearman ρ computed on 45 OLS residuals is sensitive to floating-point paths in the residualization step: reproduction in a different numerical environment produced ρ = −0.545 versus committed ρ = −0.533, with all other quantities (raw ρ, R², ΔR², bootstrap statistics) reproducing to within 10⁻³ or bit-identical. This sensitivity is a property of rank-based statistics on small-N residuals rather than a bug in any implementation; the headline decision (H1 not confirmed under the pre-registered rule) is robust to this precision, but the specific value of partial ρ should be understood as approximately −0.53 ± 0.01 rather than as a four-decimal point estimate. This observation is itself an instance of the measurement-discipline concerns that motivate the Gradience program more broadly.
+
+When paper revision reaches the methods / reproducibility section, pull the full numerical detail from `sidecar/notes/n134_reproducibility_check.md` §Rank-on-residuals observation and the precision-vs-sampling-CI comparison from that document's closing paragraph.
+**Commit:** `[pending]`.
+
 ## RN-010 — F2 dropped as a plot after equivalence check
 
 **Trigger:** T2 pre-figure-work equivalence check (2026-04-20).
