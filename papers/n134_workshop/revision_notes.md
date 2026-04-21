@@ -80,7 +80,20 @@ Operational implication for future attribution audits: treat attributions introd
 Documented here as a repo-wide convention so that subsequent consolidation passes on other studies inherit the pattern.
 **Commit:** `[pending]`.
 
-## RN-010 — [Title]
+## RN-010 — F2 dropped as a plot after equivalence check
+
+**Trigger:** T2 pre-figure-work equivalence check (2026-04-20).
+**Issue:** F2 was originally planned as a cross-architecture same/cross alignment comparison covering DistilBERT (N130), DeBERTa (N132), Mistral-7B N133, Mistral-7B N134. Data-availability recon revealed that N130 does not persist per-pair alignment records at the granularity needed for distributional plotting. A subsequent metric-equivalence check on the three studies that do have per-pair data revealed that **N132 and N133/N134 use different metric families**:
+
+- N132 (inherited from N07, `scripts/n07_deberta/experiment_a_per_module.py:68`): subspace principal-angle metric, `mean(cos²(θ_i))` where `θ_i` are principal angles between U subspaces. No singular-value weighting.
+- N133, N134 (`scripts/n133_spectral_audit.py:81` and `scripts/n134/03_spectral_audit.py:114`, character-identical): SV-weighted mean absolute cosine, `sum_ij σ_i σ_j |<u_i, u_j>| / (Σσ_a · Σσ_b)`.
+
+These are not rescalings of each other; they are different computations on different subsets of the spectrum, and the raw distributions are not directly comparable.
+
+**Resolution:** F2 dropped as a plot. The same/cross ratio comparison is preserved in §5 of the paper as prose naming the four studies, the two metric families, and the common direction (same > cross); the robustness-across-metric-families is itself part of the claim rather than a caveat. A bar-chart-of-ratios alternative was considered and rejected — when a visual requires a multi-sentence caption to justify the cross-study comparison, the visual is doing less work than the caption. The prose version makes the modest claim cleanly without the reviewer-objection asymmetry a mixed-metric bar chart would invite. See `figure_captions.md` for a §5 paragraph candidate. Skeleton adjusted: `draft_v1.md` figure plan reduced from four to three figures; §5 word-count budget increased by ~0.1 page to accommodate the named-studies sentence. Paper now targets three figures (F1, F3, F4), each carrying analytical weight for a distinct claim rather than a fourth-for-the-sake-of-four.
+**Commit:** `[pending]`.
+
+## RN-011 — [Title]
 
 **Trigger:** [self-review | reader X | reviewer Y]
 **Issue:** [what was identified]
