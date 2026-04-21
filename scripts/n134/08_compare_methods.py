@@ -44,7 +44,17 @@ from scipy import stats
 # Paths
 # ---------------------------------------------------------------------------
 
-WORKSPACE = Path("/workspace/n134")
+# WORKSPACE defaults to the pod-absolute path that produced the committed
+# N134 artifacts. Replicators running outside that environment can
+# override via the N134_WORKSPACE environment variable without editing
+# the script; the default preserves pod-era provenance. NB: Phase 5
+# additionally requires per-adapter .npz SVD sidecars under
+# {WORKSPACE}/audit/{adapter_id}_svd.npz which are not committed to the
+# repository (1.2 GB total); replicators need to re-audit adapters (see
+# scripts/n134/03_spectral_audit.py) before running this script.
+import os  # noqa: E402
+
+WORKSPACE = Path(os.environ.get("N134_WORKSPACE", "/workspace/n134"))
 AUDIT_DIR = WORKSPACE / "audit"
 AUDIT_V21_DIR = AUDIT_DIR / "v2.1"
 # Phase 5 plumbing resolution (2026-04-20):

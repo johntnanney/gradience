@@ -38,7 +38,13 @@ from scipy import stats
 # Paths
 # ---------------------------------------------------------------------------
 
-WORKSPACE = Path("/workspace/n134")
+# WORKSPACE defaults to the pod-absolute path that produced the committed
+# N134 artifacts. Replicators running outside that environment can
+# override via the N134_WORKSPACE environment variable without editing
+# the script; the default preserves pod-era provenance.
+import os  # noqa: E402
+
+WORKSPACE = Path(os.environ.get("N134_WORKSPACE", "/workspace/n134"))
 AUDIT_DIR = WORKSPACE / "audit"
 MERGE_DIR = WORKSPACE / "merges"
 FIG_DIR = WORKSPACE / "figures"

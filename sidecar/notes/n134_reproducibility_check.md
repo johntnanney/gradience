@@ -21,7 +21,13 @@ The pod versions are inferred from the D1/D2/D3 compatibility fixes in the N134 
 
 ### Script-hygiene note for replicators
 
-The committed analysis scripts (`scripts/n134/06_analysis_h1.py`, `07_analysis_secondary.py`, `08_compare_methods.py`) hardcode `WORKSPACE = Path("/workspace/n134")`, which is the pod-absolute path. Running these scripts on a replicator's machine will either crash (path does not exist) or, if the path happens to exist, overwrite its contents. The reproduction procedure used here is to copy the scripts to `/tmp/n134_t6/`, apply a one-line `sed` substitution on the `WORKSPACE` constant, stage committed data under `/tmp/n134_t6/workspace/`, and run from there. A proper amendment (accepting `WORKSPACE` from an environment variable with the pod path as default) is planned as a separate, post-tag additive commit and is not in the tagged state.
+The committed analysis scripts (`scripts/n134/06_analysis_h1.py`, `07_analysis_secondary.py`, `08_compare_methods.py`) default to `WORKSPACE = Path("/workspace/n134")`, the pod-absolute path that produced the committed N134 artifacts. This default preserves pod-era provenance. Replicators running outside that environment can override by setting the `N134_WORKSPACE` environment variable to their own workspace path, without editing the scripts:
+
+```sh
+N134_WORKSPACE=/path/to/workspace python scripts/n134/06_analysis_h1.py
+```
+
+The env-var amendment was added as a post-tag additive commit (after `n134-submission-draft-v1`); it does not change any analytical behavior when the env var is unset. The T6 reproduction documented in this file was performed before the amendment using a one-line `sed` substitution on the `WORKSPACE` constant in `/tmp/n134_t6/` copies of the scripts; subsequent T6 reruns or independent replications should use the env-var pattern instead.
 
 ---
 
