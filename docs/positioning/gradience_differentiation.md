@@ -11,9 +11,11 @@ analysis, see `technical-report.md` §8.*
 Gradience is not best-in-class at execution. KnOTS, TSV, and SVC are
 better at improving merge results — they are focused execution methods
 from larger labs with more resources. Gradience is not best-in-class at
-theoretical derivation. Panahi et al. 2026 and Xu 2026 are doing more
-rigorous formal work. Gradience is not best-in-class at benchmark
-comparison. MergeBench and Cocchieri et al. 2026 cover more ground.
+theoretical derivation. Xu 2026 and recent OpenReview theoretical
+submissions (e.g., *LoRA Provably Reduces Forgetting and Enables
+Adapter Merging in Multiclass Linear Classification*, OpenReview
+FSDxP3ZpAx) are doing more rigorous formal work. Gradience is not best-in-class at benchmark
+comparison. MergeBench and Hitit et al. 2026 cover more ground.
 
 Gradience is uniquely positioned at the intersection of five properties:
 
@@ -58,7 +60,7 @@ The durability of this positioning depends on whether the community
 comes to value measurement-instrument stance and pre-registration, or
 whether it remains the current norm to optimize for benchmark
 comparison and novel-method publication. The former trend is slowly
-gaining momentum (Cocchieri et al.'s LLM-scale benchmark is a symptom;
+gaining momentum (Hitit et al.'s LLM-scale benchmark is a symptom;
 Zhou et al.'s interpretable-predictor framework is another; the AI
 safety community's move toward pre-registration in interpretability
 work is another). Gradience is well-placed to benefit if that trend

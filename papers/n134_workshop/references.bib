@@ -8,13 +8,7 @@
 % - Titles use {curly braces} to protect capitalization
 % - @article for arXiv, @inproceedings for proceedings, @misc for anonymized
 %
-% TODO markers:
-% - Two TODO entries at the bottom require verification before submission.
-%   Both are citations referenced in the N134 report whose exact
-%   author/venue could not be confirmed via web search during T4. Resolve
-%   these by direct author-contact or by removing the relevant passages
-%   from the paper draft if the citations cannot be confirmed.
-%
+% Unresolved citations at the bottom of the file (see TODO BLOCK).
 % ============================================================================
 
 
@@ -57,25 +51,23 @@
   year    = {2025}
 }
 
-% TODO: Verify arXiv ID and author list before submission. The N134 report
-% quotes "Li et al. (2026)" for SVC ("Singular Value Calibration for
-% Mitigating Over-accumulation in Model Merging") with an arXiv handle of
-% 2602.05536 carried through from the spec template; this was not verified
-% in a web search during T4. Keep this entry as-is pending verification;
-% remove and re-draft §6's SVC framing if the paper cannot be confirmed.
+% https://arxiv.org/abs/2602.05536
 @article{li2026svc,
-  author  = {Li, {\relax{[TODO: first author]}} and others},
-  title   = {{Singular Value Calibration for Mitigating Over-accumulation
+  author  = {Li, Yayuan and Peng, Ze and Zhang, Jian and Guo, Jintao and
+             Duan, Yue and Shi, Yinghuan},
+  title   = {{When Shared Knowledge Hurts: Spectral Over-Accumulation
              in Model Merging}},
   journal = {arXiv preprint arXiv:2602.05536},
   year    = {2026},
-  note    = {Arxiv ID and author list not verified at bibliography
-             initialization time; see references.bib TODO block.}
+  note    = {Introduces SVC (Singular Value Calibration), a
+             training-free post-processing rescaling of inflated
+             singular values after model merging. Verified via arXiv
+             on 2026-04-20.}
 }
 
 
 % ----------------------------------------------------------------------------
-% Related work cited in discussion / prior-work chain
+% Mergeability-prediction literature (Gradience positions against)
 % ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.22934
@@ -87,22 +79,95 @@
   booktitle = {Proceedings of the 63rd Annual Meeting of the Association
                for Computational Linguistics (ACL 2025)},
   year      = {2025},
-  note      = {Introduces OSRM. Cited in N134 report as the
-               activation-weighted-overlap-carries-information result
-               motivating the N135-alt activation-informed follow-up.}
+  note      = {Introduces OSRM. Demonstrates that activation-weighted
+               overlap carries information not present in static
+               weight-space overlap. Cited in N134 report as motivation
+               for the activation-informed N135-alt follow-up.}
+}
+
+% https://arxiv.org/abs/2601.22285
+@article{zhou2026demystifying,
+  author  = {Zhou, Luca and Zhao, Bo and Yu, Rose and Rodol{\`a},
+             Emanuele},
+  title   = {{Demystifying Mergeability: Interpretable Properties to
+             Predict Model Merging Success}},
+  journal = {arXiv preprint arXiv:2601.22285},
+  year    = {2026},
+  note    = {190 task pairs across four merge methods on ViT-B/32
+             vision classifiers. Reports that activation-based
+             pairwise metrics achieve the strongest individual
+             correlations with merge outcome (up to r = 0.572 for TSV),
+             compared to |r| < 0.2 for weight-space metrics. Cited in
+             N134 report as the r = 0.572 activation-dot-product
+             reference. Same group (GLADIA / Sapienza, Rodol{\`a})
+             as the TSV paper.}
 }
 
 % https://arxiv.org/abs/2601.06672
 @article{rahamim2026mergeability,
-  author  = {Rahamim, {\relax{[TODO: first name]}} and others},
+  author  = {Rahamim, Adir and Yehudai, Asaf and Carmeli, Boaz and
+             Choshen, Leshem and Mass, Yosi and Belinkov, Yonatan},
   title   = {{Will it Merge? On The Causes of Model Mergeability}},
   journal = {arXiv preprint arXiv:2601.06672},
   year    = {2026},
-  note    = {Proposes mergeability as an intrinsic property of the model
-             update. Cited in N134 discussion as the intrinsic-mergeability
-             follow-up direction. Author list requires verification before
-             submission; the arXiv page should give the canonical ordering.}
+  note    = {Proposes mergeability as an intrinsic property of the
+             model update, primarily governed by base-model prior
+             knowledge rather than by the composition of the merged
+             set. Cited in N134 discussion as the intrinsic-mergeability
+             follow-up direction.}
 }
+
+% https://arxiv.org/abs/2601.09473
+@article{bolton2026simmerge,
+  author  = {Bolton, Oliver and Aakanksha and Ahmadian, Arash and
+             Hooker, Sara and Fadaee, Marzieh and Ermis, Beyza},
+  title   = {{SimMerge: Learning to Select Merge Operators from
+             Similarity Signals}},
+  journal = {arXiv preprint arXiv:2601.09473},
+  year    = {2026},
+  note    = {Third paper in the 2026 mergeability-prediction program
+             alongside Zhou et al. (demystifying) and Rahamim et al.
+             (intrinsic).}
+}
+
+
+% ----------------------------------------------------------------------------
+% Decoder-scale evaluation (Hitit et al., not "Cocchieri")
+% ----------------------------------------------------------------------------
+%
+% NB: earlier Gradience positioning material attributed this benchmark to
+% "Cocchieri et al. 2026." That attribution was incorrect; the actual
+% authors, as verified against arXiv:2511.21437 on 2026-04-20, are
+% Hitit, Girrbach, Akata. The misattribution was corrected in
+% sidecar/notes/n134_spec.md, sidecar/notes/n134_report.md, docs/THEORY.md,
+% and docs/positioning/gradience_differentiation.md in the same
+% commit that added this entry. See RN-006 in revision_notes.md.
+
+% https://arxiv.org/abs/2511.21437
+@article{hitit2026insystematic,
+  author  = {Hitit, O{\u{g}}uz Ka{\u{g}}an and Girrbach, Leander and
+             Akata, Zeynep},
+  title   = {{A Systematic Study of In-the-Wild Model Merging for
+             Large Language Models}},
+  journal = {arXiv preprint arXiv:2511.21437},
+  year    = {2026},
+  note    = {Published in Transactions on Machine Learning Research,
+             March 2026. Evaluates six merge methods across four
+             open-weight LLMs (Llama 3.2 3B, Qwen3 4B, Llama 3.1 8B,
+             Qwen3 8B), twelve fine-tuned checkpoints each, sixteen
+             standard benchmarks. Finds that subspace-based methods
+             (TIES, Iso-C, TSV-M) produce large parameter-space
+             displacements correlating with catastrophic forgetting,
+             and that Task Arithmetic is the only approach that
+             reliably yields performance gains at decoder scale.
+             Cited in N134 report as evidence that decoder-scale
+             triage is the binding operational constraint.}
+}
+
+
+% ----------------------------------------------------------------------------
+% General-purpose merging benchmark
+% ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.10833
 @article{he2025mergebench,
@@ -111,12 +176,10 @@
              LLMs}},
   journal = {arXiv preprint arXiv:2505.10833},
   year    = {2025},
-  note    = {The N134 report (and earlier Gradience positioning documents)
-             attributed this benchmark to "Cocchieri et al." which was
-             incorrect. The canonical authorship is He et al. 2025.
-             When the paper draft is revised, the prior-work discussion
-             should use this entry and the Cocchieri attribution should
-             be corrected. See RN-002 in revision_notes.md.}
+  note    = {Eight representative merging methods on Llama and Gemma
+             families at 2B--9B scales across five domains. Distinct
+             from Hitit et al. 2026; both are cited in the discussion
+             of decoder-scale evaluation work.}
 }
 
 
@@ -177,47 +240,40 @@
 
 
 % ============================================================================
-% TODO BLOCK — unresolved citations requiring verification before submission
+% TODO BLOCK — unresolved citations
 % ============================================================================
 %
-% The following two citations are referenced in the N134 report but could not
-% be confirmed via web search during T4. Neither is currently cited in
-% draft_v1.md (which is a skeleton). If the revision process in
-% draft_current.md re-introduces them, resolve them first; otherwise remove
-% the corresponding paper passages.
+% The following citation could not be verified via web search or arXiv fetch
+% during T4. If the revision process in draft_current.md re-introduces it,
+% resolve it first (by reading the paper directly, contacting the author,
+% or removing the attribution in favor of citation-by-title).
 
 
-% TODO (1): Zhou et al. activation-dot-product predictor, r = 0.572
+% TODO: "Panahi et al." attribution for OpenReview FSDxP3ZpAx
 % ----------------------------------------------------------------
-% The N134 report (§7.2 and §7.3) references "Zhou et al.'s activation-
-% dot-product result (r = 0.572)" as motivation for the N135-alt
-% activation-informed follow-up. Web search in April 2026 did not locate
-% a distinct paper matching this description; the closest match is
-% Zhang & Zhou ACL 2025 OSRM (zhang2025osrm above), which is a different
-% paper and does not appear to report an r=0.572 statistic.
+% Earlier Gradience positioning material (docs/positioning/
+% gradience_differentiation.md, docs/THEORY.md, docs/technical-report.md)
+% attributed the paper "LoRA Provably Reduces Forgetting and Enables
+% Adapter Merging in Multiclass Linear Classification" (OpenReview id
+% FSDxP3ZpAx) to "Panahi et al. 2026." On 2026-04-20 this attribution
+% could not be independently verified: the OpenReview page returned
+% HTTP 403 to the bibliography-writing agent, and search could not
+% confirm the first author's surname. The references to "Panahi et al."
+% in those three documents were softened on 2026-04-20 to cite the
+% paper by title rather than by author (see RN-003 in revision_notes.md).
 %
-% Two possibilities:
-%   (a) The report conflates Zhang & Zhou OSRM with a distinct Zhou et al.
-%       activation-based predictor paper that exists but was not surfaced
-%       by our search;
-%   (b) The report misattributes an r=0.572 statistic that actually
-%       appears in a different paper by a different author.
-%
-% Resolution path: check the N134 report's citation trail in
-% sidecar/notes/n133_bp5_diagnostic.md and N133 prior-work notes, where
-% the Zhou et al. reference was likely first introduced. If still
-% unresolvable, drop the specific "r = 0.572" citation from the paper
-% and keep the OSRM-only framing. See RN-001 in revision_notes.md.
+% Resolution: check OpenReview authorship directly (requires login).
+% If confirmed, add a bib entry with the correct author list; update
+% in-text citations in the positioning material. If the first author
+% is someone other than Panahi, correct the attribution record in
+% revision_notes.md and wherever the title-based citation appears.
 
-
-% TODO (2): Panahi et al. 2026 — LoRA merging theoretical analysis
-% ----------------------------------------------------------------
-% Referenced in Gradience positioning material (not directly in the
-% N134 report, but expected to appear in the paper draft's prior-work
-% section). An April-2026 OpenReview paper titled "LoRA Provably
-% Reduces Forgetting and Enables Adapter Merging in Multiclass Linear
-% Classification" (OpenReview id FSDxP3ZpAx) matches the described
-% theoretical-analysis character but the author's name was not
-% confirmed as "Panahi." Verify via OpenReview authorship before
-% citing. If the author is someone else, update both the bib key and
-% any in-text citations.
+% @article{TODO_lora_provably_reduces_forgetting,
+%   author  = {TODO},
+%   title   = {{LoRA Provably Reduces Forgetting and Enables Adapter
+%              Merging in Multiclass Linear Classification}},
+%   journal = {OpenReview},
+%   year    = {2025 or 2026; submitted Oct 2025 per search result},
+%   note    = {OpenReview id FSDxP3ZpAx; author list requires
+%              verification via login.}
+% }

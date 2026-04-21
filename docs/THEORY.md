@@ -930,10 +930,11 @@ and citation discoverability.
   pre-registers at all.
 - **Descriptive empirical.** Observe patterns without prior
   commitments; optimize predictive models post-hoc. Zhou et al. 2026,
-  Cocchieri et al. 2026, MergeBench, the bulk of ablation studies.
+  Hitit et al. 2026, MergeBench, the bulk of ablation studies.
 - **Theoretical derivation.** Axioms to predictions. Xu 2026 (Spectral
-  Edge Thesis), Panahi et al. 2026, cross-term analysis (Akbar et al.
-  2025).
+  Edge Thesis), recent OpenReview theoretical work on LoRA merging
+  (OpenReview FSDxP3ZpAx; author list unverified), cross-term
+  analysis (Akbar et al. 2025).
 - **Benchmark comparison.** Horse-race new methods against existing
   ones on standard tasks. The dominant mode of the published merging
   literature.
@@ -952,14 +953,14 @@ epistemology. No competitor has an equivalent document.
   Gradience's primary validation regime pre-2026, OSRM, earlier
   KnOTS/TSV applications.
 - **Mid-scale decoders (1–4B).** Roi Paul 2026 (Llama-3.2-3B),
-  Cocchieri et al. 2026 (Llama 3.2 3B, Qwen3 4B).
-- **Large decoders (7–13B).** N133, N134 (Mistral-7B), Cocchieri et al.
+  Hitit et al. 2026 (Llama 3.2 3B, Qwen3 4B).
+- **Large decoders (7–13B).** N133, N134 (Mistral-7B), Hitit et al.
   (Llama 3.1 8B, Qwen3 8B).
 - **Frontier ($\geq$ 70B).** Effectively absent from this literature;
   handled by industrial labs rather than academic research.
 
 Most published merging work is validated on vision classifiers or small
-encoders, then marketed as applicable at scale. Cocchieri et al.
+encoders, then marketed as applicable at scale. Hitit et al.
 (arXiv:2511.21437) is consequential precisely because it tests existing
 methods at 3–8B decoder scale and documents where most of them fail.
 N134 is the first *pre-registered confirmatory* test at decoder scale in
@@ -976,8 +977,9 @@ any program the author is aware of.
   merge. Zhou et al. 2026, Rahamim et al. 2026, SimMerge. Small but
   growing.
 - **Theoretical understanding.** Explain why merges succeed or fail.
-  Panahi et al. 2026 (max-margin), Xu 2026 (phase dynamics), Akbar et
-  al. 2025 (cross-term). Moderate cell.
+  Recent OpenReview work on max-margin LoRA merging (OpenReview
+  FSDxP3ZpAx; author list unverified), Xu 2026 (phase dynamics), Akbar
+  et al. 2025 (cross-term). Moderate cell.
 - **Safety.** Predict or prevent harmful outcomes from fine-tuning or
   merging. Roi Paul 2026, activation-steering literature, Lindsey et
   al. 2026. Mostly separate from the merging literature.
