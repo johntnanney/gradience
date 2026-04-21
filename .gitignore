@@ -185,6 +185,8 @@ figures/
 !papers/n134_workshop/figures/**
 !scripts/n134/figures/
 !scripts/n134/figures/**
+scripts/n134/figures/__pycache__/
+scripts/n134/figures/**/*.pyc
 *_results/
 *_results_full/
 intervention_*/
