@@ -17,23 +17,19 @@ Captions are drafted and revised here during paper work, then pasted into the pa
 
 ## Figure 2 — Four-method forest plot
 
-**Script:** `scripts/n134/figures/fig_four_method_forest.py` *(not yet generated)*
-**Output:** `papers/n134_workshop/figures/four_method_forest.{pdf,png}` *(pending)*
+**Script:** `scripts/n134/figures/fig_four_method_forest.py`
+**Output:** `papers/n134_workshop/figures/four_method_forest.{pdf,png}`
 
-*Placeholder.* Horizontal forest plot of retained-set mean max_degradation for Gradience $S_{\mathrm{H1}}$, KnOTS, TSV, SVC, with bootstrap 95% CIs as whiskers; random baseline (3.14%) annotated as a vertical reference line. x-axis: retained-set mean max_degradation (percent; lower is better, consistent with the paper's `max_degradation` definition). y-axis: methods ordered by magnitude of Spearman ρ (not alphabetical), so the rank-correlation pattern is readable alongside the retained-degradation pattern. Per-method Spearman ρ and p-value annotated inline on the right margin.
-
-**Caption draft (v1, placeholder text to be finalized once the figure is generated):**
+**Caption draft (v1):**
 
 > **Figure 2.** Four-method comparison of pairwise merge-triage performance on the 45 evaluated cross-task pairs. Each method ranks pairs by its own risk score; the 22 lowest-risk pairs are retained and the mean max_degradation of the retained set is reported. Bootstrap 95\% CIs are computed with family-pair block resampling (5{,}000 resamples). Vertical dashed reference line: random-baseline mean max_degradation across all 45 pairs (3.14\%). Methods are ordered by the magnitude of their Spearman $\rho$ between risk score and max_degradation; per-method $\rho$ and $p$ are annotated on the right margin. No method achieves significance at $\alpha = 0.05$; three of the four methods produce wrong-signed rank correlations. KnOTS is the only method with both a right-signed $\rho$ and a positive improvement over random baseline, but its CI for retained-set degradation crosses zero. The null is a regime null under confound control at $N = 45$, not a Gradience-specific result.
 
 ## Figure 3 — Layer-depth trend in same/cross alignment ratio
 
-**Script:** `scripts/n134/figures/fig_layer_depth_trend.py` *(not yet generated)*
-**Output:** `papers/n134_workshop/figures/layer_depth_trend.{pdf,png}` *(pending)*
+**Script:** `scripts/n134/figures/fig_layer_depth_trend.py`
+**Output:** `papers/n134_workshop/figures/layer_depth_trend.{pdf,png}`
 
-*Placeholder.* Line plot of same/cross alignment ratio by layer index (layers 0–31) on Mistral-7B N134. Include linear fit with $r = 0.919$ annotated.
-
-**Caption draft (v1, placeholder text to be finalized once the figure is generated):**
+**Caption draft (v1):**
 
 > **Figure 3.** Layer-depth trend in the same/cross alignment ratio on Mistral-7B under N134. Per-layer same/cross alignment ratio plotted against layer index (0--31); linear fit in solid red with $r = 0.919$, slope $= 0.031$ per layer, $p = 1 \times 10^{-13}$. The ratio rises from approximately 1.66 at layer 0 to approximately 2.58 at layer 31. This depth trend is a property of the aggregate same/cross separation geometry — deeper layers separate same-task from cross-task pairs more sharply across the adapter population — and is what originally motivated $S_{\mathrm{H1}}$'s linear depth-weighting. It is not itself a predictor of per-pair merge outcomes: the motivated depth-weighting of $S_{\mathrm{H1}}$ does not translate into per-pair risk prediction in the present study (see Figure 1). The trend replicates the analogous layer-depth observations in N130, N132, and N133.
 
