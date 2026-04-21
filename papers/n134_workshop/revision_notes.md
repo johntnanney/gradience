@@ -55,7 +55,32 @@ Each entry records a specific revision decision, its trigger (self-review, outsi
 Per the consolidation spec's T5 discussion, this correction triggers re-tagging of `n134-report-v1` to the corrected commit.
 **Commit:** `[pending]`.
 
-## RN-007 — [Title]
+## RN-007 — Panahi attribution remains unverified; ICLR 2026 confirmed
+
+**Trigger:** Pre-T2 closing pass (2026-04-20).
+**Issue:** Second verification attempt on the `Panahi et al.` attribution for OpenReview FSDxP3ZpAx. Direct PDF URL (`/pdf?id=FSDxP3ZpAx` and `/pdf/aebdf741910422ddd41feaadc40a93d5a378d1d4.pdf`) returned HTTP 403 to the reviewing agent. Title-based web search confirmed the paper was **accepted to ICLR 2026** (previously unknown; search result titled "Published as a conference paper at ICLR 2026"). Author list remains unconfirmed.
+**Resolution:** Bib entry TODO updated with the ICLR 2026 acceptance. Attribution-softening in `docs/positioning/gradience_differentiation.md`, `docs/THEORY.md`, and `docs/technical-report.md` stays as-is. Before paper submission, either (a) verify via direct OpenReview login, (b) verify via ICLR 2026 proceedings page once proceedings URLs are indexed, or (c) keep the softened citation.
+**Commit:** `[pending]`.
+
+## RN-008 — Provenance of "Cocchieri" misattribution: unknown
+
+**Trigger:** User request at checkpoint 2 (2026-04-20).
+**Issue:** The `Cocchieri et al.` misattribution for arXiv:2511.21437 propagated through four documents (N134 spec, N134 report, THEORY.md, positioning doc). User asked whether the attribution had a discoverable source so we can identify a class of error and guard against recurrence.
+**Resolution:** **Provenance unknown.** The author searched the repository's `.claude/worktrees/` history and the archived `n134_spec_v3_update.md` (where "Cocchieri" first appears in the committed history) and found no earlier document, note, or agent output that would explain where "Cocchieri" came from. The most likely hypothesis is an LLM-assisted literature-review turn that produced the attribution and was not verified against the arXiv primary source before being adopted into positioning material; this is a hypothesis, not a finding. What we do know: the first committed appearance is in `sidecar/notes/archive/n134_spec_v3_update.md` (the spec update memo written shortly before N134 pre-registration v3.1). No earlier file in git history contains the string "Cocchieri."
+
+Operational implication for future attribution audits: treat attributions introduced by LLM-assisted literature review as unverified until checked against primary sources (arXiv, venue proceedings, author page). A class-level defense would be: when adding any new citation to `docs/`, `sidecar/notes/`, or `papers/` prose, grep the repo for the author-year string; if it appears only in LLM-conversation artifacts and not in a committed reference document (bib, primary-source URL), treat as unverified.
+**Commit:** `[pending]`.
+
+## RN-009 — Tag convention going forward: append-only on future corrections
+
+**Trigger:** User preference at checkpoint 2 (2026-04-20).
+**Issue:** `n134-report-v1` was moved forward from its original commit (`3ba4270`) to the attribution-corrections commit (`a13c3c3`) rather than frozen in place with a new tag `n134-report-v1.0.1` pointing at the correction. User flagged the tradeoff and expressed a mild preference for the append-only pattern (tags as historical pointers, not mutable labels) for future corrections.
+**Resolution:** Accept. The current forwarded tag (`n134-report-v1` → `a13c3c3`) is retained because forwarding was already pushed and there are no known downstream consumers of the original tag. Going forward: if further corrections to the report are needed, **create a new tag rather than moving the existing one**. Candidate convention: `n134-report-v{major}.{minor}.{patch}` where `patch` increments for attribution / typo / presentation fixes that do not alter findings. The original (pre-correction) commit remains reachable via `git log` and CHANGELOG cross-references even without a dedicated tag.
+
+Documented here as a repo-wide convention so that subsequent consolidation passes on other studies inherit the pattern.
+**Commit:** `[pending]`.
+
+## RN-010 — [Title]
 
 **Trigger:** [self-review | reader X | reviewer Y]
 **Issue:** [what was identified]
