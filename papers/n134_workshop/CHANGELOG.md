@@ -1,5 +1,11 @@
 # Changelog
 
+## v2-outline — 2026-04-22 (repositioning to Thesis B paper)
+
+Revision-period artifact. `draft_v2_thesis_b_outline.md` committed as the first planning document for the Thesis B repositioning: from "N134 findings paper" (v1 workshop-paper skeleton) to "measurement-discipline framework paper with N134 as extended worked example." Supersedes the v1 skeleton for revision planning; v1 is retained as `draft_v1.md` per consolidation convention (frozen reference; do not edit). The outline calibrates a longer target (8–10 pages, position-paper / methods-paper venue rather than workshop-paper) and a restructured section plan that puts the framework (§§1–2) before the worked example (§§3–5) and adds a generalization section (§7) and objections-handling section (§8).
+
+`draft_current.md` is unchanged at this stage — the outline is planning, not revision prose. When prose drafting begins against the Thesis B structure, `draft_current.md` becomes the working file for that prose; the outline remains the planning reference. See `revision_notes.md` RN-012 for the scope decision to keep N135-alt out of this paper (standalone Thesis B, N134 material only).
+
 ## v1.0.1 — 2026-04-20 (attribution corrections; findings unchanged)
 
 Post-T4 correction pass. All changes are attribution / citation metadata only; no N134 finding, number, figure, or deviation changes. The `n134-report-v1` tag is moved forward to the post-correction commit; the commit range leading to v1.0.1 is traceable via `git log`.

@@ -80,6 +80,13 @@ Operational implication for future attribution audits: treat attributions introd
 Documented here as a repo-wide convention so that subsequent consolidation passes on other studies inherit the pattern.
 **Commit:** `[pending]`.
 
+## RN-012 — Paper repositioned to Thesis B; v2 outline filed
+
+**Trigger:** Post-consolidation planning (2026-04-22).
+**Issue:** The v1 skeleton (`draft_v1.md`) framed the paper as a findings paper centered on the N134 empirical results. Post-consolidation review concluded that the paper's most durable contribution is methodological — the measurement-discipline framework that the consolidation pass surfaced and exercised — rather than the N134 findings in isolation. The findings paper target (4–6 page workshop) also under-serves the framework contribution, which requires framing, theoretical development, and worked example in sequence.
+**Resolution:** Paper repositioned to *Thesis B* working title *"Measurement Discipline for ML Diagnostics: A Psychometric Framework with a LoRA-Merging Case Study"*. V2 outline filed at `papers/n134_workshop/draft_v2_thesis_b_outline.md`. Three contribution claims (framework, worked example, previously-unnamed measurement property); 8–10 page target; position-paper / methods-paper venues (ICML Position track, NeurIPS Reproducibility workshop, Datasets & Benchmarks, ICLR blog). N134 empirical content preserved but subordinated to framework demonstration. The rank-on-residuals observation from RN-011 becomes its own section (§6) as the cleanest worked example of the framework producing findings that unstructured reporting would not surface. Scope decision preserved: standalone paper, N134 material only, submission before N135-alt runs (folding N135-alt would expand §5 to 12–14 pages total and change the venue options). `draft_v1.md` retained frozen per consolidation convention; `draft_current.md` not yet updated (outline is planning, not prose).
+**Commit:** `[pending]`.
+
 ## RN-011 — Partial-ρ precision observation → paper language amendment
 
 **Trigger:** T6 reproducibility check (2026-04-21).

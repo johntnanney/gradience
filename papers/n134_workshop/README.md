@@ -2,8 +2,9 @@
 
 ## Files
 
-- `draft_v1.md` — frozen v1 skeleton (structure, section plan, figure plan; no paper prose yet). Do not edit.
-- `draft_current.md` — working revision. All prose work happens here.
+- `draft_v1.md` — frozen v1 skeleton (findings-paper framing; structure, section plan, figure plan; no paper prose). Do not edit.
+- `draft_v2_thesis_b_outline.md` — **current revision-planning outline.** Repositions the paper from findings-paper (v1) to *Measurement Discipline for ML Diagnostics*, with the framework as primary contribution and N134 as worked example. See CHANGELOG `v2-outline` entry and `revision_notes.md` RN-012 for the scope decision.
+- `draft_current.md` — working revision file. Currently still mirrors `draft_v1.md`; will become the Thesis B prose draft once prose drafting begins against the v2 outline.
 - `figures/` — generated figures; regenerate via `scripts/n134/figures/*.py`.
 - `references.bib` — bibliography.
 - `figure_captions.md` — caption staging area.
