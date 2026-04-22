@@ -1,0 +1,106 @@
+{
+  "instrument": "S_H1",
+  "instrument_source": "scripts/n134/06_analysis_h1.py:compute_s_h1",
+  "spec": "sidecar/notes/n134_icc_spec.md",
+  "design": {
+    "icc_form": "ICC(2,1)",
+    "agreement_type": "absolute",
+    "measurement_type": "single",
+    "n_tasks": 8,
+    "n_seed_pairs_per_task": 3,
+    "n_total_observations": 24,
+    "task_ordering": [
+      "arc_challenge",
+      "boolq",
+      "commonsenseqa",
+      "hellaswag",
+      "openbookqa",
+      "piqa",
+      "siqa",
+      "winogrande"
+    ],
+    "seed_pair_ordering": [
+      [
+        42,
+        123
+      ],
+      [
+        42,
+        456
+      ],
+      [
+        123,
+        456
+      ]
+    ]
+  },
+  "results": {
+    "icc": 0.5658451331105553,
+    "ci_shrout_fleiss_95": [
+      0.16468455863673362,
+      0.8741482876583502
+    ],
+    "ci_bootstrap_95": [
+      0.14112199752069118,
+      0.9651783696920222
+    ],
+    "bootstrap_n_resamples": 5000,
+    "bootstrap_seed": 134,
+    "bootstrap_n_valid": 5000,
+    "sem": 0.013897273961034696,
+    "sd_pooled": 0.021091491003758067,
+    "ms_between_tasks": 0.0009828901981938341,
+    "ms_between_seed_pairs": 0.0005282935857007778,
+    "ms_residual": 0.00016391101962561272,
+    "f_star": 5.996486389010588,
+    "df_satterthwaite": 13.636147896428518
+  },
+  "panel": {
+    "arc_challenge": {
+      "seed_pair_42_123": 0.07795761972948005,
+      "seed_pair_42_456": 0.07925617675804957,
+      "seed_pair_123_456": 0.08114666095934808
+    },
+    "boolq": {
+      "seed_pair_42_123": 0.05482359550836863,
+      "seed_pair_42_456": 0.05476311635169567,
+      "seed_pair_123_456": 0.06530933007315705
+    },
+    "commonsenseqa": {
+      "seed_pair_42_123": 0.10597784324746692,
+      "seed_pair_42_456": 0.10634650672419053,
+      "seed_pair_123_456": 0.10690112279332949
+    },
+    "hellaswag": {
+      "seed_pair_42_123": 0.043559798688599556,
+      "seed_pair_42_456": 0.04410374728666449,
+      "seed_pair_123_456": 0.11175953689962626
+    },
+    "openbookqa": {
+      "seed_pair_42_123": 0.09272421460429375,
+      "seed_pair_42_456": 0.09339500146664002,
+      "seed_pair_123_456": 0.0959773104158089
+    },
+    "piqa": {
+      "seed_pair_42_123": 0.07060949970742292,
+      "seed_pair_42_456": 0.07112790074792098,
+      "seed_pair_123_456": 0.08402178298230424
+    },
+    "siqa": {
+      "seed_pair_42_123": 0.10375314830999935,
+      "seed_pair_42_456": 0.10317817249928009,
+      "seed_pair_123_456": 0.109906375845612
+    },
+    "winogrande": {
+      "seed_pair_42_123": 0.09459399452404768,
+      "seed_pair_42_456": 0.09413791126853814,
+      "seed_pair_123_456": 0.10271551973666206
+    }
+  },
+  "sanity_checks": {
+    "panel_complete": true,
+    "icc_in_range": true,
+    "sem_less_than_sd_pooled": true,
+    "ci_agreement": "divergent"
+  }
+}

@@ -76,31 +76,76 @@ not surface.
 \subsection{The reporting gap}
 
 A recurring pattern in the ML methods literature is to report a
-diagnostic metric as a point estimate to three or four decimal places
-without any accompanying description of its measurement properties.
-The LoRA-merging literature offers one recent example: predictive
-correlations between spectral diagnostics and merge outcomes are
-reported with two or three significant figures
-\citep{zhou2026demystifying,rahamim2026mergeability} without
-cross-seed reliability coefficients, without explicit tolerance
-schedules for the reported decimals, and without pre-registered
-confound decomposition that would distinguish the diagnostic's
-predictive power from that of simpler alternatives such as
-task-family identity. The pattern is not confined to the merging
-subfield; it recurs across interpretability score reports, training-
-dynamics diagnostics, and capability evaluation scores.
+diagnostic metric as a point estimate to three or four decimal
+places without any accompanying description of its measurement
+properties --- without a reliability coefficient that would say how
+stable the score is across seeds or calibration data, without an
+explicit tolerance schedule that would say how much of the reported
+precision is substantive, and without a pre-registered confound
+decomposition that would distinguish the diagnostic's explanatory
+share from that of simpler alternatives. Two examples illustrate
+the pattern; the convergence between them across subfields is the
+feature we want to draw out.
+
+Consider a representative claim from the LoRA-merging literature.
+\citet{zhou2026demystifying} report that, across 190 task pairs on
+ViT-B/32 classifiers, an activation-based pairwise diagnostic
+predicts merge outcome with $r = 0.572$ (TSV, the strongest
+individual method among those evaluated). The value is stated to
+three significant figures. No cross-seed reliability coefficient
+accompanies it: the stability of the correlation when the
+activation-calibration set is resampled, or when adapters trained
+under different seeds are substituted, is not reported. No tolerance
+schedule states how much of the third digit is substantive and how
+much is sampling variability or implementation sensitivity. No
+pre-registered confound decomposition distinguishes the diagnostic's
+explanatory share from what task-family identity alone might
+capture; the correlation is presented as if the diagnostic were its
+sole relevant explanans. The point is not that $0.572$ is wrong ---
+it may well be the best available estimate from the reported
+experiment --- but that the reporting convention treats a
+point-estimate correlation as a self-standing measurement rather
+than as the central claim of an instrument whose reliability,
+precision, and confound structure have been independently
+characterized.
+
+%
+% TODO(§1.1 second example): the capability-evaluation characterization
+% below is argumentatively defensible as a pattern-description, but
+% a specific cited claim would strengthen it. Candidate directions:
+% (a) a method-paper leaderboard claim reporting MMLU/BBH to two or
+% three decimals; (b) the capability-evaluation reliability literature
+% (e.g., Burnell et al. 2023 on reporting practice; Balloccu et al. on
+% contamination); (c) a specific probing-accuracy or faithfulness
+% claim from the interpretability literature. Any swap requires
+% verifying the exact reported value and adding the bib entry.
+%
+The same pattern appears outside the merging literature. Capability-
+evaluation scores on standard benchmarks --- MMLU, HellaSwag,
+BIG-Bench-Hard, and their successors --- are routinely reported to
+two or three decimal places of accuracy without cross-seed or
+cross-prompt reliability coefficients, without explicit tolerance
+schedules for the reported digits, and without pre-registered
+confound controls that would distinguish improvements attributable
+to a claimed intervention from those attributable to prompt-format
+sensitivity, evaluation-metric choice, or evaluation-set
+contamination. That the same measurement-theoretic context is
+missing in a subfield with no methodological contact with
+LoRA-merging research suggests the gap is not an idiosyncrasy of
+one community but a general feature of how ML diagnostics are
+currently reported.
 
 Three specific gaps follow from this pattern. Reliability
 coefficients in the classical-test-theory sense --- ICC, SEM,
-coefficient alpha or its distribution-based analogues --- are nearly
-absent from ML diagnostic reports. Point estimates are quoted to
-three or four decimals without uncertainty bounds calibrated to the
-actual dependence structure of the data. Confound decomposition is
-rare, and when present is usually conducted post-hoc rather than
-pre-registered. Each of these gaps on its own is repairable by a
-careful reviewer; collectively, they produce a literature in which
-a reader who wants to know how much credence to place in a reported
-value has no reliable way to calibrate.
+coefficient alpha or its distribution-based analogues --- are
+nearly absent from ML diagnostic reports. Point estimates are
+quoted to three or four decimals without uncertainty bounds
+calibrated to the actual dependence structure of the data. Confound
+decomposition is rare, and when present is usually conducted
+post-hoc rather than pre-registered. Each of these gaps on its own
+is repairable by a careful reviewer; collectively, they produce a
+literature in which a reader who wants to know how much credence to
+place in a reported value has no reliable way to calibrate.
 
 \subsection{The psychometric analog}
 
@@ -161,97 +206,177 @@ concludes.
 \section{A Measurement-Discipline Framework for ML Diagnostics}
 \label{sec:framework}
 
-\subsection{Construct validity}
+Two views of what an ML diagnostic metric is stand behind the
+reporting practices this paper addresses. On the first, which
+operates implicitly in much of the ML methods literature, a score is
+a direct readout of a latent property: the computation from model
+weights, activations, or outputs reports what its name claims it
+reports, and the only remaining measurement question is whether
+noise has been adequately reduced. On the second, which the
+psychometric tradition has developed since at least
+\citet{cronbachmeehl1955}, a score is a fallible indicator: an
+observable whose relationship to the theoretical object it is taken
+to measure must be structurally defended rather than presumed. The
+framework we propose in this section is what follows from replacing
+the first view with the second.
+
+The replacement is not a methods upgrade. It is a conceptual
+reorientation whose consequences include a specific set of reporting
+practices, but the practices are consequences rather than the
+starting point. Treating a diagnostic as a fallible indicator
+commits the author to defending, jointly and inseparably, four
+things: what the score indicates, how stable the indication is, what
+precision the indication can actually support, and what else could
+explain the signal. These are not four independent methodological
+virtues from among which an author may pick and choose; they are
+four aspects of a single commitment, continuous with the unified
+theory of construct validity
+\citep{messick1989validity,messick1995validity} that psychometrics
+has developed in the decades since \citet{cronbachmeehl1955}. An
+author who omits any one tacitly reverts to the direct-readout view
+at the point of omission, since a score whose stability, precision,
+or alternative explanations go undefended is a score being treated
+as though those defenses were unnecessary. The framework's internal
+coherence is the argument; its component practices, taken
+separately, are the ordinary stock of classical test theory and,
+individually, could be adopted without challenging the default view
+of what an ML diagnostic is.
+
+We develop the four defenses in the order a reader's credence should
+consult them. A reader asks of any score, first what it purports to
+measure (§\ref{sec:framework-construct}), then how stable its
+readings are (§\ref{sec:framework-reliability}), then what precision
+those readings can support (§\ref{sec:framework-precision}), and
+finally what else might be producing them
+(§\ref{sec:framework-confound}). The ordering is epistemic rather
+than logical --- the four defenses are jointly required, and no one
+of them is prior to the others in the inferential argument --- but
+it tracks the questions a careful reader's credence would need
+resolved before taking a score as evidence for a substantive claim.
+
+\subsection{What the score indicates}
 \label{sec:framework-construct}
 
-An ML diagnostic claims to measure something. Our framework requires
-the paper to state that something explicitly --- call it the
-\emph{theoretical object} of the measurement --- and to defend, as
-a separate argumentative step, the \emph{operationalization} that
-connects the reported computation to the theoretical object. The ML
-literature's typical failure mode is conflating these two: a paper
-that says ``our spectral alignment score predicts merge outcomes'' is
-usually reporting results about the operationalization (the specific
-computation from weights) as if they were results about the
-theoretical object (the geometric relationship between two adapters'
-learned updates).
+A diagnostic's \emph{theoretical object} is what the score is taken
+to measure: a geometric property of two adapters' updates, a
+capability's presence or absence, a training regime's character. Its
+\emph{operationalization} is the specific computation that
+instantiates the object. Under the inferential view the paper must
+state both explicitly and defend the connection between them as a
+separate argumentative step; under the direct-readout view the
+distinction does not arise, because the operationalization is
+treated as transparently identical to the object. The typical ML
+failure mode is the conflation: a paper that says ``our spectral
+alignment score predicts merge outcomes'' is usually reporting
+results about the operationalization (a specific computation from
+weights) as though they were results about the theoretical object
+(the geometric relationship between two adapters' learned updates).
+Under the inferential view the conflation is an error; under the
+direct-readout view it is not even legible as one.
 
-The distinction matters because different operationalizations of the
-same theoretical object can produce different predictive patterns on
-the same data. N07/N132's subspace-principal-angle-based overlap
-metric and N133/N134's singular-value-weighted cosine alignment both
-claim to measure the same theoretical object (spectral similarity
-between two adapters' weight-space updates), but their raw values are
-not on comparable scales, and cross-study comparisons of the raw
-values are unsound without metric-family harmonization. Pre-registered
-articulation of the theoretical object and its operationalization is
-the discipline that forces such harmonization to be explicit.
+The distinction has empirical consequences. Different
+operationalizations of the same theoretical object can produce
+different predictive patterns on the same data. N07/N132's
+subspace-principal-angle-based overlap metric and N133/N134's
+singular-value-weighted cosine alignment both claim to measure
+spectral similarity between two adapters' weight-space updates, but
+their raw values lie on non-comparable scales, and cross-study
+comparisons of the raw values are unsound without metric-family
+harmonization. The psychometric tradition treats such harmonization
+as part of construct validity in the unified-theory sense
+\citep{messick1989validity}: the validity argument \emph{is} the
+defense of the connection between theoretical object and chosen
+operationalization, and no cross-operationalization claim is
+licensed without it. Pre-registered articulation of the distinction
+--- stating the theoretical object, the operationalization, and the
+defense of their connection as three separate things --- is the
+discipline that forces the harmonization to be explicit rather than
+presumed.
 
-\subsection{Reliability}
+\subsection{How stable the indication is}
 \label{sec:framework-reliability}
 
-For a diagnostic intended to support predictive claims, the
-test-retest behavior of the score across seeds, calibration data
-samples, or implementation details is not incidental: it bounds the
-precision of any predictive claim the score can support. An ML
+A score has evidential weight only to the extent that it would
+reproduce under replication of the conditions that produced it. For
+an ML diagnostic computed from stochastic training processes, the
+relevant replication is over training seeds, calibration-data
+samples, and implementation details that vary across labs. An ML
 diagnostic reported as ``$\rho = 0.573$'' without an accompanying
-cross-seed ICC or equivalent reliability coefficient is implicitly
-claiming that the score is perfectly reliable, which is almost never
-true. The framework's recommendation is that ICC (or a distribution-
-based equivalent for score types where ICC is not well-defined) be
-reported for any diagnostic used to support quantitative predictive
-claims.
+reliability coefficient is making an implicit claim that this second
+question has been answered in the limit --- that the score is
+perfectly reliable, in the sense that its reports do not vary across
+replications --- which is almost never true and never licensed by
+the report itself.
 
 We make the recommendation specific rather than hortatory. For a
-score computed per-adapter, cross-seed ICC is computed from three or
-more seeds per task; at two seeds per task (a common convention) the
-ICC estimate has wide confidence intervals that are themselves
-informative. For a score computed per-pair of models, the analog is
-cross-seed-pair ICC across pairs that should be semantically
-equivalent (same task-pair, different random seeds); the N134 design
-uses three seeds per task specifically to enable this estimate.
+score computed per-adapter, cross-seed intraclass correlation
+(ICC; \citealp{shrout1979icc}) is the natural coefficient, estimated
+from three or more seeds per task; at two seeds the estimate has
+confidence intervals whose width is itself informative about the
+evidential weight of the score's reports. For a score computed
+per-pair of models, the analog is cross-seed-pair ICC across pairs
+that should be semantically equivalent (same task-pair, different
+random seeds). The N134 design commits to three seeds per task
+specifically to support this estimate. On this design the estimate
+is $\hat{\rho}_{\mathrm{ICC}} = 0.566$ (moderate) with SEM $= 0.014$
+and 95\% CI $[0.165, 0.874]$ by Shrout--Fleiss
+(Appendix~\ref{app:reliability}), reported as the
+instrument-validation step the framework requires.
 
-\subsection{Bounded precision}
+\subsection{What precision the indication supports}
 \label{sec:framework-precision}
 
-A diagnostic value reported as ``$-0.533$'' to three decimals is
-making an implicit claim that the third decimal is meaningful. This
-claim is often defensible from sampling variability alone but is
-rarely defensible when implementation sensitivity, cross-environment
-reproduction, and intrinsic properties of the statistic at the
+A score reported as ``$-0.533$'' to three decimals makes an implicit
+claim that its third decimal carries information. The claim may be
+defensible from sampling variability alone; it is rarely defensible
+once implementation sensitivity, cross-environment reproduction, and
+intrinsic numerical properties of the statistic at the operative
 sample size are considered. Bounded precision is the discipline of
-stating explicitly what the uncertainty is on the reported decimal
-places, broken out by source.
+stating what the uncertainty on the reported decimal is, calibrated
+per source. The relevant calibration is not a single ``standard
+error'' but a tolerance schedule: sampling variability,
+implementation sensitivity, cross-environment reproduction, and
+intrinsic-statistic precision each contribute, and which one
+dominates depends on the statistic, the operative sample size, and
+the reproduction condition.
 
-Section~\ref{sec:rank-observation} develops a concrete instance: the
-worked example's headline statistic has intrinsic floating-point
-precision of approximately $\pm 0.01$ at $n = 45$, meaning its third
-decimal is not a real claim regardless of what sampling variability
-the bootstrap confidence interval reports.
+Section~\ref{sec:rank-observation} develops the paper's most
+striking instance: the worked example's headline statistic has
+intrinsic floating-point precision of approximately $\pm 0.01$ at
+$n = 45$, meaning its third decimal is not a real claim regardless
+of what sampling variability the bootstrap confidence interval
+reports. The observation is not about the bootstrap's calibration;
+it is about the statistic's intrinsic precision on residuals at this
+sample size. A single ``$\pm$'' would not have surfaced the
+distinction. A tolerance schedule does.
 
-\subsection{Confound decomposition with pre-registered decision rules}
+\subsection{What else could explain the signal}
 \label{sec:framework-confound}
 
-The final component is the discipline of distinguishing what a
+The final defense is the discipline of distinguishing what a
 diagnostic predicts from what is predictable by simpler alternatives
----- task identity, input length, surface features, known demographic
-structure of the data. The worked example in
-Section~\ref{sec:empirical} makes the distinction concrete: 88\% of
-merge-outcome variance is captured by task-family-pair identity
-alone, leaving 12\% within which a geometric diagnostic must operate
-to clear a pre-registered $\Delta R^2 \geq 0.10$ threshold. Without
-the family-decomposition step, a raw correlation would conflate
-family identity with geometric prediction; with it, the residual
-predictive power is legible directly.
+--- task identity, input length, surface features, known demographic
+structure of the data, or in the present paper's worked example,
+task-family-pair identity. Under the direct-readout view the
+distinction is not load-bearing because the score's predictive
+relationship to its object is presumed; under the inferential view
+the distinction \emph{is} the test of the score's information over
+and above alternatives. A score whose reported predictive
+correlation is entirely accounted for by a simpler alternative has
+not measured its purported object; it has measured the alternative.
 
 Pre-registration of the decomposition is what distinguishes the
-framework from post-hoc confound analysis. Post-hoc decomposition
-following a failed main analysis reads as an excuse; pre-registered
-decomposition is a commitment that the diagnostic must clear
-\emph{before} seeing the data. The worked example commits to its
-family-residualization, its $\Delta R^2$ threshold, and its sign
-constraint on partial Spearman $\rho$ before data collection; we
-return to this in Section~\ref{sec:applying}.
+framework's confound-handling from the post-hoc version that
+currently dominates. Post-hoc decomposition following a failed main
+analysis reads as an excuse; pre-registered decomposition is a
+commitment that the diagnostic must clear \emph{before} seeing the
+data. The worked example in Section~\ref{sec:empirical} makes the
+general form concrete with a family-pair residualization and a
+$\Delta R^2$ threshold; we develop the specifics at the relevant
+point of the worked example (Sections~\ref{sec:applying} and
+\ref{sec:empirical-h1}) rather than in advance of it, to keep the
+framework itself independent of the particulars of any single
+application.
 
 \section{Case Study: Spectral Diagnostics for LoRA Adapter Merging}
 \label{sec:case-study}
@@ -313,11 +438,12 @@ pre-registered tasks, yielding 24 adapters. This design supports
 cross-seed reliability estimation for $S_{\mathrm{H1}}$ as an
 instrument: same-task adapter pairs (three same-task pairs per task,
 24 total) provide the replicate structure that a cross-seed ICC
-estimate requires. We report the instrument validation in
-Appendix~\ref{app:reliability}; for the purpose of the pre-registered
-H1 test, the relevant observation is that the design was calibrated
-to support this estimate before data collection began, not that the
-estimate was examined post-hoc to reassure reviewers.
+estimate requires. The resulting estimate,
+$\hat{\rho}_{\mathrm{ICC}} = 0.566$ with SEM $= 0.014$, is
+reported at Appendix~\ref{app:reliability}; for the purpose of the
+pre-registered H1 test, the relevant observation is that the design
+was calibrated to support this estimate before data collection began,
+not that the estimate was examined post-hoc to reassure reviewers.
 
 \subsection{Confound decomposition pre-registration}
 
@@ -343,7 +469,13 @@ $\rho$ between $S_{\mathrm{H1}}$ and the max-degradation outcome is
 computed on OLS residuals after both variables are residualized on
 the pre-registered family-pair labels (FAMILY\_B). The $\Delta R^2$
 test quantifies the additional variance the geometric score explains
-beyond family identity.
+beyond family identity. The quantitative shares this decomposition
+produces --- $88.1\%$ of outcome variance captured by family-pair
+identity alone, $+0.003$ contributed by $S_{\mathrm{H1}}$ beyond it
+(reported in full at Section~\ref{sec:empirical-h1}) --- are the
+framework's confound-decomposition discipline made concrete, and are
+what licenses the subsequent null as informative rather than
+uninterpretable.
 
 \subsection{Decision rule with explicit precision}
 
@@ -670,8 +802,9 @@ modern descendants (IRT, generalizability theory, measurement
 invariance theory). Canonical references are
 \citet{cronbach1951alpha} on reliability,
 \citet{shrout1979icc} on ICC,
-\citet{messick1995validity} on construct validity as unified-theory
-framework, and \citet{cronbachmeehl1955} on construct validity and
+\citet{messick1989validity,messick1995validity} on construct
+validity as unified-theory framework, and
+\citet{cronbachmeehl1955} on construct validity and
 nomological networks. We are not claiming originality for the
 measurement-theoretic concepts; we are claiming that their
 systematic application to ML diagnostics is underdeveloped and
@@ -829,12 +962,47 @@ published paper's full pipeline.
 \section{Cross-Seed Reliability for $S_{\mathrm{H1}}$}
 \label{app:reliability}
 
-\emph{[TODO: insert cross-seed ICC computation from the 24 adapters
-(3 seeds $\times$ 8 tasks) as the instrument-validation step this
-paper's framework requires; result populates this appendix and
-grounds Section~\ref{sec:framework-reliability}. One-day analysis on
-committed data. Scheduled as an early-revision action per
-\texttt{revision\_notes.md} RN-012 immediate next actions.]}
+Cross-seed ICC(2,1) for $S_{\mathrm{H1}}$, estimated from the 24
+same-task adapter pairs (three within-task seed-pairs
+$\times$ eight tasks; absolute agreement, single measurement
+\citep{shrout1979icc}), is
+$\hat{\rho}_{\mathrm{ICC}} = 0.566$, with 95\% CI
+$[0.165, 0.874]$ by the Shrout--Fleiss F-distribution method.
+A secondary block-bootstrap over tasks (5{,}000 resamples, seed
+134) yields CI $[0.141, 0.965]$, which diverges from the
+parametric CI by up to 0.091 on the upper bound.
+We report both intervals. The divergence is itself informative
+about parametric-assumption strain at $N = 8$ tasks and illustrates
+that a point estimate with a single CI can understate the
+uncertainty about a reliability coefficient at small sample
+sizes; this is the kind of limitation the paper argues should be
+stated rather than hidden.
+
+The standard error of measurement,
+$\mathrm{SEM} = \mathrm{SD}_{\mathrm{pooled}} \sqrt{1 - \hat{\rho}_{\mathrm{ICC}}} = 0.014$,
+is the measurement-theoretic precision of a single-seed-pair
+same-task $S_{\mathrm{H1}}$ estimate. Against pooled same-task
+$S_{\mathrm{H1}}$ values ($\mathrm{SD}_{\mathrm{pooled}} = 0.021$,
+range $[0.044, 0.112]$), SEM of $0.014$ is substantial: it states
+that the instrument's precision in the regime where the alignment
+signal is designed to be large is comparable in magnitude to a
+meaningful fraction of the signal itself. Note that the reliability
+design targets same-task pairs; transferring the SEM to cross-task-
+pair precision claims, which operate in the smaller
+$S_{\mathrm{H1}} \in [0.015, 0.025]$ regime, is a broader
+inferential step this estimate does not license directly.
+
+$\hat{\rho}_{\mathrm{ICC}} = 0.566$ places the instrument at
+``moderate'' cross-seed reliability by the conventional descriptive
+thresholds ($>\!0.9$ excellent, $>\!0.75$ good, $>\!0.50$ moderate,
+$<\!0.50$ poor). We report the conventional description only as
+orientation and not as a binary gate; the paper's framework argues
+against thresholding continuous reliability estimates into
+verdicts. Full panel, mean-squares decomposition, and bootstrap
+details are in
+\texttt{sidecar/results/n134/analysis\_icc.json}; design
+commitments are documented in
+\texttt{sidecar/notes/n134\_icc\_spec.md}.
 
 \section{Full Reproducibility-Check Trace}
 \label{app:reproducibility}

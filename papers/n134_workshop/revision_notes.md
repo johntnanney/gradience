@@ -111,7 +111,86 @@ These are not rescalings of each other; they are different computations on diffe
 **Resolution:** F2 dropped as a plot. The same/cross ratio comparison is preserved in §5 of the paper as prose naming the four studies, the two metric families, and the common direction (same > cross); the robustness-across-metric-families is itself part of the claim rather than a caveat. A bar-chart-of-ratios alternative was considered and rejected — when a visual requires a multi-sentence caption to justify the cross-study comparison, the visual is doing less work than the caption. The prose version makes the modest claim cleanly without the reviewer-objection asymmetry a mixed-metric bar chart would invite. See `figure_captions.md` for a §5 paragraph candidate. Skeleton adjusted: `draft_v1.md` figure plan reduced from four to three figures; §5 word-count budget increased by ~0.1 page to accommodate the named-studies sentence. Paper now targets three figures (F1, F3, F4), each carrying analytical weight for a distinct claim rather than a fourth-for-the-sake-of-four.
 **Commit:** `[pending]`.
 
-## RN-011 — [Title]
+## RN-013 — Thesis memo filed; §2 restructuring indicated
+
+**Trigger:** Pre-§2-revision diagnostic pass (2026-04-22).
+**Issue:** The v2 Thesis B outline (RN-012) and the first-pass LaTeX draft present §2's four framework components (construct validity, reliability, bounded precision, confound decomposition) as four parallel subsections, each with its own rationale. External-reader review flagged this as under-powered for the position-paper genre: the components arrive as a coordinated toolkit rather than as aspects of a conceptual commitment, and §2 does not name the implicit view of measurement the paper is arguing against. The outline's immediate-action 1 specified a one-page thesis memo as a diagnostic before §2 prose revision.
+
+**Resolution:** `thesis_memo.md` filed. The memo commits to three philosophical moves that supersede the outline's §2 framing going forward:
+
+1. **Named opposition.** The paper argues against an implicit "direct-readout" view of measurement — the view that a score is a transparent report of a latent property — in favor of the psychometric tradition's inferential / fallible-indicator view, on which a score is an observable whose relationship to the theoretical object must be structurally defended. The outline did not name the argued-against view; §2 prose should.
+
+2. **Jointly-constitutive framework components.** The four components are not four independent methodological virtues; they are four aspects of a single commitment to treating scores as indicators. Omitting any one tacitly reverts to the direct-readout view at the point of omission. The parallel-subsection structure currently in §§2.1–2.4 is incompatible with this framing; §2 should be rewritten as a continuous argument traversing the four questions an inferential defense must answer.
+
+3. **Dialectical shape of the contributions.** The three contributions are normative (framework), demonstrative (worked example with a null outcome), and productive (rank-on-residuals observation). Removing any one collapses the argument: without 2, the framework lacks evidence of application; without 3, the application lacks epistemic advantage over alternatives; without 1, the isolated finding has no argument for general practice. §1.3 and §9 should track this structure explicitly; §8's objection-handling should answer each objection in a way that preserves the dialectical relationships to the other two contributions.
+
+Diagnostic conclusion: the memo compressed to one page without strain once the three philosophical positions were accepted, which (per the outline's stated test) indicates §2 needs *restructuring* rather than expansion. The §2 rewrite is the next paper-revision work item; it is separated from this commit deliberately to keep the memo-as-blueprint distinct from the prose-revision work that will track it. Two operational consequences recorded here for the §2 rewrite: §2.4's current concrete example (88% family-pair variance) moves to §4 to keep §2 fully general; the parallel-subsection layout is dropped in favor of continuous prose.
+
+**Commit:** `[pending]`.
+
+## RN-014 — §1.1 expanded to two concrete reporting-gap examples
+
+**Trigger:** Post-memo revision pass (2026-04-22).
+
+**Issue:** The first-pass §1.1 stated the reporting-gap pattern abstractly and cited `zhou2026demystifying` and `rahamim2026mergeability` as illustration, but did not develop either into a concrete worked example. The v2 outline specified "two concrete examples from the current ML literature of diagnostic metrics reported without measurement-theoretic context — one from the LoRA-merging subfield, one from an unrelated subfield" so that the cross-subfield convergence carries the weight of the paragraph's final claim. Without two worked examples, the "recurs across subfields" assertion is a promissory note the §1.1 prose does not redeem.
+
+**Resolution:** §1.1 restructured from two paragraphs to four.
+
+1. Para 1 now states the pattern abstractly (what a typical ML diagnostic report is missing) and announces two examples.
+2. Para 2 develops Zhou et al. 2026's $r = 0.572$ (TSV, 190 task pairs, ViT-B/32) as the LoRA-merging example. Each of the three measurement-theoretic gaps (reliability, tolerance, confound decomposition) is stated as a specific absence from this specific report. The paragraph explicitly distances the example from ad hominem critique: "not that $0.572$ is wrong" but that the reporting convention treats it as self-standing.
+3. Para 3 describes capability-evaluation reporting (MMLU / HellaSwag / BBH to two or three decimals without cross-seed or cross-prompt reliability coefficients, without tolerance schedules, without pre-registered confound controls against prompt-format sensitivity, evaluation-metric choice, or contamination) as the cross-subfield pattern. The paragraph's closing sentence makes the argumentative payload explicit: the same gap in a subfield with no methodological contact with merging research is evidence the gap is not idiosyncratic.
+4. Para 4 preserves the original three-gap synthesis as the paragraph's conclusion.
+
+**Outstanding.** The capability-evaluation paragraph is argumentatively self-sufficient as a pattern description but would be strengthened by a specific cited claim. A LaTeX comment in the source names candidate directions (method-paper leaderboard claim reporting MMLU/BBH to two or three decimals; capability-evaluation reliability literature such as Burnell et al. 2023; probing-accuracy or faithfulness-score claim from the interpretability literature). Resolution requires the author's editorial choice of exemplar plus verification of the exact reported value and addition of a bib entry; deferred to revision rather than faked in first pass.
+
+The `rahamim2026mergeability` citation previously in §1.1 is no longer used there; it remains cited in §8 (line 394). No orphaned citations result from this revision.
+
+**Commit:** `[pending]`.
+
+## RN-015 — Cross-seed ICC spec filed ahead of Appendix-D implementation
+
+**Trigger:** Post-§1.1 revision pass (2026-04-22). Appendix D carries the only explicit `[TODO]` in the first-pass .tex (cross-seed ICC computation, flagged in the v2-outline as an early-revision action). Rather than write a script first and document-the-choices-retrospectively, this revision pass produces the spec first — matching the paper's own argument that the measurement-theoretic commitments going into a reliability estimate belong in prose before they go into Python.
+
+**Issue:** The ICC computation carries real design choices that determine what the resulting number means. Form (ICC(1,1) / ICC(2,1) / ICC(3,1)) turns on whether seed-pairs within a task are treated as interchangeable random draws versus fixed raters. Agreement-vs-consistency turns on whether the paper's bounded-precision claims couple to absolute-agreement SEM or to rank-preserving consistency. CI method (Shrout–Fleiss parametric versus block-bootstrap over tasks) answers subtly different questions about where the sampling uncertainty lives. Reporting SEM alongside ICC is not automatic and couples tightly to §2.3's bounded-precision argument. A spec is the place these choices get defended; a script is where they get executed.
+
+**Resolution:** `sidecar/notes/n134_icc_spec.md` committed. Contents: ~9 sections covering (§1) what is estimated and paper destinations, (§2) data inputs with verified audit-directory schema, (§3) four design choices each with a short measurement-theoretic defense — ICC form, CI method, SEM reporting, instrument-output definition, (§4) computation procedure, (§5) JSON output schema, (§6) sanity checks, (§7) failure modes and escalation, (§8) prose templates for Appendix D, §2.2, and §4.2, (§9) promotion-to-convention note. The spec commits to ICC(2,1) absolute-agreement single-measurement with Shrout–Fleiss primary CI, block-bootstrap secondary, and SEM reported to two significant figures.
+
+Implementation target: `scripts/n134/09_analysis_icc.py`, producing `sidecar/results/n134/analysis_icc.json`. The spec is deliberately explicit enough for a coding agent to implement without further design conversation. Execution may be delegated to coding agents or run in-session; the spec is valuable as a standalone artefact regardless.
+
+**Outstanding.** Implementation of the spec (script + JSON output + Appendix-D paragraph insertion + §2.2 / §4.2 in-text insertions) is the follow-on work.
+
+**Commit:** `[pending]`.
+
+## RN-016 — Cross-seed ICC computed; Appendix-D TODO closed
+
+**Trigger:** In-session execution of the RN-015 spec (2026-04-22). The spec was tight enough to execute without further design conversation.
+
+**Issue:** RN-015 filed the spec; `[TODO]` in `app:reliability` of `draft_v2_thesis_b.tex` remained the one explicit placeholder in the first-pass .tex prose. Spec §8 prose templates named the paper destinations (Appendix D, §2.2, §4.2) with `[VAL]` slots to fill.
+
+**Resolution.** `scripts/n134/09_analysis_icc.py` implements the spec: direct Shrout–Fleiss ICC(2,1) absolute-agreement single-measurement on the 8×3 same-task panel (no `pingouin` dependency — `scipy.stats.f` for the F-distribution CI is sufficient and gives full control over the formula); `compute_s_h1` imported from `06_analysis_h1.py` by the spec-mandated `importlib.util` shim (filename starts with a digit); block-bootstrap over tasks (5000 resamples, seed 134) for the secondary CI.
+
+Results, committed to `sidecar/results/n134/analysis_icc.json`:
+
+- ICC(2,1) = **0.566** (conventional descriptor: *moderate*).
+- Shrout–Fleiss 95% CI: [0.165, 0.874].
+- Block-bootstrap 95% CI: [0.141, 0.965].
+- **CI agreement: divergent** (max bound difference 0.091, past the spec's 0.05 threshold). Both intervals reported per spec §3.2 escalation rule. The divergence is itself informative about parametric-assumption strain at N = 8 tasks.
+- SEM = **0.014**; SD_pooled = 0.021 on same-task S_H1 values in [0.044, 0.112].
+- All four sanity checks pass (panel complete, ICC in range, SEM < SD_pooled, CI agreement explicitly recorded).
+
+Three prose insertions applied to `draft_v2_thesis_b.tex`:
+
+1. **Appendix D** (`app:reliability`): full paragraph replaces the `[TODO]` block, reporting ICC / both CIs / SEM / conventional descriptor, explicitly flagging the CI divergence as informative, and naming one transferability caveat — the reliability design targets same-task pairs (where alignments are in the 0.044–0.112 range); transferring SEM to cross-task-pair precision claims (where $S_{\mathrm{H1}} \in [0.015, 0.025]$) is a broader inferential step this estimate does not license directly. This caveat was not in the spec but is an honest framework-consistency concern worth naming.
+2. **§2.2** (`sec:framework-reliability`): one clause added to the existing "N134 design commits to three seeds per task" sentence, naming $\hat{\rho}_{\mathrm{ICC}} = 0.566$, SEM = 0.014, 95% CI [0.165, 0.874], with Appendix D cross-reference.
+3. **§4.2** (`Reliability considerations at pre-registration time`): one sentence appended, reporting the resulting estimate with Appendix D reference.
+
+No explicit `[TODO]` or `[TBD]` placeholder remains in the .tex. One `% TODO(...)` LaTeX comment at line 113 is unrelated (the §1.1 second-example citation swap from RN-014, not the ICC TODO).
+
+**Honest state observation.** Cross-seed ICC of 0.566 on a per-pair spectral diagnostic is moderate-by-convention; combined with the rank-on-residuals precision observation in §6, the paper now reports two independent measurement-property findings on $S_{\mathrm{H1}}$: cross-seed reliability is moderate and rank-on-residuals precision is $\pm 0.01$ at $n = 45$. These are not redundant; they couple to different terms of the paper's bounded-precision argument. The framework's productive-rather-than-descriptive claim (§6.4 in the current draft) now has two grounded instances rather than one.
+
+**Commit:** `[pending]`.
+
+## RN-017 — [Title]
 
 **Trigger:** [self-review | reader X | reviewer Y]
 **Issue:** [what was identified]
