@@ -5,8 +5,10 @@
 ## Files
 
 - `draft_v1.md` — frozen v1 skeleton (findings-paper framing; structure, section plan, figure plan; no paper prose). Do not edit.
-- `draft_v2_thesis_b_outline.md` — **current revision-planning outline.** Repositions the paper from findings-paper (v1) to *Measurement Discipline for ML Diagnostics*, with the framework as primary contribution and N134 as worked example. See CHANGELOG `v2-outline` entry and `revision_notes.md` RN-012 for the scope decision.
-- `draft_current.md` — working revision file. Currently still mirrors `draft_v1.md`; will become the Thesis B prose draft once prose drafting begins against the v2 outline.
+- `draft_v2_thesis_b_outline.md` — current revision-planning outline. Repositions the paper from findings-paper (v1) to *Measurement Discipline for ML Diagnostics*, with the framework as primary contribution and N134 as worked example. See CHANGELOG `v2-outline` entry and `revision_notes.md` RN-012 for the scope decision.
+- `draft_v2_thesis_b.tex` — **complete first-pass LaTeX draft** synthesizing the outline as prose. ~4,500 words main body + appendices, three figures. See `BUILD.md` for compilation.
+- `BUILD.md` — LaTeX build instructions, dependencies, venue-template-swap guide.
+- `draft_current.md` — legacy markdown working file (from v1 skeleton era). Superseded by the `.tex` for prose drafting; retained as historical reference.
 - `figures/` — generated figures; regenerate via `scripts/n134/figures/*.py`.
 - `references.bib` — bibliography.
 - `figure_captions.md` — caption staging area.
