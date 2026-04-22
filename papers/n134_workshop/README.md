@@ -1,5 +1,7 @@
 # N134 Workshop Paper
 
+> **Single-folder reference for everything N134-publication-relevant:** see `publication_bundle/MANIFEST.md`. The bundle is a symlink collection (not copies) covering the four narrative documents, all paper artifacts, the full data directory, and the analysis scripts. Editing through the bundle edits the canonical files.
+
 ## Files
 
 - `draft_v1.md` — frozen v1 skeleton (findings-paper framing; structure, section plan, figure plan; no paper prose). Do not edit.
