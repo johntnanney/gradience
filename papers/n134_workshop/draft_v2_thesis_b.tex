@@ -983,14 +983,51 @@ $\mathrm{SEM} = \mathrm{SD}_{\mathrm{pooled}} \sqrt{1 - \hat{\rho}_{\mathrm{ICC}
 is the measurement-theoretic precision of a single-seed-pair
 same-task $S_{\mathrm{H1}}$ estimate. Against pooled same-task
 $S_{\mathrm{H1}}$ values ($\mathrm{SD}_{\mathrm{pooled}} = 0.021$,
-range $[0.044, 0.112]$), SEM of $0.014$ is substantial: it states
-that the instrument's precision in the regime where the alignment
-signal is designed to be large is comparable in magnitude to a
-meaningful fraction of the signal itself. Note that the reliability
-design targets same-task pairs; transferring the SEM to cross-task-
-pair precision claims, which operate in the smaller
-$S_{\mathrm{H1}} \in [0.015, 0.025]$ regime, is a broader
-inferential step this estimate does not license directly.
+range $[0.044, 0.112]$, width $\approx 0.068$), SEM of $0.014$ is
+roughly $20\%$ of the same-task signal width: substantial, and
+consistent with the conventional-descriptor reading that reliability
+here is moderate rather than high. It supports modest precision
+claims in the same-task regime.
+
+The cross-task regime is where the primary H1 test lives, and it is
+a different object. Cross-task $S_{\mathrm{H1}}$ values occupy
+$[0.015, 0.025]$, width $\approx 0.010$ --- an order of magnitude
+narrower than the same-task range, and \emph{narrower than the
+same-task SEM itself}. A naive transfer of the same-task SEM to
+cross-task pairs would yield a self-defeating statement: the
+instrument could not distinguish any cross-task pair from any other
+at this precision, which is contradicted by the fact that the
+primary H1 test does recover a significant (wrong-signed) partial
+correlation on cross-task pairs. The transfer fails, and the
+failure is informative: it says the reliability we have estimated
+is a property of the instrument in the same-task regime, not a
+universal property.
+
+What this reliability design can license and what it cannot is
+therefore worth stating directly. The N134 design supplies
+cross-seed replicate structure only on same-task pairs (three seeds
+per task, yielding three same-task seed-pairs per task). The 45
+cross-task pairs used in the primary H1 test are each a single
+seed-pair draw; the design contains no replicate structure within
+cross-task cells. No direct reliability estimate for cross-task
+$S_{\mathrm{H1}}$ is therefore reportable within this study. Whether
+the cross-task regime has comparable or materially different
+reliability properties relative to the same-task regime is
+genuinely open, and any future study that wants a cross-task
+reliability estimate would need a design extension: either more
+seed-pair samples per cross-task cell (which scales the adapter
+budget multiplicatively), or an analytical argument that cross-task
+reliability is bounded above or below by the same-task estimate
+(which we do not attempt here).
+
+Naming what the estimate does not license is itself the framework
+move. The temptation to extrapolate a reliability coefficient
+beyond the design that produced it is precisely the kind of
+measurement-theoretic over-reach the paper argues against
+in~\S\ref{sec:framework-reliability}; refusing the extrapolation
+in the appendix where the estimate is reported, rather than in a
+reviewer-response document or a post-publication correction, is the
+discipline in action.
 
 $\hat{\rho}_{\mathrm{ICC}} = 0.566$ places the instrument at
 ``moderate'' cross-seed reliability by the conventional descriptive
