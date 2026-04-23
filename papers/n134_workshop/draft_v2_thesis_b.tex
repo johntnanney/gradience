@@ -85,10 +85,14 @@ diagnostics ($N = 45$ cross-task adapter pairs on Mistral-7B-v0.3),
 which produces a null on per-pair merge prediction under
 family-confound control, replicates task-boundary detection across
 three architectures and two metric families, and --- in the course of
-being subjected to measurement-discipline scrutiny --- surfaces a
-previously unnamed property of the primary test statistic: rank-based
-correlations on small-$N$ residuals have intrinsic floating-point
-precision of order $10^{-2}$, comparable to their sampling variability.
+% EDIT: 2026-04-23 — editorial #5: "previously unnamed property" →
+% EDIT: "underreported precision limitation" to move novelty claim from
+% EDIT: phenomenon (mathematically old) to reporting register (new).
+being subjected to measurement-discipline scrutiny --- surfaces an
+underreported precision limitation of the primary test statistic:
+rank-based correlations on small-$N$ residuals have intrinsic
+floating-point precision of order $10^{-2}$, comparable to their
+sampling variability.
 We argue this last observation is not an incidental finding but an
 instance of the paper's central claim: measurement discipline applied
 to ML diagnostics produces findings that unstructured reporting would
@@ -133,6 +137,14 @@ point-estimate correlation as a self-standing measurement rather
 than as the central claim of an instrument whose reliability,
 precision, and confound structure have been independently
 characterized.
+% EDIT: 2026-04-23 — editorial #8: added illustrative-not-accusatory
+% EDIT: clarifier to reduce reviewer attack surface on a specific
+% EDIT: named-paper critique (reviewer-poisoning risk).
+We use this example not as a critique of the paper's execution
+under current norms but as an illustration of the norms themselves:
+the field currently permits a predictive correlation to function
+as the primary evidential object without requiring the accompanying
+measurement infrastructure that would calibrate its interpretation.
 
 %
 % TODO(§1.1 second example): the capability-evaluation characterization
@@ -210,11 +222,15 @@ of measurement-theoretic methods to ML diagnostic reporting.
     per-pair merge prediction under family-confound control, a
     three-architecture replication of task-boundary detection across
     two metric families, and a pre-registered four-method comparison.
-  \item A specific previously-unnamed measurement property of partial
-    Spearman correlations on small-$N$ residuals, surfaced by the
-    measurement-discipline scrutiny the framework prescribes, with
-    implications for any rank-based diagnostic metric reported at
-    small sample sizes.
+% EDIT: 2026-04-23 — editorial #5: contribution claim iii reframed
+% EDIT: from phenomenon-novelty to reporting-register novelty.
+  \item Identification of an underreported precision limitation of
+    partial Spearman correlations on small-$N$ residuals as a
+    reporting-level measurement constraint: the floating-point
+    precision of rank-based diagnostic correlations at these sample
+    sizes is comparable to their sampling variability, a fact that
+    measurement-discipline scrutiny surfaces and that ordinary
+    reporting conventions do not.
 \end{enumerate}
 
 \subsection{Road map}
@@ -227,6 +243,20 @@ framework and generalizes from the case study to broader reporting
 practice. Section~\ref{sec:objections} addresses limitations and
 common objections to the thesis. Section~\ref{sec:conclusion}
 concludes.
+
+% EDIT: 2026-04-23 — editorial #2: explicit framework-vs-case-study
+% EDIT: hierarchy to prevent the paper being read as a spectral-merging
+% EDIT: paper with a methodological preface.
+The empirical case study is not offered as evidence that spectral
+diagnostics solve LoRA-merge prediction. It is offered as a stress
+test of the framework under deliberately unfavorable conditions: a
+pre-registered diagnostic fails its primary prediction, a strong
+confound explains most outcome variance, and the headline statistic
+proves less numerically precise than ordinary reporting conventions
+would imply. The case is useful precisely because it demonstrates
+what measurement discipline prevents authors from claiming; the
+framework succeeds to the extent that the case study produces these
+refusals rather than rescues.
 
 \section{A Measurement-Discipline Framework for ML Diagnostics}
 \label{sec:framework}
@@ -476,6 +506,20 @@ pre-registered H1 test, the relevant observation is that the design
 was calibrated to support this estimate before data collection began,
 not that the estimate was examined post-hoc to reassure reviewers.
 
+% EDIT: 2026-04-23 — editorial #11: surface same-task-vs-cross-task
+% EDIT: regime-scope caveat from Appendix D into main text — this
+% EDIT: refusal-to-overgeneralize is the paper's thesis in compressed form.
+The reliability estimate validates only the same-task regime that
+supplies its replicate structure. The H1 test concerns cross-task
+pairs, for which the present design contains no direct reliability
+estimate. We therefore report the same-task ICC as an
+instrument-validation constraint, not as a universal reliability
+coefficient for $S_{\mathrm{H1}}$: the estimate licenses the claim
+that the score is moderately stable when the same task is scored
+under different seeds; it does not license the claim that the score
+is moderately stable across tasks. Naming what the coefficient does
+not cover is itself a framework prescription.
+
 \subsection{Confound decomposition pre-registration}
 
 % ANON: stripped internal project numbers "N133" and "N134 design";
@@ -684,14 +728,22 @@ interval crosses the random baseline.
   \label{fig:four-method}
 \end{figure}
 
-The framework reading: weight-space spectral geometry itself,
-rather than any specific algorithmic choice within it, appears to
-be the binding constraint on per-pair prediction at this sample
-size --- one plausible interpretation, not a definitive claim.
+% EDIT: 2026-04-23 — editorial #10: reframe broad "binding constraint"
+% EDIT: claim as regime-specific null; evidence is about the tested
+% EDIT: regime, not about the class of weight-space spectral methods.
+The framework reading: within the tested regime --- 45 cross-task
+pairs on a single decoder backbone at a single rank under the
+specified merge operation --- changing the weight-space spectral
+triage score did not rescue per-pair prediction. The appropriate
+interpretation is a regime-specific null for this class of static
+weight-space diagnostics, not evidence against activation-informed,
+behavioral, or learned mergeability predictors.
 Activation-informed methods
 \citep{zhang2025osrm,zhou2026demystifying} remain open.
 
-\section{A Previously-Unnamed Measurement Property}
+% EDIT: 2026-04-23 — editorial #5: section title reframes novelty claim
+% EDIT: from phenomenon to reporting-register constraint.
+\section{A Reporting-Level Precision Constraint for Rank-Based Residual Correlations}
 \label{sec:rank-observation}
 
 \subsection{Observation}
@@ -909,11 +961,14 @@ pre-registered confound decomposition --- addresses the gap.
 The worked example applies the framework to spectral LoRA-merging
 diagnostics at decoder scale under family-confound control,
 produces a pre-registered null on per-pair merge prediction,
+% EDIT: 2026-04-23 — editorial #5 continuation: conclusion-level
+% EDIT: "previously-unnamed measurement property" reframed consistently
+% EDIT: with abstract, contribution claim (iii), and §6 title.
 replicates task-boundary detection across three architectures and
-two metric families, and surfaces a previously-unnamed measurement
-property (rank-based correlation on small-$N$ residuals has intrinsic
-floating-point precision of order $10^{-2}$) that unstructured
-reporting would not have produced.
+two metric families, and surfaces an underreported precision
+limitation of the headline statistic (rank-based correlation on
+small-$N$ residuals has intrinsic floating-point precision of order
+$10^{-2}$) that unstructured reporting conventions do not flag.
 
 Three directions follow. First, activation-informed analogues of the
 worked example's spectral score remain a candidate for exceeding the
@@ -1059,14 +1114,19 @@ budget multiplicatively), or an analytical argument that cross-task
 reliability is bounded above or below by the same-task estimate
 (which we do not attempt here).
 
-Naming what the estimate does not license is itself the framework
-move. The temptation to extrapolate a reliability coefficient
-beyond the design that produced it is precisely the kind of
-measurement-theoretic over-reach the paper argues against
-in~\S\ref{sec:framework-reliability}; refusing the extrapolation
-in the appendix where the estimate is reported, rather than in a
-reviewer-response document or a post-publication correction, is the
-discipline in action.
+% EDIT: 2026-04-23 — editorial #12 (tied to EDIT-05): soften Appendix D
+% EDIT: parallel to avoid redundancy with the new main-text caveat at
+% EDIT: §4.2. Technical content on extrapolation temptation retained;
+% EDIT: the "framework move" / "discipline in action" register is
+% EDIT: dropped since §4.2 now carries the register-heavy sentence.
+Explicitly bounding the coefficient's regime of validity is part of
+the proposed reporting discipline (\S\ref{sec:framework-reliability}).
+The temptation to extrapolate a reliability coefficient beyond the
+design that produced it is precisely the kind of
+measurement-theoretic over-reach the paper argues against; refusing
+the extrapolation in the appendix where the estimate is reported,
+rather than in a reviewer-response document or a post-publication
+correction, is the appropriate location for that refusal.
 
 $\hat{\rho}_{\mathrm{ICC}} = 0.566$ places the instrument at
 ``moderate'' cross-seed reliability by the conventional descriptive
