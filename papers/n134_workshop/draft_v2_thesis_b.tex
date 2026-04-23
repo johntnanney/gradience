@@ -15,31 +15,56 @@
 %    pdflatex draft_v2_thesis_b
 %    pdflatex draft_v2_thesis_b
 %
-%  This draft uses a generic article class with 1-inch margins; the
-%  venue-specific template swap happens when the venue is locked.
+%  TMLR: this draft is configured for TMLR double-blind submission using
+%  the official TMLR stylefile (tmlr.sty / tmlr.bst / fancyhdr.sty shipped
+%  alongside this .tex). Camera-ready and arXiv preprint modes are one-line
+%  package-option swaps below. See revision_notes.md RN-019.
 % ============================================================================
 
-\documentclass[11pt]{article}
+% TMLR: 11pt article → 10pt article per TMLR stylefile convention.
+\documentclass[10pt]{article}
 
-\usepackage[letterpaper,margin=1in]{geometry}
-\usepackage[T1]{fontenc}
+% TMLR: tmlr.sty sets page dimensions (6.5in x 9.0in text area), loads
+% TMLR: fontenc+lmodern, \RequirePackages{natbib} and sets
+% TMLR: \setcitestyle{authoryear,round,citesep={;},...}, and installs
+% TMLR: the TMLR page header / maketitle machinery (including automatic
+% TMLR: anonymization when no package option is given). The following
+% TMLR: previously-standalone packages were therefore removed as redundant:
+% TMLR:   \usepackage[letterpaper,margin=1in]{geometry}
+% TMLR:   \usepackage[T1]{fontenc}
+% TMLR:   \usepackage{natbib}
+\usepackage{tmlr}
+% TMLR: camera-ready: replace the line above with \usepackage[accepted]{tmlr}
+% TMLR: arXiv preprint: replace the line above with \usepackage[preprint]{tmlr}
+
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{caption}
-\usepackage{natbib}
 \usepackage{microtype}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black}
 
-\bibliographystyle{plainnat}
+% TMLR: plainnat → tmlr (TMLR ships its own .bst matching its citestyle).
+\bibliographystyle{tmlr}
 
 \title{Measurement Discipline for ML Diagnostics:\\
   A Psychometric Framework with a LoRA-Merging Case Study}
-\author{Anonymized\thanks{De-anonymized references in the tagged
-    repository; see \texttt{n134-submission-draft-v1}.}}
-\date{April 2026}
+
+% ANON: author block. tmlr.sty auto-replaces \@author with "Anonymous authors
+% ANON: \\ Paper under double-blind review" whenever the package is loaded
+% ANON: without [accepted] or [preprint], so the block below is hidden under
+% ANON: review. The commented-out block is the TMLR-formatted camera-ready
+% ANON: author data; uncomment it AND swap the tmlr.sty line above to
+% ANON: \usepackage[accepted]{tmlr} at camera-ready. See RN-018/RN-019 for
+% ANON: the full restoration procedure.
+% \author{\name John T. Nanney \email johntnanney@gmail.com \\
+%       \addr TODO: affiliation string for camera-ready}
+\author{\name Anonymized \email anonymous@anonymous \\
+      \addr Anonymized Institution}
+% TMLR: \date{...} removed — TMLR's \@maketitle does not use it; date
+% TMLR: is set by tmlr.sty via \month/\year macros at camera-ready only.
 
 \begin{document}
 \maketitle
@@ -276,8 +301,10 @@ direct-readout view it is not even legible as one.
 
 The distinction has empirical consequences. Different
 operationalizations of the same theoretical object can produce
-different predictive patterns on the same data. N07/N132's
-subspace-principal-angle-based overlap metric and N133/N134's
+different predictive patterns on the same data.
+% ANON: removed internal project numbers (N07/N132, N133/N134); rephrased
+% ANON: to describe the two operationalizations abstractly.
+A subspace-principal-angle-based overlap metric and a
 singular-value-weighted cosine alignment both claim to measure
 spectral similarity between two adapters' weight-space updates, but
 their raw values lie on non-comparable scales, and cross-study
@@ -316,7 +343,9 @@ confidence intervals whose width is itself informative about the
 evidential weight of the score's reports. For a score computed
 per-pair of models, the analog is cross-seed-pair ICC across pairs
 that should be semantically equivalent (same task-pair, different
-random seeds). The N134 design commits to three seeds per task
+random seeds).
+% ANON: "The N134 design" → "The present study's design"
+The present study's design commits to three seeds per task
 specifically to support this estimate. On this design the estimate
 is $\hat{\rho}_{\mathrm{ICC}} = 0.566$ (moderate) with SEM $= 0.014$
 and 95\% CI $[0.165, 0.874]$ by Shrout--Fleiss
@@ -422,8 +451,9 @@ The operationalization is a specific computation from per-layer
 singular value decompositions (Appendix~\ref{app:score}), weighted
 by linear depth, restricted to the O-projection module. The choice
 to focus on the O-projection and to use linear depth weighting
-derives from precursor analyses (Gradience N133
-\citep{anonymized2026n133}) which found that O-projection
+% ANON: "Gradience N133" project-brand identifier stripped; citation retained.
+derives from precursor analyses
+\citep{anonymized2026n133} which found that O-projection
 same-cross separation was stronger than Q/K/V and that deeper layers
 separated same-task from cross-task pairs more sharply than
 shallower ones. Those observations do not establish that
@@ -433,7 +463,8 @@ commits to the specific choice before testing.
 
 \subsection{Reliability considerations at pre-registration time}
 
-The N134 design commits to three seeds per task across eight
+% ANON: "The N134 design" → "The present study's design"
+The present study's design commits to three seeds per task across eight
 pre-registered tasks, yielding 24 adapters. This design supports
 cross-seed reliability estimation for $S_{\mathrm{H1}}$ as an
 instrument: same-task adapter pairs (three same-task pairs per task,
@@ -447,8 +478,11 @@ not that the estimate was examined post-hoc to reassure reviewers.
 
 \subsection{Confound decomposition pre-registration}
 
-Four confounds were identified during precursor analysis of N133 and
-were pre-registered against in the N134 design
+% ANON: stripped internal project numbers "N133" and "N134 design";
+% ANON: added definite article "the" to "precursor analysis" for post-anon
+% ANON: readability (line 483 flagged during Phase 1 first-read, 2026-04-23).
+Four confounds were identified during the precursor analysis and
+were pre-registered against in the present study's design
 \citep{anonymized2026n134spec}:
 \begin{itemize}
   \item \textbf{C1 source-metric dynamic range}: adapters trained to
@@ -491,12 +525,8 @@ a null under the rule, not as a reversed confirmation.
 \section{Worked Example: Empirical Results}
 \label{sec:empirical}
 
-The pre-registered H1 hypothesis on $S_{\mathrm{H1}}$ is not
-confirmed. Three confirmatory replications of task-boundary detection
-across architectures and metric families pass cleanly. A
-pre-registered four-method comparison produces a regime null at the
-evaluated sample size. Each subsection below subordinates the
-empirical result to its framework-demonstration role.
+The pre-registered H1 is not confirmed; confirmatory replications
+pass; the four-method comparison produces a regime null.
 
 \subsection{H1 outcome under the pre-registered rule}
 \label{sec:empirical-h1}
@@ -545,14 +575,10 @@ raw and family-residualized regression lines.
   \label{fig:h1-decision}
 \end{figure}
 
-Under the pre-registered rule, H1 is a null. The directional
-information in the wrong-signed partial correlation is
-hypothesis-generating but is excluded from licensing any conclusion
-by the C4 pre-registration discipline; follow-up investigation of
-four candidate interpretations (within-family over-commitment,
-source-accuracy residual, inverted-substrate measurement,
-intrinsic-mergeability) is out of scope for the present paper and
-is the subject of a planned N135-alt study.
+Under the pre-registered rule, H1 is a null. The wrong-signed
+partial correlation is hypothesis-generating but excluded from
+licensing any conclusion by the C4 pre-registration discipline;
+follow-up is out of scope for the present paper.
 
 \subsection{Why this is an informative null, framework-wise}
 
@@ -564,16 +590,15 @@ context, and the reader would have had no way to assess what
 fraction of any predictive claim was actually family identity
 operating under a different name. The informativeness of the null
 is legible because the decomposition is pre-registered; it is
-opaque otherwise. Readers interested in the informativeness
-calculation should note that the $R^2 = 0.881$ figure is itself a
-finding --- a large effect size for the simplest possible alternative
-explanation --- and is reportable regardless of how the geometric
-diagnostic performs.
+opaque otherwise. The $R^2 = 0.881$ is itself a finding --- a large
+effect for the simplest alternative explanation, reportable
+regardless of how the geometric diagnostic performs.
 
 \subsection{Three-architecture replication of task-boundary detection}
 
 Three confirmatory replications of task-boundary detection pass
-cleanly on N134 (Table~\ref{tab:replications}) and, combined with
+% ANON: "cleanly on N134" → "cleanly on the present study"
+cleanly on the present study (Table~\ref{tab:replications}) and, combined with
 prior results on DistilBERT \citep{anonymized2026n130} and DeBERTa
 \citep{anonymized2026n132}, constitute a task-boundary detection
 replication across three architectures and two metric families.
@@ -598,8 +623,9 @@ replication across three architectures and two metric families.
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.6\textwidth]{figures/layer_depth_trend.pdf}
-  \caption{Per-layer same/cross alignment ratio on Mistral-7B under
-    N134. Linear fit: slope $+0.031$ per layer, $r = 0.919$, $p =
+  % ANON: "under N134" → "in the present study"
+  \caption{Per-layer same/cross alignment ratio on Mistral-7B in
+    the present study. Linear fit: slope $+0.031$ per layer, $r = 0.919$, $p =
     1.1 \times 10^{-13}$. Ratio rises from $1.66$ at layer 0 to
     $2.58$ at layer 31. This is a property of the aggregate
     population geometry, not a predictor of per-pair merge outcomes:
@@ -611,23 +637,25 @@ replication across three architectures and two metric families.
   \label{fig:layer-depth}
 \end{figure}
 
-The three-architecture claim is framed honestly: two metric families
-are involved (subspace principal-angle for N130/N132; SV-weighted
-cosine for N133/N134), and the same/cross ratios are not directly
-comparable across families. What replicates across architectures and
-families is the qualitative structure --- same $>$ cross, with zero
-overlap at the evaluated sample sizes --- not any specific
-numerical scale. The framework's construct-validity discipline is
-what enforces this honesty rather than allowing the claim to
-overreach. Figure~\ref{fig:layer-depth} shows the layer-depth trend
-on N134, which replicates analogous trends in the prior studies and
-motivated the depth weighting in $S_{\mathrm{H1}}$.
+The three-architecture claim is framed honestly: two metric
+% ANON: stripped internal project numbers (N130/N132, N133/N134); metric
+% ANON: families are distinguished by descriptor rather than by project.
+families are involved (principal-angle for the precursor studies;
+SV-weighted cosine for the present one), so same/cross \emph{ratios} are not
+directly comparable; what replicates is the qualitative structure
+--- same $>$ cross with zero overlap --- not any specific numerical
+scale. The framework's construct-validity discipline is what
+enforces this restraint. Figure~\ref{fig:layer-depth} shows the
+layer-depth trend that motivated the depth weighting in
+$S_{\mathrm{H1}}$.
 
 \subsection{Four-method comparison as a regime-scope test}
 
 The pre-registered four-method comparison ranks the 45 cross-task
-pairs by each of four spectral triage scores (Gradience
-$S_{\mathrm{H1}}$; KnOTS adaptation \citep{stoica2024knots}; TSV
+% ANON: "Gradience $S_{\mathrm{H1}}$" → "$S_{\mathrm{H1}}$"; project brand
+% ANON: reference stripped, score-name retained as defined in §4 / App.~A.
+pairs by each of four spectral triage scores
+($S_{\mathrm{H1}}$; KnOTS adaptation \citep{stoica2024knots}; TSV
 adaptation \citep{gargiulo2025tsv}; SVC adaptation
 \citep{li2026svc}; method adaptations documented inline in the
 scripts and in Appendix~\ref{app:adaptations}). The lowest-risk 22
@@ -656,14 +684,12 @@ interval crosses the random baseline.
   \label{fig:four-method}
 \end{figure}
 
-The framework's reading: this is evidence that the measurement
-substrate (weight-space spectral geometry) rather than any specific
-algorithmic choice within it is the binding constraint on per-pair
-prediction at the evaluated scale and sample size. The reading is
-honestly flagged as one plausible interpretation rather than a
-definitive claim; activation-informed methods (beyond weight-space
-alone, e.g., \citep{zhang2025osrm,zhou2026demystifying}) remain an
-open direction.
+The framework reading: weight-space spectral geometry itself,
+rather than any specific algorithmic choice within it, appears to
+be the binding constraint on per-pair prediction at this sample
+size --- one plausible interpretation, not a definitive claim.
+Activation-informed methods
+\citep{zhang2025osrm,zhou2026demystifying} remain open.
 
 \section{A Previously-Unnamed Measurement Property}
 \label{sec:rank-observation}
@@ -721,20 +747,44 @@ residuals --- i.e., after controlling for another variable via
 regression --- the residualization step is a numerical-precision
 amplifier. Any paper reporting such statistics at small sample
 sizes without explicitly bounding the precision is making an
-implicit claim the data does not support. This is not a one-off
-observation about N134; it is a general measurement property the
+implicit claim the data does not support.
+% ANON: "one-off observation about N134" → "one-off observation about this study"
+This is not a one-off
+observation about this study; it is a general measurement property the
 framework's reproducibility discipline surfaced.
 
 The observation also demonstrates the framework's central claim:
 measurement discipline applied to ML diagnostic reporting produces
 findings that unstructured reporting does not. The precision
-property was not present in the original N134 analysis and was not
+% ANON: "original N134 analysis" → "original analysis"
+property was not present in the original analysis and was not
 present in the committed report; it was surfaced by running the
 analysis in a different environment and comparing tier-by-tier
 with a tolerance schedule calibrated to quantity class. Without
-that discipline, N134 would have reported $-0.533$ to three
+% ANON: "N134 would have reported" → "the worked example would have reported"
+that discipline, the worked example would have reported $-0.533$ to three
 decimals indefinitely, and the third decimal would have been an
 unstated promise the data could not keep.
+
+Broadening the lens: this instance, together with the two other
+framework findings the case study has produced --- the moderate
+cross-seed reliability $\hat{\rho}_{\mathrm{ICC}} = 0.566$
+(Appendix~\ref{app:reliability}) and the confound-decomposition H1
+null (Section~\ref{sec:empirical-h1}) --- exhibits a dialectic about
+what measurement-disciplined reporting yields. The three split into
+two epistemic kinds. The rank-on-residuals property is a
+\emph{discovery}: a measurement property unnamed in the ML methods
+literature prior to this study, surfaced by the framework's
+reproducibility discipline. The reliability estimate and the
+informative null are \emph{calibration-and-modesty findings}: the
+framework's infrastructure does not extend claims but bounds them.
+Both kinds are framework products, but their epistemic shape
+differs --- one is productive in the sense of generating new
+claims about measurement, the other in the sense of appropriately
+bounding old ones. A framework yielding only the first would
+overreach; one yielding only the second would be merely defensive.
+The two kinds together are what measurement discipline is
+\emph{for}.
 
 \section{Generalizing from the Case Study}
 \label{sec:generalizing}
@@ -771,44 +821,36 @@ drawn from classical test theory and its descendants. What the
 framework adds is coordination --- applying all five in conjunction
 rather than any one in isolation.
 
-\subsection{What this changes about how existing claims should be read}
+\subsection{What this changes, and what it does not}
 
 The framework does not re-adjudicate specific published claims, but
 it does argue that readers of the ML methods literature should
 calibrate credence to the measurement-discipline practices of
 reports rather than to their reported point estimates. A diagnostic
 reported as ``Spearman $\rho = 0.572$'' without a cross-seed
-distribution, without a family-residualized partial correlation, and
-without a reproducibility-check trace is making a weaker evidential
-claim than the reported value suggests. Readers should discount
-accordingly until the missing measurement-theoretic context is
-supplied.
-
-\subsection{Why this is not a critique of any specific paper}
-
-The practices the framework prescribes are not currently normative
-in the ML methods literature. Papers not following them are not
-violating field norms; they are following the norms that exist.
-Our claim is that the norms should change, and that individual
-papers should begin applying the framework voluntarily ahead of any
-field-wide shift. We apply it ourselves in N134; we do not ask
-anyone else to retroactively apply it to work they have already
-published.
+distribution, without a family-residualized partial correlation,
+and without a reproducibility-check trace is making a weaker
+evidential claim than the reported value suggests; readers should
+discount accordingly. This is not a critique of any specific paper.
+The practices the framework prescribes are not currently normative,
+so papers not following them are not violating field norms; they
+are following the norms that exist. Our claim is that the norms
+should change, and that individual papers should begin applying the
+framework voluntarily ahead of any field-wide shift. We apply it
+% ANON: "ourselves in N134" → "ourselves in the worked example"
+ourselves in the worked example; we do not ask others to retroactively apply it
+to work they have already published.
 
 \subsection{The psychometric-tradition reference}
 
-The framework is drawn directly from classical test theory and its
-modern descendants (IRT, generalizability theory, measurement
-invariance theory). Canonical references are
-\citet{cronbach1951alpha} on reliability,
+The framework draws from classical test theory and its
+descendants: \citet{cronbach1951alpha} on reliability,
 \citet{shrout1979icc} on ICC,
 \citet{messick1989validity,messick1995validity} on construct
 validity as unified-theory framework, and
-\citet{cronbachmeehl1955} on construct validity and
-nomological networks. We are not claiming originality for the
-measurement-theoretic concepts; we are claiming that their
-systematic application to ML diagnostics is underdeveloped and
-proposing a specific framework for that application.
+\citet{cronbachmeehl1955} on nomological networks. The contribution
+is not originality for these concepts but their systematic
+coordinated application to ML diagnostics.
 
 \section{Objections, Alternatives, Limitations}
 \label{sec:objections}
@@ -823,34 +865,25 @@ novel; but it is a specific coordinated application of methods that
 are not currently coordinated in ML practice. The coordinated
 application is the contribution.
 
-\paragraph{``Pre-registration is high-overhead and impractical for
-most ML research.''} The N134 experiment ran end-to-end in
-approximately 30 hours for \$40 on commercial cloud compute with a
-pre-registration written as a single document committed before data
-collection. The overhead is lower than typical reviewer-response
-cycles in the same literature. The practicality objection reflects
-current norms rather than actual cost.
+\paragraph{``Pre-registration is high-overhead and impractical.''}
+% ANON: "The N134 experiment" → "The worked-example experiment"
+The worked-example experiment ran end-to-end in $\sim$30 hours for \$40 on
+commercial cloud compute, with a pre-registration written as a
+single document committed before data collection. The overhead is
+lower than typical reviewer-response cycles in the same literature.
 
-\paragraph{``The worked example is a null; the framework would be
-more compelling with a positive result.''} The framework's value is
-demonstrated by what it rules out as much as by what it confirms.
-A framework that would have licensed a false-positive claim (as the
-precursor study's B-P5 analysis almost did
-\citep{anonymized2026n133}) is a framework worth adopting. The null
-is a feature of the worked example, not a weakness of the framework.
-A positive result would demonstrate that the framework survives
-non-null outcomes; the present null demonstrates that it survives
-the null outcomes where methodological discipline is most tested.
-
-\paragraph{``Rank-on-residuals floating-point sensitivity is a niche
-observation; generalizing from it is overreach.''} The observation
-is not the paper's center of gravity; it is a demonstration instance
-of the framework producing findings unstructured reporting does not.
-The generalization is to the class of rank-based statistics on
-small-$N$ residuals, which is not niche --- it covers a meaningful
-fraction of diagnostic reporting in the ML methods literature
-wherever partial rank correlations, rank-based robustness tests, or
-ranked comparisons are reported at modest sample sizes.
+\paragraph{``The case study is weaker than the framework.''} Two
+forms: that a null worked example is less compelling than a
+positive one; that the rank-on-residuals observation is too niche
+to generalize. To the first: a framework that would have licensed
+the precursor's false-positive B-P5 claim
+\citep{anonymized2026n133} is worth adopting, and the null
+demonstrates the framework surviving the outcomes where
+methodological discipline is most tested. To the second: the
+rank-on-residuals observation is a demonstration instance, not the
+paper's center of gravity; the generalization is to rank-based
+statistics on small-$N$ residuals, which covers a meaningful
+fraction of diagnostic reporting.
 
 \paragraph{Limitations proper.} The worked example studies a single
 backbone (Mistral-7B-v0.3), a single LoRA rank ($r = 16$), a single
@@ -859,7 +892,8 @@ metric (weight-space spectral). The framework's claims generalize
 beyond these specifics; the worked example's empirical claims do
 not. A reader interested in the framework's application to their own
 diagnostic class will need to carry out their own application rather
-than directly importing N134's results.
+% ANON: "N134's results" → "the worked example's results"
+than directly importing the worked example's results.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -870,8 +904,9 @@ has treated as baseline methodology for decades, that this lack
 produces overclaims of precision and generality, and that a specific
 four-component framework --- construct validity, reliability
 coefficients, bounded precision claims with tolerance schedules,
-pre-registered confound decomposition --- addresses the gap. The
-N134 worked example applies the framework to spectral LoRA-merging
+pre-registered confound decomposition --- addresses the gap.
+% ANON: "N134 worked example" → "worked example"
+The worked example applies the framework to spectral LoRA-merging
 diagnostics at decoder scale under family-confound control,
 produces a pre-registered null on per-pair merge prediction,
 replicates task-boundary detection across three architectures and
@@ -882,7 +917,8 @@ reporting would not have produced.
 
 Three directions follow. First, activation-informed analogues of the
 worked example's spectral score remain a candidate for exceeding the
-regime null the worked example documents (N135-alt). Second, the
+% ANON: internal successor-study designator "(N135-alt)" stripped.
+regime null the worked example documents. Second, the
 framework's specific prescriptions will evolve with application
 experience; this paper is a starting point rather than a completed
 methodology. Third, individual papers can begin applying the
@@ -947,13 +983,15 @@ The four-method comparison (Section~\ref{sec:empirical}) uses
 pairwise-triage adaptations of each method's core measurement
 quantity rather than the published reference implementations. We
 did not import the published repositories as dependencies; instead,
-each of the three score functions in the N134 analysis scripts
+% ANON: "N134 analysis scripts" → "study's analysis scripts"
+each of the three score functions in the study's analysis scripts
 computes the quantity that the corresponding paper identifies as its
 central interference or inflation signal, aggregated at the pair
 level as a triage score. The faithfulness and departure notes are
-inline in the score functions' docstrings; full documentation is in
-the \texttt{08\_compare\_methods.py} script in the companion
-repository. A reviewer who reads ``we used KnOTS'' in
+inline in the score functions' docstrings;
+% ANON: specific filename + "companion repository" → "supplementary materials".
+full documentation is in the method-comparison script in the
+supplementary materials. A reviewer who reads ``we used KnOTS'' in
 Section~\ref{sec:empirical} should read it as shorthand for ``we
 adapted KnOTS's shared-subspace interference-norm quantity to the
 pairwise triage setting,'' not as a claim that we executed the
@@ -1004,7 +1042,8 @@ is a property of the instrument in the same-task regime, not a
 universal property.
 
 What this reliability design can license and what it cannot is
-therefore worth stating directly. The N134 design supplies
+% ANON: "The N134 design" → "The present design"
+therefore worth stating directly. The present design supplies
 cross-seed replicate structure only on same-task pairs (three seeds
 per task, yielding three same-task seed-pairs per task). The 45
 cross-task pairs used in the primary H1 test are each a single
@@ -1035,26 +1074,34 @@ thresholds ($>\!0.9$ excellent, $>\!0.75$ good, $>\!0.50$ moderate,
 $<\!0.50$ poor). We report the conventional description only as
 orientation and not as a binary gate; the paper's framework argues
 against thresholding continuous reliability estimates into
-verdicts. Full panel, mean-squares decomposition, and bootstrap
-details are in
-\texttt{sidecar/results/n134/analysis\_icc.json}; design
-commitments are documented in
-\texttt{sidecar/notes/n134\_icc\_spec.md}.
+verdicts.
+% ANON: specific repository paths (\texttt{sidecar/results/n134/analysis\_icc.json},
+% ANON: \texttt{sidecar/notes/n134\_icc\_spec.md}) replaced with generic pointer
+% ANON: to supplementary materials.
+Full panel, mean-squares decomposition, and bootstrap
+details are in the supplementary results bundle; design commitments
+are documented in the pre-registration spec included with the
+supplementary materials.
 
 \section{Full Reproducibility-Check Trace}
 \label{app:reproducibility}
 
-Summary of the T6 reproducibility check performed on the committed
-N134 state. Full trace in \texttt{n134\_reproducibility\_check.md}
-in the companion repository. Protocol: four-tier verification as
-specified in Section~\ref{sec:rank-observation} and in the sidecar
+% ANON: stripped internal task-letter "T6", project number "N134", filename
+% ANON: \texttt{n134\_reproducibility\_check.md}, "companion repository",
+% ANON: and "sidecar convention"; replaced with neutral descriptors.
+Summary of the reproducibility check performed on the committed
+state of the worked example. Full trace in the supplementary
+materials. Protocol: four-tier verification as specified in
+Section~\ref{sec:rank-observation} and in the study's methodology
 convention.
 
 \textbf{Tier 1 (qualitative claims).} All six qualitative claims
 reproduce: H1 not confirmed; B-P1, B-P2, B-P4 replications all
-confirmed; no N133 composite score exceeds H1 thresholds on N134
-data; composite-score sign pattern unchanged across the environment
-gap.
+% ANON: "N133 composite score ... on N134 data" → "precursor-study
+% ANON: composite score ... on the present data".
+confirmed; no precursor-study composite score exceeds H1 thresholds on
+the present data; composite-score sign pattern unchanged across the
+environment gap.
 
 \textbf{Tier 2 (structural agreement).} \texttt{analysis\_h1.json}
 and \texttt{analysis\_secondary.json} schemas reproduce exactly.
@@ -1066,7 +1113,8 @@ $1.18 \times 10^{-2}$ between the pod environment ($-0.5330$) and
 the dev environment ($-0.5448$). Every other scalar is bit-identical
 or at float-precision-noise magnitude. The Phase 5 four-method
 comparison cannot be re-verified from committed state alone because
-per-adapter SVD factor sidecars were not committed (size constraint;
+% ANON: "sidecars" (project-specific term) → "auxiliary files".
+per-adapter SVD factor auxiliary files were not committed (size constraint;
 1.2 GB on pod); the committed \texttt{method\_comparison.json} is
 the canonical Phase 5 output.
 
@@ -1090,25 +1138,35 @@ mismatches; (D4) JSON bool serialization; (D5) CPU-contention
 incident during pilot training, with loss-trajectory continuity
 verified post-incident; (D6) Phase 5 per-pair v2.1 audit file shape
 gap, resolved via a lazy per-pair synthesizer before any
+% ANON: specific filenames (\texttt{n134\_incident\_log.md},
+% ANON: \texttt{n134\_report.md}) and "companion repository" replaced with
+% ANON: a neutral pointer to supplementary materials.
 method-comparison numbers were committed. Full deviation records in
-the companion repository's \texttt{n134\_incident\_log.md} and
-\texttt{n134\_report.md} Section 8.
+the supplementary incident log and the supplementary technical report
+(\S8 therein).
 
 \section{Compute, Environment, Artifacts}
 \label{app:compute}
 
-Single RTX 6000 Ada 48GB on commercial cloud (RunPod Secure Cloud).
+% ANON: cloud provider name "(RunPod Secure Cloud)" stripped.
+Single RTX 6000 Ada 48GB on commercial cloud.
 End-to-end compute approximately 30 hours at approximately \$40
 total cost. Pod software environment: Python 3.11, \texttt{torch}
 2.3, \texttt{transformers} 4.44, \texttt{peft} 0.12, \texttt{numpy}
 1.26, \texttt{scipy} 1.13 (inferred from commit-time compatibility
 fixes; the pod was decommissioned before a \texttt{pip freeze} was
-captured; a post-hoc development-environment \texttt{pip freeze} is
-provided in the companion repository as a replication starting
+captured;
+% ANON: "companion repository" → "supplementary materials" here and below.
+a post-hoc development-environment \texttt{pip freeze} is
+provided in the supplementary materials as a replication starting
 point with explicit disclaimer that it is not the pod environment).
+% ANON: "companion repository under tag \texttt{n134-submission-draft-v1}"
+% ANON: replaced with a neutral pointer to supplementary materials. The
+% ANON: tag name is the single most identifying phrase in the original
+% ANON: appendix and must not appear in the review-copy PDF.
 All analytical artifacts (pre-registration document, raw audit
 JSONs, merge evaluation outputs, analysis scripts, figure-generation
-scripts, reproducibility-check trace) are in the companion
-repository under tag \texttt{n134-submission-draft-v1}.
+scripts, reproducibility-check trace) are in the supplementary
+materials accompanying this submission.
 
 \end{document}

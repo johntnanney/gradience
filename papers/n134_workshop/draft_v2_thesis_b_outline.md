@@ -189,3 +189,23 @@ Decision is preserved as made: standalone Thesis B paper, N134 material only, 8�
 ---
 
 *Outline v1. Prepared as the first revision-period artifact following consolidation closure. Destined for `papers/n134_workshop/draft_v2_thesis_b_outline.md`. To be revised against the thesis memo before any prose drafting begins.*
+
+---
+
+## Post-memo amendment (2026-04-22)
+
+`thesis_memo.md` was filed as immediate-action 1 after this outline. The memo commits the paper to three philosophical positions that were implicit, understated, or absent in the outline above, and these commitments supersede the outline in the three specific places noted below. The outline is otherwise preserved in its original form; this amendment is additive rather than a revision of the section text above.
+
+**1. Named opposition.** The paper argues against the implicit "direct-readout" view of measurement — the view on which a diagnostic score is treated as a transparent report of a latent property — in favor of the psychometric tradition's inferential / fallible-indicator view, on which a score is an observable whose relationship to a theoretical object must be structurally defended. The outline above does not name the argued-against view; §2 prose should. The outline's §2.1 "Construct validity" treatment gives the distinction between theoretical object and operationalization but does not identify the opposing theory of measurement that makes the distinction load-bearing; the memo supplies that identification.
+
+**2. Jointly-constitutive framework components.** The outline's §2 presents §§2.1–2.4 as four parallel subsections, each motivating its own prescription. The memo argues the four are aspects of a single commitment to treating scores as indicators — construct validity, reliability, bounded precision, and confound decomposition answer four questions that together constitute the inferential defense of a diagnostic's use, and omitting any one tacitly reverts to the direct-readout view at the point of omission. The parallel-subsection structure is incompatible with this framing. §2 should be rewritten as a continuous argument traversing the four questions in order rather than as four methodologically independent prescriptions.
+
+**3. Dialectical shape of the contributions.** The outline's §1.3 lists three contributions as co-equal deliverables. The memo refines the relationship: the framework is the *normative* claim, the worked example is the *demonstrative* claim (with the null as its load-bearing feature), and the rank-on-residuals observation is the *productivity* claim. Removing any one collapses the argument — a reader who accepts 1 without 2 has the framework without evidence of application; who accepts 2 without 3 has an application without the epistemic advantage that distinguishes it from alternative methodological proposals; who accepts 3 without 1 has an isolated finding without an argument for general practice. §1.3, §8, and §9 should surface this dialectical structure; §8's objection-handling should answer each objection in a way that preserves the dialectical relationships to the other two contributions.
+
+### Operational consequences for the §2 rewrite
+
+- The §2.4 worked example (88% family-pair variance explained by family identity; 12% for a geometric diagnostic to operate in) moves to §4, where the pre-registered decision rule is introduced. §2 remains fully general.
+- The four-parallel-subsection layout is dropped; §2 becomes continuous prose organized around the four questions an inferential defense must answer.
+- No other section plan from the outline above is altered by this amendment.
+
+See `thesis_memo.md` for the one-page statement and `revision_notes.md` RN-013 for the decision record.

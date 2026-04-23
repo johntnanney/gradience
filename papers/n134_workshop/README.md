@@ -5,8 +5,9 @@
 ## Files
 
 - `draft_v1.md` — frozen v1 skeleton (findings-paper framing; structure, section plan, figure plan; no paper prose). Do not edit.
-- `draft_v2_thesis_b_outline.md` — current revision-planning outline. Repositions the paper from findings-paper (v1) to *Measurement Discipline for ML Diagnostics*, with the framework as primary contribution and N134 as worked example. See CHANGELOG `v2-outline` entry and `revision_notes.md` RN-012 for the scope decision.
-- `draft_v2_thesis_b.tex` — **complete first-pass LaTeX draft** synthesizing the outline as prose. ~4,500 words main body + appendices, three figures. See `BUILD.md` for compilation.
+- `draft_v2_thesis_b_outline.md` — current revision-planning outline. Repositions the paper from findings-paper (v1) to *Measurement Discipline for ML Diagnostics*, with the framework as primary contribution and N134 as worked example. See CHANGELOG `v2-outline` entry and `revision_notes.md` RN-012 for the scope decision. A post-memo amendment at the bottom of this file supersedes the outline's §2 four-parallel-subsection structure; see `thesis_memo.md` and RN-013.
+- `thesis_memo.md` — **one-page anchor document preceding §2 revision.** Diagnostic output of the outline's immediate-action 1. Commits to the direct-readout-vs-inferential framing of measurement, the jointly-constitutive reading of the four framework components, and the normative/demonstrative/productive dialectical structure of the three contributions. The blueprint for the §2 rewrite. See CHANGELOG `v2-memo` entry and `revision_notes.md` RN-013.
+- `draft_v2_thesis_b.tex` — **complete first-pass LaTeX draft** synthesizing the outline as prose. ~4,500 words main body + appendices, three figures. See `BUILD.md` for compilation. §2 rewrite (tracking `thesis_memo.md`) is the next revision-period work item and is deliberately not reflected in this first pass.
 - `BUILD.md` — LaTeX build instructions, dependencies, venue-template-swap guide.
 - `draft_current.md` — legacy markdown working file (from v1 skeleton era). Superseded by the `.tex` for prose drafting; retained as historical reference.
 - `figures/` — generated figures; regenerate via `scripts/n134/figures/*.py`.

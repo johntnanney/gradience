@@ -6,7 +6,7 @@
 % - BibTeX keys follow firstauthorYEARshorttitle (e.g., stoica2024knots)
 % - Every entry is preceded by a comment line with the arXiv or venue URL
 % - Titles use {curly braces} to protect capitalization
-% - @article for arXiv, @inproceedings for proceedings, @misc for anonymized
+% - entry types: article for arXiv, inproceedings for proceedings, misc for anonymized
 %
 % Unresolved citations at the bottom of the file (see TODO BLOCK).
 % ============================================================================
@@ -67,11 +67,15 @@
 
 
 % ----------------------------------------------------------------------------
-% Mergeability-prediction literature (Gradience positions against)
+% Mergeability-prediction literature (the paper positions against)
+% ANON: comment text "Gradience positions against" → "the paper positions
+% ANON: against"; project-brand word "Gradience" stripped from section header.
 % ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.22934
 % https://aclanthology.org/2025.acl-long.1284/
+% ANON: zhang2025osrm note: stripped "N134 report" and "N135-alt
+% ANON: follow-up" phrases.
 @inproceedings{zhang2025osrm,
   author    = {Zhang, Haobo and Zhou, Jiayu},
   title     = {{Unraveling LoRA Interference: Orthogonal Subspaces for
@@ -81,11 +85,11 @@
   year      = {2025},
   note      = {Introduces OSRM. Demonstrates that activation-weighted
                overlap carries information not present in static
-               weight-space overlap. Cited in N134 report as motivation
-               for the activation-informed N135-alt follow-up.}
+               weight-space overlap.}
 }
 
 % https://arxiv.org/abs/2601.22285
+% ANON: zhou2026demystifying note: stripped "Cited in N134 report" phrase.
 @article{zhou2026demystifying,
   author  = {Zhou, Luca and Zhao, Bo and Yu, Rose and Rodol{\`a},
              Emanuele},
@@ -97,13 +101,12 @@
              vision classifiers. Reports that activation-based
              pairwise metrics achieve the strongest individual
              correlations with merge outcome (up to r = 0.572 for TSV),
-             compared to |r| < 0.2 for weight-space metrics. Cited in
-             N134 report as the r = 0.572 activation-dot-product
-             reference. Same group (GLADIA / Sapienza, Rodol{\`a})
-             as the TSV paper.}
+             compared to |r| < 0.2 for weight-space metrics. Same
+             group (GLADIA / Sapienza, Rodol{\`a}) as the TSV paper.}
 }
 
 % https://arxiv.org/abs/2601.06672
+% ANON: rahamim2026mergeability note: stripped "Cited in N134 discussion" phrase.
 @article{rahamim2026mergeability,
   author  = {Rahamim, Adir and Yehudai, Asaf and Carmeli, Boaz and
              Choshen, Leshem and Mass, Yosi and Belinkov, Yonatan},
@@ -113,8 +116,7 @@
   note    = {Proposes mergeability as an intrinsic property of the
              model update, primarily governed by base-model prior
              knowledge rather than by the composition of the merged
-             set. Cited in N134 discussion as the intrinsic-mergeability
-             follow-up direction.}
+             set.}
 }
 
 % https://arxiv.org/abs/2601.09473
@@ -135,15 +137,15 @@
 % Decoder-scale evaluation (Hitit et al., not "Cocchieri")
 % ----------------------------------------------------------------------------
 %
-% NB: earlier Gradience positioning material attributed this benchmark to
-% "Cocchieri et al. 2026." That attribution was incorrect; the actual
-% authors, as verified against arXiv:2511.21437 on 2026-04-20, are
-% Hitit, Girrbach, Akata. The misattribution was corrected in
-% sidecar/notes/n134_spec.md, sidecar/notes/n134_report.md, docs/THEORY.md,
-% and docs/positioning/gradience_differentiation.md in the same
-% commit that added this entry. See RN-006 in revision_notes.md.
+% ANON: section comment originally described an internal misattribution
+% ANON: correction and named project-specific files (sidecar paths,
+% ANON: docs/THEORY.md, docs/positioning/gradience_differentiation.md).
+% ANON: Replaced with a neutral note.
+% NB: authorship for arXiv:2511.21437 verified on 2026-04-20 as
+% Hitit, Girrbach, Akata.
 
 % https://arxiv.org/abs/2511.21437
+% ANON: hitit2026insystematic note: stripped "Cited in N134 report" phrase.
 @article{hitit2026insystematic,
   author  = {Hitit, O{\u{g}}uz Ka{\u{g}}an and Girrbach, Leander and
              Akata, Zeynep},
@@ -159,9 +161,7 @@
              (TIES, Iso-C, TSV-M) produce large parameter-space
              displacements correlating with catastrophic forgetting,
              and that Task Arithmetic is the only approach that
-             reliably yields performance gains at decoder scale.
-             Cited in N134 report as evidence that decoder-scale
-             triage is the binding operational constraint.}
+             reliably yields performance gains at decoder scale.}
 }
 
 
@@ -170,6 +170,8 @@
 % ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.10833
+% ANON: he2025mergebench note: stripped "cited in the discussion" phrase
+% ANON: (referred to this paper).
 @article{he2025mergebench,
   author  = {He, Yifei and Zeng, Siqi and others},
   title   = {{MergeBench: A Benchmark for Merging Domain-Specialized
@@ -178,8 +180,7 @@
   year    = {2025},
   note    = {Eight representative merging methods on Llama and Gemma
              families at 2B--9B scales across five domains. Distinct
-             from Hitit et al. 2026; both are cited in the discussion
-             of decoder-scale evaluation work.}
+             from Hitit et al. 2026.}
 }
 
 
@@ -225,8 +226,28 @@
   number  = {9},
   pages   = {741--749},
   year    = {1995},
-  note    = {Canonical reference for construct validity as
-             unified-theory framework.}
+  note    = {Accessible journal-article summary of the
+             unified-theory framing of construct validity. Cited
+             alongside the messick1989validity chapter.}
+}
+
+% Messick, S. (1989). Validity. In R. L. Linn (Ed.),
+% _Educational Measurement_ (3rd ed., pp. 13-103). Macmillan /
+% American Council on Education.
+@incollection{messick1989validity,
+  author    = {Messick, Samuel},
+  title     = {{Validity}},
+  booktitle = {Educational Measurement},
+  editor    = {Linn, Robert L.},
+  edition   = {3rd},
+  pages     = {13--103},
+  publisher = {Macmillan / American Council on Education},
+  year      = {1989},
+  note      = {Canonical exposition of construct validity as a
+               unified concept, displacing the older
+               content/criterion/construct tripartite. Primary
+               reference for the unified-theory framing the §2
+               framework is continuous with.}
 }
 
 % https://doi.org/10.1037/h0040957
@@ -244,58 +265,61 @@
 
 
 % ----------------------------------------------------------------------------
-% Anonymized self-citations (prior Gradience work)
+% Anonymized self-citations
+% ANON: section header "(prior Gradience work)" and explanatory comment
+% ANON: naming "N127-N133 prior work" and the author's name removed. The
+% ANON: camera-ready restoration procedure is recorded in RN-018.
 % ----------------------------------------------------------------------------
 %
-% These entries are placeholders for the N127-N133 prior work referenced in
-% the draft's prior-work chain. For workshop submission they are anonymized
-% pending venue policy confirmation. To de-anonymize: replace {Anonymized}
-% with "Nanney, John T." (or canonical author list), remove the `note`
-% field, and update the titles to match the internal study identifiers.
+% These entries are placeholders for prior work referenced in the draft's
+% prior-work chain. For review they are anonymized per venue policy.
 
+% ANON: Titles stripped of internal project numbers (N127, N130, N132,
+% ANON: N133, N134) and the notes stripped of repository / tag references
+% ANON: ("See repository", "n134-report-v1"). The cite keys are retained
+% ANON: because they are referenced from the body .tex and the strings
+% ANON: are not printed in the bibliography's rendered output. Restore
+% ANON: original titles and notes at camera-ready time.
 @misc{anonymized2026n127,
   author = {Anonymized},
-  title  = {{N127 — same/cross alignment separation on DistilBERT
-           (encoder replication of task-boundary detection)}},
+  title  = {{Same/cross alignment separation on a small encoder
+           backbone (prior replication of task-boundary detection)}},
   year   = {2026},
-  note   = {Anonymized for workshop submission. See repository
-            for de-anonymized reference.}
+  note   = {Anonymized for review.}
 }
 
 @misc{anonymized2026n130,
   author = {Anonymized},
-  title  = {{N130 — DistilBERT task-boundary triage replication}},
+  title  = {{Task-boundary triage replication on a small encoder
+           backbone}},
   year   = {2026},
-  note   = {Anonymized for workshop submission. See repository
-            for de-anonymized reference.}
+  note   = {Anonymized for review.}
 }
 
 @misc{anonymized2026n132,
   author = {Anonymized},
-  title  = {{N132 — DeBERTa task-boundary triage replication}},
+  title  = {{Task-boundary triage replication on a mid-sized encoder
+           backbone}},
   year   = {2026},
-  note   = {Anonymized for workshop submission. See repository
-            for de-anonymized reference.}
+  note   = {Anonymized for review.}
 }
 
 @misc{anonymized2026n133,
   author = {Anonymized},
-  title  = {{N133 — Decoder-scale exploratory merge triage (Mistral-7B,
-           six-task set)}},
+  title  = {{Decoder-scale exploratory merge triage: descriptive
+           predecessor study}},
   year   = {2026},
-  note   = {Anonymized for workshop submission. Descriptive-only
-            predecessor to N134. See repository for de-anonymized
-            reference.}
+  note   = {Anonymized for review. Descriptive-only predecessor to
+            the present study.}
 }
 
 @misc{anonymized2026n134spec,
   author = {Anonymized},
-  title  = {{N134 pre-registration (v3.1): decoder-scale controlled
+  title  = {{Pre-registration (v3.1) for decoder-scale controlled
            merge triage}},
   year   = {2026},
   note   = {The pre-registration document for the present paper.
-            Anonymized for workshop submission. See repository tag
-            n134-report-v1 for de-anonymized reference.}
+            Anonymized for review.}
 }
 
 
@@ -328,14 +352,14 @@
 % is someone other than Panahi, correct the attribution record in
 % revision_notes.md and wherever the title-based citation appears.
 
-% @inproceedings{TODO_lora_provably_reduces_forgetting,
-%   author    = {TODO},
-%   title     = {{LoRA Provably Reduces Forgetting and Enables Adapter
-%                Merging in Multiclass Linear Classification}},
-%   booktitle = {Proceedings of ICLR 2026},
-%   year      = {2026},
-%   note      = {OpenReview id FSDxP3ZpAx. Search on 2026-04-20
-%                confirmed ICLR 2026 acceptance; author list still
-%                requires verification via direct OpenReview login
-%                or the ICLR 2026 proceedings page once indexed.}
-% }
+% Template stub (uncomment and fill when authorship resolved):
+%   inproceedings TODO_lora_provably_reduces_forgetting
+%   author    = TODO
+%   title     = LoRA Provably Reduces Forgetting and Enables Adapter
+%               Merging in Multiclass Linear Classification
+%   booktitle = Proceedings of ICLR 2026
+%   year      = 2026
+%   note      = OpenReview id FSDxP3ZpAx. Search on 2026-04-20
+%               confirmed ICLR 2026 acceptance; author list still
+%               requires verification via direct OpenReview login
+%               or the ICLR 2026 proceedings page once indexed.

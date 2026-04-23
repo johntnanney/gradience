@@ -190,9 +190,155 @@ No explicit `[TODO]` or `[TBD]` placeholder remains in the .tex. One `% TODO(...
 
 **Commit:** `[pending]`.
 
-## RN-017 — [Title]
+## RN-017 — Revision-length pass: mild trim, three-instances-two-kinds insertion, Option B tightening; 13 pp main
 
-**Trigger:** [self-review | reader X | reviewer Y]
-**Issue:** [what was identified]
-**Resolution:** [what was changed]
-**Commit:** [hash of the commit that implements the resolution]
+**Trigger:** Post-ICC first compile reported 18 pp total / 14 pp main, too long for the 10--12 pp position/methods venue target. User endorsed venue target as position/methods paper at 10--12 pp; accepted mild-trim package + paragraph-insertion reweave + subsequent Option B tightening.
+
+**Issue:** Paper's contributions structurally require the three-legged dialectic (normative framework + demonstrative worked example + productive unnamed-property discovery) to carry visible weight, so aggressive §5 contraction was ruled out. Needed to recover 2 pp of main text without compromising the case-study weight.
+
+**Resolution, in execution order:**
+
+1. **References.bib hygiene fix.** The header comment block and TODO stub for the Panahi attribution both contained `@article` / `@inproceedings` / `@misc` tokens inside `%` comments. BibTeX's parser treats `@` as structural even inside line comments, so it was silently skipping the first four entries and erroring on the TODO stub. Rewrote the header format-conventions line and the TODO stub to prose-only (no `@` tokens). The canonical repo now compiles cleanly without manual intervention.
+
+2. **Mild-trim package** (from the coding-agent-identified targets):
+   - §5.1 tail: removed the N135-alt four-candidate-interpretation digression (\~4 source lines).
+   - §5.2 tail: compressed the "readers interested in the informativeness calculation" elaboration (\~2 source lines).
+   - §5.3 tail: tightened the three-architecture restraint prose (\~4 source lines).
+   - §5.4 closing: tightened the framework-reading interpretation (\~3 source lines).
+   - §7.4 psychometric-tradition reference: compressed from 14 lines to 8 (\~6 source lines).
+   - §8 objections: merged "null would be less compelling" + "rank-on-residuals niche" into a single `\paragraph{``The case study is weaker than the framework.''}` with two-form structure (\~11 source lines).
+
+3. **Three-instances-two-kinds paragraph insertion at §6.4 close.** New final paragraph of §6.4 articulates that the paper has produced three framework findings (rank-on-residuals, ICC = 0.566, H1 null) which split into two epistemic kinds: *discovery* (the rank-on-residuals precision property, unnamed prior) and *calibration-and-modesty* (the moderate reliability bounds and the informative null). Argues that both kinds are framework products but differ in epistemic shape --- one generates new measurement claims, the other bounds old ones --- and that a framework yielding only one of the two kinds would either overreach or be merely defensive. The two kinds together are what measurement discipline is *for*. ~150 words; paragraph-insertion variant was chosen over structural-recast variant to avoid making the two-kinds distinction load-bearing for §7.1's generalization claim.
+
+4. **Option B second-pass tightening:**
+   - §5 preamble: 6 lines → 2 lines (removed procedural metatext redundant against subsection headings).
+   - §7.2 + §7.3 merged into single subsection "What this changes, and what it does not" (~7 source lines saved). Argumentative improvement independent of page math: the two previously-separated subsections shared a rhetorical move (not-a-critique-of-prior-work) that reads stronger as a single continuous argument.
+
+**Final state:** Main text §§1--9 spans 13 pp (ends \~81\% down p13, with References beginning on p13). Total PDF 18 pp (13 main + \~2 refs + 4 appendix). User accepted 13 pp main as final; further trimming beyond Option B yields diminishing returns because remaining candidate cuts are either structural (§3-into-§4 merge, figure-to-appendix moves) with framing-cost implications, or contiguous-prose cuts that would compromise the case-study weight the argument depends on.
+
+**Deferred to v3 (not this submission cycle):** (a) §2 rewrite tracking `thesis_memo.md` (four-parallel-subsections → continuous argument tracking the four questions of the inferential view); (b) §1.1 second-example first-order citation (capability-evaluation paragraph remains argumentatively self-sufficient with a `% TODO` comment marking candidate-citation direction); (c) Panahi attribution resolution if OpenReview access succeeds.
+
+**Commit:** `[pending]`.
+
+## RN-018 — A2 double-blind anonymization pass with `% ANON:` markers
+
+**Trigger:** Workstream A2 (2026-04-22). TMLR selected as primary venue per A1/venue_shortlist.md; TMLR requires double-blind submission. The canonical `draft_v2_thesis_b.tex` and `references.bib` contained multiple identity-leaking strings that had to be neutralized before submission — several of them load-bearing enough that the paper would have been trivially de-anonymizable to anyone running `grep` on the source.
+
+**Issue.** Seven classes of leak were catalogued in the Task #20 scan:
+
+1. **Author block.** `\author{Anonymized\thanks{De-anonymized references in the tagged repository; see \texttt{n134-submission-draft-v1}.}}` — the `\thanks{}` note literally named the git tag where the un-anonymized version lived. The "Anonymized" field was technically anonymous but the thanks defeated it.
+2. **Internal project numbers in body prose.** Sixteen occurrences of `N07`, `N127`, `N130`, `N132`, `N133`, `N134`, `N135-alt` across §§2, 4, 5, 6, 7, 8 and the appendices. Reviewers googling "N134 merge triage" would have reached the Gradience sidecar.
+3. **Project brand leaks.** `Gradience N133` (§4.1), `Gradience $S_{\mathrm{H1}}$` (§5.4).
+4. **Companion-repository file paths in appendices.** `sidecar/results/n134/analysis\_icc.json`, `sidecar/notes/n134\_icc\_spec.md`, `08\_compare\_methods.py`, `n134\_reproducibility\_check.md`, `n134\_incident\_log.md`, `n134\_report.md`, plus several "the companion repository" phrases.
+5. **Cloud-provider name.** `(RunPod Secure Cloud)` in Appendix C.
+6. **Tag reference.** `\texttt{n134-submission-draft-v1}` — the git tag where the un-anonymized canonical state lived. This was the single most identifying string in the paper after the thanks note.
+7. **`.bib` leaks.** Five `note = {...}` fields that said "Cited in N134 report / discussion as ..." (renders in most bibstyles including `plainnat`); anonymized-self-citation titles containing literal `N127 —`, `N130 —`, `N132 —`, `N133 —`, `N134 pre-registration (v3.1)`; section-header comments mentioning "prior Gradience work" and the "Cocchieri" misattribution history; an anonymized-self-citation `note` field pointing to `repository tag n134-report-v1 for de-anonymized reference`.
+
+**Resolution.**
+
+Edits were applied with `% ANON:` comment markers at each change point (TeX `%` comments are stripped at compile time, so they do not render in the PDF but remain in the source for reviewable audit and camera-ready restoration). The marker convention is one `% ANON:` comment line directly above the edited region noting what changed and why; the git diff remains the authoritative record of the precise text substitution.
+
+Inside `.bib` entries the `% ANON:` comments had to live *above* the `@...{` opener rather than between fields, because BibTeX treats `%` inside an entry as a missing field name and silently drops the remainder of the entry. First compile attempt surfaced this (five "You're missing a field name" errors, five entries silently dropped); comments were moved above each entry's `@` line and the compile cycle re-ran clean.
+
+**Concrete edits.**
+
+*TeX (27 marker regions):*
+- Author `\thanks{}` note removed; `\author{Anonymized for review}` substituted.
+- All body-prose `N134` / `N133` / `N132` / `N130` / `N127` / `N07` references rephrased to *the present study* / *the worked example* / *the precursor studies* — the measurement content is unchanged, but the prose no longer carries internal project nomenclature.
+- `N135-alt` parenthetical at §9 conclusion stripped (the activation-informed follow-up is still described; only the project-internal designator is removed).
+- `Gradience N133` → removed; `Gradience $S_{\mathrm{H1}}$` → `$S_{\mathrm{H1}}$`.
+- All `\texttt{sidecar/...}` and `\texttt{n134_*.md}` paths replaced with generic pointers to "supplementary materials" or "the supplementary incident log / technical report".
+- `(RunPod Secure Cloud)` stripped in Appendix C; "commercial cloud" retained.
+- "companion repository under tag \texttt{n134-submission-draft-v1}" phrase replaced with "the supplementary materials accompanying this submission."
+
+*`.bib` (13 marker regions):*
+- Five `note = {...}` fields had their "Cited in N134 ..." / "cited in the discussion" phrases stripped (zhang2025osrm, zhou2026demystifying, rahamim2026mergeability, hitit2026insystematic, he2025mergebench).
+- Five anonymized-self-citation titles rewritten to generic descriptors (e.g., `N127 — same/cross alignment separation on DistilBERT` → `Same/cross alignment separation on a small encoder backbone`).
+- Anonymized-self-citation `note` fields shortened to `Anonymized for review.` (stripped the `See repository for de-anonymized reference` and `See repository tag n134-report-v1` phrases).
+- Two section-header comments ("Mergeability-prediction literature (Gradience positions against)" and "Anonymized self-citations (prior Gradience work)") neutralized.
+- The Hitit-section comment block describing an internal "Cocchieri" misattribution correction and naming `sidecar/notes/*`, `docs/THEORY.md`, `docs/positioning/gradience_differentiation.md` was replaced with a neutral two-line authorship note.
+- BibTeX keys (e.g., `anonymized2026n133`, `anonymized2026n134spec`) were intentionally *not* renamed, because (a) they are referenced from the body `.tex` and renaming would require coordinated edits in both files, and (b) in `plainnat` the key strings are not rendered in the bibliography — only the author, year, title, and note fields appear in the rendered entry, and all four have been neutralized. The rendered bibliography for the five self-citations shows `Anonymized. <generic title>. 2026. Anonymized for review.`
+
+**Camera-ready restoration procedure.** Every edit is tagged with a grepable `% ANON:` comment that names what was stripped and where it came from. To restore the un-anonymized paper, the editor:
+
+1. Checks out `v2-anonymized` tag, then branches.
+2. Runs `grep -n "% ANON:" draft_v2_thesis_b.tex references.bib` to enumerate all edit sites.
+3. At each site, consults the git diff at the anonymization commit to see the exact pre-anon text, and restores the original string. The `% ANON:` comment line itself is deleted in the restore edit.
+4. Re-adds the `\thanks{}` note to the author block (named in the ANON comment at line ~40 of the tex).
+5. Re-adds the `n134-submission-draft-v1` tag pointer in Appendix C (explicitly flagged in the ANON comment as "the single most identifying phrase in the original appendix").
+6. Restores the original `note = {...}` field contents in the five `.bib` entries that had N134-referencing citation-purpose text.
+7. Re-runs the full compile cycle (`pdflatex → bibtex → pdflatex → pdflatex`) and diffs the new PDF against the pre-anonymization PDF to confirm the restoration is complete.
+
+**Compile verification.** Full cycle ran clean in the sandbox (TeX Live 2022 / Debian) with `microtype` disabled for a font-expansion sandbox incompatibility unrelated to the anonymization edits. Final PDF: 18 pages, matching the pre-anon baseline exactly (13 pp main + 5 pp refs/appendices). Zero undefined citations in the final pass. All 19 cited bibliography entries render correctly; the one uncited entry (`anonymized2026n127`) is defined but not referenced from the body, as expected. BibTeX cycle produced no errors after the inside-entry `% ANON:` comments were relocated above each entry's `@` opener.
+
+**Honest state observation.** The anonymization pass is reviewable (every edit is a grepable marker) and reversible (the git diff is the audit trail), but it does not provide *strong* anonymity — a determined reviewer with access to arXiv or the Gradience GitHub public repo could still cross-reference the paper's specifics (Mistral-7B, $N = 45$ cross-task adapter pairs, family-pair partition, $S_{\mathrm{H1}}$ definition, committed $-0.533$ value) to associated prior work. TMLR's double-blind policy explicitly contemplates this — it asks that authors not make identification *trivial* (no names, no repo links, no tagged-release pointers), not that they make identification impossible. The present pass clears the trivial-identification bar; it does not clear the determined-cross-referencer bar, which is the policy's intent.
+
+**Files touched.** `draft_v2_thesis_b.tex` (27 `% ANON:` marker regions), `references.bib` (13 `% ANON:` marker regions). No figures touched — the three included PDFs (`h1_decision.pdf`, `four_method_forest.pdf`, `layer_depth_trend.pdf`) carry no metadata leaks per a previous audit and are used as-is.
+
+**Commit:** `[pending]`, to be tagged `v2-anonymized` after the TMLR template port (A3).
+
+## RN-019 — A3 TMLR template port: `tmlr.sty` swap, bundled stylefiles, page-count delta 18 → 16
+
+**Trigger:** Workstream A3 (2026-04-23). TMLR selected as primary venue per A1; A2 anonymization landed against the generic `\documentclass[11pt]{article}` preamble so that the template port could be done against a known-clean base. This RN records the preamble swap to TMLR's official stylefile (cloned from `github.com/JmlrOrg/tmlr-style-file`) and the page-count re-verification.
+
+**Issue.** The generic preamble (`\documentclass[11pt]{article}` + `\usepackage[letterpaper,margin=1in]{geometry}` + `\usepackage{natbib}` + `\bibliographystyle{plainnat}`) was a neutral placeholder, not a submission preamble. TMLR requires the official `tmlr.sty` / `tmlr.bst` bundle, which (a) encodes TMLR's page dimensions (6.5in × 9.0in text area at 10pt), (b) auto-generates the "Under review as submission to TMLR" page header and the "Anonymous authors / Paper under double-blind review" title block when used without options, and (c) controls its own citation style via `\setcitestyle{authoryear,round,citesep={;},aysep={,},yysep={;}}`. Submitting under a generic article class would be an instant-desk-reject format violation.
+
+**Resolution.**
+
+Edits were applied with a new `% TMLR:` comment-marker convention (parallel to `% ANON:` but tracking template-port changes rather than anonymization). Rationale for a distinct marker: if the paper is ever redirected to a different venue (NeurIPS E&D fallback, AIES secondary), the TMLR-specific preamble changes need to be reversible independently of the anonymization edits. `grep '% TMLR:'` now enumerates exactly the lines that would need to be touched for a template re-port.
+
+**Concrete preamble edits** (`draft_v2_thesis_b.tex`, lines ~20-70):
+
+- `\documentclass[11pt]{article}` → `\documentclass[10pt]{article}` (TMLR convention; 10pt font shrinks the layout by ~11% vs. 11pt).
+- `\usepackage[letterpaper,margin=1in]{geometry}` → removed. `tmlr.sty` sets `\textwidth 6.5in`, `\textheight 9.0in`, `\oddsidemargin 0in`, `\topmargin -0.625in` internally.
+- `\usepackage[T1]{fontenc}` → removed. `tmlr.sty` includes `\usepackage[T1]{fontenc}` + `\usepackage{lmodern}`.
+- `\usepackage{natbib}` → removed. `tmlr.sty` does `\RequirePackage{natbib}` with `\setcitestyle{authoryear,round,citesep={;},aysep={,},yysep={;}}`.
+- Added `\usepackage{tmlr}` with commented-out option-swap hints: `[accepted]` for camera-ready, `[preprint]` for arXiv.
+- `\bibliographystyle{plainnat}` → `\bibliographystyle{tmlr}`.
+- `\author{Anonymized for review}` → TMLR-format placeholder using the package's `\name`/`\email`/`\addr` macros (`\author{\name Anonymized \email anonymous@anonymous \\ \addr Anonymized Institution}`). tmlr.sty auto-hides this under double-blind, so the placeholder never renders during review. A commented-out camera-ready author block (`\name John T. Nanney \email johntnanney@gmail.com \\ \addr TODO: affiliation string`) is included immediately above it for camera-ready restoration; the affiliation string is flagged as a `TODO:` because it has not been committed-to yet.
+- `\date{April 2026}` → removed. TMLR's `\@maketitle` does not use `\@date`; dates are set via `\month`/`\year` macros at camera-ready only.
+
+The header comment block at lines 1-20 of the .tex was updated to reference the TMLR stylefile and RN-019 rather than the generic-article-class placeholder.
+
+**Bundled files.** The following files were copied from the upstream TMLR stylefile repo into `papers/n134_workshop/` so the submission tarball is self-contained (TMLR accepts a single-archive upload):
+- `tmlr.sty` (6.6 kB) — the main style package.
+- `tmlr.bst` (27 kB) — the bibliography style matching TMLR's `\setcitestyle`.
+- `fancyhdr.sty` (17 kB) — required by `tmlr.sty` for the page-header machinery.
+- `math_commands.tex` (12 kB) — optional math-macro library used in TMLR's `main.tex` template; not currently `\input` from our draft but bundled in case v3 revisions adopt its macros. Candidate cleanup if unused by camera-ready.
+
+Upstream repo: `https://github.com/JmlrOrg/tmlr-style-file` (clone + copy; no modifications to any of the four upstream files).
+
+**Compile verification.** Full cycle (`pdflatex → bibtex → pdflatex → pdflatex`) ran clean in the sandbox (TeX Live 2022 / Debian) with `microtype` disabled on a verification copy (same sandbox incompatibility as RN-018, unrelated to the template port; the canonical file retains `\usepackage{microtype}` since MacTeX handles it). BibTeX ran without errors against `tmlr.bst`; all 19 cited entries rendered correctly under TMLR's author-year citestyle. Zero undefined citations. One uncited entry (`anonymized2026n127`) defined but not referenced, as expected.
+
+**Page-count delta:**
+- Pre-port (11pt + 1" margins): **18 pages** total (13 pp main + ~2 pp refs + 3 pp appendix, per RN-018 state).
+- Post-port (10pt + TMLR 6.5×9.0in): **16 pages** total (11 pp main-body §§1-9, pp 12-13 references, pp 13-16 appendices A-G).
+- Delta: **-2 pages** (-11%). The page count drop is dominated by the 11pt → 10pt font shrink; TMLR's text area (6.5×9.0in) and our prior 1"-margin letter layout (6.5×9.0in) have nearly-identical usable area, so margin changes alone would not move the page count materially.
+
+This places the main body comfortably within TMLR's soft-cap guidance (typical main-text target ≤12 pp before references and appendices), with 1 pp of slack if future revisions add framework content.
+
+**Page-1 rendering sanity check.** `pdftotext` dump of page 1 confirms TMLR mode is active:
+- Page header: `Under review as submission to TMLR` (expected string when `tmlr.sty` used without options).
+- Title block: title correctly set with `\LARGE\bf\sffamily`.
+- Author block: `Anonymous authors / Paper under double-blind review` (expected auto-replacement under anonymous mode).
+- Abstract: centered "Abstract" heading with the `\large\bf\sffamily` treatment TMLR prescribes.
+
+**Camera-ready restoration procedure additions** (extends RN-018's 7-step procedure):
+
+Between steps 4 and 5 of RN-018's procedure, two TMLR-specific steps are inserted:
+- **4a.** In `draft_v2_thesis_b.tex`, swap `\usepackage{tmlr}` → `\usepackage[accepted]{tmlr}` (or `[preprint]` for arXiv posting).
+- **4b.** Uncomment the `% \author{\name John T. Nanney \email johntnanney@gmail.com \\ \addr TODO: affiliation string ...}` line immediately above the anonymized author block, fill in the TODO affiliation, and comment out or delete the `\author{\name Anonymized ...}` line.
+
+All other `% TMLR:` comment lines (class size, package removals, bibliographystyle swap) should be *retained* at camera-ready — they document the template-port commit for future readers of the repo, and `%` lines do not render.
+
+**Deferred from A3 to A4:**
+- Actual TMLR OpenReview submission: pack submission bundle (tex + bib + sty + bst + figures + bbl), upload to OpenReview, fill in submission form.
+- Pre-submission visual proof pass on a freshly-compiled PDF on John's MacTeX install (sandbox compile is a syntactic-correctness + layout-approximation check; the canonical rendering check needs the user's own TeX environment with `microtype` enabled).
+- Supplementary-materials archive: decide whether to include the sidecar notes / analysis JSONs at submission time or only after acceptance. TMLR permits optional supplementary material but does not require it.
+
+**Files touched in A3.** `draft_v2_thesis_b.tex` (preamble block, lines ~20-70; 11 new `% TMLR:` marker regions; 1 new `% ANON:` marker region for the camera-ready author block). No body-text edits; no bib edits. New files in the directory: `tmlr.sty`, `tmlr.bst`, `fancyhdr.sty`, `math_commands.tex` — all copied verbatim from upstream.
+
+**Honest state observation.** The sandbox compile is a stronger check than pure syntactic correctness but weaker than a full visual proof — it validates that `tmlr.sty` loads, the bibliography compiles under `tmlr.bst`, page numbers are assigned correctly, and no package conflicts surface. What it does not check: that `microtype` font-expansion on John's MacTeX produces the same page breaks as the sandbox's non-microtype compile. Historically `microtype` can shift line-count by 1-3 lines per page, which at 16 pages could plausibly push the total to 15 or 17. John should re-run the full compile on his Mac once before packing the submission bundle and confirm the final page count matches what reviewers will see.
+
+**Commit:** `[pending]`, to be included in the `v2-anonymized` tag (or tagged separately as `v2-tmlr` if A3 lands in a second commit).
+
