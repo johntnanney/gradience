@@ -1,0 +1,462 @@
+{
+  "_anon_note": "Anonymized for double-blind review. Field changes from camera-ready source: \"experiment\" rewrote \"N134 H1: O-module depth-weighted alignment\" to \"H1: O-module depth-weighted alignment (decoder-scale controlled triage)\" (project identifier stripped). No numerical values changed.",
+  "experiment": "H1: O-module depth-weighted alignment (decoder-scale controlled triage)",
+  "n_eval_cross_task_pairs": 45,
+  "n_family_pair_cells": 28,
+  "h1_score": {
+    "description": "S_H1 = sum(w_l * alpha_O_l) / sum(w_l), w_l = (l+1)/L",
+    "range": [
+      0.014754456684882329,
+      0.02505886170018295
+    ]
+  },
+  "h1_decision_rule": {
+    "criterion_1_partial_spearman": {
+      "rho_partial": -0.5330236851065406,
+      "p_partial": 0.00016344683365349504,
+      "threshold_rho": 0.5,
+      "threshold_p": 0.05,
+      "pass": false
+    },
+    "criterion_2_delta_r2": {
+      "r2_base": 0.8807138717361971,
+      "r2_full": 0.8835056818425109,
+      "delta_r2": 0.0027918101063137968,
+      "threshold": 0.1,
+      "pass": false
+    },
+    "criterion_3_sign": {
+      "rho_raw": -0.18029341455939948,
+      "sign_correct": false
+    },
+    "h1_confirmed": false
+  },
+  "raw_spearman": {
+    "rho": -0.18029341455939948,
+    "p": 0.23595697944150923
+  },
+  "bootstrap": {
+    "n_valid_boots": 5000,
+    "rho_mean": -0.5310063283386689,
+    "rho_ci_025": -0.8251385653501776,
+    "rho_ci_975": -0.13122569456952446,
+    "dr2_mean": 0.005750463341893426,
+    "dr2_ci_025": 1.7133068050662063e-05,
+    "dr2_ci_975": 0.02289018729947445
+  },
+  "tied_pairs": {
+    "n_tied_clusters": 0,
+    "tied_cluster_sizes": [],
+    "n_tied_pairs": 0
+  },
+  "replications": {
+    "bp1_task_boundary": {
+      "n_same": 24,
+      "n_cross": 252,
+      "midpoint": 0.047866363605862716,
+      "same_below_midpoint": 0,
+      "cross_above_midpoint": 0,
+      "same_mean": 0.0845985184738917,
+      "cross_mean": 0.03709949303765103,
+      "confirmed": true
+    },
+    "bp2_spectral_separation": {
+      "same_mean": 0.0845985184738917,
+      "cross_mean": 0.03709949303765103,
+      "ratio": 2.2803146766926217,
+      "welch_t": 15.90244390258596,
+      "welch_p": 5.97919412473465e-14,
+      "n_same": 24,
+      "n_cross": 252,
+      "confirmed": true
+    },
+    "bp4_erank_anova": {
+      "n_tasks": 8,
+      "n_adapters_per_task": {
+        "arc_challenge": 3,
+        "hellaswag": 3,
+        "winogrande": 3,
+        "openbookqa": 3,
+        "commonsenseqa": 3,
+        "piqa": 3,
+        "siqa": 3,
+        "boolq": 3
+      },
+      "task_means": {
+        "arc_challenge": 9.0054367794459,
+        "hellaswag": 8.30851023123533,
+        "winogrande": 7.159766443315891,
+        "openbookqa": 8.247891878355047,
+        "commonsenseqa": 7.414167104761991,
+        "piqa": 8.922351783334411,
+        "siqa": 7.620972670966455,
+        "boolq": 11.305508335883856
+      },
+      "anova_F": 165.6036043520068,
+      "anova_p": 1.0167222010909925e-13,
+      "confirmed": true
+    }
+  },
+  "per_pair": [
+    {
+      "pair": "arc_challenge_s123_vs_boolq_s123",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "family_pair": "reading_comprehension|science_qa",
+      "s_h1": 0.015056928587992761,
+      "max_degradation": -0.005
+    },
+    {
+      "pair": "arc_challenge_s123_vs_commonsenseqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "family_pair": "commonsense_qa|science_qa",
+      "s_h1": 0.02039895559816311,
+      "max_degradation": -0.08
+    },
+    {
+      "pair": "arc_challenge_s123_vs_hellaswag_s456",
+      "task_a": "arc_challenge",
+      "task_b": "hellaswag",
+      "family_pair": "commonsense_completion|science_qa",
+      "s_h1": 0.017180835267274895,
+      "max_degradation": 0.045
+    },
+    {
+      "pair": "arc_challenge_s123_vs_siqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "family_pair": "science_qa|social_commonsense",
+      "s_h1": 0.016011729107986233,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "arc_challenge_s123_vs_siqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "siqa",
+      "family_pair": "science_qa|social_commonsense",
+      "s_h1": 0.016055351172602088,
+      "max_degradation": 0.05
+    },
+    {
+      "pair": "arc_challenge_s123_vs_winogrande_s42",
+      "task_a": "arc_challenge",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|science_qa",
+      "s_h1": 0.01679705702135283,
+      "max_degradation": 0.03
+    },
+    {
+      "pair": "arc_challenge_s42_vs_openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "family_pair": "knowledge_qa|science_qa",
+      "s_h1": 0.022114551238094766,
+      "max_degradation": -0.14
+    },
+    {
+      "pair": "arc_challenge_s42_vs_piqa_s123",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "family_pair": "physical_commonsense|science_qa",
+      "s_h1": 0.016829109844173108,
+      "max_degradation": 0.01
+    },
+    {
+      "pair": "arc_challenge_s456_vs_boolq_s456",
+      "task_a": "arc_challenge",
+      "task_b": "boolq",
+      "family_pair": "reading_comprehension|science_qa",
+      "s_h1": 0.015333310205305956,
+      "max_degradation": -0.05
+    },
+    {
+      "pair": "arc_challenge_s456_vs_commonsenseqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "commonsenseqa",
+      "family_pair": "commonsense_qa|science_qa",
+      "s_h1": 0.01805714233496198,
+      "max_degradation": -0.07
+    },
+    {
+      "pair": "arc_challenge_s456_vs_openbookqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "openbookqa",
+      "family_pair": "knowledge_qa|science_qa",
+      "s_h1": 0.02046743376095864,
+      "max_degradation": -0.125
+    },
+    {
+      "pair": "arc_challenge_s456_vs_piqa_s42",
+      "task_a": "arc_challenge",
+      "task_b": "piqa",
+      "family_pair": "physical_commonsense|science_qa",
+      "s_h1": 0.016560817444273693,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "commonsenseqa_s123_vs_boolq_s123",
+      "task_a": "boolq",
+      "task_b": "commonsenseqa",
+      "family_pair": "commonsense_qa|reading_comprehension",
+      "s_h1": 0.01493730396561494,
+      "max_degradation": -0.025
+    },
+    {
+      "pair": "commonsenseqa_s42_vs_piqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "piqa",
+      "family_pair": "commonsense_qa|physical_commonsense",
+      "s_h1": 0.017890960106866038,
+      "max_degradation": 0.005
+    },
+    {
+      "pair": "commonsenseqa_s42_vs_siqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "family_pair": "commonsense_qa|social_commonsense",
+      "s_h1": 0.01962878457870278,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "commonsenseqa_s456_vs_boolq_s456",
+      "task_a": "boolq",
+      "task_b": "commonsenseqa",
+      "family_pair": "commonsense_qa|reading_comprehension",
+      "s_h1": 0.015001697709191252,
+      "max_degradation": -0.075
+    },
+    {
+      "pair": "commonsenseqa_s456_vs_siqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "siqa",
+      "family_pair": "commonsense_qa|social_commonsense",
+      "s_h1": 0.019859585593539206,
+      "max_degradation": 0.09
+    },
+    {
+      "pair": "hellaswag_s123_vs_boolq_s456",
+      "task_a": "boolq",
+      "task_b": "hellaswag",
+      "family_pair": "commonsense_completion|reading_comprehension",
+      "s_h1": 0.014754456684882329,
+      "max_degradation": 0.085
+    },
+    {
+      "pair": "hellaswag_s123_vs_openbookqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "openbookqa",
+      "family_pair": "commonsense_completion|knowledge_qa",
+      "s_h1": 0.018730326954303593,
+      "max_degradation": 0.05
+    },
+    {
+      "pair": "hellaswag_s123_vs_piqa_s123",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "family_pair": "commonsense_completion|physical_commonsense",
+      "s_h1": 0.0202595907207014,
+      "max_degradation": 0.03
+    },
+    {
+      "pair": "hellaswag_s123_vs_piqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "piqa",
+      "family_pair": "commonsense_completion|physical_commonsense",
+      "s_h1": 0.018205361419611356,
+      "max_degradation": 0.05
+    },
+    {
+      "pair": "hellaswag_s123_vs_winogrande_s123",
+      "task_a": "hellaswag",
+      "task_b": "winogrande",
+      "family_pair": "commonsense_completion|coreference_commonsense",
+      "s_h1": 0.0183700437403538,
+      "max_degradation": 0.155
+    },
+    {
+      "pair": "hellaswag_s42_vs_commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "hellaswag",
+      "family_pair": "commonsense_completion|commonsense_qa",
+      "s_h1": 0.01644011831905862,
+      "max_degradation": 0.05
+    },
+    {
+      "pair": "hellaswag_s42_vs_siqa_s42",
+      "task_a": "hellaswag",
+      "task_b": "siqa",
+      "family_pair": "commonsense_completion|social_commonsense",
+      "s_h1": 0.016900611453985966,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "hellaswag_s456_vs_boolq_s42",
+      "task_a": "boolq",
+      "task_b": "hellaswag",
+      "family_pair": "commonsense_completion|reading_comprehension",
+      "s_h1": 0.015505185227304923,
+      "max_degradation": 0.055
+    },
+    {
+      "pair": "openbookqa_s123_vs_commonsenseqa_s456",
+      "task_a": "commonsenseqa",
+      "task_b": "openbookqa",
+      "family_pair": "commonsense_qa|knowledge_qa",
+      "s_h1": 0.02505886170018295,
+      "max_degradation": -0.105
+    },
+    {
+      "pair": "openbookqa_s42_vs_boolq_s42",
+      "task_a": "boolq",
+      "task_b": "openbookqa",
+      "family_pair": "knowledge_qa|reading_comprehension",
+      "s_h1": 0.015454909190972985,
+      "max_degradation": 0.015
+    },
+    {
+      "pair": "openbookqa_s42_vs_commonsenseqa_s42",
+      "task_a": "commonsenseqa",
+      "task_b": "openbookqa",
+      "family_pair": "commonsense_qa|knowledge_qa",
+      "s_h1": 0.02454500656687852,
+      "max_degradation": -0.085
+    },
+    {
+      "pair": "openbookqa_s42_vs_piqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "family_pair": "knowledge_qa|physical_commonsense",
+      "s_h1": 0.019554278827413465,
+      "max_degradation": 0.015
+    },
+    {
+      "pair": "openbookqa_s42_vs_siqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "family_pair": "knowledge_qa|social_commonsense",
+      "s_h1": 0.018556295117984217,
+      "max_degradation": 0.055
+    },
+    {
+      "pair": "openbookqa_s42_vs_siqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "siqa",
+      "family_pair": "knowledge_qa|social_commonsense",
+      "s_h1": 0.018390225788056287,
+      "max_degradation": 0.135
+    },
+    {
+      "pair": "openbookqa_s456_vs_piqa_s42",
+      "task_a": "openbookqa",
+      "task_b": "piqa",
+      "family_pair": "knowledge_qa|physical_commonsense",
+      "s_h1": 0.018236321532943595,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "piqa_s123_vs_siqa_s123",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "family_pair": "physical_commonsense|social_commonsense",
+      "s_h1": 0.018544783618188267,
+      "max_degradation": 0.085
+    },
+    {
+      "pair": "piqa_s42_vs_boolq_s456",
+      "task_a": "boolq",
+      "task_b": "piqa",
+      "family_pair": "physical_commonsense|reading_comprehension",
+      "s_h1": 0.01495882548271876,
+      "max_degradation": 0.065
+    },
+    {
+      "pair": "piqa_s42_vs_siqa_s42",
+      "task_a": "piqa",
+      "task_b": "siqa",
+      "family_pair": "physical_commonsense|social_commonsense",
+      "s_h1": 0.018642404631739766,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "piqa_s456_vs_boolq_s42",
+      "task_a": "boolq",
+      "task_b": "piqa",
+      "family_pair": "physical_commonsense|reading_comprehension",
+      "s_h1": 0.01531556637421476,
+      "max_degradation": 0.045
+    },
+    {
+      "pair": "siqa_s42_vs_boolq_s123",
+      "task_a": "boolq",
+      "task_b": "siqa",
+      "family_pair": "reading_comprehension|social_commonsense",
+      "s_h1": 0.01512916011129026,
+      "max_degradation": 0.055
+    },
+    {
+      "pair": "winogrande_s123_vs_boolq_s123",
+      "task_a": "boolq",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|reading_comprehension",
+      "s_h1": 0.015589333753186193,
+      "max_degradation": 0.315
+    },
+    {
+      "pair": "winogrande_s123_vs_boolq_s456",
+      "task_a": "boolq",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|reading_comprehension",
+      "s_h1": 0.01527562080247497,
+      "max_degradation": 0.11
+    },
+    {
+      "pair": "winogrande_s123_vs_piqa_s123",
+      "task_a": "piqa",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|physical_commonsense",
+      "s_h1": 0.019893250202364994,
+      "max_degradation": 0.105
+    },
+    {
+      "pair": "winogrande_s42_vs_commonsenseqa_s123",
+      "task_a": "commonsenseqa",
+      "task_b": "winogrande",
+      "family_pair": "commonsense_qa|coreference_commonsense",
+      "s_h1": 0.019032401461365887,
+      "max_degradation": 0.035
+    },
+    {
+      "pair": "winogrande_s42_vs_openbookqa_s123",
+      "task_a": "openbookqa",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|knowledge_qa",
+      "s_h1": 0.01797778216529299,
+      "max_degradation": 0.045
+    },
+    {
+      "pair": "winogrande_s42_vs_openbookqa_s456",
+      "task_a": "openbookqa",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|knowledge_qa",
+      "s_h1": 0.017913565457671542,
+      "max_degradation": 0.04
+    },
+    {
+      "pair": "winogrande_s42_vs_siqa_s123",
+      "task_a": "siqa",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|social_commonsense",
+      "s_h1": 0.01955060072588932,
+      "max_degradation": 0.05
+    },
+    {
+      "pair": "winogrande_s456_vs_piqa_s456",
+      "task_a": "piqa",
+      "task_b": "winogrande",
+      "family_pair": "coreference_commonsense|physical_commonsense",
+      "s_h1": 0.020481478525184546,
+      "max_degradation": 0.06
+    }
+  ]
+}
