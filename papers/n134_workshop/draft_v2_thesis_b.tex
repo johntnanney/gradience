@@ -79,24 +79,27 @@ practice systematically overclaims precision and generality, and we
 introduce a framework for applying classical measurement theory
 (reliability coefficients, standard error of measurement, confound
 decomposition, pre-registered decision rules with explicit tolerance
-schedules) to ML diagnostic reporting. We demonstrate the framework
-through a pre-registered decoder-scale study of spectral LoRA-merging
-diagnostics ($N = 45$ cross-task adapter pairs on Mistral-7B-v0.3),
-which produces a null on per-pair merge prediction under
-family-confound control, replicates task-boundary detection across
-three architectures and two metric families, and --- in the course of
-% EDIT: 2026-04-23 — editorial #5: "previously unnamed property" →
-% EDIT: "underreported precision limitation" to move novelty claim from
-% EDIT: phenomenon (mathematically old) to reporting register (new).
-being subjected to measurement-discipline scrutiny --- surfaces an
-underreported precision limitation of the primary test statistic:
-rank-based correlations on small-$N$ residuals have intrinsic
-floating-point precision of order $10^{-2}$, comparable to their
-sampling variability.
-We argue this last observation is not an incidental finding but an
-instance of the paper's central claim: measurement discipline applied
-to ML diagnostics produces findings that unstructured reporting would
-not surface.
+schedules) to ML diagnostic reporting.
+% EDIT: 2026-04-23 — editorial #3 (Tier 2): abstract tightened around
+% EDIT: three outputs the framework produces on the case study. Drops
+% EDIT: the three-architectures/two-metric-families sentence (retained
+% EDIT: at §5.3) and subsumes the 'previously unnamed' →
+% EDIT: 'underreported' reframe from EDIT-01a. Closes on the meta-claim
+% EDIT: that measurement discipline changes what can be claimed.
+We demonstrate the framework through a pre-registered decoder-scale
+study of spectral LoRA-merging diagnostics ($N = 45$ cross-task
+adapter pairs on Mistral-7B-v0.3). Under the framework's discipline,
+the case study does three things: it produces a clean pre-registered
+null on per-pair merge prediction under family-confound control; it
+exposes that the headline statistic's floating-point precision at
+this sample size is of order $10^{-2}$, comparable to its sampling
+variability, so ordinary third-decimal reporting is spurious; and it
+bounds the diagnostic's reliability with an explicit regime-scope
+caveat. The case study illustrates the paper's central claim:
+measurement discipline applied to ML diagnostics changes what can
+responsibly be claimed --- not by decorating point estimates with
+error bars, but by forcing refusals the default reporting view would
+not.
 \end{abstract}
 
 \section{Introduction}
@@ -204,6 +207,16 @@ what is specific to psychology is the systematic expectation that
 every reported diagnostic value carries this measurement-theoretic
 context.
 
+% EDIT: 2026-04-23 — editorial #6 (Tier 2): conciliatory framing — ML
+% EDIT: has statistical sophistication; the gap is specifically an
+% EDIT: integrated measurement argument, not statistical naivety.
+The claim this paper makes is narrower than a comparison of
+statistical sophistication between fields: ML diagnostic reporting
+often lacks an integrated measurement argument that ties score
+meaning, reliability, precision, and confound structure to the
+substantive interpretation of the reported number. Component
+methods are present; their coordinated application is not.
+
 ML has drawn on this tradition less than it could. The framework we
 propose in Section~\ref{sec:framework} is not a claim of conceptual
 originality but a proposal for systematic, coordinated application
@@ -232,6 +245,24 @@ of measurement-theoretic methods to ML diagnostic reporting.
     measurement-discipline scrutiny surfaces and that ordinary
     reporting conventions do not.
 \end{enumerate}
+
+% EDIT: 2026-04-23 — editorial #4 (Tier 2): concrete preview of what
+% EDIT: the framework changes in the worked example, to orient the
+% EDIT: reader before the body of the paper.
+In the worked example, the framework changes the scientific
+interpretation in three specific ways. A diagnostic relationship that
+an unstructured presentation would license as informative becomes a
+clean null once family-pair identity is residualized out
+(Section~\ref{sec:empirical-h1}). A reliability estimate that a
+default report would quote as a universal property of the instrument
+is shown to license only the regime that generated it
+(Section~\ref{sec:applying-reliability}, Appendix~\ref{app:reliability}).
+A headline statistic that default reporting would quote to three
+decimal places is shown to have intrinsic numerical precision at its
+second decimal, turning the third digit into an unsupported claim
+(Section~\ref{sec:rank-observation}). These are not cosmetic
+additions to the report; they alter the claims the study is allowed
+to make.
 
 \subsection{Road map}
 
@@ -492,6 +523,7 @@ license a choice among many plausible ones, and the pre-registration
 commits to the specific choice before testing.
 
 \subsection{Reliability considerations at pre-registration time}
+\label{sec:applying-reliability}
 
 % ANON: "The N134 design" → "The present study's design"
 The present study's design commits to three seeds per task across eight
@@ -692,6 +724,22 @@ scale. The framework's construct-validity discipline is what
 enforces this restraint. Figure~\ref{fig:layer-depth} shows the
 layer-depth trend that motivated the depth weighting in
 $S_{\mathrm{H1}}$.
+
+% EDIT: 2026-04-23 — editorial #9 (Tier 2): explicit construct-scope
+% EDIT: narrowing frame so the task-boundary result serves the
+% EDIT: measurement-discipline thesis rather than living alongside the
+% EDIT: per-pair null.
+Framework-wise, this is a construct-scope refinement rather than a
+standalone positive result. The diagnostic family's construct
+validity is narrowed by the joint pattern across
+\S\ref{sec:empirical-h1} and this section: the spectral score is
+informative for population-level task-boundary structure, but not
+for per-pair merge-risk prediction under the tested regime. A report
+that quoted only the task-boundary replication as evidence for the
+diagnostic would be operating on a broader construct claim than the
+evidence warrants; a report that quoted only the per-pair null would
+miss a real regularity at a different level of aggregation. The
+framework's discipline is to license each claim at its proper scope.
 
 \subsection{Four-method comparison as a regime-scope test}
 
@@ -979,6 +1027,24 @@ experience; this paper is a starting point rather than a completed
 methodology. Third, individual papers can begin applying the
 framework voluntarily ahead of any field-wide shift, and we invite
 them to.
+
+% EDIT: 2026-04-23 — editorial #13 (Tier 2): concrete norm-change
+% EDIT: close; turns the conclusion from observation to prescription
+% EDIT: by naming the minimum components of a measurement-disciplined
+% EDIT: diagnostic report.
+A minimal measurement-disciplined diagnostic report, in the sense
+this paper argues for, should include: a construct statement that
+distinguishes the theoretical object from its operationalization; a
+reliability estimate matched to the regime of intended use; a
+precision tolerance schedule for the reported quantities; and a
+pre-registered decomposition against obvious alternatives. A
+diagnostic that cannot yet supply these elements may still be useful,
+but its evidential status should be described as exploratory rather
+than quantitative. The purpose of the framework is not to slow ML
+diagnostics down. It is to make their claims durable enough to
+matter --- so that a reported value, once published, can be read by
+the field as a bounded measurement rather than as a decimal to be
+trusted by convention.
 
 % -----------------------------------------------------------------------------
 \bibliography{references}
