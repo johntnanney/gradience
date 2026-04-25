@@ -1,0 +1,3 @@
+{{answer_instruction}}{{fewshot_examples}}Sentence: {{question}}
+{{choices}}
+Answer:

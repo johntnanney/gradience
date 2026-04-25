@@ -1,0 +1,25 @@
+bootstrap:
+  n_resamples: 100
+  random_seed: 42
+  ci_lower_percentile: 2.5
+  ci_upper_percentile: 97.5
+mixed_effects_cascade:
+  level_1:
+    random_effects: [prompt, seed, scoring_rule, item]
+  level_2:
+    random_effects: [prompt, seed, scoring_rule, item]
+  level_3:
+    random_effects: [prompt, scoring_rule, item]
+  level_4:
+    method: aggregate_g_theory_only
+convergence_triggers:
+  max_singular_warning: trigger_fallback
+  hessian_non_pd: trigger_fallback
+  iteration_limit_exceeded: trigger_fallback
+  gradient_norm_above: 1.0e-3
+tolerance:
+  decision_rule_threshold_h1: 0.005
+  benchmarks_required_for_h1: 3
+h2_generalizability_threshold: 0.80
+h3_ranking_reversal_threshold: 0.10
+h4_mmlu_interaction_threshold: 0.10

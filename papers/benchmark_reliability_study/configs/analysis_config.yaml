@@ -1,0 +1,32 @@
+# Analysis configuration — SPEC_CPU_v0_2 §4.3
+# v1.1-LOCKED at 2026-04-24. H3 threshold raised from 0.10 to 0.20 per
+# preregistration §14.5 resolution.
+bootstrap:
+  n_resamples: 10000
+  random_seed: 20260424
+  ci_lower_percentile: 2.5
+  ci_upper_percentile: 97.5
+
+mixed_effects_cascade:
+  level_1:
+    random_effects: [prompt, seed, scoring_rule, item, model_prompt_interaction, model_scoring_rule_interaction]
+  level_2:
+    random_effects: [prompt, seed, scoring_rule, item]
+  level_3:
+    random_effects: [prompt, scoring_rule, item]
+  level_4:
+    method: aggregate_g_theory_only
+
+convergence_triggers:
+  max_singular_warning: trigger_fallback
+  hessian_non_pd: trigger_fallback
+  iteration_limit_exceeded: trigger_fallback
+  gradient_norm_above: 1.0e-3
+
+tolerance:
+  decision_rule_threshold_h1: 0.005
+  benchmarks_required_for_h1: 3
+
+h2_generalizability_threshold: 0.80
+h3_ranking_reversal_threshold: 0.20  # raised from 0.10 at v1.1 lock
+h4_mmlu_interaction_threshold: 0.10

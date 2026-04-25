@@ -1,0 +1,22 @@
+# Top-level study config — SPEC_CPU_v0_2 §4.2
+# v1.1-LOCKED at 2026-04-24. Do not modify post-lock without a deviations.md entry.
+study_id: benchmark_reliability_v1
+prereg_version: v1_1_LOCKED
+tier_primary_enabled: true
+tier_secondary_enabled: true        # GSM8K secondary tier active
+extension_7b_enabled: false          # Mistral-7B extension deferred (budget-contingent)
+paths:
+  configs_dir: configs/
+  manifests_dir: manifests/
+  prompts_dir: prompts/
+  runs_raw_dir: runs/raw/
+  runs_normalized_dir: runs/normalized/
+  analysis_dir: analysis/
+  reports_dir: reports/
+  schemas_dir: schemas/
+includes:
+  - configs/models.yaml
+  - configs/benchmarks.yaml
+  - configs/prompts.yaml
+  - configs/scoring_rules.yaml
+  - configs/analysis_config.yaml

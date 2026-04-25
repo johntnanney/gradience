@@ -1,0 +1,3 @@
+{{fewshot_examples}}Q: {{question}}
+{{choices}}
+A:

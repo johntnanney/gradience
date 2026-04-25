@@ -1,0 +1,25 @@
+models:
+  - model_id: test_model_1
+    hf_name: test/model-1
+    hf_revision: abc123
+    model_family: test_family
+    model_type: base
+    parameter_count_b: 0.1
+    primary: true
+    optional_extension: false
+  - model_id: test_model_2
+    hf_name: test/model-2
+    hf_revision: def456
+    model_family: test_family
+    model_type: base
+    parameter_count_b: 0.2
+    primary: true
+    optional_extension: false
+  - model_id: test_model_3
+    hf_name: test/model-3
+    hf_revision: ghi789
+    model_family: other_family
+    model_type: instruct
+    parameter_count_b: 0.3
+    primary: true
+    optional_extension: false

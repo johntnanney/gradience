@@ -1,0 +1,105 @@
+# Benchmark registry — SPEC_CPU_v0_2 §6.2
+# v1.1-LOCKED at 2026-04-24. Dataset version hashes pinned to HF dataset SHAs.
+# MMLU subject panel finalized per preregistration §5.2.
+benchmarks:
+  - benchmark_id: arc_challenge
+    display_name: ARC-Challenge
+    tier: primary
+    hf_dataset: allenai/ai2_arc
+    hf_config: ARC-Challenge
+    dataset_version_hash: 210d026faf9955653af8916fad021475a3f00453
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: test
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answerKey
+    expected_num_items: 1172
+
+  - benchmark_id: hellaswag
+    display_name: HellaSwag
+    tier: primary
+    hf_dataset: Rowan/hellaswag
+    hf_config: null
+    dataset_version_hash: 218ec52e09a7e7462a5400043bb9a69a41d06b76
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: ind
+    answer_field: label
+    expected_num_items: 10042
+
+  - benchmark_id: truthfulqa_mc
+    display_name: TruthfulQA-MC
+    tier: primary
+    hf_dataset: truthful_qa
+    hf_config: multiple_choice
+    dataset_version_hash: 741b8276f2d1982aa3d5b832d3ee81ed3b896490
+    task_type: constrained_choice
+    fewshot_k: 0
+    seed_facet: false
+    fewshot_source_split: null
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: question
+    answer_field: mc1_targets
+    expected_num_items: 817
+
+  - benchmark_id: mmlu_panel
+    display_name: MMLU Subject Panel
+    tier: primary
+    hf_dataset: cais/mmlu
+    hf_config: null
+    dataset_version_hash: c30699e8356da336a370243923dbaf21066bb9fe
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: dev
+    eval_split: test
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: question
+    answer_field: answer
+    subjects:
+      - world_religions
+      - elementary_mathematics
+      - high_school_psychology
+      - professional_accounting
+      - global_facts
+    expected_num_items_per_subject: 100  # approximate; varies by subject
+
+  - benchmark_id: winogrande
+    display_name: Winogrande
+    tier: primary
+    hf_dataset: winogrande
+    hf_config: winogrande_xl
+    dataset_version_hash: 01e74176c63542e6b0bcb004dcdea22d94fb67b5
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: qID
+    answer_field: answer
+    expected_num_items: 1267
+
+  - benchmark_id: gsm8k
+    display_name: GSM8K
+    tier: secondary
+    hf_dataset: gsm8k
+    hf_config: main
+    dataset_version_hash: 740312add88f781978c0658806c59bc2815b9866
+    task_type: open_generation
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: test
+    scoring_rules: [generate_parse_strict, generate_parse_permissive]
+    item_id_field: question
+    answer_field: answer
+    expected_num_items: 1319

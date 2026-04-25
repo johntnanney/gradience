@@ -1,0 +1,5 @@
+The following are multiple choice questions (with answers) about {{answer_instruction}}.
+
+{{fewshot_examples}}{{question}}
+{{choices}}
+Answer:

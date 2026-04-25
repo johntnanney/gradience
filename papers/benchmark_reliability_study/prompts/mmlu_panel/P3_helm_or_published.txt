@@ -1,0 +1,4 @@
+{{answer_instruction}}
+{{fewshot_examples}}Question: {{question}}
+{{choices}}
+Answer:

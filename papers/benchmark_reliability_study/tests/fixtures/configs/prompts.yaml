@@ -1,0 +1,241 @@
+prompts:
+  - benchmark_id: test_bench_1
+    prompt_id: P1_original
+    prompt_path: prompts/test_bench_1/P1_original.txt
+    content_hash: TODO
+    source_type: benchmark_authors
+    source_url_or_ref: test://source/test_bench_1/P1_original
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_1
+    prompt_id: P2_lm_eval
+    prompt_path: prompts/test_bench_1/P2_lm_eval.txt
+    content_hash: TODO
+    source_type: lm_eval_harness
+    source_url_or_ref: test://source/test_bench_1/P2_lm_eval
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_1
+    prompt_id: P3_helm_or_published
+    prompt_path: prompts/test_bench_1/P3_helm_or_published.txt
+    content_hash: TODO
+    source_type: helm_reference
+    source_url_or_ref: test://source/test_bench_1/P3_helm_or_published
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_1
+    prompt_id: P4_minimal_sourced
+    prompt_path: prompts/test_bench_1/P4_minimal_sourced.txt
+    content_hash: TODO
+    source_type: author_minimal_declared
+    source_url_or_ref: test://source/test_bench_1/P4_minimal_sourced
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_2
+    prompt_id: P1_original
+    prompt_path: prompts/test_bench_2/P1_original.txt
+    content_hash: TODO
+    source_type: benchmark_authors
+    source_url_or_ref: test://source/test_bench_2/P1_original
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_2
+    prompt_id: P2_lm_eval
+    prompt_path: prompts/test_bench_2/P2_lm_eval.txt
+    content_hash: TODO
+    source_type: lm_eval_harness
+    source_url_or_ref: test://source/test_bench_2/P2_lm_eval
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_2
+    prompt_id: P3_helm_or_published
+    prompt_path: prompts/test_bench_2/P3_helm_or_published.txt
+    content_hash: TODO
+    source_type: helm_reference
+    source_url_or_ref: test://source/test_bench_2/P3_helm_or_published
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_2
+    prompt_id: P4_minimal_sourced
+    prompt_path: prompts/test_bench_2/P4_minimal_sourced.txt
+    content_hash: TODO
+    source_type: author_minimal_declared
+    source_url_or_ref: test://source/test_bench_2/P4_minimal_sourced
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_3
+    prompt_id: P1_original
+    prompt_path: prompts/test_bench_3/P1_original.txt
+    content_hash: TODO
+    source_type: benchmark_authors
+    source_url_or_ref: test://source/test_bench_3/P1_original
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_3
+    prompt_id: P2_lm_eval
+    prompt_path: prompts/test_bench_3/P2_lm_eval.txt
+    content_hash: TODO
+    source_type: lm_eval_harness
+    source_url_or_ref: test://source/test_bench_3/P2_lm_eval
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_3
+    prompt_id: P3_helm_or_published
+    prompt_path: prompts/test_bench_3/P3_helm_or_published.txt
+    content_hash: TODO
+    source_type: helm_reference
+    source_url_or_ref: test://source/test_bench_3/P3_helm_or_published
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_3
+    prompt_id: P4_minimal_sourced
+    prompt_path: prompts/test_bench_3/P4_minimal_sourced.txt
+    content_hash: TODO
+    source_type: author_minimal_declared
+    source_url_or_ref: test://source/test_bench_3/P4_minimal_sourced
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_4
+    prompt_id: P1_original
+    prompt_path: prompts/test_bench_4/P1_original.txt
+    content_hash: TODO
+    source_type: benchmark_authors
+    source_url_or_ref: test://source/test_bench_4/P1_original
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_4
+    prompt_id: P2_lm_eval
+    prompt_path: prompts/test_bench_4/P2_lm_eval.txt
+    content_hash: TODO
+    source_type: lm_eval_harness
+    source_url_or_ref: test://source/test_bench_4/P2_lm_eval
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_4
+    prompt_id: P3_helm_or_published
+    prompt_path: prompts/test_bench_4/P3_helm_or_published.txt
+    content_hash: TODO
+    source_type: helm_reference
+    source_url_or_ref: test://source/test_bench_4/P3_helm_or_published
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_4
+    prompt_id: P4_minimal_sourced
+    prompt_path: prompts/test_bench_4/P4_minimal_sourced.txt
+    content_hash: TODO
+    source_type: author_minimal_declared
+    source_url_or_ref: test://source/test_bench_4/P4_minimal_sourced
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_5
+    prompt_id: P1_original
+    prompt_path: prompts/test_bench_5/P1_original.txt
+    content_hash: TODO
+    source_type: benchmark_authors
+    source_url_or_ref: test://source/test_bench_5/P1_original
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_5
+    prompt_id: P2_lm_eval
+    prompt_path: prompts/test_bench_5/P2_lm_eval.txt
+    content_hash: TODO
+    source_type: lm_eval_harness
+    source_url_or_ref: test://source/test_bench_5/P2_lm_eval
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_5
+    prompt_id: P3_helm_or_published
+    prompt_path: prompts/test_bench_5/P3_helm_or_published.txt
+    content_hash: TODO
+    source_type: helm_reference
+    source_url_or_ref: test://source/test_bench_5/P3_helm_or_published
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt
+  - benchmark_id: test_bench_5
+    prompt_id: P4_minimal_sourced
+    prompt_path: prompts/test_bench_5/P4_minimal_sourced.txt
+    content_hash: TODO
+    source_type: author_minimal_declared
+    source_url_or_ref: test://source/test_bench_5/P4_minimal_sourced
+    source_commit: null
+    admissibility_status: draft
+    placeholders_used:
+      - question
+      - answer_instruction
+    notes: test fixture prompt

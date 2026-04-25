@@ -1,0 +1,36 @@
+# Scoring rule registry — SPEC_CPU_v0_2 §6.4
+# v1.1-LOCKED at 2026-04-24. Two rules for constrained-choice (LL + G&P);
+# two rules for open-generation (strict + permissive parsing).
+scoring_rules:
+  - scoring_rule_id: ll_norm
+    display_name: Length-Normalized Log-Likelihood
+    applies_to_task_types: [constrained_choice]
+    normalization: length_normalized
+    selection_rule: argmax
+
+  - scoring_rule_id: generate_parse
+    display_name: Generate and Regex-Parse
+    applies_to_task_types: [constrained_choice]
+    generation_params:
+      decoding: greedy
+      temperature: 0
+      max_new_tokens: 32
+    parse_strategy: benchmark_specific_regex
+
+  - scoring_rule_id: generate_parse_strict
+    display_name: GSM8K Strict Exact-Match
+    applies_to_task_types: [open_generation]
+    generation_params:
+      decoding: greedy
+      temperature: 0
+      max_new_tokens: 256
+    parse_strategy: exact_match_final_number
+
+  - scoring_rule_id: generate_parse_permissive
+    display_name: GSM8K Permissive Regex
+    applies_to_task_types: [open_generation]
+    generation_params:
+      decoding: greedy
+      temperature: 0
+      max_new_tokens: 256
+    parse_strategy: permissive_number_regex

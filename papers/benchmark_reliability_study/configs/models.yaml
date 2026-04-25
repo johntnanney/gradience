@@ -1,0 +1,40 @@
+# Model registry — SPEC_CPU_v0_2 §6.1
+# v1.1-LOCKED at 2026-04-24. HF revisions pinned to repository SHAs at lock time.
+models:
+  - model_id: pythia_410m
+    hf_name: EleutherAI/pythia-410m
+    hf_revision: 9879c9b5f8bea9051dcb0e68dff21493d67e9d4f
+    model_family: pythia
+    model_type: base
+    parameter_count_b: 0.41
+    primary: true
+    optional_extension: false
+
+  - model_id: pythia_1_4b
+    hf_name: EleutherAI/pythia-1.4b
+    hf_revision: fedc38a16eea3bd36a96b906d78d11d2ce18ed79
+    model_family: pythia
+    model_type: base
+    parameter_count_b: 1.4
+    primary: true
+    optional_extension: false
+
+  - model_id: qwen2_5_1_5b_instruct
+    hf_name: Qwen/Qwen2.5-1.5B-Instruct
+    hf_revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+    model_family: qwen2_5
+    model_type: instruct
+    parameter_count_b: 1.5
+    primary: true
+    optional_extension: false
+
+  # Optional 7B extension — disabled by default; activate via
+  # study_config.yaml: extension_7b_enabled: true.
+  - model_id: mistral_7b_v0_3
+    hf_name: mistralai/Mistral-7B-v0.3
+    hf_revision: TODO_LOCK_AT_EXTENSION_TIME
+    model_family: mistral
+    model_type: base
+    parameter_count_b: 7.0
+    primary: false
+    optional_extension: true

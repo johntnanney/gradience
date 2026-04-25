@@ -1,0 +1,6 @@
+{
+  "h4_confirmed": true,
+  "h4_hypothesis": "MMLU model x subject interaction proportion > 0.10 of total variance",
+  "model_x_subject_proportion": 0.18,
+  "threshold": 0.1
+}

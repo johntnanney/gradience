@@ -1,0 +1,10 @@
+scoring_rules:
+  - scoring_rule_id: ll_norm
+    display_name: Length-Normalized Log-Likelihood
+    applies_to_task_types: [constrained_choice]
+    normalization: length_normalized
+    selection_rule: argmax
+  - scoring_rule_id: generate_parse
+    display_name: Generate and Regex-Parse
+    applies_to_task_types: [constrained_choice]
+    parse_strategy: benchmark_specific_regex

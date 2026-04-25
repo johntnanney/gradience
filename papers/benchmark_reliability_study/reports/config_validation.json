@@ -1,0 +1,13 @@
+{
+  "config_hash": "65fdd1c2",
+  "config_hash_full": "65fdd1c29d63a78b85c128d56888240967c1b7cf5274cedf8bfc01cc7a0242d9",
+  "config_path": "configs/study_config.yaml",
+  "primary_benchmark_count": 5,
+  "primary_model_count": 3,
+  "timestamp": "2026-04-25T12:17:25.464988+00:00",
+  "total_nominal_conditions": 600,
+  "total_prompts": 24,
+  "validation_errors": [],
+  "validation_status": "pass",
+  "validation_warnings": []
+}

@@ -1,0 +1,76 @@
+benchmarks:
+  - benchmark_id: test_bench_1
+    display_name: Test Benchmark 1
+    tier: primary
+    hf_dataset: test/bench1
+    hf_config: null
+    dataset_version_hash: hash1
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: test
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answer
+    expected_num_items: 10
+  - benchmark_id: test_bench_2
+    display_name: Test Benchmark 2
+    tier: primary
+    hf_dataset: test/bench2
+    hf_config: null
+    dataset_version_hash: hash2
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answer
+    expected_num_items: 10
+  - benchmark_id: test_bench_3
+    display_name: Test Benchmark 3
+    tier: primary
+    hf_dataset: test/bench3
+    hf_config: null
+    dataset_version_hash: hash3
+    task_type: constrained_choice
+    fewshot_k: 0
+    seed_facet: false
+    fewshot_source_split: null
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answer
+    expected_num_items: 10
+  - benchmark_id: test_bench_4
+    display_name: Test Benchmark 4
+    tier: primary
+    hf_dataset: test/bench4
+    hf_config: null
+    dataset_version_hash: hash4
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answer
+    expected_num_items: 10
+  - benchmark_id: test_bench_5
+    display_name: Test Benchmark 5
+    tier: primary
+    hf_dataset: test/bench5
+    hf_config: null
+    dataset_version_hash: hash5
+    task_type: constrained_choice
+    fewshot_k: 5
+    seed_facet: true
+    fewshot_source_split: train
+    eval_split: validation
+    scoring_rules: [ll_norm, generate_parse]
+    item_id_field: id
+    answer_field: answer
+    expected_num_items: 10

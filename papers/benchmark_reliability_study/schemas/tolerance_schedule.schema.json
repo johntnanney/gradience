@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gradience.local/schemas/tolerance_schedule.schema.json",
+  "title": "Tolerance Schedule Row",
+  "description": "One row of analysis/tolerance_schedules/tolerance_by_cell.csv. See SPEC_CPU_v0_2.md §8.8.",
+  "type": "object",
+  "required": [
+    "benchmark_id",
+    "model_id",
+    "scoring_rule_id",
+    "sem_single",
+    "tolerance_single",
+    "tolerance_single_ci_lower",
+    "tolerance_single_ci_upper",
+    "licensed_precision_single",
+    "licensed_precision_full_design"
+  ],
+  "properties": {
+    "benchmark_id":                         {"type": "string"},
+    "model_id":                             {"type": "string"},
+    "scoring_rule_id":                      {"type": "string"},
+    "sem_single":                           {"type": "number", "minimum": 0},
+    "tolerance_single":                     {"type": "number", "minimum": 0},
+    "tolerance_single_ci_lower":            {"type": "number", "minimum": 0},
+    "tolerance_single_ci_upper":            {"type": "number", "minimum": 0},
+    "sem_within_rule":                      {"type": "number", "minimum": 0},
+    "tolerance_within_rule":                {"type": "number", "minimum": 0},
+    "tolerance_within_rule_ci_lower":       {"type": "number", "minimum": 0},
+    "tolerance_within_rule_ci_upper":       {"type": "number", "minimum": 0},
+    "sem_prompt_avg":                       {"type": "number", "minimum": 0},
+    "tolerance_prompt_avg":                 {"type": "number", "minimum": 0},
+    "tolerance_prompt_avg_ci_lower":        {"type": "number", "minimum": 0},
+    "tolerance_prompt_avg_ci_upper":        {"type": "number", "minimum": 0},
+    "sem_full_design":                      {"type": "number", "minimum": 0},
+    "tolerance_full_design":                {"type": "number", "minimum": 0},
+    "tolerance_full_design_ci_lower":       {"type": "number", "minimum": 0},
+    "tolerance_full_design_ci_upper":       {"type": "number", "minimum": 0},
+    "licensed_precision_single":            {
+      "type": "string",
+      "enum": ["three_decimal_accuracy", "two_decimal_accuracy", "interval_required"]
+    },
+    "licensed_precision_full_design":       {
+      "type": "string",
+      "enum": ["three_decimal_accuracy", "two_decimal_accuracy", "interval_required"]
+    }
+  },
+  "additionalProperties": false
+}

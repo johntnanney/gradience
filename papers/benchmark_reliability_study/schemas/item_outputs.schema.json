@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gradience.local/schemas/item_outputs.schema.json",
+  "title": "Item Outputs (Generate-and-Parse)",
+  "description": "One JSON object per item per line. G&P scoring rules only. See SPEC_CPU_v0_2.md §5.3.",
+  "type": "object",
+  "required": [
+    "condition_id",
+    "item_id",
+    "prompt_text_hash",
+    "rendered_prompt_hash",
+    "gold_answer",
+    "raw_generation",
+    "parse_status",
+    "is_correct",
+    "scoring_rule_id",
+    "generation_params"
+  ],
+  "properties": {
+    "condition_id":         {"type": "string"},
+    "item_id":              {"type": "string"},
+    "subject_id":           {"type": ["string", "null"]},
+    "prompt_text_hash":     {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "rendered_prompt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "gold_answer":          {"type": "string"},
+    "raw_generation":       {"type": "string"},
+    "parsed_answer":        {"type": ["string", "null"]},
+    "parse_status":         {
+      "type": "string",
+      "enum": ["parsed", "unparseable", "empty", "multiple_answers", "invalid_choice", "runtime_error"]
+    },
+    "is_correct":           {"type": "boolean"},
+    "scoring_rule_id":      {"type": "string"},
+    "generation_params":    {
+      "type": "object",
+      "required": ["decoding", "temperature", "max_new_tokens"],
+      "properties": {
+        "decoding":       {"type": "string", "enum": ["greedy", "sampling"]},
+        "temperature":    {"type": "number", "minimum": 0},
+        "max_new_tokens": {"type": "integer", "minimum": 1}
+      }
+    }
+  },
+  "additionalProperties": false
+}

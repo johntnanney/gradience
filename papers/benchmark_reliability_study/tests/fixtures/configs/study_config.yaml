@@ -1,0 +1,20 @@
+study_id: test_study
+prereg_version: v1_test
+tier_primary_enabled: true
+tier_secondary_enabled: false
+extension_7b_enabled: false
+paths:
+  configs_dir: configs/
+  manifests_dir: manifests/
+  prompts_dir: prompts/
+  runs_raw_dir: runs/raw/
+  runs_normalized_dir: runs/normalized/
+  analysis_dir: analysis/
+  reports_dir: reports/
+  schemas_dir: schemas/
+includes:
+  - configs/models.yaml
+  - configs/benchmarks.yaml
+  - configs/prompts.yaml
+  - configs/scoring_rules.yaml
+  - configs/analysis_config.yaml

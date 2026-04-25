@@ -1,0 +1,316 @@
+prompts:
+- benchmark_id: arc_challenge
+  prompt_id: P1_original
+  prompt_path: prompts/arc_challenge/P1_original.txt
+  content_hash: 98b305828f24a9545318654881cb41812f18652c628dc3093b59c3675402ffdb
+  source_type: benchmark_authors
+  source_url_or_ref: https://github.com/allenai/ai2_arc
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Clark et al. (2018) do not specify a single canonical natural-language template; the ARC repo distributes data only. We follow the standard ''Question:/Answer:'' QA framing used by the ARC paper''s reported evaluation runs and by the original ARC Solver baselines, with explicit lettered choice block (A/B/C/D) for LL/G&P compatibility. Template byte-identical to: arc_challenge/P2_lm_eval.'
+- benchmark_id: arc_challenge
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/arc_challenge/P2_lm_eval.txt
+  content_hash: 98b305828f24a9545318654881cb41812f18652c628dc3093b59c3675402ffdb
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/arc/arc_easy.yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'arc_challenge.yaml inherits doc_to_text from arc_easy.yaml. Native template is ''Question: {{question}}\nAnswer:'' and the harness scores choices via per-letter loglikelihood without rendering choices in the prompt. We add the lettered choice block to satisfy LL/G&P compatibility (study convention; documented divergence from the harness''s native rendering). Template byte-identical to: arc_challenge/P1_original.'
+- benchmark_id: arc_challenge
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/arc_challenge/P3_helm_or_published.txt
+  content_hash: aef2d4b31cd18a4dc4298883e4f977b35315149de6da101a7513dfe4001d07cd
+  source_type: helm_reference
+  source_url_or_ref: "https://github.com/stanford-crfm/helm \u2014 published variant: Brown et al. (2020) GPT-3 evaluation, ARC adapter spec"
+  source_commit: 11937097bd9534e538eaaa31b21197086fc1a113
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'HELM does not provide an English-ARC scenario as a stock module (scenarios/ contains arabic_mmlu but no ai2_arc scenario). We adopt HELM''s standard MCQ adapter pattern (instructions preamble + Question:/Answer: framing from common_adapter_specs.get_multiple_choice_joint_adapter_spec) parameterised for ARC, consistent with the published GPT-3 ARC evaluation prompt (Brown et al., 2020, App. G.1). answer_instruction renders to ''The following are multiple choice questions (with answers).\n\n''. Template byte-identical to: hellaswag/P3_helm_or_published, truthfulqa_mc/P3_helm_or_published.'
+- benchmark_id: arc_challenge
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/arc_challenge/P4_minimal_sourced.txt
+  content_hash: fa10b662a1c24049f89c707af4751b0ee6f67e77bea1437e968b6680e198246e
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#arc_challenge
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Author-minimal: stem + lettered choice block + ''Answer:'' suffix. Strips ''Question:'' prefix and HELM-style preamble; preserves task semantics, answer space, and few-shot infrastructure. Template byte-identical to: hellaswag/P4_minimal_sourced, mmlu_panel/P4_minimal_sourced, truthfulqa_mc/P4_minimal_sourced, winogrande/P4_minimal_sourced.'
+- benchmark_id: hellaswag
+  prompt_id: P1_original
+  prompt_path: prompts/hellaswag/P1_original.txt
+  content_hash: 9ecfeca2138ac17e2e0c0e4f302832733dc06cdda768a7c0ba825ae93120ce24
+  source_type: benchmark_authors
+  source_url_or_ref: "https://github.com/rowanz/hellaswag \u2014 Zellers et al. (2019) HellaSwag paper"
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Zellers et al. (2019) define the prompt as the activity_label prepended to the concatenated context (ctx_a + capitalised ctx_b), with continuation candidates as the four endings. We render activity-label-plus-context into {{question}} (matching the harness''s preprocess) and the four lettered endings into {{choices}}. Template byte-identical to: hellaswag/P2_lm_eval, mmlu_panel/P2_lm_eval.'
+- benchmark_id: hellaswag
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/hellaswag/P2_lm_eval.txt
+  content_hash: 9ecfeca2138ac17e2e0c0e4f302832733dc06cdda768a7c0ba825ae93120ce24
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/hellaswag/hellaswag.yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Native doc_to_text is just ''{{query}}'', where utils.process_docs constructs query as activity_label + '': '' + ctx_a + '' '' + ctx_b.capitalize(). The harness scores by per-ending continuation loglikelihood and never renders the choices into the prompt. We add the lettered choice block to satisfy LL/G&P compatibility (study convention; documented divergence from the harness''s native continuation-style rendering). Template byte-identical to: hellaswag/P1_original, mmlu_panel/P2_lm_eval.'
+- benchmark_id: hellaswag
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/hellaswag/P3_helm_or_published.txt
+  content_hash: aef2d4b31cd18a4dc4298883e4f977b35315149de6da101a7513dfe4001d07cd
+  source_type: helm_reference
+  source_url_or_ref: "https://github.com/stanford-crfm/helm/blob/main/src/helm/benchmark/scenarios/commonsense_scenario.py \u2014 HellaSwagScenario; adapter via lite_run_specs.get_commonsense_spec"
+  source_commit: 11937097bd9534e538eaaa31b21197086fc1a113
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'HELM uses get_multiple_choice_adapter_spec(instructions=''The following are multiple choice questions (with answers) about common sense.'', input_noun=''Question'', output_noun=''Answer''). answer_instruction renders to that preamble plus a trailing newline; question is the activity-label-plus-context string from HellaSwagScenario.json_to_instance. Template byte-identical to: arc_challenge/P3_helm_or_published, truthfulqa_mc/P3_helm_or_published.'
+- benchmark_id: hellaswag
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/hellaswag/P4_minimal_sourced.txt
+  content_hash: fa10b662a1c24049f89c707af4751b0ee6f67e77bea1437e968b6680e198246e
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#hellaswag
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Author-minimal: stem (activity-label-plus-context) + lettered choices + ''Answer:'' suffix. Strips HELM preamble and ''Question:'' decoration; preserves four-way continuation-as-MCQ task semantics. Template byte-identical to: arc_challenge/P4_minimal_sourced, mmlu_panel/P4_minimal_sourced, truthfulqa_mc/P4_minimal_sourced, winogrande/P4_minimal_sourced.'
+- benchmark_id: truthfulqa_mc
+  prompt_id: P1_original
+  prompt_path: prompts/truthfulqa_mc/P1_original.txt
+  content_hash: 17cf7835266b6fbb3d84feccb9fd233e8d86f8ed16fbe927275a49753bba6785
+  source_type: benchmark_authors
+  source_url_or_ref: "https://github.com/sylinrl/TruthfulQA \u2014 Lin et al. (2022) TruthfulQA paper"
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: "Lin et al. (2022) \xA73 specify the QA format with 'Q:' / 'A:' markers and a six-shot QA prompt of the same shape (their 'QA' prompt; see paper \xA73.1 and the TruthfulQA repo's prompts/QA-prompt.txt). For MC1/MC2 evaluation the MC1/MC2 candidate set is appended as the choice block; we keep the same 'Q:'/'A:' framing."
+- benchmark_id: truthfulqa_mc
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/truthfulqa_mc/P2_lm_eval.txt
+  content_hash: a0a2c7c8d6deb70ffdabdb575a7d40a3fd0a17e1146813b149262daa9467c7ea
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/truthfulqa/truthfulqa_mc1.yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: Inlines the harness's six-shot prompt_qa preamble verbatim (the lm-eval default for TruthfulQA-MC1). The harness scores each MC choice by continuation loglikelihood and does not render choices into the prompt; we append the lettered choice block to satisfy LL/G&P compatibility (study convention; documented divergence).
+- benchmark_id: truthfulqa_mc
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/truthfulqa_mc/P3_helm_or_published.txt
+  content_hash: aef2d4b31cd18a4dc4298883e4f977b35315149de6da101a7513dfe4001d07cd
+  source_type: helm_reference
+  source_url_or_ref: "https://github.com/stanford-crfm/helm/blob/main/src/helm/benchmark/run_specs/classic_run_specs.py \u2014 get_truthful_qa_spec"
+  source_commit: 11937097bd9534e538eaaa31b21197086fc1a113
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: "HELM's get_truthful_qa_spec uses get_multiple_choice_adapter_spec with instructions='' and input_noun='Question', output_noun='Answer'. Because the HELM adapter passes instructions through format_instructions (returns empty when len==0), answer_instruction is rendered as the empty string for this benchmark; the only fixed scaffolding is 'Question: \u2026\\nAnswer:'. Template byte-identical to: arc_challenge/P3_helm_or_published, hellaswag/P3_helm_or_published."
+- benchmark_id: truthfulqa_mc
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/truthfulqa_mc/P4_minimal_sourced.txt
+  content_hash: fa10b662a1c24049f89c707af4751b0ee6f67e77bea1437e968b6680e198246e
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#truthfulqa_mc
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Author-minimal: bare question + lettered choice block + ''Answer:''. Strips the six-shot preamble and ''Q:''/''A:'' decoration; preserves the MC1/MC2 question + candidate-set task semantics. Template byte-identical to: arc_challenge/P4_minimal_sourced, hellaswag/P4_minimal_sourced, mmlu_panel/P4_minimal_sourced, winogrande/P4_minimal_sourced.'
+- benchmark_id: mmlu_panel
+  prompt_id: P1_original
+  prompt_path: prompts/mmlu_panel/P1_original.txt
+  content_hash: 4ef4708254cc6d34115327277f742c738ce241de6e5c8269b2d03881b50f02f5
+  source_type: benchmark_authors
+  source_url_or_ref: https://github.com/hendrycks/test/blob/master/evaluate.py
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: Hendrycks et al. (2021) define format_example() and gen_prompt() in evaluate.py. The canonical preamble is 'The following are multiple choice questions (with answers) about <subject>.\n\n' followed by k-shot examples and the test item. answer_instruction here renders the per-subject string '<subject_with_underscores_replaced>' (the literal word 'about' is in the template; the placeholder fills only the subject phrase).
+- benchmark_id: mmlu_panel
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/mmlu_panel/P2_lm_eval.txt
+  content_hash: 9ecfeca2138ac17e2e0c0e4f302832733dc06cdda768a7c0ba825ae93120ce24
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/mmlu/default/_default_template_yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Native doc_to_text is ''{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:''. Choices are rendered inline (LL/G&P compatible by default). The harness''s MMLU default omits the Hendrycks subject preamble; we follow the harness''s stripped form here so this prompt is faithfully the harness default. Template byte-identical to: hellaswag/P1_original, hellaswag/P2_lm_eval.'
+- benchmark_id: mmlu_panel
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/mmlu_panel/P3_helm_or_published.txt
+  content_hash: 4c742d1e37f272f95148548208e425750cdc90dd87d531051f001a46e793a4c8
+  source_type: helm_reference
+  source_url_or_ref: "https://github.com/stanford-crfm/helm/blob/main/src/helm/benchmark/run_specs/lite_run_specs.py \u2014 get_mmlu_spec"
+  source_commit: 11937097bd9534e538eaaa31b21197086fc1a113
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: HELM's get_mmlu_spec uses get_multiple_choice_adapter_spec with instructions='The following are multiple choice questions (with answers) about <subject>.' (subject from RunSpec arg). answer_instruction renders that subject-aware preamble; input_noun='Question', output_noun='Answer'.
+- benchmark_id: mmlu_panel
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/mmlu_panel/P4_minimal_sourced.txt
+  content_hash: fa10b662a1c24049f89c707af4751b0ee6f67e77bea1437e968b6680e198246e
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#mmlu_panel
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Author-minimal: bare question + four-way lettered choices + ''Answer:''. Strips the subject-aware preamble and ''Question:'' framing; preserves the four-way MCQ task semantics. Identical structurally to the other minimal prompts. Template byte-identical to: arc_challenge/P4_minimal_sourced, hellaswag/P4_minimal_sourced, truthfulqa_mc/P4_minimal_sourced, winogrande/P4_minimal_sourced.'
+- benchmark_id: winogrande
+  prompt_id: P1_original
+  prompt_path: prompts/winogrande/P1_original.txt
+  content_hash: cd2e4f014e2d9153dfafdac960e3b34a442e54c8a4cc60b5cc7bb3628fc70a43
+  source_type: benchmark_authors
+  source_url_or_ref: "https://github.com/allenai/winogrande \u2014 Sakaguchi et al. (2020) Winogrande paper"
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Sakaguchi et al. (2020) define the task as fill-in-the-blank: a sentence containing a literal ''_'' token plus two candidate fillers (option1, option2). The paper''s reported evaluation does not specify a single natural-language wrapper; we adopt the ''Sentence:'' framing used by the AllenAI public-leaderboard description and supply the two options as a lettered A/B choice block for LL/G&P compatibility. The blank ''_'' is preserved in {{question}}. Template byte-identical to: winogrande/P2_lm_eval.'
+- benchmark_id: winogrande
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/winogrande/P2_lm_eval.txt
+  content_hash: cd2e4f014e2d9153dfafdac960e3b34a442e54c8a4cc60b5cc7bb3628fc70a43
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/winogrande/default.yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: "Native doc_to_text is a python function (preprocess_winogrande.doc_to_text) that returns an integer index \u2014 no string template. The harness scores by likelihood of two completions (sentence-prefix-up-to-blank + option1 vs option2) and never renders an English template. To keep the LL/G&P-compatible study format consistent, we introduce a 'Sentence:' wrapper around the original sentence (with the '_' blank preserved) and an A/B lettered option block. This is a substantial divergence from the harness's native scoring; documented here. Template byte-identical to: winogrande/P1_original."
+- benchmark_id: winogrande
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/winogrande/P3_helm_or_published.txt
+  content_hash: ec7c79e3ae46aaa4e81df89c49a824bb6f384c1e77d18b55a4c72d1767429920
+  source_type: published_variant
+  source_url_or_ref: "Brown et al. (2020) GPT-3, App. G.7 \u2014 Winogrande prompt format"
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  - choices
+  notes: HELM does not ship an English Winogrande scenario (scenarios/ contains only winogrande_afr_scenario.py for Afrikaans). We use the GPT-3 paper's published Winogrande prompt (Brown et al. 2020, App. G.7), which presents the sentence with the blank rendered explicitly and the two options enumerated. answer_instruction renders to 'The following are sentence completion problems.\n\n' (a HELM-style preamble matching the published variant).
+- benchmark_id: winogrande
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/winogrande/P4_minimal_sourced.txt
+  content_hash: fa10b662a1c24049f89c707af4751b0ee6f67e77bea1437e968b6680e198246e
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#winogrande
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  - choices
+  notes: 'Author-minimal: bare sentence (with ''_'' blank) + A/B option block + ''Answer:''. Strips ''Sentence:'' framing and any HELM-style preamble; preserves the two-way fill-in-the-blank task semantics. Template byte-identical to: arc_challenge/P4_minimal_sourced, hellaswag/P4_minimal_sourced, mmlu_panel/P4_minimal_sourced, truthfulqa_mc/P4_minimal_sourced.'
+- benchmark_id: gsm8k
+  prompt_id: P1_original
+  prompt_path: prompts/gsm8k/P1_original.txt
+  content_hash: a6b3a7eedc3695fe499915d44914fac0793c83f6de84769cc82924a72415518a
+  source_type: benchmark_authors
+  source_url_or_ref: "https://github.com/openai/grade-school-math \u2014 Cobbe et al. (2021) GSM8K paper"
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  notes: "Cobbe et al. (2021) finetune on raw 'question'/'answer' pairs (see grade_school_math/dataset.py: get_examples appends '\\n' to question and '<|endoftext|>' to answer). For few-shot prompting they use the canonical 'Question: \u2026\\nAnswer:' framing with the 8-shot CoT prompt from Wei et al. (2022). We adopt the 'Question:'/'Answer:' framing; few-shot exemplars are rendered into {{fewshot_examples}}. No {{choices}} placeholder (open generation). Template byte-identical to: gsm8k/P2_lm_eval."
+- benchmark_id: gsm8k
+  prompt_id: P2_lm_eval
+  prompt_path: prompts/gsm8k/P2_lm_eval.txt
+  content_hash: a6b3a7eedc3695fe499915d44914fac0793c83f6de84769cc82924a72415518a
+  source_type: lm_eval_harness
+  source_url_or_ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k.yaml
+  source_commit: c1c4bea3777f73e188395264083adcf454913344
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  notes: 'Native doc_to_text is ''Question: {{question}}\nAnswer:''. Open generation, num_fewshot=5 default, generate_until with stop sequences [''Question:'', ''</s>'', ''<|im_end|>'']. Faithful rendering. Template byte-identical to: gsm8k/P1_original.'
+- benchmark_id: gsm8k
+  prompt_id: P3_helm_or_published
+  prompt_path: prompts/gsm8k/P3_helm_or_published.txt
+  content_hash: f2c7aed46e22e9ffb83c13b929adc4edd5069bfcf68b6eb19bfcab632840e3a5
+  source_type: helm_reference
+  source_url_or_ref: "https://github.com/stanford-crfm/helm/blob/main/src/helm/benchmark/run_specs/lite_run_specs.py \u2014 get_gsm_spec; HELM scenarios/gsm_scenario.py"
+  source_commit: 11937097bd9534e538eaaa31b21197086fc1a113
+  admissibility_status: locked
+  placeholders_used:
+  - answer_instruction
+  - fewshot_examples
+  - question
+  notes: HELM's get_gsm_spec uses get_generation_adapter_spec(input_noun='Q', output_noun='A', max_train_instances=5, max_tokens=400, stop_sequences=['\n\n']). Note HELM uses 'Q:' and 'A:' (single-letter), distinct from the harness's 'Question:'/'Answer:'. answer_instruction is empty by default in HELM's GSM adapter (instructions=''); we keep the placeholder in the template so the empty/non-empty preamble can be swapped without editing the prompt file.
+- benchmark_id: gsm8k
+  prompt_id: P4_minimal_sourced
+  prompt_path: prompts/gsm8k/P4_minimal_sourced.txt
+  content_hash: 9c57477fd51cd9cfa919d969bd4fe994fb086b7079cd312fc0e95b9f2d355410
+  source_type: author_minimal_declared
+  source_url_or_ref: preregistration/appendices/admissibility_sources_LOCKED.md#gsm8k
+  source_commit: null
+  admissibility_status: locked
+  placeholders_used:
+  - fewshot_examples
+  - question
+  notes: 'Author-minimal: bare problem stem + ''Answer:'' suffix. Strips ''Question:''/''Q:'' framing; preserves the open-generation task semantics. {{fewshot_examples}} retained per the convention that minimal means stripped of decoration, not stripped of few-shot infrastructure.'

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gradience.local/schemas/item_scores.schema.json",
+  "title": "Item Scores (Log-Likelihood)",
+  "description": "One JSON object per item per line. LL scoring rules only. See SPEC_CPU_v0_2.md §5.4.",
+  "type": "object",
+  "required": [
+    "condition_id",
+    "item_id",
+    "prompt_text_hash",
+    "rendered_prompt_hash",
+    "gold_answer",
+    "choices",
+    "choice_scores",
+    "choice_token_counts",
+    "normalization",
+    "selected_answer",
+    "is_correct",
+    "scoring_rule_id"
+  ],
+  "properties": {
+    "condition_id":         {"type": "string"},
+    "item_id":              {"type": "string"},
+    "subject_id":           {"type": ["string", "null"]},
+    "prompt_text_hash":     {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "rendered_prompt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "gold_answer":          {"type": "string"},
+    "choices":              {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 2
+    },
+    "choice_scores":        {
+      "type": "object",
+      "additionalProperties": {"type": "number"},
+      "minProperties": 2
+    },
+    "choice_token_counts":  {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 1},
+      "minProperties": 2
+    },
+    "normalization":        {"type": "string", "enum": ["length_normalized", "sum"]},
+    "selected_answer":      {"type": "string"},
+    "is_correct":           {"type": "boolean"},
+    "scoring_rule_id":      {"type": "string"}
+  },
+  "additionalProperties": false
+}
