@@ -1,0 +1,229 @@
+{
+  "config_hash": "89ce3f1f",
+  "draw_algorithm_description": "uniform random choice without replacement via numpy.random.default_rng(seed)",
+  "draw_script_version": "0.1.0",
+  "draws": {
+    "arc_challenge": {
+      "null": {
+        "123": [
+          "train:Mercury_7228165",
+          "train:MSA_2013_5_33",
+          "train:ACTAAP_2012_7_5",
+          "train:Mercury_SC_414080",
+          "train:Mercury_404903"
+        ],
+        "2024": [
+          "train:Mercury_415546",
+          "train:Mercury_7210000",
+          "train:Mercury_7230300",
+          "train:AKDE&ED_2008_8_9",
+          "train:Mercury_7086293"
+        ],
+        "42": [
+          "train:Mercury_7230195",
+          "train:Mercury_SC_408368",
+          "train:NYSEDREGENTS_2004_4_3",
+          "train:Mercury_SC_405927",
+          "train:ACTAAP_2010_7_1"
+        ]
+      }
+    },
+    "gsm8k": {
+      "null": {
+        "123": [
+          "train:A new movie gets released and makes $120 million in the box office for its opening weekend.  It ends up making 3.5 times that much during its entire run.  If the production company gets to keep 60%, how much profit did they make if the movie cost $60 million to produce?",
+          "train:Ivy drinks 2.5 liters of water each day. How many bottles of 2-liter water should Ivy buy for her 4 days consumption?",
+          "train:There are some jelly beans in a jar. Three fourths of the jelly beans are red, and one quarter of the red jelly beans are coconut flavored. If 750 jelly beans are coconut flavored, how many jelly beans are there in the jar?",
+          "train:There are 7 trucks that have 20 boxes. There are 5 trucks that have 12 boxes. Each box holds 8 containers of oil. If all of the oil is evenly redistributed onto 10 trucks, how many containers of oil will each truck have?",
+          "train:Joan collects rocks. In her collection of rock samples, she had half as many gemstones as minerals yesterday. Today, she went on a rock collecting trip and found 6 more mineral samples. If she has 48 minerals now, how many gemstone samples does she have?"
+        ],
+        "2024": [
+          "train:There are 90 students who have lunch during period 5. Today, two-thirds of the students sat in the cafeteria, while the remainder sat at the covered picnic tables outside. But some yellow-jackets were attracted to their food, and so one-third of the students outside jumped up and ran inside to the cafeteria, while 3 of the students in the cafeteria went outside to see what all the fuss was about. How many students are now in the cafeteria?",
+          "train:There are 60 passengers on a bus. Children make up 25% of the bus riders. How many adults are on the bus?",
+          "train:Trevor needs to go downtown for a restaurant date. An Uber ride downtown costs $3 more than a Lyft ride. A Lyft ride costs $4 more than a taxi ride. The Uber ride costs $22. If Trevor takes a taxi downtown and tips the taxi driver 20% of the original cost of the ride, what is the total cost of the ride downtown?",
+          "train:The number of short students in a class is 2/5 of the total number of students. If there are 90 tall students, and the class has 400 students, calculate the total number of students with average height.",
+          "train:Jessie won 3 times as many athletic awards as his buddy Scott, who won 4 awards.  The best athlete at the rival high school won twice as many awards as Jessie.  How many awards did the rival win?"
+        ],
+        "42": [
+          "train:Candice buys all the bread she and her family needs for the week from a local bakery.  She needs 2 loaves of white bread for sandwiches that cost $3.50 each.  She also needs a baguette that costs $1.50 and 2 loaves of sourdough bread that cost $4.50 each.  She also treats herself to a $2.00 almond croissant each visit.  How much does Candice spend at the bakery over 4 weeks?",
+          "train:Four kids can wash three whiteboards in 20 minutes. How long would it take, in minutes, for one kid to wash six whiteboards?",
+          "train:Before Marcus went on a road trip to LA, his car had 1728 miles on it. He filled his empty gas tank twice and used up all the gas on the trip. If Marcus's car gets 30 miles per gallon and holds 20 gallons of gas, how many miles does Marcus' car have on it now?",
+          "train:Jackson has 5 times more money than Williams. Together, they have $150. How much money, in dollars, does Jackson have?",
+          "train:Jerry has an interesting novel he borrowed from a friend to read over the weekend. The book has 93 pages. On Saturday, he reads 30 pages. On Sunday, he goes to church and comes back, sits down, and reads 20 pages of the book. How many pages are remaining before Jerry can finish the book?"
+        ]
+      }
+    },
+    "hellaswag": {
+      "null": {
+        "123": [
+          "train:6981",
+          "train:18180",
+          "train:1982",
+          "train:43456",
+          "train:25247"
+        ],
+        "2024": [
+          "train:33654",
+          "train:43658",
+          "train:12437",
+          "train:30194",
+          "train:24740"
+        ],
+        "42": [
+          "train:32627",
+          "train:5693",
+          "train:23064",
+          "train:11981",
+          "train:5232"
+        ]
+      }
+    },
+    "mmlu_panel": {
+      "elementary_mathematics": {
+        "123": [
+          "dev:Olivia used the rule \"Add 11\" to create the number pattern shown below. 10, 21, 32, 43, 54 Which statement about the number pattern is true?",
+          "dev:A total of 30 players will play basketball at a park. There will be exactly 5 players on each team. Which statement correctly explains how to find the number of teams needed?",
+          "dev:A store sells 107 different colors of paint. They have 25 cans of each color in storage. The number of cans of paint the store has in storage can be found using the expression below. 107 \u00d7 25. How many cans of paint does the store have in storage?",
+          "dev:The population of the city where Michelle was born is 145,826. What is the value of the 5 in the number 145,826?",
+          "dev:Which expression is equivalent to 5 x 9?"
+        ],
+        "2024": [
+          "dev:The population of the city where Michelle was born is 145,826. What is the value of the 5 in the number 145,826?",
+          "dev:A store sells 107 different colors of paint. They have 25 cans of each color in storage. The number of cans of paint the store has in storage can be found using the expression below. 107 \u00d7 25. How many cans of paint does the store have in storage?",
+          "dev:A total of 30 players will play basketball at a park. There will be exactly 5 players on each team. Which statement correctly explains how to find the number of teams needed?",
+          "dev:Which expression is equivalent to 5 x 9?",
+          "dev:Olivia used the rule \"Add 11\" to create the number pattern shown below. 10, 21, 32, 43, 54 Which statement about the number pattern is true?"
+        ],
+        "42": [
+          "dev:Which expression is equivalent to 5 x 9?",
+          "dev:Olivia used the rule \"Add 11\" to create the number pattern shown below. 10, 21, 32, 43, 54 Which statement about the number pattern is true?",
+          "dev:The population of the city where Michelle was born is 145,826. What is the value of the 5 in the number 145,826?",
+          "dev:A store sells 107 different colors of paint. They have 25 cans of each color in storage. The number of cans of paint the store has in storage can be found using the expression below. 107 \u00d7 25. How many cans of paint does the store have in storage?",
+          "dev:A total of 30 players will play basketball at a park. There will be exactly 5 players on each team. Which statement correctly explains how to find the number of teams needed?"
+        ]
+      },
+      "global_facts": {
+        "123": [
+          "dev:As of 2019, about what percentage of Americans agree that the state is run for the benefit of all the people?",
+          "dev:As of 2015, since 1990 forests have ____ in Europe and have ____ in Africa and the Americas.",
+          "dev:As of 2019, about what percentage of Russians say it is very important to have free media in our country without government/state censorship?",
+          "dev:Which of the following pairs of statements are both true (as of 2019)?",
+          "dev:As of 2017, how many of the world\u2019s 1-year-old children today have been vaccinated against some disease? *"
+        ],
+        "2024": [
+          "dev:Which of the following pairs of statements are both true (as of 2019)?",
+          "dev:As of 2019, about what percentage of Russians say it is very important to have free media in our country without government/state censorship?",
+          "dev:As of 2015, since 1990 forests have ____ in Europe and have ____ in Africa and the Americas.",
+          "dev:As of 2017, how many of the world\u2019s 1-year-old children today have been vaccinated against some disease? *",
+          "dev:As of 2019, about what percentage of Americans agree that the state is run for the benefit of all the people?"
+        ],
+        "42": [
+          "dev:As of 2017, how many of the world\u2019s 1-year-old children today have been vaccinated against some disease? *",
+          "dev:As of 2019, about what percentage of Americans agree that the state is run for the benefit of all the people?",
+          "dev:Which of the following pairs of statements are both true (as of 2019)?",
+          "dev:As of 2019, about what percentage of Russians say it is very important to have free media in our country without government/state censorship?",
+          "dev:As of 2015, since 1990 forests have ____ in Europe and have ____ in Africa and the Americas."
+        ]
+      },
+      "high_school_psychology": {
+        "123": [
+          "dev:According to Caplan's model of consultee-centered case consultation, the consultant is primarily interested in",
+          "dev:While swimming in the ocean, Ivan is frightened by a dark shadow in the water even before he has the chance to identify what the shadow is. The synaptic connections taking place during this incident of fright are best described by which of the following?",
+          "dev:According to the Individuals with Disabilities Education Improvement Act, which of the following must an educational agency do before it changes the educational placement of a student with a disability?",
+          "dev:Ani believes that her attitudes and behavior play a central role in what happens to her. Such a belief is likely to be associated with",
+          "dev:Pascale is interested in the processing strategies children use to learn new information. Pascale would best be classified as what type of psychologist?"
+        ],
+        "2024": [
+          "dev:Ani believes that her attitudes and behavior play a central role in what happens to her. Such a belief is likely to be associated with",
+          "dev:According to the Individuals with Disabilities Education Improvement Act, which of the following must an educational agency do before it changes the educational placement of a student with a disability?",
+          "dev:While swimming in the ocean, Ivan is frightened by a dark shadow in the water even before he has the chance to identify what the shadow is. The synaptic connections taking place during this incident of fright are best described by which of the following?",
+          "dev:Pascale is interested in the processing strategies children use to learn new information. Pascale would best be classified as what type of psychologist?",
+          "dev:According to Caplan's model of consultee-centered case consultation, the consultant is primarily interested in"
+        ],
+        "42": [
+          "dev:Pascale is interested in the processing strategies children use to learn new information. Pascale would best be classified as what type of psychologist?",
+          "dev:According to Caplan's model of consultee-centered case consultation, the consultant is primarily interested in",
+          "dev:Ani believes that her attitudes and behavior play a central role in what happens to her. Such a belief is likely to be associated with",
+          "dev:According to the Individuals with Disabilities Education Improvement Act, which of the following must an educational agency do before it changes the educational placement of a student with a disability?",
+          "dev:While swimming in the ocean, Ivan is frightened by a dark shadow in the water even before he has the chance to identify what the shadow is. The synaptic connections taking place during this incident of fright are best described by which of the following?"
+        ]
+      },
+      "professional_accounting": {
+        "123": [
+          "dev:One hundred years ago, your great-great-grandmother invested $100 at 5% yearly interest. What is the investment worth today?",
+          "dev:Krete is an unmarried taxpayer with income exclusively from wages. By December 31, year 1, Krete's employer has withheld $16,000 in federal income taxes and Krete has made no estimated tax payments. On April 15, year 2, Krete timely filed for an extension request to file her individual tax return, and paid $300 of additional taxes. Krete's year 1 tax liability was $16,500 when she timely filed her return on April 30, year 2, and paid the remaining tax liability balance. What amount would be subject to the penalty for underpayment of estimated taxes?",
+          "dev:On January 1, year 1, Alpha Co. signed an annual maintenance agreement with a software provider for $15,000 and the maintenance period begins on March 1, year 2. Alpha also incurred $5,000 of costs on January 1, year 1, related to software modification requests that will increase the functionality of the software. Alpha depreciates and amortizes its computer and software assets over five years using the straight-line method. What amount is the total expense that Alpha should recognize related to the maintenance agreement and the software modifications for the year ended December 31, year 1?",
+          "dev:Box a nongovernmental not-for-profit organization had the following transactions during the year: Proceeds from sale of investments $80000 Purchase of property plant and equipment $10000 Proceeds from long-term debt $100000 Loss on sale of investment $5000 What amount should be reported as net cash provided by financing activities in Box's statement of cash flows?",
+          "dev:An auditor traces the serial numbers on equipment to a nonissuer\u2019s subledger. Which of the following management assertions is supported by this test?"
+        ],
+        "2024": [
+          "dev:Box a nongovernmental not-for-profit organization had the following transactions during the year: Proceeds from sale of investments $80000 Purchase of property plant and equipment $10000 Proceeds from long-term debt $100000 Loss on sale of investment $5000 What amount should be reported as net cash provided by financing activities in Box's statement of cash flows?",
+          "dev:On January 1, year 1, Alpha Co. signed an annual maintenance agreement with a software provider for $15,000 and the maintenance period begins on March 1, year 2. Alpha also incurred $5,000 of costs on January 1, year 1, related to software modification requests that will increase the functionality of the software. Alpha depreciates and amortizes its computer and software assets over five years using the straight-line method. What amount is the total expense that Alpha should recognize related to the maintenance agreement and the software modifications for the year ended December 31, year 1?",
+          "dev:Krete is an unmarried taxpayer with income exclusively from wages. By December 31, year 1, Krete's employer has withheld $16,000 in federal income taxes and Krete has made no estimated tax payments. On April 15, year 2, Krete timely filed for an extension request to file her individual tax return, and paid $300 of additional taxes. Krete's year 1 tax liability was $16,500 when she timely filed her return on April 30, year 2, and paid the remaining tax liability balance. What amount would be subject to the penalty for underpayment of estimated taxes?",
+          "dev:An auditor traces the serial numbers on equipment to a nonissuer\u2019s subledger. Which of the following management assertions is supported by this test?",
+          "dev:One hundred years ago, your great-great-grandmother invested $100 at 5% yearly interest. What is the investment worth today?"
+        ],
+        "42": [
+          "dev:An auditor traces the serial numbers on equipment to a nonissuer\u2019s subledger. Which of the following management assertions is supported by this test?",
+          "dev:One hundred years ago, your great-great-grandmother invested $100 at 5% yearly interest. What is the investment worth today?",
+          "dev:Box a nongovernmental not-for-profit organization had the following transactions during the year: Proceeds from sale of investments $80000 Purchase of property plant and equipment $10000 Proceeds from long-term debt $100000 Loss on sale of investment $5000 What amount should be reported as net cash provided by financing activities in Box's statement of cash flows?",
+          "dev:On January 1, year 1, Alpha Co. signed an annual maintenance agreement with a software provider for $15,000 and the maintenance period begins on March 1, year 2. Alpha also incurred $5,000 of costs on January 1, year 1, related to software modification requests that will increase the functionality of the software. Alpha depreciates and amortizes its computer and software assets over five years using the straight-line method. What amount is the total expense that Alpha should recognize related to the maintenance agreement and the software modifications for the year ended December 31, year 1?",
+          "dev:Krete is an unmarried taxpayer with income exclusively from wages. By December 31, year 1, Krete's employer has withheld $16,000 in federal income taxes and Krete has made no estimated tax payments. On April 15, year 2, Krete timely filed for an extension request to file her individual tax return, and paid $300 of additional taxes. Krete's year 1 tax liability was $16,500 when she timely filed her return on April 30, year 2, and paid the remaining tax liability balance. What amount would be subject to the penalty for underpayment of estimated taxes?"
+        ]
+      },
+      "world_religions": {
+        "123": [
+          "dev:What is the Second Gem in Buddhism?",
+          "dev: In which dynasty was the \"Mandate of Heaven\" developed to legitimatize the new rulers?",
+          "dev: Which Japanese government promoted a kind of national cult based on the emperor and his associations with kami?",
+          "dev: What is the sign of the covenant for Jewish males?",
+          "dev:How can the Upanishads be characterized?"
+        ],
+        "2024": [
+          "dev: What is the sign of the covenant for Jewish males?",
+          "dev: Which Japanese government promoted a kind of national cult based on the emperor and his associations with kami?",
+          "dev: In which dynasty was the \"Mandate of Heaven\" developed to legitimatize the new rulers?",
+          "dev:How can the Upanishads be characterized?",
+          "dev:What is the Second Gem in Buddhism?"
+        ],
+        "42": [
+          "dev:How can the Upanishads be characterized?",
+          "dev:What is the Second Gem in Buddhism?",
+          "dev: What is the sign of the covenant for Jewish males?",
+          "dev: Which Japanese government promoted a kind of national cult based on the emperor and his associations with kami?",
+          "dev: In which dynasty was the \"Mandate of Heaven\" developed to legitimatize the new rulers?"
+        ]
+      }
+    },
+    "winogrande": {
+      "null": {
+        "123": [
+          "train:Jacob was satisfied with the soda but was unsatisfied with the sherbet because the _ was tasty.",
+          "train:I had to write a speech for class and I was only allowed short time, but my speech was too long. The _ was too short.",
+          "train:Christopher needs Ian's advice on how to create a positive classroom atmosphere, because _ is an experienced teacher.",
+          "train:Cynthia irritates Felicia every single time they open their mouth, because _ is incredibly touchy.",
+          "train:Amy always raised their voice loudly when they were angry but Christine did not because _ had an angry personality."
+        ],
+        "2024": [
+          "train:Felicia liked to take a supplement containing cranberry but Angela did not because _ was very careful of their health.",
+          "train:Jeffreys journal was lost in the fire before Steven could arrive to help put it out.  _ stood there and watched it burn.",
+          "train:Kenneth received most of his knowledge from books that he read unlike Hunter, since _ was unmotivated.",
+          "train:Nelson asked Kyle if he could be his royal painter because _ wants a sponsor.",
+          "train:Emily wanted to buy movie tickets at the booth but Lindsey wanted to buy them online, because _ was a techie."
+        ],
+        "42": [
+          "train:Boat fishing is more fun than pier fishing because the _ generally has better seating.",
+          "train:Lead was found in the water of Joel, but not in the water of Dennis's home. _ 's kids are brain damaged.",
+          "train:Being in a relationship was harder for Katrina than Jennifer because _ had a deep fear of intimacy.",
+          "train:Justin thinks the crocodile in Peter Pan is an alligator, but when Dennis corrects him _ gets offended.",
+          "train:When her husband died she threw out all her vegetables and bought lots of chocolates. The _ made her sad."
+        ]
+      }
+    }
+  },
+  "seeds": [
+    42,
+    123,
+    2024
+  ]
+}

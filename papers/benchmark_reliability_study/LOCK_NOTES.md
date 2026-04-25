@@ -177,4 +177,54 @@ Reviewer audit path: tag → repository state → config_hash `65fdd1c2` → hea
 
 ---
 
-*End of lock notes. v1.1-LOCKED at 2026-04-25.*
+*End of v1.1-LOCKED notes (2026-04-25 12:00 UTC).*
+
+---
+
+## Amendment: v1.1.1-LOCKED (2026-04-25 12:30 UTC)
+
+**Trigger:** Phase 3 dry-run against locked configs surfaced two execution-time issues that were not caught at v1.1 lock validation. No data was collected under v1.1; lock amended before any irreversible action.
+
+**Corrections applied:**
+
+1. **`configs/benchmarks.yaml`** — Winogrande `item_id_field` changed from `qID` (which does not exist on the HF dataset) to `sentence` (the natural item-identifier field on the HF Winogrande dataset, since Winogrande items have no numeric ID column). Inline comment marks the v1.1.1 correction.
+
+2. **`scripts/02_draw_fewshot_examples.py`** — removed the `if benchmark.tier != "primary": continue` filter at both `_build_manifest` call sites. The filter was a script-level oversight; SPEC §11's minimal command sequence does not have a separate fewshot drawer for the secondary tier, so secondary-tier benchmarks (GSM8K) require draws from the same script run. Without the fix, GSM8K had no fewshot manifest entries and would have failed at Phase 4 inference time.
+
+3. **`scripts/run_phase3_fewshot.py`** — new file. Phase 3 driver that wires a real Hugging Face dataset loader into the script's `main()`. Two pragmatic loader-side adjustments documented inline: (a) cais/mmlu requires a config name; the loader substitutes "all" so the script's subject-column filter narrows to our panel; (b) split-local row indices (HellaSwag's `ind` field) are namespaced with `{split}:` prefix to make the leakage check correct without false positives. Both adjustments are loader-side; the locked benchmarks.yaml is unchanged for these.
+
+**New config hash:** `89ce3f1f` (full SHA-256 to be recorded in updated `reports/config_validation.json`). Supersedes v1.1's hash `65fdd1c2`.
+
+**Phase 3 outputs produced under v1.1.1:**
+
+- `manifests/fewshot_manifest.csv` — 136 rows (15 per fewshot-bearing benchmark + 1 placeholder for 0-shot TruthfulQA-MC + 75 for MMLU 5-subject panel + 15 GSM8K)
+- `preregistration/appendices/fewshot_draws_LOCKED.json` — full lock file with config_hash, seed list, and per-benchmark per-subject per-seed item-ID lists
+- `manifests/conditions_primary.csv` — 600 condition rows
+- `manifests/conditions_gsm8k.csv` — 72 condition rows
+- `manifests/scoring_manifest.csv` — 4 scoring rule rows
+- `manifests/prompt_manifest.csv` — 24 prompt validation rows (0 errors, 0 warnings)
+- `reports/config_validation.json` — validation status: PASS
+
+**Test suite under v1.1.1:** 133/133 passing (no test changes required).
+
+**Git ceremony for v1.1.1:**
+
+```bash
+cd /Users/john/code/gradience
+git add papers/benchmark_reliability_study/
+git commit -m "papers/benchmark_reliability_study: amend lock to v1.1.1
+
+Phase 3 dry-run caught two issues:
+- Winogrande item_id_field=qID does not exist on HF dataset; corrected to sentence
+- Script tier filter excluded GSM8K from fewshot draws; removed
+
+No data collected under v1.1. Config hash updated 65fdd1c2 -> 89ce3f1f.
+133/133 tests passing. Phase 3 manifests committed."
+
+git tag v1_1_1_LOCKED -m "Pre-registration lock amendment; v1.1 had two execution-time issues caught in Phase 3 dry-run before any data collection. Supersedes v1_1_LOCKED."
+git push
+git push origin v1_1_1_LOCKED
+```
+
+**Provenance integrity:** `v1_1_LOCKED` remains on the remote as the original (broken) lock for audit trail. `v1_1_1_LOCKED` is the corrected lock. Both refer to a state where no data has been collected. The v1_1_LOCKED tag can be deprecated post-hoc with a note in the manuscript or simply allowed to stand as the historical record of the catch.
+

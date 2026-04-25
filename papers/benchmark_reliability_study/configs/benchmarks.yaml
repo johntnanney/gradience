@@ -84,7 +84,7 @@ benchmarks:
     fewshot_source_split: train
     eval_split: validation
     scoring_rules: [ll_norm, generate_parse]
-    item_id_field: qID
+    item_id_field: sentence  # v1.1.1: corrected from qID; HF Winogrande uses sentence text as natural item ID (no numeric qID field exists)
     answer_field: answer
     expected_num_items: 1267
 

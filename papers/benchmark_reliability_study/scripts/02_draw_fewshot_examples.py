@@ -181,8 +181,11 @@ def _build_manifest(
     draws: dict[str, dict[str, dict[str, list[Any]]]] = {}
 
     for benchmark in merged.benchmarks:
-        if benchmark.tier != "primary":
-            continue
+        # Iterate both primary and secondary tier benchmarks: secondary
+        # benchmarks (e.g. GSM8K) also need few-shot draws and they must
+        # land in the same locked manifest. SPEC §11's minimal-command
+        # sequence does not have a separate fewshot drawer for the
+        # secondary tier; this is the single drawer for the whole study.
 
         if benchmark.fewshot_k == 0:
             # Marker row only; no draws populated.
@@ -256,8 +259,11 @@ def _validate_no_leakage(
         )
 
     for benchmark in merged.benchmarks:
-        if benchmark.tier != "primary":
-            continue
+        # Iterate both primary and secondary tier benchmarks: secondary
+        # benchmarks (e.g. GSM8K) also need few-shot draws and they must
+        # land in the same locked manifest. SPEC §11's minimal-command
+        # sequence does not have a separate fewshot drawer for the
+        # secondary tier; this is the single drawer for the whole study.
         fewshot_ids = fewshot_ids_by_bench.get(benchmark.benchmark_id, set())
         if not fewshot_ids:
             continue
