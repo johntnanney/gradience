@@ -114,6 +114,90 @@
 **Why:** a correct bootstrap of the prompt-averaged estimator would require resampling within prompt strata, which has a different resampling scheme than the condition-level bootstrap and introduces additional implementation complexity. The linear shrinkage is conservative (wider than true) in the lower-bound direction — which is safer for the H1 test, which uses the lower bound.
 **At v1.1:** if the prompt-averaged tolerance CI is reported in the manuscript as a headline number, re-implement with proper stratified bootstrap. If it's only used as the full-design lower bound in H1, the current conservative approximation is defensible.
 
+## D-14 — GPU pod requirements diverge from SPEC_GPU §3.2
+
+**Script:** `requirements.gpu.lock`, `scripts/gpu_inference.py`
+**Spec location:** SPEC_GPU_v0_1.md §3.2, §16
+**Spec says:** install pinned versions including `huggingface_hub==1.12.0`
+and `datasets==4.8.0`.
+**Implementation:** installed `huggingface_hub==0.36.2` and
+`datasets==4.0.0`.
+**Why:** the spec's pins are mutually unsatisfiable on 2026-04-25 — pip
+reports `transformers 4.46.0 depends on huggingface-hub<1.0 and >=0.23.2`,
+which excludes 1.12.0. Datasets 4.8.0 was not yet on PyPI at install time;
+4.0.0 was the latest that paired with the resolved hub line. Both packages
+expose stable enough APIs for this study's use that the version skew does
+not affect outputs (only HF-Hub `snapshot_download` and
+`datasets.load_dataset(..., revision=...)` are exercised by
+`gpu_inference.py`, and both signatures are unchanged across these
+versions).
+**At v1.1:** update SPEC_GPU §3.2 to use the `requirements.gpu.lock` file
+as the contract rather than aspirational nominal pins. The lock file is
+the source of truth; the spec's nominal list is a starting point.
+
+## D-15 — Item-ID lookup canonicalization for fewshot manifest
+
+**Script:** `scripts/gpu_inference.py` (`_normalize_seed`)
+**Spec location:** SPEC_GPU_v0_1.md §6.2
+**Spec says:** "lookup_fewshot_for_condition(... seed_id=row.seed_id ...)".
+**Implementation:** introduces `_normalize_seed` helper to canonicalize
+between condition-manifest seed format (`s42`, `0shot`, blank) and
+fewshot-manifest seed format (`42`, blank). Both forms map onto a single
+canonical key for dictionary lookup.
+**Why:** the two manifests use different conventions for the seed_id
+column. Without the helper, lookups fail with KeyError because `"s42"`
+never matches `"42"` even though they refer to the same draw. This is a
+GPU-side adapter; the underlying CPU manifest formats are unchanged.
+**At v1.1:** consider rationalizing the two formats during a future
+manifest-schema cleanup; not load-bearing, both forms are stable.
+
+## D-16 — `generation_length_tokens` not emitted from GPU side
+
+**Script:** `scripts/gpu_inference.py`
+**Spec location:** SPEC_GPU_v0_1.md §5.4 (G&P scoring returns
+`generation_length_tokens`); SPEC_CPU_v0_2.md §5.5 (column on normalized
+parquet, with D-03 noting CPU fallback to whitespace word count).
+**Spec says:** GPU side emits the true tokenizer-anchored generation
+length; CPU side passes through.
+**Implementation:** GPU side computes `generation_length_tokens` correctly
+in `score_generate_parse` but does not emit it in the `item_outputs.jsonl`
+schema (the locked schema does not list it as a property and uses
+`additionalProperties: false`). CPU-side D-03 word-count fallback remains
+the active path.
+**Why:** adding `generation_length_tokens` to the schema mid-lock would
+require a schema bump and another locked-config increment. The CPU-side
+proxy (D-03) is adequate for the manuscript's reported analyses.
+**At v1.1:** if the manuscript reports generation-length distributions in
+a way that requires tokenizer-anchored counts (rather than word-count
+proxies), bump `item_outputs.schema.json` to include the field and update
+both GPU and CPU sides at the same time.
+
+## D-17 — Manifest `condition_status` does not auto-update from GPU outputs
+
+**Script:** `scripts/gpu_inference.py`, `scripts/04_normalize_outputs.py`,
+`RUNBOOK.md` §8a
+**Spec location:** SPEC_CPU_v0_2.md §7.3, §8.5; SPEC_GPU_v0_1.md §6.4
+**Spec says:** Conditions transition `pending → running → complete`.
+Normalizer (script 04) processes rows with `condition_status == "complete"`.
+**Implementation:** `gpu_inference.py` writes per-run metadata
+(`runs/raw/{condition_id}/run_metadata.json`) with `status="complete"` but
+does *not* mutate `manifests/conditions_*.csv`. Mid-run mutation would race
+with concurrent reads (resume protocol re-reads the manifest). Instead, a
+short post-run shell snippet in RUNBOOK §8a flips manifest rows from
+`pending` to `complete` for any condition whose run-metadata reports
+`complete`.
+**Why:** the CSV-as-source-of-truth model conflicts with concurrent-write
+safety. Two cleaner alternatives were considered and rejected:
+(a) GPU script writes the manifest on each completion — racy, complicates
+the resume protocol; (b) normalizer reads `runs/raw/` directly and infers
+completion — would change script 04's spec and contract surface, requiring
+a v1.1 lock amendment. The post-run snippet is the smallest change that
+preserves both the locked CPU script and the resume protocol.
+**At v1.1:** if the manifest-update step is judged to be load-bearing for
+audit, promote it to `scripts/11_mark_complete.py` (a 30-line numbered
+script in the pipeline). Until then, the runbook snippet is the
+documented procedure.
+
 ## D-13 — `03_validate_prompts.py` content-hash field type coercion
 
 **Script:** `03_validate_prompts.py`
@@ -127,18 +211,21 @@
 
 ## Summary
 
-Twelve tracked deviations. Three categories by severity:
+Seventeen tracked deviations (D-01 through D-17). Three categories by severity:
 
 **Paper-manuscript-relevant (must be named in the write-up):**
 - D-06 (MMLU `model_main` as fixed-effect variance)
 - D-09 (LPM vs logistic at item level)
 
-**Spec-update candidates for v1.1 lock:**
+**Spec-update candidates for v1.1 / v1.1.x lock:**
 - D-01 (subject-key convention) — add to `schemas/fewshot_draws.schema.json` when authored.
 - D-09, D-10, D-11 (statsmodels vs lme4 decisions) — update spec §10.1 to match implementation, or commit to rpy2 path.
 - D-12 (bootstrap shrinkage) — decide whether proper stratified bootstrap is needed.
+- D-14 (GPU pip pin reconciliation) — adopt `requirements.gpu.lock` as contract.
+- D-16 (`generation_length_tokens` schema gap) — schema bump if downstream wants tokenizer-anchored counts.
+- D-17 (manifest status update) — promote runbook snippet to `scripts/11_mark_complete.py` if audit pressure warrants.
 
 **Benign / documented for audit only:**
-- D-02 (subject field name), D-03 (word-count proxy), D-04 (choice_count), D-05 (run_id strictness), D-07 (GSM8K SEM), D-08 (is_correct direct read), D-13 (hash coercion).
+- D-02 (subject field name), D-03 (word-count proxy), D-04 (choice_count), D-05 (run_id strictness), D-07 (GSM8K SEM), D-08 (is_correct direct read), D-13 (hash coercion), D-15 (seed-key canonicalization).
 
-None of the deviations affect the paper's central claims. All of them affect how the manuscript describes its methods, or how the spec should be updated for camera-ready fidelity.
+None of the deviations affect the paper's central claims. All of them affect how the manuscript describes its methods, or how the spec should be updated for camera-ready fidelity. The four GPU-side deviations (D-14, D-15, D-16, D-17) are pipeline-mechanics adjustments only — the GPU/CPU data contract holds end-to-end (verified by the smoke run on 2026-04-25).
