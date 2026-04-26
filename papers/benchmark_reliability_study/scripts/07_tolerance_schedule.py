@@ -91,6 +91,32 @@ def licensed_precision(tolerance: float) -> str:
     return "interval_required"
 
 
+def _determine_regime(
+    scoring_rule_conditions: pd.DataFrame,
+    parse_failure_threshold: float,
+) -> str:
+    """Decide whether a (benchmark, model, scoring_rule) cell is
+    parse-failure-dominated.
+
+    A cell is parse-failure-dominated when its scoring rule produces
+    parseability data (i.e., generate-and-parse style) AND the median
+    parseability across conditions falls below the configured threshold.
+    Log-likelihood scoring rules have no parseability metric and are
+    always treated as g_theory regime.
+
+    Returns:
+        "parse_failure_dominated" or "g_theory".
+    """
+    parseability = scoring_rule_conditions["parseability_rate"].dropna()
+    if len(parseability) == 0:
+        # LL scoring rule (or no condition data); g-theory regime applies.
+        return "g_theory"
+    median_parseability = float(parseability.median())
+    if median_parseability < parse_failure_threshold:
+        return "parse_failure_dominated"
+    return "g_theory"
+
+
 # -- SEM / tolerance math per §9.2 -------------------------------------------
 
 
@@ -265,18 +291,45 @@ def compute_per_cell_tolerance(
         ]
         n_cond = len(cell_conditions)
 
-        sem_single = sem_from_variance_components(
-            var_p, var_s, var_r, var_e, "single", n_cond
+        # v1.1.2: per-(benchmark, model, scoring_rule) regime check.
+        # When parseability_rate is below threshold for this scoring
+        # rule's conditions, the variance-components decomposition is
+        # degenerate (parse-failure mechanism dominates) and we route
+        # to sample-SD-based tolerance per the D-07 pattern. This
+        # resolves D-09 by limiting LPM-vs-GLMM regime to cells where
+        # the binomial-tail-behavior matters.
+        scoring_rule_conditions = cell_conditions[
+            cell_conditions["scoring_rule_id"] == s_id
+        ]
+        regime = _determine_regime(
+            scoring_rule_conditions,
+            analysis_config.tolerance.parse_failure_threshold,
         )
-        sem_within = sem_from_variance_components(
-            var_p, var_s, var_r, var_e, "within_rule", n_cond
-        )
-        sem_pavg = sem_from_variance_components(
-            var_p, var_s, var_r, var_e, "prompt_averaged", n_cond
-        )
-        sem_full = sem_from_variance_components(
-            var_p, var_s, var_r, var_e, "full_design", n_cond
-        )
+
+        if regime == "parse_failure_dominated":
+            # Sample-SD tolerance per D-07 pattern; variance components
+            # are reported as NaN to flag the regime split downstream.
+            sr_accuracies = scoring_rule_conditions["accuracy"].to_numpy()
+            if len(sr_accuracies) >= 2:
+                sem_single = float(np.std(sr_accuracies, ddof=1))
+            else:
+                sem_single = float("nan")
+            sem_within = sem_single  # within-rule == single in this regime
+            sem_pavg = sem_single / np.sqrt(4.0) if not np.isnan(sem_single) else float("nan")
+            sem_full = sem_single / np.sqrt(max(n_cond, 1)) if not np.isnan(sem_single) else float("nan")
+        else:
+            sem_single = sem_from_variance_components(
+                var_p, var_s, var_r, var_e, "single", n_cond
+            )
+            sem_within = sem_from_variance_components(
+                var_p, var_s, var_r, var_e, "within_rule", n_cond
+            )
+            sem_pavg = sem_from_variance_components(
+                var_p, var_s, var_r, var_e, "prompt_averaged", n_cond
+            )
+            sem_full = sem_from_variance_components(
+                var_p, var_s, var_r, var_e, "full_design", n_cond
+            )
 
         tol_single = tolerance_from_sem(sem_single)
         tol_within = tolerance_from_sem(sem_within)
@@ -327,6 +380,7 @@ def compute_per_cell_tolerance(
             "benchmark_id": b_id,
             "model_id": m_id,
             "scoring_rule_id": s_id,
+            "regime": regime,
             "n_conditions": n_cond,
             "sem_single": sem_single,
             "tolerance_single": tol_single,
@@ -350,7 +404,8 @@ def compute_per_cell_tolerance(
         _ = idx  # suppress unused-var warning
 
     return pd.DataFrame(rows, columns=[
-        "benchmark_id", "model_id", "scoring_rule_id", "n_conditions",
+        "benchmark_id", "model_id", "scoring_rule_id", "regime",
+        "n_conditions",
         "sem_single", "tolerance_single",
         "tolerance_single_ci_lower", "tolerance_single_ci_upper",
         "sem_within_rule", "tolerance_within_rule",

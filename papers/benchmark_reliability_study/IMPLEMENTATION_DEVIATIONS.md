@@ -80,12 +80,21 @@
 
 ## D-09 — Item-level mixed effects use linear probability model, not logistic
 
-**Script:** `06_variance_components.py`
+**Script:** `06_variance_components.py`, `07_tolerance_schedule.py`
 **Spec location:** §10.1
 **Spec says:** "Fit a mixed-effects logistic regression at the item level... Family: binomial, logit link." Library: `statsmodels.MixedLM` or `rpy2 + lme4::glmer`.
 **Implementation:** linear probability model (LPM) — Gaussian mixed-effects on 0/1 outcomes — via `statsmodels.MixedLM`.
 **Why:** `statsmodels.MixedLM` is Gaussian-only; it does not support binomial family at all. The spec's cited library cannot implement the spec's cited model. The alternative (`rpy2 + lme4::glmer`) adds an R dependency to the pipeline, which is a larger infrastructure commitment. For accuracies in the typical benchmark range (0.15–0.85), LPM variance proportions match logistic GLMM variance proportions within a few percent — the tolerance schedule is unaffected.
-**At v1.1:** update spec §10.1 to either (a) remove the "logistic" specification and accept LPM as the documented approach, or (b) commit to the `rpy2 + lme4` path. The manuscript's Analysis 1 discussion should name LPM as the method and briefly justify it. A psychometrics reviewer will expect this to be explicit.
+
+**Resolution at v1.1.2 (2026-04-26):** Two developments motivated revisiting the deviation: (a) NIST AI 800-3 (Feb 2026) formally endorses GLMM as the canonical method for AI variance decomposition, weakening the original deviation's defensibility against reviewer scrutiny; (b) preliminary GPU-run data revealed that ~half of the cells (parse-failure-dominated G&P cells on base models, with parseability rates of 0.05–0.30) sit in the accuracy region where LPM and GLMM diverge sharply — outside the 0.15–0.85 range where the original deviation justification holds.
+
+**Resolution: Option C hybrid (v1.1.2 amendment).** Add a `parse_failure_threshold` field to `analysis_config.tolerance` (default 0.30). In `07_tolerance_schedule.py`, per (benchmark, model, scoring_rule) cell: compute median parseability across conditions; if below threshold, route the cell to **sample-SD-based tolerance** (D-07 pattern) instead of variance-components SEM. Mark the row with `regime: parse_failure_dominated`. For all other cells (`regime: g_theory`), keep the LPM-based variance-components path.
+
+**Effect:** the LPM-vs-GLMM regime is now explicitly limited to cells where the variance-components decomposition is methodologically meaningful. Cells where one variance source (parse failure) dominates fall back to a non-parametric tolerance measure on which LPM and GLMM both produce similar conclusions (because variance is dominated by a mechanism neither models). This sidesteps the LPM-vs-GLMM disagreement on low-accuracy data without adding the R dependency.
+
+**At v1.1.2:** the (forthcoming) benchmark-reliability-study manuscript's Analysis 1 discussion needs to (i) name LPM as the method for cells in `g_theory` regime, (ii) name sample-SD as the method for cells in `parse_failure_dominated` regime, (iii) justify the regime split via the parseability threshold, (iv) reference NIST 800-3 as the GLMM endorsement that motivated the regime-split design. The benchmark study's manuscript will need an appendix showing LPM-vs-GLMM agreement on `g_theory`-regime cells from the actual data, demonstrating that the substitution is innocuous in the regime where it's used. (When that manuscript reaches editorial-spec stage, this appendix becomes a tracked edit; for now, the requirement is recorded here in D-09 and in `LOCK_NOTES.md` v1.1.2 amendment.)
+
+**Implementation status (2026-04-26):** Done. New config_hash `fbc4a5dd` (was `89ce3f1f` at v1.1.1). Tests: 181 passed (was 133; growth from analysis-side test additions). See LOCK_NOTES.md "Amendment: v1.1.2-LOCKED" for full audit.
 
 ## D-10 — Spec §10.1's model × prompt and model × scoring_rule interactions
 

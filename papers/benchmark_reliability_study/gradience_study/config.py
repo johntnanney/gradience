@@ -172,6 +172,10 @@ class ConvergenceTriggersConfig:
 class ToleranceConfig:
     decision_rule_threshold_h1: float
     benchmarks_required_for_h1: int
+    # v1.1.2: cells with median parseability_rate below this threshold
+    # are routed to sample-SD-based tolerance (D-07 pattern) instead of
+    # variance-components decomposition. See D-09 v1.1.2 resolution.
+    parse_failure_threshold: float = 0.30
 
 
 @dataclass(frozen=True)
@@ -423,6 +427,7 @@ def _build_analysis_config(d: dict[str, Any]) -> AnalysisConfig:
         tolerance=ToleranceConfig(
             decision_rule_threshold_h1=float(tol["decision_rule_threshold_h1"]),
             benchmarks_required_for_h1=int(tol["benchmarks_required_for_h1"]),
+            parse_failure_threshold=float(tol.get("parse_failure_threshold", 0.30)),
         ),
         h2_generalizability_threshold=float(d["h2_generalizability_threshold"]),
         h3_ranking_reversal_threshold=float(d["h3_ranking_reversal_threshold"]),

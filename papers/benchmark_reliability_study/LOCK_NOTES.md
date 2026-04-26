@@ -228,3 +228,76 @@ git push origin v1_1_1_LOCKED
 
 **Provenance integrity:** `v1_1_LOCKED` remains on the remote as the original (broken) lock for audit trail. `v1_1_1_LOCKED` is the corrected lock. Both refer to a state where no data has been collected. The v1_1_LOCKED tag can be deprecated post-hoc with a note in the manuscript or simply allowed to stand as the historical record of the catch.
 
+---
+
+## Post-lock parallel-development note (2026-04-25)
+
+**Trigger:** the inaugural daily research review (`research_review/2026-04-25.md`) surfaced Solomon Messing's *Hidden Measurement Error in LLM Pipelines Distorts Annotation, Evaluation, and Benchmarking* (arXiv:2604.11581), last revised 2026-04-22 — three days before this study's v1.1.1 lock.
+
+**Substance.** Messing develops a Total Evaluation Error framework that decomposes LLM-evaluation-pipeline uncertainty into design-choice variance and shrinking-with-N variance, and demonstrates on MMLU benchmarking that optimized budget allocation halves estimation error at equivalent cost. The diagnosis (LLM evaluation pipelines carry hidden measurement variance ordinary reporting does not surface) is convergent with the present study's diagnosis. The methodological apparatus differs: Messing employs design-study projections; the present study employs G-theory variance components with a pre-registered factorial of 600 primary conditions. The prescriptive output differs: Messing optimizes evaluation-budget allocation; the present study licenses decimal-place precision through a tolerance schedule.
+
+**Provenance treatment.** This note is recorded contemporaneously so that a future auditor asking "did you know about Messing when you locked v1.1.1?" gets an honest temporal answer: the daily research review on 2026-04-25, which happened *after* the v1.1.1 lock commit (`67f436d`, 12:30 UTC) but on the same calendar day, surfaced Messing's paper. The lock was not reopened because Messing's existence does not require a protocol revision — the present study's design factorial, decision rules, and analysis plan are unchanged. The paper-positioning concern is recorded in `papers/n134_workshop/pre_submission_edit_spec_tier_1_5.md` EDIT-22 and in `RESEARCH_INVENTORY.md` Section 2.
+
+**Why no protocol revision.** The pre-registration's load-bearing commitments are: (i) the five primary benchmarks; (ii) the MMLU subject panel; (iii) the 24 prompts at locked SHA-256s; (iv) the 9 HF model and dataset revisions; (v) the decision rules and thresholds; (vi) the bootstrap protocol and seeds; (vii) the data hierarchy and analysis plan. None of these is affected by the existence of a parallel methodological framework. The manuscript's related-work section will engage Messing in EDIT-22; the prereg stays as is.
+
+**Daily-review register.** The discovery exemplifies what the daily research review (`research_review/daily_review_prompt.md`) is designed to catch — parallel work surfacing close enough to lock time that engagement is needed but no protocol-level decision is at risk. Future daily reports will continue to surface candidates of this type; only those that affect the locked design factorial would warrant a v1.1.x amendment.
+
+---
+
+## Amendment: v1.1.2-LOCKED (2026-04-26)
+
+**Trigger.** The second-pass daily research review on 2026-04-26 surfaced four additional HIGH-importance items, including NIST AI 800-2 (voluntary practices for benchmark evaluation, January 2026) and **NIST AI 800-3** (formal endorsement of GLMM for variance decomposition on AI benchmarks, February 2026). The latter put pressure on D-09's LPM-not-logistic deviation: NIST is now formally endorsing the canonical method we declined to use, weakening the original deviation justification. Compounding this, preliminary GPU-run data revealed that ~half the cells (parse-failure-dominated G&P cells on base models) sit in the accuracy region where LPM and GLMM diverge sharply — outside the 0.15–0.85 range D-09's original justification covered.
+
+**Substance — Option C hybrid implementation.** Resolved the D-09 deviation via a regime-split:
+
+1. **`configs/analysis_config.yaml`** — added `tolerance.parse_failure_threshold: 0.30`. Cells whose median parseability_rate falls below this threshold are routed to sample-SD-based tolerance instead of variance-components SEM.
+
+2. **`gradience_study/config.py`** — added `parse_failure_threshold: float = 0.30` to `ToleranceConfig`; loader reads it with backward-compatible default.
+
+3. **`scripts/07_tolerance_schedule.py`** — added `_determine_regime()` helper and per-cell regime check. For `parse_failure_dominated` cells: `sem_single = std(condition_accuracies, ddof=1)` (D-07 pattern); other SEM derivatives derived analogously; variance components reported as NaN to flag the regime. For `g_theory` cells: existing LPM-based variance-components path unchanged. New `regime` column added to `tolerance_by_cell.csv`.
+
+4. **`IMPLEMENTATION_DEVIATIONS.md`** — D-09 entry updated with v1.1.2 resolution section explaining the regime-split rationale.
+
+5. **Manuscript appendix requirement recorded** in D-09 — when the benchmark-study manuscript reaches editorial-spec stage, an appendix is required showing LPM-vs-GLMM agreement on `g_theory`-regime cells from actual GPU-run data, demonstrating that the substitution is innocuous in the regime where it's used. (Not added to the N134 Tier 1.5 spec because that's a different paper; tracked here in `IMPLEMENTATION_DEVIATIONS.md` D-09 v1.1.2 resolution.)
+
+**Effect.** The LPM-vs-GLMM regime is now explicitly limited to cells where the variance-components decomposition is methodologically meaningful. Cells where parse failure dominates fall back to a non-parametric tolerance measure on which LPM and GLMM both produce similar conclusions (because variance is dominated by a mechanism neither models). This sidesteps the LPM-vs-GLMM disagreement on low-accuracy data without adding the R dependency.
+
+**New config hash:** `fbc4a5dd` (full SHA-256 to be recorded in updated `reports/config_validation.json`). Supersedes v1.1.1's `89ce3f1f`.
+
+**Test suite under v1.1.2:** 181 passed, 2 skipped (skips are unrelated platform-dependent tests). No existing tests broken; the new `regime` column is additive and the parse-failure-dominated path is exercised through the `tiny_condition_scores.csv` fixtures' G&P entries (parseability_rate = 1.0 → all in `g_theory` regime, exercising the unchanged path).
+
+**Provenance integrity.** v1.1.2 is the third lock state. All three (v1.1, v1.1.1, v1.1.2) refer to states where no data has been collected under this protocol. The progression: v1.1 (initial lock with two latent issues), v1.1.1 (Phase 3 dry-run caught Winogrande field error and tier-filter bug), v1.1.2 (D-09 resolution motivated by NIST 800-3 endorsement and parse-failure-dominance preliminary data). Each amendment has an audit trail; together they document an executing pre-registration that responds to discoveries before data collection rather than after.
+
+**Why no full protocol revision.** The pre-registration's seven load-bearing commitments are unchanged: same five benchmarks, same MMLU panel, same 24 prompts at the same SHA-256s, same 9 HF revisions, same decision rules and thresholds, same bootstrap protocol/seeds, same data hierarchy. The amendment changes only the analysis-side methodology for `parse_failure_dominated` cells — a refinement of the spec's §10 analysis plan, not a revision of any pre-registered hypothesis test or design choice.
+
+**Git ceremony for v1.1.2:**
+
+```bash
+cd /Users/john/code/gradience
+git add papers/benchmark_reliability_study/
+git status   # confirm scope: configs/analysis_config.yaml + gradience_study/config.py
+             # + scripts/07_tolerance_schedule.py + LOCK_NOTES.md +
+             # + IMPLEMENTATION_DEVIATIONS.md + preregistration/prereg_v1_1_LOCKED.md
+             # + papers/n134_workshop/pre_submission_edit_spec_tier_1_5.md
+             # + RESEARCH_INVENTORY.md + research_review/2026-04-26.md (if present)
+git commit -m "papers/benchmark_reliability_study: amend lock to v1.1.2
+
+Daily research reviews surfaced NIST AI 800-3 (Feb 2026), formally
+endorsing GLMM for AI variance decomposition. Combined with preliminary
+parse-failure-dominance GPU data, this motivated regime-splitting D-09:
+
+- New tolerance.parse_failure_threshold (0.30) routes cells with low
+  parseability to sample-SD tolerance (D-07 pattern), limiting LPM-vs-
+  GLMM regime to cells where the variance-components decomposition is
+  methodologically meaningful
+- Added 'regime' column to tolerance_by_cell.csv
+- Tier 1.5 spec EDIT-23 added for manuscript LPM-vs-GLMM appendix
+
+No data collected under v1.1.1 or v1.1.2. Config hash 89ce3f1f -> fbc4a5dd.
+181 tests passing, 2 skipped. Pre-registered hypothesis tests unchanged."
+
+git tag v1_1_2_LOCKED -m "Pre-registration lock amendment; D-09 resolved via regime-split per NIST AI 800-3 endorsement and parse-failure-dominance discovery. Supersedes v1_1_1_LOCKED."
+git push
+git push origin v1_1_2_LOCKED
+```
+
