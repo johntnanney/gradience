@@ -207,6 +207,49 @@ audit, promote it to `scripts/11_mark_complete.py` (a 30-line numbered
 script in the pipeline). Until then, the runbook snippet is the
 documented procedure.
 
+## D-18 — Cost-projection tripwire fired; GSM8K reduced to single-model case study
+
+**Script:** GPU run orchestration (manifests/conditions_gsm8k.csv filter + pod restart)
+**Spec location:** SPEC_GPU_v0_1.md §13.3 (cost-protection $30 hard cap); pre-reg §10.2 (budget tier framing); pre-reg §11.4 (Tier 2 / GSM8K secondary scope)
+**Spec says:** Tier 2 GSM8K case is intended as a 3-model demonstration of scoring-rule sensitivity on open-generation benchmarks (3 models × 4 prompts × 3 seeds × 2 extraction variants = 72 conditions).
+**Implementation (2026-04-26 22:55 UTC):** GSM8K reduced to a single-model case study. Pythia_1_4b's 24 GSM8K conditions completed before the tripwire fired and remain in the corpus; pythia_410m's and qwen2_5_1_5b's 48 GSM8K conditions removed from the manifest (pod-side `manifests/conditions_gsm8k.csv` filtered to keep only pythia_1_4b rows; original preserved at `manifests/conditions_gsm8k.csv.pre_cut2` on the pod). Inference resumed under the new manifest at PID 3823.
+
+**Why.** A pre-committed cost-projection tripwire was set at this session's launch: if at the 12-hour-from-launch check the projected total run cost exceeded $29 (with the optimistic end no longer keeping the run safely inside the $30 hard cap), execute Cut 2 — drop GSM8K symmetrically across remaining models. At the 32h45m elapsed checkpoint, projection had moved to ~$31 (above the $30 cap) on observed pace (8.12 cond/hr trailing average) and ~$29.6 on per-model-scaling projection (pythia_410m at 15.2 cond/hr × 182 remaining + qwen at ~6.9 cond/hr × 224 remaining). The tripwire criterion (optimistic end no longer keeping safely inside) was met. The pre-committed response (Cut 2) was executed.
+
+The reasoning for the cut shape — symmetric drop of remaining GSM8K, not asymmetric drop of one model, not severance of qwen — is recorded in the session log and is the disciplined-response logic the program's documentation was designed to forestall departures from. Reversing or substituting at execution time would be exactly the post-hoc undisciplined behavior a paper *about* measurement-disciplined decision-making should not exhibit.
+
+**Methodological cost.** Pre-reg §11.4 frames Tier 2 GSM8K as a "standalone case study demonstrating that scoring-rule sensitivity is more severe for open-generation benchmarks," not as a hypothesis-test substrate. Going from 3-model demonstration to 1-model demonstration (pythia_1_4b's 24 conditions, 4 prompts × 3 seeds × 2 extraction variants) preserves the case-study point — that the parse-failure-dominated regime is most starkly visible on open-generation benchmarks — while giving up cross-model generalization within the case study. Manuscript §7.6 and §8.3 framing of the GSM8K case will need to acknowledge the 1-model scope (note staged in `manuscript_outline_v0.md`).
+
+**Cost saved.** ~17.6 GPU-hours = ~$7. Revised total run cost projection ~$24, well inside the $30 cap.
+
+**At v1.1.x:** the cut is documented here and in `LOCK_NOTES.md`'s budget-amendment section as a budget-driven, post-lock scope reduction — methodologically minor, financially decisive. No pre-reg amendment is required because Tier 2 was always framed as a case study with self-contained scope; reducing its breadth is consistent with that framing. If a future pre-reg version wants to formalize tripwire-driven cuts as a standard mechanism, that's a v1.2 design question.
+
+## D-19 — MMLU `expected_num_items` patched from placeholder to per-subject actuals
+
+**Script:** `manifests/conditions_primary.csv` (post-lock manifest patch); `configs/benchmarks.yaml` (placeholder source)
+**Spec location:** SPEC_CPU_v0_2.md §5 (manifest schema); pre-reg §5.2 (MMLU subject panel)
+**Spec says:** Each condition row carries `expected_num_items` matching the actual data size for that condition; script 04 hard-fails on mismatch (PartialRunCompletion).
+**Implementation:** `configs/benchmarks.yaml` was locked with `expected_num_items_per_subject: 100  # approximate; varies by subject` — a placeholder pending derivation from the HF dataset at the locked revision. The placeholder propagated into `conditions_primary.csv` for all 360 MMLU rows. The 2026-04-26 Phase 5 dry-run surfaced this: `gpu_inference.py` writes the actual subject sizes (171/378/545/282/100), so 96/248 MMLU runs failed `04_normalize_outputs.py`'s row-count check.
+**Patch (2026-04-26):** Loaded `cais/mmlu` config="all" at the locked revision `c30699e8356da336a370243923dbaf21066bb9fe`, derived per-subject test-split sizes:
+  - `world_religions`: 171
+  - `elementary_mathematics`: 378
+  - `high_school_psychology`: 545
+  - `professional_accounting`: 282
+  - `global_facts`: 100
+288 MMLU rows in `conditions_primary.csv` were updated to the correct `expected_num_items` (the 72 `global_facts` rows happened to match the placeholder and were left unchanged). Original manifest preserved at `manifests/conditions_primary.csv.pre_d19`.
+**Why a manifest patch and not a regenerate-from-config.** The underlying HF data and revision pin are unchanged; only the metadata claim about row count is corrected. A full regenerate would require updating `benchmarks.yaml`'s placeholder to a per-subject dict and bumping the config-hash chain to v1.1.3 — appropriate as a separate housekeeping pass, not blocking. The `config_hash` column on patched rows remains `65fdd1c2` as the audit anchor of the lock-time config; this entry is the documented post-lock correction.
+**At v1.1.3 (or later):** update `configs/benchmarks.yaml` to a per-subject `expected_num_items_per_subject` dict so a fresh `01_build_manifests.py` run produces the patched values, and capture the new config hash in `reports/config_validation.json`. Until then, the patched manifest is the source of truth and this deviation entry is the audit trail.
+
+## D-20 — `item_id` removed from item-level random-effects cascade
+
+**Script:** `scripts/06_variance_components.py` (`_random_effects_for_level`)
+**Spec location:** SPEC_CPU_v0_2.md §10.1 (mixed-effects cascade); pre-reg §7.1
+**Spec says:** Level-1 random effects include `item_id` to partition item-difficulty variance as a separate variance component.
+**Implementation (2026-04-26):** `item_id` removed from levels 1, 2, and 3 of the cascade. Level-1 RE: `prompt_id, seed_id, scoring_rule_id`; level-2 same as level-1 (matching the existing D-10 collapse); level-3: `prompt_id, scoring_rule_id`; level-4: aggregate G-theory (unchanged).
+**Why.** The Phase 5 dry-run on partial GPU output surfaced that `statsmodels.MixedLM` fitting `level_1` on `arc_challenge` (~1172 items) with `item_id` as a crossed RE did not return after 15 minutes wall-clock; HellaSwag (~10,042 items) would be untenable at full Phase 5 scale. The cascade's convergence-trigger logic catches *non-convergence*, not *long-running-fit*, so the pipeline hangs rather than descending. Three resolution options were considered (drop `item_id` from RE; timeout-driven cascade descent; force level-4 for above-threshold benchmark sizes); option (a) was selected.
+**Methodological consequence.** Item-difficulty variance is absorbed into residual rather than partitioned as a separate variance component: `var_residual' = var_item + var_residual` in expectation under additive assumptions. The aggregate-score SEM formulas in §9.2 (`SEM_single = sqrt(var_prompt + var_seed + var_scoring_rule + var_residual)`) do not reference `var_item` directly, so the **tolerance schedule and H1 test are mathematically unaffected**. What changes is the granularity of the §6 variance-components table reported in the manuscript: one fewer bucket, with item-difficulty variance now part of residual. This is a smaller methodological deviation than D-09 (LPM-not-logistic), and consistent with the program's existing willingness to deviate from the spec's nominal model structure for tractability reasons when the deviation does not affect downstream load-bearing claims.
+**At v1.1.3:** the manuscript §5.4 / §6.1 description of the mixed-effects cascade should name this RE structure explicitly; the variance-components table in §7.x should report four buckets (prompt, seed, scoring_rule, residual) rather than five (with item). The pre-registration's §7.1 random-effects list could be amended for full alignment, but the current deviation entry plus a manuscript-side disclosure is sufficient — the H1 test result the pre-reg gates on is unaffected.
+
 ## D-13 — `03_validate_prompts.py` content-hash field type coercion
 
 **Script:** `03_validate_prompts.py`

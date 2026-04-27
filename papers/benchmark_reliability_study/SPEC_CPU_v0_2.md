@@ -5,7 +5,7 @@
 **Spec version:** v0.2 (coding-agent-facing)
 **Supersedes:** `SPEC_CPU.md` v0.1
 **Date:** 2026-04-24
-**Status:** ready for implementation after v1.1 pre-registration lock and after open-question resolution (§3.10 of `preregistration_v1.md`)
+**Status:** implementation underway; pre-registration locked at v1.1.2 in `preregistration/prereg_v1_1_LOCKED.md` (see `LOCK_NOTES.md` for the v1.1 → v1.1.1 → v1.1.2 amendment chain).
 
 ## Changes from v0.1
 
@@ -1945,4 +1945,4 @@ A reviewer who runs this pipeline against the committed raw-run directory and co
 
 ---
 
-*End of spec v0.2. No implementation work should begin until v1.1 pre-registration is locked and the open-question resolution (§3.10 of `preregistration_v1.md`) is complete.*
+*End of spec v0.2. The pre-registration gate this sentence originally named — v1.1 lock + §3.10 open-question resolution — was cleared on 2026-04-25 with the `preregistration/prereg_v1_1_LOCKED.md` lock (open questions consolidated to §14, all resolved). The current canonical pre-registration is `preregistration/prereg_v1_1_LOCKED.md` at v1.1.2 (regime-split amendment for D-09); see `LOCK_NOTES.md` for the v1.1 → v1.1.1 → v1.1.2 amendment chain.*

@@ -301,3 +301,22 @@ git push
 git push origin v1_1_2_LOCKED
 ```
 
+---
+
+## Budget-driven scope amendment: 2026-04-26 22:55 UTC
+
+**This is not a pre-registration amendment.** The locked pre-reg at v1.1.2 is unchanged. This entry is recorded alongside the lock-amendment chain so the audit trail for substantive program-side decisions stays unified.
+
+**Trigger.** The Phase-4 GPU run launched 2026-04-25 against the locked v1.1.2 manifests. A cost-projection tripwire was pre-committed at run launch: if the 12-hour-from-launch projected total exceeded $29 with the optimistic end no longer keeping the run safely inside the $30 hard cap (pre-reg §10.2 budget-tier framing), execute Cut 2 — drop GSM8K symmetrically across the not-yet-completed models. At 32h45m elapsed, the projection had moved to ~$31 on the trailing-pace method and ~$29.6 on the per-model-scaling method. Tripwire criterion met.
+
+**Action executed.** GSM8K Tier 2 conditions reduced from 3-model (3 × 24 = 72) to 1-model (24) case study. Pythia_1_4b's 24 GSM8K conditions completed before the cut and remain in the corpus. Pythia_410m's and qwen2_5_1_5b's GSM8K conditions (48 total, ~17.6 GPU-hours, ~$7) removed from the run manifest on the pod. Inference resumed cleanly at PID 3823.
+
+**Audit trail.**
+- `IMPLEMENTATION_DEVIATIONS.md` D-18 (full deviation entry).
+- `manuscript_outline_v0.md` §7.6 (note staged for the prose-drafting pass post-Phase-5).
+- Original 3-model `conditions_gsm8k.csv` preserved at `runs/raw/.../manifests/conditions_gsm8k.csv.pre_cut2` on the pod and reproducible from this repo at the v1_1_2_LOCKED tag.
+
+**Methodological cost.** Pre-reg §11.4 frames Tier 2 GSM8K as a "standalone case study demonstrating that scoring-rule sensitivity is more severe for open-generation benchmarks," not as a hypothesis-test substrate. Going from 3-model to 1-model demonstration preserves the case-study claim — that the parse-failure-dominated regime is most starkly visible on open-generation benchmarks — while giving up cross-model generalization *within* the case study. The manuscript §7.6 framing will be updated to a 1-model scope when the prose lands; the §8.3 GSM8K-discussion framing will follow.
+
+**Tagging.** This amendment does not require a new lock tag. The locked pre-reg is unchanged; the cut affects only the *executed* run, not the *committed* design. If a future Phase-4 run revisits the dropped GSM8K conditions for cross-model coverage, that becomes an implementation supplement, not a pre-reg revision.
+
