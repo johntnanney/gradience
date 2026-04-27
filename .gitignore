@@ -131,6 +131,10 @@ datasets/
 *.rar
 *.7z
 *.csv
+# Exception: track manifest CSVs (load-bearing program state, not regenerable
+# once a deviation patches them post-lock).
+!papers/*/manifests/*.csv
+!papers/*/manifests/*.csv.*
 *.json.gz
 *.parquet
 
@@ -230,5 +234,10 @@ PYPI_README_IMPROVEMENTS.md
 !examples/**/*.yaml
 !examples/**/*.md
 .worktrees/
-.claude/
+# Ignore .claude/ contents (user-specific state like settings.local.json),
+# but track project-level slash commands as shareable artifacts. The
+# `.claude/*` form (not `.claude/`) is required because parent-dir exclusions
+# can't be re-included under git's gitignore semantics.
+.claude/*
+!.claude/commands/
 .cache/census_adapters/

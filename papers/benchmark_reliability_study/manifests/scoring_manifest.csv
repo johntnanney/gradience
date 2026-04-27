@@ -1,0 +1,5 @@
+scoring_rule_id,display_name,applies_to_task_types,normalization,selection_rule,parse_strategy
+generate_parse,Generate and Regex-Parse,constrained_choice,,,benchmark_specific_regex
+generate_parse_permissive,GSM8K Permissive Regex,open_generation,,,permissive_number_regex
+generate_parse_strict,GSM8K Strict Exact-Match,open_generation,,,exact_match_final_number
+ll_norm,Length-Normalized Log-Likelihood,constrained_choice,length_normalized,argmax,
