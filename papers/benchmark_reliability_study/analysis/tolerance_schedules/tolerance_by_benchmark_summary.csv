@@ -1,6 +1,6 @@
 benchmark_id,n_cells,tolerance_single_median,tolerance_single_median_ci_lower,tolerance_single_median_ci_upper,tolerance_full_design_median,exceeds_h1_threshold_point,exceeds_h1_threshold_ci_lower,licensed_precision_single,licensed_precision_full_design
-arc_challenge,6,0.21713665325931777,0.13396939588169265,0.19471301717729772,0.04432283374508054,True,True,interval_required,interval_required
-hellaswag,6,0.07843237024470438,0.18370081140717076,0.21727932518274853,0.016009940534714658,True,True,interval_required,interval_required
-mmlu_panel,6,0.21242743557255386,0.1605163940805585,0.1869184462893038,0.01939188304934385,True,True,interval_required,interval_required
-truthfulqa_mc,6,0.5957881115152748,0.4213273934139635,0.9895399288073372,0.2106429069013889,True,True,interval_required,interval_required
-winogrande,6,0.12582518531951045,0.38355879925880854,0.45451311389780846,0.02568395840199445,True,True,interval_required,interval_required
+arc_challenge,6,0.21713665325931777,0.13440671371594365,0.19473001548697727,0.04432283374508054,True,True,interval_required,interval_required
+hellaswag,6,0.07843237024470438,0.18396868401444533,0.21733602460522405,0.016009940534714658,True,True,interval_required,interval_required
+mmlu_panel,6,0.21242743557255386,0.16054208742549875,0.18699314765421526,0.01939188304934385,True,True,interval_required,interval_required
+truthfulqa_mc,6,0.5957881115152748,0.4213728909106239,0.9903852427163533,0.2106429069013889,True,True,interval_required,interval_required
+winogrande,6,0.12582518531951045,0.3848802983930335,0.4544252698741171,0.02568395840199445,True,True,interval_required,interval_required

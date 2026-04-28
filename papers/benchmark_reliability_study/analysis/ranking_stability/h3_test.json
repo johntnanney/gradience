@@ -1,0 +1,15 @@
+{
+  "benchmarks_with_exceeding_pair": [
+    "arc_challenge",
+    "hellaswag",
+    "mmlu_panel",
+    "truthfulqa_mc",
+    "winogrande"
+  ],
+  "benchmarks_with_no_exceeding_pair": [],
+  "h3_confirmed": true,
+  "h3_hypothesis": "for at least N primary benchmarks, at least one model pair has a condition-reversal fraction exceeding the H3 threshold (indicating that single-occasion ranking is unstable)",
+  "n_benchmarks_with_exceeding_pair": 5,
+  "n_required": 3,
+  "threshold": 0.2
+}

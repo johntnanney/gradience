@@ -1,6 +1,6 @@
 # Reproducibility Trace
 
-_Generated: 2026-04-28T12:17:16.009647+00:00_
+_Generated: 2026-04-28T13:36:49.566064+00:00_
 
 Per SPEC_CPU_v0_2 §13. Verifies that the pipeline's outputs
 can be re-derived from the committed inputs.
@@ -32,34 +32,9 @@ can be re-derived from the committed inputs.
 
 ## 3. Raw-run coverage
 
-- Conditions marked `complete` in manifest: 600
+- Conditions marked `complete` in manifest: 624
 - Raw-run subdirectories on disk: 624
 - All complete conditions have raw directories.
-- **Raw directories without a matching manifest row:**
-    - `gsm8k____pythia_1_4b__P1_original__s123__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P1_original__s123__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P1_original__s2024__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P1_original__s2024__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P1_original__s42__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P1_original__s42__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s123__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s123__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s2024__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s2024__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s42__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P2_lm_eval__s42__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s123__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s123__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s2024__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s2024__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s42__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P3_helm_or_published__s42__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s123__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s123__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s2024__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s2024__generate_parse_strict`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s42__generate_parse_permissive`
-    - `gsm8k____pythia_1_4b__P4_minimal_sourced__s42__generate_parse_strict`
 
 ## 4. Per-condition recompute sample
 
@@ -67,11 +42,11 @@ can be re-derived from the committed inputs.
 
 | condition_id | scoring_rule | n_items | recomputed | stored | delta | status |
 |---|---|---|---|---|---|---|
-| `mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s42__generate_parse` | `generate_parse` | 378 | 0.044974 | 0.044974 | 0.00e+00 | pass |
-| `mmlu_panel__world_religions__pythia_1_4b__P2_lm_eval__s2024__generate_parse` | `generate_parse` | 171 | 0.093567 | 0.093567 | 0.00e+00 | pass |
-| `mmlu_panel__world_religions__pythia_1_4b__P3_helm_or_published__s123__ll_norm` | `ll_norm` | 171 | 0.321637 | 0.321637 | 0.00e+00 | pass |
-| `winogrande____pythia_1_4b__P3_helm_or_published__s42__ll_norm` | `ll_norm` | 1267 | 0.501184 | 0.501184 | 0.00e+00 | pass |
-| `winogrande____pythia_410m__P2_lm_eval__s42__ll_norm` | `ll_norm` | 1267 | 0.495659 | 0.495659 | 0.00e+00 | pass |
+| `mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s42__ll_norm` | `ll_norm` | 378 | 0.238095 | 0.238095 | 0.00e+00 | pass |
+| `mmlu_panel__world_religions__pythia_410m__P1_original__s2024__generate_parse` | `generate_parse` | 171 | 0.035088 | 0.035088 | 0.00e+00 | pass |
+| `mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s123__ll_norm` | `ll_norm` | 171 | 0.298246 | 0.298246 | 0.00e+00 | pass |
+| `winogrande____pythia_410m__P3_helm_or_published__s2024__generate_parse` | `generate_parse` | 1267 | 0.068666 | 0.068666 | 0.00e+00 | pass |
+| `winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse` | `generate_parse` | 1267 | 0.400947 | 0.400947 | 0.00e+00 | pass |
 
 ## 5. Analysis re-derivation
 
@@ -79,8 +54,8 @@ can be re-derived from the committed inputs.
     - status: pass
     - aggregate_vc.csv re-derived identically
 - **Tolerance schedule** (`analysis/tolerance_schedules/tolerance_by_cell.csv`)
-    - status: fail
-    - tolerance_by_cell.csv differs from stored output
+    - status: pass
+    - tolerance_by_cell.csv re-derived identically
 
 ## 6. Cross-environment check
 
@@ -89,5 +64,5 @@ can be re-derived from the committed inputs.
 ## 7. Summary
 
 - Total reproducibility-critical artifacts checked: 18
-- Total reproducibility failures: 2
-- **Trace status: `fail`**
+- Total reproducibility failures: 0
+- **Trace status: `pass`**

@@ -263,13 +263,20 @@ def _section_raw_coverage(manifests_dir: Path, raw_dir: Path) -> dict[str, Any]:
         return section
     section["manifest_present"] = True
 
-    # Read complete condition_ids from the manifest.
+    # Read complete condition_ids from BOTH primary and secondary manifests.
+    # Pre-D-21 fix: only conditions_primary was loaded, which made any
+    # GSM8K raw dirs appear as 'raw_without_manifest' even when they were
+    # legitimately part of the run (Cut-2 kept pythia_1_4b's 24 GSM8K).
     complete_ids: list[str] = []
-    with open(primary, "r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row.get("condition_status") == "complete":
-                complete_ids.append(row["condition_id"])
+    for manifest_name in ["conditions_primary.csv", "conditions_gsm8k.csv"]:
+        manifest_path = manifests_dir / manifest_name
+        if not manifest_path.exists():
+            continue
+        with open(manifest_path, "r", encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("condition_status") == "complete":
+                    complete_ids.append(row["condition_id"])
     section["complete_in_manifest"] = len(complete_ids)
     section["complete_condition_ids"] = complete_ids
 

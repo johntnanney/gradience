@@ -175,8 +175,109 @@ still pending §7-§8 drafting.
 
 - Phase 5 analysis: **complete.**
 - Manuscript §7-§9 drafting: ready to begin.
-- Pre-submission gate (§13.2 reproducibility trace = `pass`): currently
-  fails on D-21; resolution required before manuscript submission.
+- Pre-submission gate (§13.2 reproducibility trace = `pass`): cleared
+  on 2026-04-28 (see follow-up entry below).
+
+---
+
+## 2026-04-28 (later) — D-21 + D-22 fixed; H2 + H3 closed; trace passes
+
+Three close-out fixes after the initial Phase 5 entry above:
+
+### D-21 fix (bootstrap CI non-determinism)
+
+`scripts/07_tolerance_schedule.py` line 351 used Python's built-in
+`hash((b_id, m_id, s_id))` to derive per-cell bootstrap seed offsets.
+Python randomizes string hashes per process via `PYTHONHASHSEED`, so
+consecutive invocations produced different cell seeds → different
+bootstrap CIs. Replaced with `hashlib.sha256(cell_key).digest()[:4]`
+for deterministic offset derivation. Two consecutive runs now produce
+bit-identical `tolerance_by_cell.csv`. Also patched `98`'s section 3
+to load both `conditions_primary.csv` and `conditions_gsm8k.csv`
+(previously only primary, causing 24 GSM8K raw dirs to appear as
+`raw_without_manifest`). **Reproducibility trace now passes (18
+artifacts, 0 failures); SPEC §13.2 gate cleared.**
+
+### D-22 fix (ranking-stability pivot keyed on model-baked condition_id)
+
+`scripts/08_ranking_stability.py::pivot_condition_scores` pivoted on
+`condition_id`, but our schema bakes `model_id` into the id, so each
+row had accuracy for exactly one model column → `dropna(how="any")`
+removed everything → 0 condition pairs for kendall tau, 0 reversal
+candidates. Fix: build a model-stripped cell key from
+`(subject_id, prompt_id, seed_id, scoring_rule_id)` and pivot on that.
+Re-run produced 5 kendall tau cells (276–7140 pairs each), 15 reversal
+cells, 15 win-probability cells. Added `h3_test.json` emission for
+parity with `h1_test.json`/`h4_test.json`.
+
+### H2 (generalizability) — confirmed
+
+New script `scripts/11_generalizability.py` (the existing scripts only
+loaded the H2 threshold but never used it). Computes G coefficients
+under 4 averaging schemes per benchmark; tests H2 per pre-reg §3.3.
+
+**H2 confirmed: 4 of 5 primary benchmarks have G_single < 0.80**
+(threshold per `analysis_config.h2_generalizability_threshold`):
+
+| benchmark | G_single |
+|---|---:|
+| arc_challenge | 0.564 |
+| mmlu_panel | 0.301 |
+| truthfulqa_mc | 0.049 |
+| winogrande | 0.405 |
+| hellaswag | 0.953 (above threshold) |
+
+Output at `analysis/generalizability/{generalizability_coefficients.csv, h2_test.json}`.
+
+### H3 (ranking reversal) — confirmed (post-D-22)
+
+**H3 confirmed: 5 of 5 primary benchmarks have at least one
+model-pair with condition-reversal fraction exceeding the 0.20
+threshold.** The pythia_1_4b vs pythia_410m pair drives the result on
+4 of 5 benchmarks (small overall_mean_diff between similarly-sized
+base models → high condition-by-condition reversal rate).
+
+| benchmark | n_pairs_exceeding |
+|---|---:|
+| arc_challenge | 1 |
+| hellaswag | 1 |
+| mmlu_panel | 1 |
+| truthfulqa_mc | 3 |
+| winogrande | 1 |
+
+Output at `analysis/ranking_stability/h3_test.json`.
+
+### Sanity sweep (clean)
+
+- VC proportions sum to exactly 1.0 for every (benchmark, model) cell
+  (15 cells; full partition consistency).
+- Tolerance-schedule regime distribution: 23 g_theory + 7
+  parse_failure_dominated (regime split is doing real work).
+- Single-occasion licensed precision: **30 of 30 cells require
+  interval reporting** (no two-decimal license available at single
+  occasion).
+- Full-design (24 conditions averaged): 29/30 still require interval;
+  1 cell licenses two-decimal accuracy. The single-occasion → averaged
+  contrast is the paper's prescriptive lever per pre-reg §7.2.
+- Median single-occasion tolerance: **0.21** (vs. 0.005 H1 threshold);
+  full-design median: 0.038.
+
+### Pre-registered hypothesis-test outcomes — final
+
+| Hypothesis | Result | Source |
+|---|---|---|
+| **H1** (single-occasion tolerance > 0.005 for ≥ 3/5 benchmarks) | **confirmed** (5/5) | `analysis/tolerance_schedules/h1_test.json` |
+| **H2** (single-occasion G < 0.80 for ≥ 3/5 benchmarks) | **confirmed** (4/5) | `analysis/generalizability/h2_test.json` |
+| **H3** (≥ 1 pair with reversal fraction > 0.20 for ≥ 3/5 benchmarks) | **confirmed** (5/5) | `analysis/ranking_stability/h3_test.json` |
+| **H4** (MMLU model × subject interaction proportion ≥ 0.10) | **not confirmed** (0.0046) | `analysis/mmlu_subjects/h4_test.json` |
+
+### Phase status (updated)
+
+- Phase 5 analysis: **complete and reproducibility-trace-passing.**
+- All four pre-registered hypothesis tests resolved.
+- D-21 and D-22 documented; cascade descent + regime split + bootstrap
+  determinism all verified.
+- Manuscript §7–§9 drafting: ready to begin against actual results.
 
 ---
 

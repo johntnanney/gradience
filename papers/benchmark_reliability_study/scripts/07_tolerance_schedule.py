@@ -47,6 +47,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from datetime import datetime, timezone
@@ -347,8 +348,15 @@ def compute_per_cell_tolerance(
 
         # Per-cell bootstrap seed is derived from (base, benchmark, model,
         # scoring_rule) so different cells get independent resamples but
-        # the whole study is deterministic.
-        cell_seed = rng_seed_base + hash((b_id, m_id, s_id)) % (2**31)
+        # the whole study is deterministic. Note: Python's built-in
+        # hash() is randomized per process (PYTHONHASHSEED), so we use
+        # hashlib.sha256 to derive a stable per-cell seed offset across
+        # script invocations. This is the D-21 fix.
+        cell_key = f"{b_id}|{m_id}|{s_id}".encode("utf-8")
+        cell_offset = int.from_bytes(
+            hashlib.sha256(cell_key).digest()[:4], byteorder="big"
+        )
+        cell_seed = (rng_seed_base + cell_offset) % (2**31)
 
         _, tol_single_cil, tol_single_ciu = bootstrap_tolerance_ci(
             across_scores,

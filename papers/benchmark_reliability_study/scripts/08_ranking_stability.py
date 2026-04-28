@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import sys
 from datetime import datetime, timezone
 from itertools import combinations
@@ -101,20 +102,38 @@ def pivot_condition_scores(
     condition_level: pd.DataFrame,
     benchmark_id: str,
 ) -> pd.DataFrame:
-    """Pivot one benchmark's condition rows: rows=condition_id, cols=model_id.
+    """Pivot one benchmark's condition rows: rows=cell_id, cols=model_id.
 
-    Aggregates duplicate (condition_id, model_id) pairs by mean (in
-    practice condition_id is unique within a (benchmark, model) cell;
-    `aggfunc='mean'` is a defensive default). NaN columns/rows are
-    preserved — they may indicate missing conditions for some models
-    and are handled downstream by per-pair selection of the rows where
-    both models have a score.
+    A "cell" is a (subject, prompt, seed, scoring_rule) tuple — the
+    measurement-design cell that all 3 models are evaluated under for
+    apples-to-apples ranking comparison. The original implementation
+    pivoted on `condition_id`, but our condition_ids include `model_id`
+    so each row had accuracy for only one model and the downstream
+    `dropna(how="any")` removed every row (D-22 fix; the old behavior
+    yielded 0 condition pairs for kendall tau and 0 reversal candidates
+    on the canonical run).
+
+    Aggregates duplicate (cell_id, model_id) pairs by mean (defensive;
+    in practice cell_id is unique within a (benchmark, model) cell).
+    NaN columns/rows are preserved — they may indicate missing
+    conditions for some models and are handled downstream by per-pair
+    selection of the rows where both models have a score.
     """
     sub = condition_level[condition_level["benchmark_id"] == benchmark_id]
     if sub.empty:
         return pd.DataFrame()
+    # Build a cell_id that excludes model_id. Subject_id is optional
+    # (only MMLU has subjects); fillna with empty so the join is stable.
+    sub = sub.assign(
+        cell_id=(
+            sub["subject_id"].fillna("").astype(str) + "|"
+            + sub["prompt_id"].astype(str) + "|"
+            + sub["seed_id"].fillna("0shot").astype(str) + "|"
+            + sub["scoring_rule_id"].astype(str)
+        )
+    )
     pivot = sub.pivot_table(
-        index="condition_id",
+        index="cell_id",
         columns="model_id",
         values="accuracy",
         aggfunc="mean",
@@ -442,6 +461,41 @@ def run(
         f"pairwise_win_probabilities.csv ({len(win_prob_rows)} rows), "
         f"kendall_tau_by_benchmark.csv ({len(kendall_rows)} rows) "
         f"to {out_dir}",
+    )
+
+    # H3 test result (pre-reg §3.3): for at least N benchmarks, at least
+    # one model pair has a condition-reversal fraction exceeding the H3
+    # threshold. Aggregating from the per-pair reversal_rows.
+    benchmarks_with_exceeding_pair = sorted({
+        r["benchmark_id"] for r in reversal_rows
+        if r.get("exceeds_h3_threshold")
+    })
+    benchmarks_with_no_exceeding_pair = sorted(
+        set(benchmarks) - set(benchmarks_with_exceeding_pair)
+    )
+    n_required_for_h3 = 3  # pre-reg §3.3: "at least three of the five..."
+    h3_result = {
+        "h3_hypothesis": (
+            "for at least N primary benchmarks, at least one model pair "
+            "has a condition-reversal fraction exceeding the H3 threshold "
+            "(indicating that single-occasion ranking is unstable)"
+        ),
+        "threshold": float(h3_threshold),
+        "n_required": n_required_for_h3,
+        "n_benchmarks_with_exceeding_pair": len(benchmarks_with_exceeding_pair),
+        "benchmarks_with_exceeding_pair": benchmarks_with_exceeding_pair,
+        "benchmarks_with_no_exceeding_pair": benchmarks_with_no_exceeding_pair,
+        "h3_confirmed": (
+            len(benchmarks_with_exceeding_pair) >= n_required_for_h3
+        ),
+    }
+    h3_path = out_dir / "h3_test.json"
+    h3_path.write_text(json.dumps(h3_result, indent=2, sort_keys=True) + "\n")
+    _log(
+        "INFO",
+        f"H3: {h3_result['n_benchmarks_with_exceeding_pair']}/"
+        f"{h3_result['n_required']} benchmarks have at least one pair "
+        f"exceeding {h3_threshold}; confirmed={h3_result['h3_confirmed']}",
     )
 
     # Figure.

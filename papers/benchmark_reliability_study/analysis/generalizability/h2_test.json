@@ -1,0 +1,23 @@
+{
+  "benchmarks_above_or_equal": [
+    "hellaswag"
+  ],
+  "benchmarks_below": [
+    "arc_challenge",
+    "mmlu_panel",
+    "truthfulqa_mc",
+    "winogrande"
+  ],
+  "g_single_per_benchmark": {
+    "arc_challenge": 0.5637,
+    "hellaswag": 0.953,
+    "mmlu_panel": 0.3011,
+    "truthfulqa_mc": 0.0486,
+    "winogrande": 0.4045
+  },
+  "h2_confirmed": true,
+  "h2_hypothesis": "for at least N benchmarks, generalizability coefficient under single-occasion measurement is less than the threshold (indicating single-occasion evaluation is unreliable)",
+  "n_below": 4,
+  "n_required": 3,
+  "threshold": 0.8
+}
