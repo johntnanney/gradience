@@ -136,6 +136,8 @@ The load-bearing methodological move. Decimal-place precision logic: a score rep
 
 **Action:** new prose; this is the distinctive-contribution paragraph the manuscript's positioning rests on.
 
+> **Note (2026-04-27, post-Heineman-et-al.):** The §3.5 closing paragraph in `manuscript/draft_v1.tex` (the "what the field has converged on" framing) needs a small update at next-touch to acknowledge that the AI2/UW corpus's *signal* / *noise* vocabulary maps onto what the G-theory tradition calls *generalizability coefficient* / *measurement-condition variance* — same quantities, different methodological registers. The manuscript should name the convergence rather than reinventing the vocabulary; the distinctive-contribution paragraph then sits cleanly on top of either register. Specifically: the existing close ("Generalizability theory and variance decomposition are now shared methodological apparatus...") should add a sentence acknowledging the alternative-vocabulary convergence and naming Heineman et al. as the AI2/UW register for the same underlying quantities. Cost: ~2 sentences. Triggered by 2026-04-27 daily review. See `RESEARCH_INVENTORY.md` Section 8 note 1 for the full vocabulary-convergence framing.
+
 #### §3.6 Confound decomposition
 
 Pre-registered confound list. Same epistemic discipline as N134 §2.4: distinguishing what the diagnostic predicts from what is predictable by simpler alternatives, with confounds enumerated *before* data collection.
