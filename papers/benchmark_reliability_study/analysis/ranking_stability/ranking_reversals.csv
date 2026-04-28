@@ -1,0 +1,16 @@
+benchmark_id,model_a,model_b,overall_mean_diff,condition_reversal_fraction,n_conditions,exceeds_h3_threshold
+arc_challenge,pythia_1_4b,pythia_410m,0.010167804323094415,0.25,24,true
+arc_challenge,pythia_1_4b,qwen2_5_1_5b_instruct,-0.38303469852104666,0.0,24,false
+arc_challenge,pythia_410m,qwen2_5_1_5b_instruct,-0.39320250284414104,0.0,24,false
+hellaswag,pythia_1_4b,pythia_410m,-0.015360485958972325,0.20833333333333334,24,true
+hellaswag,pythia_1_4b,qwen2_5_1_5b_instruct,-0.4301392484896768,0.0,24,false
+hellaswag,pythia_410m,qwen2_5_1_5b_instruct,-0.41477876253070445,0.0,24,false
+mmlu_panel,pythia_1_4b,pythia_410m,0.03392792557426855,0.3333333333333333,120,true
+mmlu_panel,pythia_1_4b,qwen2_5_1_5b_instruct,-0.20771554938343176,0.08333333333333333,120,false
+mmlu_panel,pythia_410m,qwen2_5_1_5b_instruct,-0.2416434749577003,0.025,120,false
+truthfulqa_mc,pythia_1_4b,pythia_410m,-0.17747858017135865,0.5,8,true
+truthfulqa_mc,pythia_1_4b,qwen2_5_1_5b_instruct,-0.09042227662178709,0.375,8,true
+truthfulqa_mc,pythia_410m,qwen2_5_1_5b_instruct,0.08705630354957156,0.375,8,true
+winogrande,pythia_1_4b,pythia_410m,-0.012496711391739024,0.5416666666666666,24,true
+winogrande,pythia_1_4b,qwen2_5_1_5b_instruct,-0.230136806103657,0.0,24,false
+winogrande,pythia_410m,qwen2_5_1_5b_instruct,-0.21764009471191798,0.0,24,false

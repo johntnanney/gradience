@@ -1,0 +1,7 @@
+{
+  "fallback_used": "mixed_effects",
+  "h4_confirmed": false,
+  "h4_hypothesis": "model x subject interaction >= 0.1",
+  "observed_proportion": 0.004615127577868231,
+  "threshold": 0.1
+}

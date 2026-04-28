@@ -1,0 +1,16 @@
+benchmark_id,model_a,model_b,p_a_gt_b_mean,p_a_gt_b_ci_lower,p_a_gt_b_ci_upper,n_bootstrap
+arc_challenge,pythia_1_4b,pythia_410m,0.7501,0.5833333333333334,0.9166666666666666,10000
+arc_challenge,pythia_1_4b,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000
+arc_challenge,pythia_410m,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000
+hellaswag,pythia_1_4b,pythia_410m,0.2079416666666667,0.041666666666666664,0.375,10000
+hellaswag,pythia_1_4b,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000
+hellaswag,pythia_410m,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000
+mmlu_panel,pythia_1_4b,pythia_410m,0.6662316666666667,0.5833333333333334,0.75,10000
+mmlu_panel,pythia_1_4b,qwen2_5_1_5b_instruct,0.08309916666666667,0.03333333333333333,0.13333333333333333,10000
+mmlu_panel,pythia_410m,qwen2_5_1_5b_instruct,0.01646583333333333,0.0,0.041666666666666664,10000
+truthfulqa_mc,pythia_1_4b,pythia_410m,0.3708875,0.0,0.75,10000
+truthfulqa_mc,pythia_1_4b,qwen2_5_1_5b_instruct,0.374025,0.125,0.75,10000
+truthfulqa_mc,pythia_410m,qwen2_5_1_5b_instruct,0.62355,0.25,0.875,10000
+winogrande,pythia_1_4b,pythia_410m,0.54055,0.3333333333333333,0.75,10000
+winogrande,pythia_1_4b,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000
+winogrande,pythia_410m,qwen2_5_1_5b_instruct,0.0,0.0,0.0,10000

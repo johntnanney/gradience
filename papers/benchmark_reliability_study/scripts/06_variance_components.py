@@ -80,9 +80,24 @@ def _random_effects_for_level(level: str) -> list[str]:
     """Return the list of random-effect facets for a cascade level.
 
     Level 4 has no random effects; it's the aggregate G-theory fallback.
+
+    Item-id is intentionally not included as a random-effect facet at any
+    cascade level. SPEC §10.1 nominally lists item as a level-1 random
+    effect, but on the realised benchmark sizes (HellaSwag ~10k items,
+    ARC-Challenge ~1.2k items) statsmodels MixedLM with item_id as a
+    crossed RE either fails to converge or runs for hours per benchmark
+    fit — confirmed during the 2026-04-26 Phase 5 dry-run on partial
+    GPU output. Item-difficulty variance is therefore absorbed into
+    residual rather than partitioned as a separate variance component.
+    Methodologically: the aggregate-score SEM formulas in §9.2 do not
+    reference item-variance directly, so the tolerance schedule is
+    unaffected; what changes is the granularity of the §6 variance-
+    components table (one fewer bucket; var_residual' = var_item +
+    var_residual in expectation). Documented as D-20 in
+    IMPLEMENTATION_DEVIATIONS.md.
     """
     mapping = {
-        "level_1": ["prompt_id", "seed_id", "scoring_rule_id", "item_id"],
+        "level_1": ["prompt_id", "seed_id", "scoring_rule_id"],
         # Note: model × prompt and model × scoring_rule interactions are
         # specified in SPEC §10.1 as Level 1 random effects. statsmodels
         # does not cleanly support crossed-interaction random effects
@@ -90,8 +105,8 @@ def _random_effects_for_level(level: str) -> list[str]:
         # those interactions collapse into residual in Level 1. The full
         # interaction decomposition would require rpy2+lme4; documented
         # deviation in IMPLEMENTATION_DEVIATIONS.md.
-        "level_2": ["prompt_id", "seed_id", "scoring_rule_id", "item_id"],
-        "level_3": ["prompt_id", "scoring_rule_id", "item_id"],
+        "level_2": ["prompt_id", "seed_id", "scoring_rule_id"],
+        "level_3": ["prompt_id", "scoring_rule_id"],
         "level_4": [],
     }
     return mapping[level]

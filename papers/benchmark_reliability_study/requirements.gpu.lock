@@ -1,0 +1,39 @@
+# GPU pod environment lock file (GPU spec v0.1 §3.2, §16).
+#
+# Captured 2026-04-25 from RTX 4090 pod after `pip install` of reconciled
+# dependency set. The GPU spec's nominal pins for huggingface_hub==1.12.0
+# and datasets==4.8.0 were unreachable on this date: transformers 4.46.0
+# requires huggingface-hub<1.0, and datasets 4.0.0 was the latest installable
+# version compatible with that hub line. Both deviations documented in
+# IMPLEMENTATION_DEVIATIONS.md as D-14 (pip pin reconciliation).
+#
+# Use this file to recreate the pod environment exactly:
+#   pip install --upgrade pip
+#   pip install -r requirements.gpu.lock
+
+# --- Runtime base (preinstalled in RunPod PyTorch 2.4 image) ---
+torch==2.4.1+cu124
+
+# --- Inference + tokenization ---
+transformers==4.46.0
+accelerate==1.1.0
+sentencepiece==0.2.0
+tokenizers==0.20.3
+safetensors==0.7.0
+regex==2026.4.4
+
+# --- HF Hub + datasets ---
+huggingface_hub==0.36.2
+datasets==4.0.0
+
+# --- Output handling + validation ---
+pyarrow==15.0.2
+pandas==2.2.3
+pyyaml==6.0.2
+jsonschema==4.23.0
+numpy==1.26.4
+scipy==1.13.1
+tqdm==4.67.0
+filelock==3.13.1
+
+# --- Python: 3.11.10 (RunPod PyTorch 2.4 image) ---

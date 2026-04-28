@@ -26,6 +26,13 @@ convergence_triggers:
 tolerance:
   decision_rule_threshold_h1: 0.005
   benchmarks_required_for_h1: 3
+  # v1.1.2: cells with median parseability_rate below this threshold are
+  # routed to sample-SD-based tolerance (D-07 pattern) instead of the
+  # variance-components decomposition that LPM/GLMM operate on. Resolves
+  # D-09 by limiting the LPM-vs-GLMM regime to cells where the
+  # decomposition is methodologically meaningful. See LOCK_NOTES v1.1.2
+  # amendment.
+  parse_failure_threshold: 0.30
 
 h2_generalizability_threshold: 0.80
 h3_ranking_reversal_threshold: 0.20  # raised from 0.10 at v1.1 lock

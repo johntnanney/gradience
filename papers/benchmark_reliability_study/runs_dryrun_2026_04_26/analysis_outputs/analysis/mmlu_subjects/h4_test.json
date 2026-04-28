@@ -1,0 +1,7 @@
+{
+  "fallback_used": "anova",
+  "h4_confirmed": false,
+  "h4_hypothesis": "model x subject interaction >= 0.1",
+  "observed_proportion": 0.0,
+  "threshold": 0.1
+}

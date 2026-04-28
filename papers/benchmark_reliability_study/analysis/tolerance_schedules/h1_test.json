@@ -1,0 +1,14 @@
+{
+  "benchmarks_exceeding": [
+    "arc_challenge",
+    "hellaswag",
+    "mmlu_panel",
+    "truthfulqa_mc",
+    "winogrande"
+  ],
+  "h1_confirmed": true,
+  "h1_hypothesis": "bootstrap lower bound of cross-model median single-occasion tolerance > 0.005 for at least 3 of 5 benchmarks",
+  "n_exceeding": 5,
+  "n_required": 3,
+  "threshold": 0.005
+}
