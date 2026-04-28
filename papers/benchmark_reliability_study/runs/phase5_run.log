@@ -1,0 +1,124 @@
+=== Phase 5 driver ===
+  PAPER_ROOT  = /Users/john/code/gradience/papers/benchmark_reliability_study
+  RAW_DIR     = runs/raw/
+  ANALYSIS_DIR= analysis/
+Tue Apr 28 12:15:03 UTC 2026
+
+=== Phase 0 — mark conditions complete (RUNBOOK §8a) ===
+  conditions_primary.csv: complete=600, partial=0, pending=0, excluded=0
+  conditions_gsm8k.csv: complete=24, partial=0, pending=0, excluded=48
+  TOTAL: complete=624, partial=0, pending=0, excluded=48
+
+=== Phase 1 — script 04 (normalize outputs) ===
+[2026-04-28T12:15:03Z] [INFO] [04_normalize_outputs] Loaded 600 condition rows from manifests/conditions_primary.csv
+[2026-04-28T12:16:11Z] [INFO] [04_normalize_outputs] Wrote 1024512 item rows to runs/normalized/item_level_primary.parquet (complete=600, normalized_ok=600, failed=0, skipped=0).
+[2026-04-28T12:16:12Z] [INFO] [04_normalize_outputs] Loaded 72 condition rows from manifests/conditions_gsm8k.csv
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P1_original__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P2_lm_eval__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P3_helm_or_published__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____pythia_410m__P4_minimal_sourced__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P1_original__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse_permissive': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Condition 'gsm8k____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse_strict': skipped (condition_status='excluded_pre_run' (only 'complete' is normalized)).
+[2026-04-28T12:16:14Z] [INFO] [04_normalize_outputs] Wrote 31656 item rows to runs/normalized/item_level_gsm8k.parquet (complete=24, normalized_ok=24, failed=0, skipped=48).
+
+=== Phase 2 — script 05 (condition aggregation) ===
+[2026-04-28T12:16:15Z] [INFO] [05_make_condition_scores] Loaded 1024512 item rows from runs/normalized/item_level_primary.parquet (600 conditions).
+[2026-04-28T12:16:26Z] [INFO] [05_make_condition_scores] Wrote 600 condition rows to runs/normalized/condition_level_primary.csv.
+[2026-04-28T12:16:26Z] [INFO] [05_make_condition_scores] Loaded 31656 item rows from runs/normalized/item_level_gsm8k.parquet (24 conditions).
+[2026-04-28T12:16:26Z] [INFO] [05_make_condition_scores] Wrote 24 condition rows to runs/normalized/condition_level_gsm8k.csv.
+
+=== Phase 3 — script 06 (variance components, D-20 cascade) ===
+[2026-04-28T12:16:28Z] [INFO] [06_variance_components] Analyzing 5 benchmark(s): arc_challenge, hellaswag, mmlu_panel, truthfulqa_mc, winogrande
+[2026-04-28T12:16:29Z] [INFO] [06_variance_components] arc_challenge level_1: converged
+[2026-04-28T12:16:35Z] [INFO] [06_variance_components] hellaswag level_1: converged
+[2026-04-28T12:16:37Z] [INFO] [06_variance_components] mmlu_panel level_1: converged
+[2026-04-28T12:16:37Z] [INFO] [06_variance_components] truthfulqa_mc level_1: converged
+[2026-04-28T12:16:38Z] [INFO] [06_variance_components] winogrande level_1: did not converge; descending cascade
+[2026-04-28T12:16:40Z] [INFO] [06_variance_components] winogrande level_2: did not converge; descending cascade
+[2026-04-28T12:16:40Z] [INFO] [06_variance_components] winogrande level_3: converged
+[2026-04-28T12:16:41Z] [INFO] [06_variance_components] Emitted: item_level_vc.csv, aggregate_vc.csv, model_convergence_report.csv — 5 item-level fits, 0 Level-4 fallbacks, 15 aggregate cells
+[2026-04-28T12:16:41Z] [INFO] [06_variance_components] exit_code=0 summary={'n_benchmarks_analyzed': 5, 'n_aggregate_cells': 15, 'n_item_level_converged': 5, 'n_level_4_fallbacks': 0, 'script_version': '0.1.0'}
+
+=== Phase 4 — script 07 (tolerance schedule, regime-aware) ===
+[2026-04-28T12:16:41Z] [INFO] [07_tolerance_schedule] Computing tolerance schedule for 5 benchmark(s), 3 model(s), 2 scoring rule(s)
+[2026-04-28T12:16:47Z] [INFO] [07_tolerance_schedule] H1: 5/3 benchmarks confirmed
+[2026-04-28T12:16:47Z] [INFO] [07_tolerance_schedule] exit_code=0 summary={'n_cells': 30, 'n_benchmarks': 5, 'h1_confirmed': True, 'script_version': '0.1.0'}
+
+=== Phase 5 — script 08 (ranking stability) ===
+[2026-04-28T12:16:48Z] [INFO] [08_ranking_stability] Loaded 600 condition rows from runs/normalized/condition_level_primary.csv (5 benchmarks).
+[2026-04-28T12:16:48Z] [INFO] [08_ranking_stability] Wrote ranking_reversals.csv (0 rows), pairwise_win_probabilities.csv (0 rows), kendall_tau_by_benchmark.csv (5 rows) to analysis/ranking_stability
+[2026-04-28T12:16:48Z] [INFO] [08_ranking_stability] Wrote figure to figures/ranking_stability_by_benchmark.png
+
+=== Phase 6 — script 09 (MMLU subject decomposition) ===
+[2026-04-28T12:16:50Z] [INFO] [09_mmlu_subject_decomp] Loaded 1024512 item rows from runs/normalized/item_level_primary.parquet; filtering to benchmark_id='mmlu_panel'.
+[2026-04-28T12:16:50Z] [INFO] [09_mmlu_subject_decomp] Wrote model x subject matrix (3 models, 5 subjects).
+[2026-04-28T12:16:54Z] [INFO] [09_mmlu_subject_decomp] Variance components (mixed_effects method): model_x_subject proportion = 0.0046 (H4 threshold 0.1); H4 confirmed: False
+[2026-04-28T12:16:54Z] [INFO] [09_mmlu_subject_decomp] Wrote heatmap to figures/mmlu_model_subject_heatmap.png
+
+=== Phase 7 — script 10 (GSM8K case study) ===
+[2026-04-28T12:16:54Z] [INFO] [10_gsm8k_case] Loaded 24 condition rows from runs/normalized/condition_level_gsm8k.csv (1 benchmarks).
+[2026-04-28T12:16:55Z] [INFO] [10_gsm8k_case] Wrote gsm8k_tolerance_schedule.csv (2 rows).
+[2026-04-28T12:16:55Z] [INFO] [10_gsm8k_case] Wrote gsm8k_extraction_sensitivity.csv (12 rows).
+[2026-04-28T12:16:55Z] [INFO] [10_gsm8k_case] Wrote gsm8k_parseability.csv (2 rows).
+
+=== Phase 8 — script 98 (reproducibility trace) ===
+[2026-04-28T12:17:16Z] [ERROR] [98_reproducibility_trace] Reproducibility trace: FAIL (2 failures across 18 artifacts).
+  (98 reported failures — see report; D-21 bootstrap-determinism known)
+
+=== Phase 9 — script 99 (pipeline report) ===
+[2026-04-28T12:17:16Z] [INFO] [99_make_report] Pipeline report written to reports/cpu_pipeline_report.md
+
+=== Phase 5 driver complete ===
+Tue Apr 28 12:17:16 UTC 2026
+Artifacts:
+  runs/normalized//item_level_primary.parquet (       0 row count below)
+    -rw-r--r--@ 1 john  staff   5.3K Apr 28 07:16 runs/normalized//condition_level_gsm8k.csv
+    -rw-r--r--@ 1 john  staff   123K Apr 28 07:16 runs/normalized//condition_level_primary.csv
+    -rw-r--r--@ 1 john  staff   6.6M Apr 28 07:16 runs/normalized//item_level_gsm8k.parquet
+    -rw-r--r--@ 1 john  staff    84M Apr 28 07:16 runs/normalized//item_level_primary.parquet
+  analysis//{variance_components,tolerance_schedules,ranking_stability,mmlu_subjects,gsm8k_case}/
+  reports//reproducibility_trace.md
+  reports//cpu_pipeline_report.md
+  figures//{mmlu_model_subject_heatmap.png,ranking_stability_by_benchmark.png}

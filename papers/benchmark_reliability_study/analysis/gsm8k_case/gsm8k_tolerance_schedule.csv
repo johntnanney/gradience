@@ -1,0 +1,3 @@
+model_id,extraction_variant,sem,tolerance,tolerance_ci_lower,tolerance_ci_upper,licensed_precision
+pythia_1_4b,generate_parse_permissive,0.003562767798805069,0.007125535597610138,0.004587031279611574,0.008804952788520793,interval_required
+pythia_1_4b,generate_parse_strict,0.0015163002274450317,0.0030326004548900634,0.0013651806480341163,0.0037976365880366507,two_decimal_accuracy

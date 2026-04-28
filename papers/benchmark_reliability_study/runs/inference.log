@@ -1,0 +1,666 @@
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:590: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.7` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:595: UserWarning: `do_sample` is set to `False`. However, `top_p` is set to `0.8` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_p`.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:612: UserWarning: `do_sample` is set to `False`. However, `top_k` is set to `20` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_k`.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:590: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.7` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:595: UserWarning: `do_sample` is set to `False`. However, `top_p` is set to `0.8` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_p`.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/transformers/generation/configuration_utils.py:612: UserWarning: `do_sample` is set to `False`. However, `top_k` is set to `20` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_k`.
+  warnings.warn(
+[main] 624 conditions in scope; out_dir=runs/raw
+[preflight] checking schemas readable…
+[preflight] checking prompt files + content hashes…
+[preflight] checking output dir writable…
+[preflight] checking fewshot lock entries cover all conditions…
+[preflight] checking models loadable (1 model probe)…
+[preflight] probing EleutherAI/pythia-410m@9879c9b5
+[preflight] OK
+[main] 321 pending after resume-skip
+[load] EleutherAI/pythia-410m@9879c9b5 (158 conditions)
+[run] [1/158] hellaswag____pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s123__generate_parse: 10042 items, 1815.0s, 5.5 items/s
+[run] [2/158] hellaswag____pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s123__ll_norm: 10042 items, 414.7s, 24.2 items/s
+[run] [3/158] hellaswag____pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s2024__generate_parse: 10042 items, 1795.3s, 5.6 items/s
+[run] [4/158] hellaswag____pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s2024__ll_norm: 10042 items, 337.1s, 29.8 items/s
+[run] [5/158] hellaswag____pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s42__generate_parse: 10042 items, 1826.3s, 5.5 items/s
+[run] [6/158] hellaswag____pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] hellaswag____pythia_410m__P4_minimal_sourced__s42__ll_norm: 10042 items, 454.9s, 22.1 items/s
+[run] [7/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s123__generate_parse: 378 items, 69.8s, 5.4 items/s
+[run] [8/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s123__ll_norm: 378 items, 9.0s, 42.1 items/s
+[run] [9/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s2024__generate_parse: 378 items, 66.4s, 5.7 items/s
+[run] [10/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s2024__ll_norm: 378 items, 9.0s, 42.1 items/s
+[run] [11/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s42__generate_parse: 378 items, 66.4s, 5.7 items/s
+[run] [12/158] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P1_original__s42__ll_norm: 378 items, 9.0s, 42.2 items/s
+[run] [13/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s123__generate_parse: 378 items, 66.2s, 5.7 items/s
+[run] [14/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s123__ll_norm: 378 items, 8.9s, 42.5 items/s
+[run] [15/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s2024__generate_parse: 378 items, 66.2s, 5.7 items/s
+[run] [16/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s2024__ll_norm: 378 items, 8.9s, 42.6 items/s
+[run] [17/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s42__generate_parse: 378 items, 66.1s, 5.7 items/s
+[run] [18/158] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P2_lm_eval__s42__ll_norm: 378 items, 8.9s, 42.6 items/s
+[run] [19/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s123__generate_parse: 378 items, 66.2s, 5.7 items/s
+[run] [20/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s123__ll_norm: 378 items, 8.9s, 42.5 items/s
+[run] [21/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s2024__generate_parse: 378 items, 66.2s, 5.7 items/s
+[run] [22/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s2024__ll_norm: 378 items, 8.9s, 42.5 items/s
+[run] [23/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s42__generate_parse: 378 items, 66.4s, 5.7 items/s
+[run] [24/158] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P3_helm_or_published__s42__ll_norm: 378 items, 8.9s, 42.4 items/s
+[run] [25/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s123__generate_parse: 378 items, 66.2s, 5.7 items/s
+[run] [26/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s123__ll_norm: 378 items, 8.9s, 42.7 items/s
+[run] [27/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s2024__generate_parse: 378 items, 66.3s, 5.7 items/s
+[run] [28/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s2024__ll_norm: 378 items, 8.9s, 42.4 items/s
+[run] [29/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s42__generate_parse: 378 items, 66.4s, 5.7 items/s
+[run] [30/158] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__pythia_410m__P4_minimal_sourced__s42__ll_norm: 378 items, 8.9s, 42.4 items/s
+[run] [31/158] mmlu_panel__global_facts__pythia_410m__P1_original__s123__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s123__generate_parse: 100 items, 17.6s, 5.7 items/s
+[run] [32/158] mmlu_panel__global_facts__pythia_410m__P1_original__s123__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s123__ll_norm: 100 items, 2.3s, 42.9 items/s
+[run] [33/158] mmlu_panel__global_facts__pythia_410m__P1_original__s2024__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s2024__generate_parse: 100 items, 17.6s, 5.7 items/s
+[run] [34/158] mmlu_panel__global_facts__pythia_410m__P1_original__s2024__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s2024__ll_norm: 100 items, 2.3s, 42.7 items/s
+[run] [35/158] mmlu_panel__global_facts__pythia_410m__P1_original__s42__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s42__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [36/158] mmlu_panel__global_facts__pythia_410m__P1_original__s42__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P1_original__s42__ll_norm: 100 items, 2.3s, 42.9 items/s
+[run] [37/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s123__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [38/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s123__ll_norm: 100 items, 2.3s, 42.8 items/s
+[run] [39/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s2024__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [40/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s2024__ll_norm: 100 items, 2.3s, 42.8 items/s
+[run] [41/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s42__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [42/158] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P2_lm_eval__s42__ll_norm: 100 items, 2.3s, 42.8 items/s
+[run] [43/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s123__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [44/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s123__ll_norm: 100 items, 2.3s, 42.7 items/s
+[run] [45/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s2024__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [46/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s2024__ll_norm: 100 items, 2.3s, 42.8 items/s
+[run] [47/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s42__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [48/158] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P3_helm_or_published__s42__ll_norm: 100 items, 2.3s, 42.8 items/s
+[run] [49/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s123__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [50/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s123__ll_norm: 100 items, 2.3s, 42.7 items/s
+[run] [51/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s2024__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [52/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s2024__ll_norm: 100 items, 2.3s, 42.6 items/s
+[run] [53/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s42__generate_parse: 100 items, 17.5s, 5.7 items/s
+[run] [54/158] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__global_facts__pythia_410m__P4_minimal_sourced__s42__ll_norm: 100 items, 2.3s, 42.7 items/s
+[run] [55/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s123__generate_parse: 545 items, 95.5s, 5.7 items/s
+[run] [56/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s123__ll_norm: 545 items, 13.1s, 41.7 items/s
+[run] [57/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s2024__generate_parse: 545 items, 95.6s, 5.7 items/s
+[run] [58/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s2024__ll_norm: 545 items, 13.0s, 41.8 items/s
+[run] [59/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s42__generate_parse: 545 items, 95.8s, 5.7 items/s
+[run] [60/158] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P1_original__s42__ll_norm: 545 items, 13.0s, 41.9 items/s
+[run] [61/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s123__generate_parse: 545 items, 95.8s, 5.7 items/s
+[run] [62/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s123__ll_norm: 545 items, 13.0s, 42.0 items/s
+[run] [63/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s2024__generate_parse: 545 items, 96.1s, 5.7 items/s
+[run] [64/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s2024__ll_norm: 545 items, 12.9s, 42.2 items/s
+[run] [65/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s42__generate_parse: 545 items, 95.7s, 5.7 items/s
+[run] [66/158] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P2_lm_eval__s42__ll_norm: 545 items, 12.9s, 42.3 items/s
+[run] [67/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s123__generate_parse: 545 items, 96.2s, 5.7 items/s
+[run] [68/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s123__ll_norm: 545 items, 13.0s, 42.1 items/s
+[run] [69/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s2024__generate_parse: 545 items, 95.8s, 5.7 items/s
+[run] [70/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s2024__ll_norm: 545 items, 12.9s, 42.1 items/s
+[run] [71/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s42__generate_parse: 545 items, 95.8s, 5.7 items/s
+[run] [72/158] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P3_helm_or_published__s42__ll_norm: 545 items, 13.0s, 42.1 items/s
+[run] [73/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s123__generate_parse: 545 items, 95.6s, 5.7 items/s
+[run] [74/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s123__ll_norm: 545 items, 12.9s, 42.2 items/s
+[run] [75/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s2024__generate_parse: 545 items, 95.8s, 5.7 items/s
+[run] [76/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s2024__ll_norm: 545 items, 12.9s, 42.1 items/s
+[run] [77/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s42__generate_parse: 545 items, 95.9s, 5.7 items/s
+[run] [78/158] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__pythia_410m__P4_minimal_sourced__s42__ll_norm: 545 items, 12.9s, 42.3 items/s
+[run] [79/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s123__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s123__generate_parse: 282 items, 50.0s, 5.6 items/s
+[run] [80/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s123__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s123__ll_norm: 282 items, 7.2s, 39.2 items/s
+[run] [81/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s2024__generate_parse: 282 items, 50.2s, 5.6 items/s
+[run] [82/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s2024__ll_norm: 282 items, 7.2s, 39.2 items/s
+[run] [83/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s42__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s42__generate_parse: 282 items, 49.9s, 5.7 items/s
+[run] [84/158] mmlu_panel__professional_accounting__pythia_410m__P1_original__s42__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P1_original__s42__ll_norm: 282 items, 7.2s, 39.2 items/s
+[run] [85/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s123__generate_parse: 282 items, 49.8s, 5.7 items/s
+[run] [86/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s123__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [87/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s2024__generate_parse: 282 items, 49.9s, 5.7 items/s
+[run] [88/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s2024__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [89/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s42__generate_parse: 282 items, 49.8s, 5.7 items/s
+[run] [90/158] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P2_lm_eval__s42__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [91/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s123__generate_parse: 282 items, 49.8s, 5.7 items/s
+[run] [92/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s123__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [93/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s2024__generate_parse: 282 items, 49.7s, 5.7 items/s
+[run] [94/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s2024__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [95/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s42__generate_parse: 282 items, 49.6s, 5.7 items/s
+[run] [96/158] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P3_helm_or_published__s42__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [97/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s123__generate_parse: 282 items, 49.6s, 5.7 items/s
+[run] [98/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s123__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [99/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s2024__generate_parse: 282 items, 49.7s, 5.7 items/s
+[run] [100/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s2024__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [101/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s42__generate_parse: 282 items, 49.7s, 5.7 items/s
+[run] [102/158] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__professional_accounting__pythia_410m__P4_minimal_sourced__s42__ll_norm: 282 items, 7.1s, 39.5 items/s
+[run] [103/158] mmlu_panel__world_religions__pythia_410m__P1_original__s123__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s123__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [104/158] mmlu_panel__world_religions__pythia_410m__P1_original__s123__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s123__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [105/158] mmlu_panel__world_religions__pythia_410m__P1_original__s2024__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s2024__generate_parse: 171 items, 29.9s, 5.7 items/s
+[run] [106/158] mmlu_panel__world_religions__pythia_410m__P1_original__s2024__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s2024__ll_norm: 171 items, 4.0s, 42.8 items/s
+[run] [107/158] mmlu_panel__world_religions__pythia_410m__P1_original__s42__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s42__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [108/158] mmlu_panel__world_religions__pythia_410m__P1_original__s42__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P1_original__s42__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [109/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s123__generate_parse: 171 items, 30.1s, 5.7 items/s
+[run] [110/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s123__ll_norm: 171 items, 4.0s, 42.6 items/s
+[run] [111/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s2024__generate_parse: 171 items, 30.1s, 5.7 items/s
+[run] [112/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s2024__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [113/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s42__generate_parse: 171 items, 30.3s, 5.7 items/s
+[run] [114/158] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P2_lm_eval__s42__ll_norm: 171 items, 4.1s, 41.8 items/s
+[run] [115/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s123__generate_parse: 171 items, 30.6s, 5.6 items/s
+[run] [116/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s123__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [117/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s2024__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [118/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s2024__ll_norm: 171 items, 4.0s, 42.8 items/s
+[run] [119/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s42__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [120/158] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P3_helm_or_published__s42__ll_norm: 171 items, 4.0s, 42.8 items/s
+[run] [121/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s123__generate_parse: 171 items, 30.4s, 5.6 items/s
+[run] [122/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s123__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [123/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s2024__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [124/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s2024__ll_norm: 171 items, 4.0s, 42.7 items/s
+[run] [125/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s42__generate_parse: 171 items, 30.0s, 5.7 items/s
+[run] [126/158] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__world_religions__pythia_410m__P4_minimal_sourced__s42__ll_norm: 171 items, 4.0s, 42.8 items/s
+[run] [127/158] truthfulqa_mc____pythia_410m__P1_original__0shot__generate_parse
+[done] truthfulqa_mc____pythia_410m__P1_original__0shot__generate_parse: 817 items, 144.2s, 5.7 items/s
+[run] [128/158] truthfulqa_mc____pythia_410m__P1_original__0shot__ll_norm
+[done] truthfulqa_mc____pythia_410m__P1_original__0shot__ll_norm: 817 items, 23.0s, 35.6 items/s
+[run] [129/158] truthfulqa_mc____pythia_410m__P2_lm_eval__0shot__generate_parse
+[done] truthfulqa_mc____pythia_410m__P2_lm_eval__0shot__generate_parse: 817 items, 142.4s, 5.7 items/s
+[run] [130/158] truthfulqa_mc____pythia_410m__P2_lm_eval__0shot__ll_norm
+[done] truthfulqa_mc____pythia_410m__P2_lm_eval__0shot__ll_norm: 817 items, 23.9s, 34.2 items/s
+[run] [131/158] truthfulqa_mc____pythia_410m__P3_helm_or_published__0shot__generate_parse
+[done] truthfulqa_mc____pythia_410m__P3_helm_or_published__0shot__generate_parse: 817 items, 141.2s, 5.8 items/s
+[run] [132/158] truthfulqa_mc____pythia_410m__P3_helm_or_published__0shot__ll_norm
+[done] truthfulqa_mc____pythia_410m__P3_helm_or_published__0shot__ll_norm: 817 items, 23.0s, 35.6 items/s
+[run] [133/158] truthfulqa_mc____pythia_410m__P4_minimal_sourced__0shot__generate_parse
+[done] truthfulqa_mc____pythia_410m__P4_minimal_sourced__0shot__generate_parse: 817 items, 141.4s, 5.8 items/s
+[run] [134/158] truthfulqa_mc____pythia_410m__P4_minimal_sourced__0shot__ll_norm
+[done] truthfulqa_mc____pythia_410m__P4_minimal_sourced__0shot__ll_norm: 817 items, 22.9s, 35.6 items/s
+[run] [135/158] winogrande____pythia_410m__P1_original__s123__generate_parse
+[done] winogrande____pythia_410m__P1_original__s123__generate_parse: 1267 items, 227.6s, 5.6 items/s
+[run] [136/158] winogrande____pythia_410m__P1_original__s123__ll_norm
+[done] winogrande____pythia_410m__P1_original__s123__ll_norm: 1267 items, 15.0s, 84.7 items/s
+[run] [137/158] winogrande____pythia_410m__P1_original__s2024__generate_parse
+[done] winogrande____pythia_410m__P1_original__s2024__generate_parse: 1267 items, 222.3s, 5.7 items/s
+[run] [138/158] winogrande____pythia_410m__P1_original__s2024__ll_norm
+[done] winogrande____pythia_410m__P1_original__s2024__ll_norm: 1267 items, 14.9s, 84.8 items/s
+[run] [139/158] winogrande____pythia_410m__P1_original__s42__generate_parse
+[done] winogrande____pythia_410m__P1_original__s42__generate_parse: 1267 items, 222.2s, 5.7 items/s
+[run] [140/158] winogrande____pythia_410m__P1_original__s42__ll_norm
+[done] winogrande____pythia_410m__P1_original__s42__ll_norm: 1267 items, 15.0s, 84.7 items/s
+[run] [141/158] winogrande____pythia_410m__P2_lm_eval__s123__generate_parse
+[done] winogrande____pythia_410m__P2_lm_eval__s123__generate_parse: 1267 items, 222.3s, 5.7 items/s
+[run] [142/158] winogrande____pythia_410m__P2_lm_eval__s123__ll_norm
+[done] winogrande____pythia_410m__P2_lm_eval__s123__ll_norm: 1267 items, 15.0s, 84.6 items/s
+[run] [143/158] winogrande____pythia_410m__P2_lm_eval__s2024__generate_parse
+[done] winogrande____pythia_410m__P2_lm_eval__s2024__generate_parse: 1267 items, 221.8s, 5.7 items/s
+[run] [144/158] winogrande____pythia_410m__P2_lm_eval__s2024__ll_norm
+[done] winogrande____pythia_410m__P2_lm_eval__s2024__ll_norm: 1267 items, 14.9s, 84.8 items/s
+[run] [145/158] winogrande____pythia_410m__P2_lm_eval__s42__generate_parse
+[done] winogrande____pythia_410m__P2_lm_eval__s42__generate_parse: 1267 items, 221.7s, 5.7 items/s
+[run] [146/158] winogrande____pythia_410m__P2_lm_eval__s42__ll_norm
+[done] winogrande____pythia_410m__P2_lm_eval__s42__ll_norm: 1267 items, 14.9s, 84.9 items/s
+[run] [147/158] winogrande____pythia_410m__P3_helm_or_published__s123__generate_parse
+[done] winogrande____pythia_410m__P3_helm_or_published__s123__generate_parse: 1267 items, 222.1s, 5.7 items/s
+[run] [148/158] winogrande____pythia_410m__P3_helm_or_published__s123__ll_norm
+[done] winogrande____pythia_410m__P3_helm_or_published__s123__ll_norm: 1267 items, 15.0s, 84.5 items/s
+[run] [149/158] winogrande____pythia_410m__P3_helm_or_published__s2024__generate_parse
+[done] winogrande____pythia_410m__P3_helm_or_published__s2024__generate_parse: 1267 items, 223.1s, 5.7 items/s
+[run] [150/158] winogrande____pythia_410m__P3_helm_or_published__s2024__ll_norm
+[done] winogrande____pythia_410m__P3_helm_or_published__s2024__ll_norm: 1267 items, 15.0s, 84.5 items/s
+[run] [151/158] winogrande____pythia_410m__P3_helm_or_published__s42__generate_parse
+[done] winogrande____pythia_410m__P3_helm_or_published__s42__generate_parse: 1267 items, 222.1s, 5.7 items/s
+[run] [152/158] winogrande____pythia_410m__P3_helm_or_published__s42__ll_norm
+[done] winogrande____pythia_410m__P3_helm_or_published__s42__ll_norm: 1267 items, 15.0s, 84.6 items/s
+[run] [153/158] winogrande____pythia_410m__P4_minimal_sourced__s123__generate_parse
+[done] winogrande____pythia_410m__P4_minimal_sourced__s123__generate_parse: 1267 items, 222.4s, 5.7 items/s
+[run] [154/158] winogrande____pythia_410m__P4_minimal_sourced__s123__ll_norm
+[done] winogrande____pythia_410m__P4_minimal_sourced__s123__ll_norm: 1267 items, 15.0s, 84.6 items/s
+[run] [155/158] winogrande____pythia_410m__P4_minimal_sourced__s2024__generate_parse
+[done] winogrande____pythia_410m__P4_minimal_sourced__s2024__generate_parse: 1267 items, 221.9s, 5.7 items/s
+[run] [156/158] winogrande____pythia_410m__P4_minimal_sourced__s2024__ll_norm
+[done] winogrande____pythia_410m__P4_minimal_sourced__s2024__ll_norm: 1267 items, 15.0s, 84.6 items/s
+[run] [157/158] winogrande____pythia_410m__P4_minimal_sourced__s42__generate_parse
+[done] winogrande____pythia_410m__P4_minimal_sourced__s42__generate_parse: 1267 items, 223.1s, 5.7 items/s
+[run] [158/158] winogrande____pythia_410m__P4_minimal_sourced__s42__ll_norm
+[done] winogrande____pythia_410m__P4_minimal_sourced__s42__ll_norm: 1267 items, 14.9s, 84.8 items/s
+[load] Qwen/Qwen2.5-1.5B-Instruct@989aa798 (163 conditions)
+[run] [1/163] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 10042 items, 1368.0s, 7.3 items/s
+[run] [2/163] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 10042 items, 3305.5s, 3.0 items/s
+[run] [3/163] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 10042 items, 1107.0s, 9.1 items/s
+[run] [4/163] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 10042 items, 3405.2s, 2.9 items/s
+[run] [5/163] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 10042 items, 1542.0s, 6.5 items/s
+[run] [6/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 10042 items, 3358.5s, 3.0 items/s
+[run] [7/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 10042 items, 1366.5s, 7.3 items/s
+[run] [8/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 10042 items, 3297.2s, 3.0 items/s
+[run] [9/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 10042 items, 1104.5s, 9.1 items/s
+[run] [10/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 10042 items, 3395.4s, 3.0 items/s
+[run] [11/163] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] hellaswag____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 10042 items, 1541.5s, 6.5 items/s
+[run] [12/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 378 items, 120.8s, 3.1 items/s
+[run] [13/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 378 items, 26.5s, 14.3 items/s
+[run] [14/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 378 items, 120.5s, 3.1 items/s
+[run] [15/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 378 items, 26.5s, 14.3 items/s
+[run] [16/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 378 items, 120.8s, 3.1 items/s
+[run] [17/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 378 items, 26.5s, 14.3 items/s
+[run] [18/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 378 items, 121.0s, 3.1 items/s
+[run] [19/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [20/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 378 items, 120.7s, 3.1 items/s
+[run] [21/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [22/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 378 items, 120.7s, 3.1 items/s
+[run] [23/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [24/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 378 items, 120.8s, 3.1 items/s
+[run] [25/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 378 items, 26.0s, 14.5 items/s
+[run] [26/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 378 items, 120.6s, 3.1 items/s
+[run] [27/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 378 items, 26.0s, 14.5 items/s
+[run] [28/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 378 items, 120.6s, 3.1 items/s
+[run] [29/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 378 items, 26.0s, 14.5 items/s
+[run] [30/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 378 items, 120.5s, 3.1 items/s
+[run] [31/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [32/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 378 items, 120.7s, 3.1 items/s
+[run] [33/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [34/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 378 items, 120.6s, 3.1 items/s
+[run] [35/163] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__elementary_mathematics__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 378 items, 25.9s, 14.6 items/s
+[run] [36/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 100 items, 26.9s, 3.7 items/s
+[run] [37/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 100 items, 5.8s, 17.2 items/s
+[run] [38/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 100 items, 25.3s, 4.0 items/s
+[run] [39/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 100 items, 5.8s, 17.2 items/s
+[run] [40/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 100 items, 25.4s, 3.9 items/s
+[run] [41/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 100 items, 5.8s, 17.2 items/s
+[run] [42/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 100 items, 31.7s, 3.2 items/s
+[run] [43/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 100 items, 5.7s, 17.4 items/s
+[run] [44/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 100 items, 31.2s, 3.2 items/s
+[run] [45/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 100 items, 5.7s, 17.4 items/s
+[run] [46/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 100 items, 31.2s, 3.2 items/s
+[run] [47/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 100 items, 5.7s, 17.4 items/s
+[run] [48/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 100 items, 31.7s, 3.2 items/s
+[run] [49/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 100 items, 5.8s, 17.4 items/s
+[run] [50/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 100 items, 31.7s, 3.2 items/s
+[run] [51/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 100 items, 5.8s, 17.4 items/s
+[run] [52/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 100 items, 31.7s, 3.2 items/s
+[run] [53/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 100 items, 5.8s, 17.4 items/s
+[run] [54/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 100 items, 31.3s, 3.2 items/s
+[run] [55/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 100 items, 5.7s, 17.4 items/s
+[run] [56/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 100 items, 29.7s, 3.4 items/s
+[run] [57/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 100 items, 5.8s, 17.4 items/s
+[run] [58/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 100 items, 29.6s, 3.4 items/s
+[run] [59/163] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__global_facts__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 100 items, 5.8s, 17.4 items/s
+[run] [60/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 545 items, 148.3s, 3.7 items/s
+[run] [61/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 545 items, 34.6s, 15.7 items/s
+[run] [62/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 545 items, 160.9s, 3.4 items/s
+[run] [63/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 545 items, 34.7s, 15.7 items/s
+[run] [64/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 545 items, 153.5s, 3.6 items/s
+[run] [65/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 545 items, 34.6s, 15.7 items/s
+[run] [66/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 545 items, 173.3s, 3.1 items/s
+[run] [67/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [68/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 545 items, 173.6s, 3.1 items/s
+[run] [69/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [70/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 545 items, 173.5s, 3.1 items/s
+[run] [71/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [72/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 545 items, 173.9s, 3.1 items/s
+[run] [73/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 545 items, 34.3s, 15.9 items/s
+[run] [74/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 545 items, 173.7s, 3.1 items/s
+[run] [75/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 545 items, 34.3s, 15.9 items/s
+[run] [76/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 545 items, 174.0s, 3.1 items/s
+[run] [77/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 545 items, 34.4s, 15.9 items/s
+[run] [78/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 545 items, 174.8s, 3.1 items/s
+[run] [79/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [80/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 545 items, 173.8s, 3.1 items/s
+[run] [81/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [82/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 545 items, 173.8s, 3.1 items/s
+[run] [83/163] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__high_school_psychology__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 545 items, 34.2s, 15.9 items/s
+[run] [84/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 282 items, 85.3s, 3.3 items/s
+[run] [85/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 282 items, 24.5s, 11.5 items/s
+[run] [86/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 282 items, 81.1s, 3.5 items/s
+[run] [87/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 282 items, 24.5s, 11.5 items/s
+[run] [88/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 282 items, 84.3s, 3.3 items/s
+[run] [89/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 282 items, 24.5s, 11.5 items/s
+[run] [90/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 282 items, 90.0s, 3.1 items/s
+[run] [91/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [92/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 282 items, 88.8s, 3.2 items/s
+[run] [93/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [94/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 282 items, 91.2s, 3.1 items/s
+[run] [95/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [96/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 282 items, 91.4s, 3.1 items/s
+[run] [97/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 282 items, 24.2s, 11.6 items/s
+[run] [98/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 282 items, 91.3s, 3.1 items/s
+[run] [99/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 282 items, 24.2s, 11.6 items/s
+[run] [100/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 282 items, 91.8s, 3.1 items/s
+[run] [101/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 282 items, 24.2s, 11.7 items/s
+[run] [102/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 282 items, 90.9s, 3.1 items/s
+[run] [103/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [104/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 282 items, 90.4s, 3.1 items/s
+[run] [105/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [106/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 282 items, 91.0s, 3.1 items/s
+[run] [107/163] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__professional_accounting__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 282 items, 24.1s, 11.7 items/s
+[run] [108/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 171 items, 51.6s, 3.3 items/s
+[run] [109/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 171 items, 7.5s, 22.8 items/s
+[run] [110/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 171 items, 50.7s, 3.4 items/s
+[run] [111/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 171 items, 7.5s, 22.7 items/s
+[run] [112/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 171 items, 53.1s, 3.2 items/s
+[run] [113/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 171 items, 7.5s, 22.8 items/s
+[run] [114/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 171 items, 53.6s, 3.2 items/s
+[run] [115/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 171 items, 7.4s, 23.2 items/s
+[run] [116/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 171 items, 53.5s, 3.2 items/s
+[run] [117/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 171 items, 7.4s, 23.2 items/s
+[run] [118/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 171 items, 53.8s, 3.2 items/s
+[run] [119/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 171 items, 7.4s, 23.1 items/s
+[run] [120/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 171 items, 53.7s, 3.2 items/s
+[run] [121/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 171 items, 7.4s, 23.0 items/s
+[run] [122/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 171 items, 53.6s, 3.2 items/s
+[run] [123/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 171 items, 7.4s, 23.0 items/s
+[run] [124/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 171 items, 53.6s, 3.2 items/s
+[run] [125/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 171 items, 7.4s, 23.0 items/s
+[run] [126/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 171 items, 53.5s, 3.2 items/s
+[run] [127/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 171 items, 7.4s, 23.2 items/s
+[run] [128/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 171 items, 53.6s, 3.2 items/s
+[run] [129/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 171 items, 7.4s, 23.2 items/s
+[run] [130/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 171 items, 53.6s, 3.2 items/s
+[run] [131/163] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] mmlu_panel__world_religions__qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 171 items, 7.4s, 23.2 items/s
+[run] [132/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P1_original__0shot__generate_parse
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P1_original__0shot__generate_parse: 817 items, 234.1s, 3.5 items/s
+[run] [133/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P1_original__0shot__ll_norm
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P1_original__0shot__ll_norm: 817 items, 41.8s, 19.5 items/s
+[run] [134/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P2_lm_eval__0shot__generate_parse
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P2_lm_eval__0shot__generate_parse: 817 items, 250.0s, 3.3 items/s
+[run] [135/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P2_lm_eval__0shot__ll_norm
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P2_lm_eval__0shot__ll_norm: 817 items, 43.0s, 19.0 items/s
+[run] [136/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P3_helm_or_published__0shot__generate_parse
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P3_helm_or_published__0shot__generate_parse: 817 items, 249.1s, 3.3 items/s
+[run] [137/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P3_helm_or_published__0shot__ll_norm
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P3_helm_or_published__0shot__ll_norm: 817 items, 41.5s, 19.7 items/s
+[run] [138/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P4_minimal_sourced__0shot__generate_parse
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P4_minimal_sourced__0shot__generate_parse: 817 items, 251.0s, 3.3 items/s
+[run] [139/163] truthfulqa_mc____qwen2_5_1_5b_instruct__P4_minimal_sourced__0shot__ll_norm
+[done] truthfulqa_mc____qwen2_5_1_5b_instruct__P4_minimal_sourced__0shot__ll_norm: 817 items, 41.4s, 19.7 items/s
+[run] [140/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s123__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s123__generate_parse: 1267 items, 397.9s, 3.2 items/s
+[run] [141/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s123__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s123__ll_norm: 1267 items, 26.2s, 48.4 items/s
+[run] [142/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s2024__generate_parse: 1267 items, 399.2s, 3.2 items/s
+[run] [143/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s2024__ll_norm: 1267 items, 26.2s, 48.3 items/s
+[run] [144/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s42__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s42__generate_parse: 1267 items, 398.2s, 3.2 items/s
+[run] [145/163] winogrande____qwen2_5_1_5b_instruct__P1_original__s42__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P1_original__s42__ll_norm: 1267 items, 26.1s, 48.6 items/s
+[run] [146/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s123__generate_parse: 1267 items, 398.7s, 3.2 items/s
+[run] [147/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s123__ll_norm: 1267 items, 26.2s, 48.4 items/s
+[run] [148/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__generate_parse: 1267 items, 398.7s, 3.2 items/s
+[run] [149/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s2024__ll_norm: 1267 items, 26.2s, 48.4 items/s
+[run] [150/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s42__generate_parse: 1267 items, 398.7s, 3.2 items/s
+[run] [151/163] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P2_lm_eval__s42__ll_norm: 1267 items, 26.0s, 48.7 items/s
+[run] [152/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__generate_parse: 1267 items, 397.6s, 3.2 items/s
+[run] [153/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s123__ll_norm: 1267 items, 26.2s, 48.4 items/s
+[run] [154/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__generate_parse: 1267 items, 398.9s, 3.2 items/s
+[run] [155/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s2024__ll_norm: 1267 items, 26.2s, 48.3 items/s
+[run] [156/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__generate_parse: 1267 items, 399.4s, 3.2 items/s
+[run] [157/163] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P3_helm_or_published__s42__ll_norm: 1267 items, 26.1s, 48.6 items/s
+[run] [158/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__generate_parse: 1267 items, 397.3s, 3.2 items/s
+[run] [159/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s123__ll_norm: 1267 items, 26.1s, 48.5 items/s
+[run] [160/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__generate_parse: 1267 items, 397.2s, 3.2 items/s
+[run] [161/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s2024__ll_norm: 1267 items, 26.2s, 48.4 items/s
+[run] [162/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__generate_parse: 1267 items, 397.0s, 3.2 items/s
+[run] [163/163] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm
+[done] winogrande____qwen2_5_1_5b_instruct__P4_minimal_sourced__s42__ll_norm: 1267 items, 26.0s, 48.6 items/s
+[summary] completed=624/624 pending=0 failures=0

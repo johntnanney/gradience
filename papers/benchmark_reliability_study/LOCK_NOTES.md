@@ -320,3 +320,58 @@ git push origin v1_1_2_LOCKED
 
 **Tagging.** This amendment does not require a new lock tag. The locked pre-reg is unchanged; the cut affects only the *executed* run, not the *committed* design. If a future Phase-4 run revisits the dropped GSM8K conditions for cross-model coverage, that becomes an implementation supplement, not a pre-reg revision.
 
+---
+
+## Phase 5 completion: 2026-04-28
+
+**Status.** GPU inference complete; analysis pipeline (`scripts/run_phase5.sh`) ran end-to-end on the workstation against the canonical v1.1.2 codebase + D-19/D-20 patched manifests + D-18 Cut-2 scope.
+
+**Final inputs:**
+
+- 624 raw-condition directories ingested (all of: 600 primary + 24 pythia_1_4b GSM8K).
+- 1,024,512 item rows in `runs/normalized/item_level_primary.parquet`.
+- 31,656 item rows in `runs/normalized/item_level_gsm8k.parquet`.
+- 0 schema-validation failures during normalization.
+
+**Final outputs (artifacts committed under `analysis/`, `reports/`, `figures/`):**
+
+- `analysis/variance_components/aggregate_vc.csv` — 60 (benchmark × model × scoring_rule) cells.
+- `analysis/variance_components/model_convergence_report.csv` — cascade trace per benchmark.
+- `analysis/tolerance_schedules/tolerance_by_cell.csv` — 30 cells.
+- `analysis/tolerance_schedules/h1_test.json` — H1 confirmed (5/5 benchmarks).
+- `analysis/ranking_stability/{ranking_reversals,pairwise_win_probabilities,kendall_tau_by_benchmark}.csv`.
+- `analysis/mmlu_subjects/{mmlu_subject_accuracy_matrix,mmlu_subject_variance_components}.csv` + `h4_test.json` — H4 not confirmed (interaction proportion 0.0046 < 0.1 threshold).
+- `analysis/gsm8k_case/{gsm8k_tolerance_schedule,gsm8k_extraction_sensitivity,gsm8k_parseability}.csv`.
+- `reports/reproducibility_trace.md` — section 4 (per-condition recompute) all delta=0; section 5 (tolerance_by_cell re-derivation) `fail` per D-21.
+- `reports/cpu_pipeline_report.md`.
+- `figures/mmlu_model_subject_heatmap.png`, `figures/ranking_stability_by_benchmark.png`.
+
+**Cascade convergence (the D-20 fix's load-bearing test):**
+
+| Benchmark | Final cascade level | Fit time |
+|---|---|---|
+| arc_challenge | level_1 | 0.59s |
+| hellaswag | level_1 | 0.85s |
+| mmlu_panel | level_1 | 1.08s |
+| truthfulqa_mc | level_1 | 0.07s |
+| winogrande | level_3 | 0.81s + 0.82s + 0.32s (descended through 1, 2, 3) |
+
+Zero level_4 fallbacks. The winogrande descent is genuine cascade behavior (drops `seed_id`), not a hang.
+
+**Audit summary.**
+
+- Pre-reg lock: v1.1.2-LOCKED (config_hash `fbc4a5dd`).
+- Manifest patches: D-19 (MMLU per-subject sizes 171/378/545/282/100, derived from `cais/mmlu @ c30699e8`).
+- Cascade modification: D-20 (item_id removed from RE; tractable fit times).
+- Scope amendment: D-18 (Cut 2 — 48 GSM8K conditions excluded_pre_run).
+- Bootstrap determinism: D-21 (CI bounds drift across re-runs; point estimates stable; trace section 4 deltas all 0).
+- Manifest mark-complete sweep: re-derived `condition_status` from jsonl row counts vs. local D-19 manifest, sidestepping pod-side stale-expected metadata.
+- Cross-pod-restart resume: persistent volume preserved state; one unplanned pod stop on 2026-04-26 evening UTC; resumed cleanly on 2026-04-27 (new IP/port; PID 651).
+
+**What this completion does NOT close:**
+
+- D-21 reproducibility trace `fail` is currently a soft block on manuscript submission per SPEC §13.2. Resolution required before submission: either fix the bootstrap seed flow in `scripts/07_tolerance_schedule.py` or accept the trace fail formally with a deviation pointer in the manuscript's reproducibility appendix.
+- Manuscript §7–§9 drafting against the actual results; outline at `manuscript_outline_v0.md` already structured for the 1-model GSM8K scope and the regime-split framing.
+
+**Tag (suggested, post-merge to master):** `v1_1_2_PHASE5_COMPLETE`.
+

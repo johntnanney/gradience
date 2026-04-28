@@ -1,0 +1,3 @@
+model_id,extraction_variant,mean_parseability,n_conditions
+pythia_1_4b,generate_parse_permissive,0.7659843315643164,12
+pythia_1_4b,generate_parse_strict,0.1369724538792014,12

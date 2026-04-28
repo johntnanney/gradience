@@ -1,0 +1,8 @@
+benchmark_id,cascade_level,success,error_type,gradient_norm,optimizer_iterations,n_items,fit_seconds
+arc_challenge,level_1,True,,,0,84384,0.5882420539855957
+hellaswag,level_1,True,,,0,723024,0.8455748558044434
+mmlu_panel,level_1,True,,,0,106272,1.082770824432373
+truthfulqa_mc,level_1,True,,,0,19608,0.07442092895507812
+winogrande,level_1,False,did_not_converge,,0,91224,0.8088688850402832
+winogrande,level_2,False,did_not_converge,,0,91224,0.8166210651397705
+winogrande,level_3,True,,,0,91224,0.31867289543151855

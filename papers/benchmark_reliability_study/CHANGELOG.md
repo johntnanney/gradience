@@ -87,5 +87,98 @@ literature for this paper live in `RESEARCH_INVENTORY.md` Section 7
 
 ---
 
+## 2026-04-28 — Phase 4 GPU run complete + Phase 5 analysis pipeline executed
+
+### GPU run summary
+
+- **624 / 624 conditions complete** (post-Cut-2 total: 600 primary + 24
+  pythia_1_4b GSM8K). 0 failures.
+- Per-model: pythia_1_4b 224, pythia_410m 200, qwen2_5_1_5b_instruct 200.
+- Wall-clock: ~74 hours total (with one unplanned pod stop at ~2026-04-26
+  evening UTC; persistent volume preserved state; resumed cleanly on a
+  new pod at 213.173.102.74:17180).
+- Estimated final inference cost: ~$18, well inside the $30 cap and
+  inside the $29 tripwire margin (the tripwire fired at the pre-Cut-2
+  projection of ~$31; Cut 2 saved sufficient headroom).
+
+### Phase 5 analysis pipeline
+
+Driven by `scripts/run_phase5.sh`. All 9 phases ran cleanly on the
+canonical 624-condition raw output:
+
+- 1,024,512 primary item rows + 31,656 GSM8K item rows normalized.
+- 600 primary + 24 GSM8K condition rows aggregated.
+- Variance components (script 06, with D-20 cascade): 4 of 5 benchmarks
+  converged at level_1 (arc_challenge, hellaswag, mmlu_panel,
+  truthfulqa_mc). Winogrande did not converge at level_1 or level_2 and
+  descended to level_3 (drops `seed_id` from the random-effects list);
+  level_3 converged. Zero level_4 fallbacks. Per-benchmark fit time
+  under 1.1s.
+- Tolerance schedule (script 07, regime-aware): 30 cells (5 benchmarks ×
+  3 models × 2 scoring rules).
+- Ranking stability (script 08): ran clean.
+- MMLU subject decomposition (script 09): mixed-effects path used.
+- GSM8K case study (script 10): 24 condition rows (pythia_1_4b only,
+  Cut 2 in effect).
+- Reproducibility trace (script 98): per-condition recompute (section
+  4) shows delta=0.00e+00 for all 5 sample conditions — the load-bearing
+  reproducibility check passes. Section 5 reports `tolerance_by_cell.csv`
+  re-derivation `fail` per the pre-known D-21 bootstrap CI determinism
+  issue.
+- Pipeline report (script 99): assembled.
+
+### Pre-registered hypothesis test outcomes
+
+Reported here as the JSONs report them; manuscript-side interpretation
+still pending §7-§8 drafting.
+
+- **H1 — confirmed.** Bootstrap lower bound of cross-model median
+  single-occasion tolerance > 0.005 for **5 of 5** primary benchmarks
+  (n_required = 3). See `analysis/tolerance_schedules/h1_test.json`.
+- **H4 — not confirmed.** MMLU model × subject interaction proportion
+  = 0.0046, below the 0.1 threshold. See
+  `analysis/mmlu_subjects/h4_test.json`.
+- H2 (generalizability), H3 (ranking reversals): outputs in respective
+  analysis/ subdirs; manuscript §7.4 to engage.
+
+### Manifest state
+
+- `manifests/conditions_primary.csv`: 600 rows, all `condition_status =
+  complete` after Phase 0 mark-complete sweep (re-derives status from
+  jsonl-row count vs. local D-19 patched manifest, sidestepping
+  pod-side stale-expected metadata).
+- `manifests/conditions_gsm8k.csv`: 24 rows complete (pythia_1_4b),
+  48 rows excluded_pre_run (Cut 2).
+
+### Cross-paper coordination state
+
+- §7.1 → §7.5 prose can now be drafted against actual numbers.
+- §8 discussion: NIST 800-3 GLMM-vs-LPM appendix data is ready (the
+  D-09 v1.1.2 regime split, D-20 cascade modification, and the
+  winogrande level-3 descent give the appendix concrete material).
+- §7.6 GSM8K case (single-model scope per Cut 2): manuscript outline
+  already updated to reflect 1-model scope.
+- N134 paper (precursor): submission-staged at `tmlr_main_submission_v2.tar.gz`;
+  no cross-paper dependencies blocking benchmark-reliability §7-§9.
+
+### Pipeline + audit-trail additions
+
+- `scripts/run_phase5.sh` — driver with verified CLI invocations
+  (corrected from the dry-run workplan's mismatches).
+- `PHASE5_HANDOFF.md` — operator checklist with gates and templates.
+- `IMPLEMENTATION_DEVIATIONS.md` D-21 — bootstrap CI non-determinism
+  in script 07; documented with mitigation paths.
+- `runs/inference.log` and `runs/phase5_run.log` — committed via
+  `git add -f` as audit trail (parent `runs/` is gitignored for size).
+
+### Phase status
+
+- Phase 5 analysis: **complete.**
+- Manuscript §7-§9 drafting: ready to begin.
+- Pre-submission gate (§13.2 reproducibility trace = `pass`): currently
+  fails on D-21; resolution required before manuscript submission.
+
+---
+
 (Future entries follow this format, dated and section-organized per
 the program's drafting cadence.)
