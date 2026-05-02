@@ -194,6 +194,8 @@ figures/
 !sidecar/results/n134/figures/**
 !papers/n134_workshop/figures/
 !papers/n134_workshop/figures/**
+!papers/benchmark_reliability_study/figures/
+!papers/benchmark_reliability_study/figures/**
 !scripts/n134/figures/
 !scripts/n134/figures/**
 scripts/n134/figures/__pycache__/

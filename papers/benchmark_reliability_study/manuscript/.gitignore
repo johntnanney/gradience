@@ -1,0 +1,9 @@
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex.gz
+_build/
+draft_v1.pdf
