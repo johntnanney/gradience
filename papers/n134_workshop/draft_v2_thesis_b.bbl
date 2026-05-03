@@ -1,0 +1,265 @@
+\begin{thebibliography}{28}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anonymized(2026{\natexlab{a}})]{anonymized2026n130}
+Anonymized.
+\newblock {Task-boundary triage replication on a small encoder backbone},
+  2026{\natexlab{a}}.
+\newblock Anonymized for review.
+
+\bibitem[Anonymized(2026{\natexlab{b}})]{anonymized2026n132}
+Anonymized.
+\newblock {Task-boundary triage replication on a mid-sized encoder backbone},
+  2026{\natexlab{b}}.
+\newblock Anonymized for review.
+
+\bibitem[Anonymized(2026{\natexlab{c}})]{anonymized2026n133}
+Anonymized.
+\newblock {Decoder-scale exploratory merge triage: descriptive predecessor
+  study}, 2026{\natexlab{c}}.
+\newblock Anonymized for review. Descriptive-only predecessor to the present
+  study.
+
+\bibitem[Anonymized(2026{\natexlab{d}})]{anonymized2026n134spec}
+Anonymized.
+\newblock {Pre-registration (v3.1) for decoder-scale controlled merge triage},
+  2026{\natexlab{d}}.
+\newblock The pre-registration document for the present paper. Anonymized for
+  review.
+
+\bibitem[Bean et~al.(2025)Bean, Kearns, Romanou, et~al.]{bean2025measuring}
+Andrew~M. Bean, Ryan~Othniel Kearns, Angelika Romanou, et~al.
+\newblock {Measuring what Matters: Construct Validity in Large Language Model
+  Benchmarks}.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS),
+  Datasets and Benchmarks Track}, 2025.
+\newblock \doi{10.48550/arXiv.2511.04703}.
+\newblock 445-benchmark systematic review with 29 expert reviewers; eight key
+  recommendations + operational checklist. Camera-ready: expand to full
+  42-author list.
+
+\bibitem[Bolton et~al.(2026)Bolton, Aakanksha, Ahmadian, Hooker, Fadaee, and
+  Ermis]{bolton2026simmerge}
+Oliver Bolton, Aakanksha, Arash Ahmadian, Sara Hooker, Marzieh Fadaee, and
+  Beyza Ermis.
+\newblock {SimMerge: Learning to Select Merge Operators from Similarity
+  Signals}.
+\newblock \emph{arXiv preprint arXiv:2601.09473}, 2026.
+\newblock Third paper in the 2026 mergeability-prediction program alongside
+  Zhou et al. (demystifying) and Rahamim et al. (intrinsic).
+
+\bibitem[Camuffo et~al.(2026)Camuffo, Gambardella, Kazemi, Malachowski, and
+  Pandey]{camuffo2026variance}
+Camuffo, Gambardella, Kazemi, Malachowski, and Pandey.
+\newblock Variance-aware {LLM} annotation for strategy research, 2026.
+\newblock 41-pp main + 53-pp appendix; generalizability-theory grounding;
+  five-source variance taxonomy; 12-85 pp swings from minor design choices.
+  Author given names to verify against arXiv at camera-ready.
+
+\bibitem[Cronbach(1951)]{cronbach1951alpha}
+Lee~J. Cronbach.
+\newblock {Coefficient alpha and the internal structure of tests}.
+\newblock \emph{Psychometrika}, 16\penalty0 (3):\penalty0 297--334, 1951.
+\newblock Canonical reference for the alpha reliability coefficient.
+
+\bibitem[Cronbach \& Meehl(1955)Cronbach and Meehl]{cronbachmeehl1955}
+Lee~J. Cronbach and Paul~E. Meehl.
+\newblock {Construct validity in psychological tests}.
+\newblock \emph{Psychological Bulletin}, 52\penalty0 (4):\penalty0 281--302,
+  1955.
+\newblock Canonical reference for construct validity and the
+  nomological-network concept.
+
+\bibitem[Gargiulo et~al.(2025)Gargiulo, Crisostomi, Bucarelli, Scardapane,
+  Silvestri, and Rodol{\`a}]{gargiulo2025tsv}
+Antonio~Andrea Gargiulo, Donato Crisostomi, Maria~Sofia Bucarelli, Simone
+  Scardapane, Fabrizio Silvestri, and Emanuele Rodol{\`a}.
+\newblock {Task Singular Vectors: Reducing Task Interference in Model Merging}.
+\newblock \emph{arXiv preprint arXiv:2412.00081}, 2025.
+
+\bibitem[He et~al.(2025)He, Zeng, et~al.]{he2025mergebench}
+Yifei He, Siqi Zeng, et~al.
+\newblock {MergeBench: A Benchmark for Merging Domain-Specialized LLMs}.
+\newblock \emph{arXiv preprint arXiv:2505.10833}, 2025.
+\newblock Eight representative merging methods on Llama and Gemma families at
+  2B--9B scales across five domains. Distinct from Hitit et al. 2026.
+
+\bibitem[Heineman et~al.(2025)Heineman, Hofmann, Magnusson, Gu, Smith,
+  Hajishirzi, Lo, and Dodge]{heineman2025signal}
+David Heineman, Valentin Hofmann, Ian Magnusson, Yuling Gu, Noah~A. Smith,
+  Hannaneh Hajishirzi, Kyle Lo, and Jesse Dodge.
+\newblock Signal and noise: A framework for reducing uncertainty in language
+  model evaluation, 2025.
+\newblock Allen Institute for AI and University of Washington. Defines
+  benchmark "signal" (between-model variance / total variance) and "noise"
+  (training-step trajectory variability) on 30 benchmarks and 375 open-weight
+  models. Released dataset of 900K evaluation results / 200M instances.
+  Companion repo: github.com/allenai/signal-and-noise.
+
+\bibitem[Hitit et~al.(2026)Hitit, Girrbach, and Akata]{hitit2026insystematic}
+O{\u{g}}uz~Ka{\u{g}}an Hitit, Leander Girrbach, and Zeynep Akata.
+\newblock {A Systematic Study of In-the-Wild Model Merging for Large Language
+  Models}.
+\newblock \emph{arXiv preprint arXiv:2511.21437}, 2026.
+\newblock Published in Transactions on Machine Learning Research, March 2026.
+  Evaluates six merge methods across four open-weight LLMs (Llama 3.2 3B, Qwen3
+  4B, Llama 3.1 8B, Qwen3 8B), twelve fine-tuned checkpoints each, sixteen
+  standard benchmarks. Finds that subspace-based methods (TIES, Iso-C, TSV-M)
+  produce large parameter-space displacements correlating with catastrophic
+  forgetting, and that Task Arithmetic is the only approach that reliably
+  yields performance gains at decoder scale.
+
+\bibitem[Hu et~al.(2021)Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and
+  Chen]{hu2021lora}
+Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen.
+\newblock {LoRA: Low-Rank Adaptation of Large Language Models}.
+\newblock \emph{arXiv preprint arXiv:2106.09685}, 2021.
+
+\bibitem[Li et~al.(2026)Li, Peng, Zhang, Guo, Duan, and Shi]{li2026svc}
+Yayuan Li, Ze~Peng, Jian Zhang, Jintao Guo, Yue Duan, and Yinghuan Shi.
+\newblock {When Shared Knowledge Hurts: Spectral Over-Accumulation in Model
+  Merging}.
+\newblock \emph{arXiv preprint arXiv:2602.05536}, 2026.
+\newblock Introduces SVC (Singular Value Calibration), a training-free
+  post-processing rescaling of inflated singular values after model merging.
+  Verified via arXiv on 2026-04-20.
+
+\bibitem[Lior et~al.(2025)Lior, Habba, Levy, Caciularu, and
+  Stanovsky]{lior2025reliableeval}
+Gili Lior, Eliya Habba, Shahar Levy, Avi Caciularu, and Gabriel Stanovsky.
+\newblock {ReliableEval}: A recipe for stochastic {LLM} evaluation via method
+  of moments.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  {EMNLP} 2025}, 2025.
+\newblock \doi{10.48550/arXiv.2505.22169}.
+\newblock SLAB-NLP, Hebrew University of Jerusalem. Defines reliable evaluation
+  as the expected accuracy under a distribution of meaning-preserving prompt
+  perturbations; estimates the expectation by method-of-moments resampling and
+  provides a recipe for the number of resamples needed for a stable estimate.
+  Demonstrated on five frontier LLMs (GPT-4o, Claude-3.7-Sonnet and three
+  others). Companion repository: github.com/SLAB-NLP/Reliable-Eval.
+
+\bibitem[McGregor et~al.(2025)McGregor, Lu, Tashev, Foundjem, Ramasethu,
+  Zarkouei, Knotz, Chen, Parrish, Reuel, and Frase]{mcgregor2025benchrisk}
+Sean McGregor, Victor Lu, Vassil Tashev, Armstrong Foundjem, Aishwarya
+  Ramasethu, Sadegh AlMahdi~Kazemi Zarkouei, Chris Knotz, Kongtao Chen, Alicia
+  Parrish, Anka Reuel, and Heather Frase.
+\newblock Risk management for mitigating benchmark failure modes: {BenchRisk}.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2025.
+\newblock \doi{10.48550/arXiv.2510.21460}.
+\newblock Responsible AI Collaborative + Google DeepMind + collaborators. Uses
+  NIST risk management process to analyze 26 popular LLM benchmarks; identifies
+  57 failure modes and 196 mitigation strategies; scores benchmarks on five
+  dimensions (comprehensiveness, intelligibility, consistency, correctness,
+  longevity). Finds all 26 benchmarks present significant risk within one or
+  more dimensions. CC-BY-SA 4.0.
+
+\bibitem[Messick(1989)]{messick1989validity}
+Samuel Messick.
+\newblock {Validity}.
+\newblock In Robert~L. Linn (ed.), \emph{Educational Measurement}, pp.\
+  13--103. Macmillan / American Council on Education, 3rd edition, 1989.
+\newblock Canonical exposition of construct validity as a unified concept,
+  displacing the older content/criterion/construct tripartite. Primary
+  reference for the unified-theory framing the §2 framework is continuous
+  with.
+
+\bibitem[Messick(1995)]{messick1995validity}
+Samuel Messick.
+\newblock {Validity of psychological assessment: Validation of inferences from
+  persons' responses and performances as scientific inquiry into score
+  meaning}.
+\newblock \emph{American Psychologist}, 50\penalty0 (9):\penalty0 741--749,
+  1995.
+\newblock Accessible journal-article summary of the unified-theory framing of
+  construct validity. Cited alongside the messick1989validity chapter.
+
+\bibitem[Messing(2026)]{messing2026hidden}
+Solomon Messing.
+\newblock Hidden measurement error in {LLM} pipelines distorts annotation,
+  evaluation, and benchmarking, 2026.
+\newblock Last revised 2026-04-22, three days before benchmark-reliability
+  v1.1.1 lock.
+
+\bibitem[{National Institute of Standards and
+  Technology}(2026)]{nist2026statmodels}
+{National Institute of Standards and Technology}.
+\newblock {NIST AI 800-3}: Expanding the {AI} evaluation toolbox with
+  statistical models.
+\newblock Nist special publication, U.S.\ Department of Commerce, NIST, feb
+  2026.
+
+\bibitem[{National Institute of Standards and Technology, Center for AI
+  Standards and Innovation}(2026)]{nist2026benchmarkpractices}
+{National Institute of Standards and Technology, Center for AI Standards and
+  Innovation}.
+\newblock {NIST AI 800-2}: Practices for automated benchmark evaluations of
+  language models.
+\newblock Draft nist special publication, U.S.\ Department of Commerce, NIST,
+  jan 2026.
+\newblock 60-day public comment period closed 2026-03-31.
+
+\bibitem[Rahamim et~al.(2026)Rahamim, Yehudai, Carmeli, Choshen, Mass, and
+  Belinkov]{rahamim2026mergeability}
+Adir Rahamim, Asaf Yehudai, Boaz Carmeli, Leshem Choshen, Yosi Mass, and
+  Yonatan Belinkov.
+\newblock {Will it Merge? On The Causes of Model Mergeability}.
+\newblock \emph{arXiv preprint arXiv:2601.06672}, 2026.
+\newblock Proposes mergeability as an intrinsic property of the model update,
+  primarily governed by base-model prior knowledge rather than by the
+  composition of the merged set.
+
+\bibitem[Romanou et~al.(2026)Romanou, Ibrahim, Ross, Shaib, Oktar, Bell,
+  Ovalle, Dodge, Bosselut, Sinha, and Williams]{romanou2026brittlebench}
+Angelika Romanou, Mark Ibrahim, Candace Ross, Chantal Shaib, Kerem Oktar,
+  Samuel~J. Bell, Anaelia Ovalle, Jesse Dodge, Antoine Bosselut, Koustuv Sinha,
+  and Adina Williams.
+\newblock Brittlebench: Quantifying {LLM} robustness via prompt sensitivity,
+  2026.
+\newblock Meta FAIR + EPFL + Allen AI. Theoretical framework for LLM
+  brittleness with empirical decomposition of total performance variance: up to
+  12\% degradation under perturbation; perturbations account for up to half of
+  variance; 63\% of model pairs flip ranking under any single perturbation. v1
+  2026-02-27, v2 2026-04-06. CC-BY-SA 4.0.
+
+\bibitem[Shrout \& Fleiss(1979)Shrout and Fleiss]{shrout1979icc}
+Patrick~E. Shrout and Joseph~L. Fleiss.
+\newblock {Intraclass correlations: Uses in assessing rater reliability}.
+\newblock \emph{Psychological Bulletin}, 86\penalty0 (2):\penalty0 420--428,
+  1979.
+\newblock Canonical reference for ICC forms and their interpretation.
+
+\bibitem[Stoica et~al.(2024)Stoica, Ramesh, Ecsedi, Choshen, and
+  Hoffman]{stoica2024knots}
+George Stoica, Pratik Ramesh, Boglarka Ecsedi, Leshem Choshen, and Judy
+  Hoffman.
+\newblock {Model Merging with SVD to Tie the KnOTS}.
+\newblock \emph{arXiv preprint arXiv:2410.19735}, 2024.
+
+\bibitem[Zhang \& Zhou(2025)Zhang and Zhou]{zhang2025osrm}
+Haobo Zhang and Jiayu Zhou.
+\newblock {Unraveling LoRA Interference: Orthogonal Subspaces for Robust Model
+  Merging}.
+\newblock In \emph{Proceedings of the 63rd Annual Meeting of the Association
+  for Computational Linguistics (ACL 2025)}, 2025.
+\newblock Introduces OSRM. Demonstrates that activation-weighted overlap
+  carries information not present in static weight-space overlap.
+
+\bibitem[Zhou et~al.(2026)Zhou, Zhao, Yu, and Rodol{\`a}]{zhou2026demystifying}
+Luca Zhou, Bo~Zhao, Rose Yu, and Emanuele Rodol{\`a}.
+\newblock {Demystifying Mergeability: Interpretable Properties to Predict Model
+  Merging Success}.
+\newblock \emph{arXiv preprint arXiv:2601.22285}, 2026.
+\newblock 190 task pairs across four merge methods on ViT-B/32 vision
+  classifiers. Reports that activation-based pairwise metrics achieve the
+  strongest individual correlations with merge outcome (up to r = 0.572 for
+  TSV), compared to |r| < 0.2 for weight-space metrics. Same group (GLADIA /
+  Sapienza, Rodol{\`a}) as the TSV paper.
+
+\end{thebibliography}
