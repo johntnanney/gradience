@@ -808,14 +808,13 @@ the tolerance schedule reports each cell's regime classification
 alongside the licensed precision, and the H1 decision rule is
 evaluated separately on each regime cohort.
 
-The threshold of $0.30$ is locked as a parameter of the
-pre-confirmatory-analysis amendment, not tuned post-hoc on
-outcome data. Its value was
-chosen at the time of the amendment to align with the empirical
-distribution of cell-level parseability observed in the early
-GPU-run data (a clear bimodality between cells well above $0.5$
-and cells well below $0.10$, with few cells in the
-$0.10$--$0.50$ band that the threshold separates). The amendment
+The threshold was locked at amendment time before the confirmatory
+tolerance-schedule analyses were run. Rather than relying on a
+verbal description of the parseability distribution, we report the
+per-cell parseability audit in Section~\ref{sec:tolerance-schedule-results}.
+That audit exposes both clear parse-failure cases and near-threshold
+cells, making the regime assignment inspectable rather than hidden
+inside the evaluation pipeline. The amendment
 is recorded in \texttt{LOCK\_NOTES.md} v1.1.2 with full audit, and
 the threshold parameter is set in \texttt{configs/analysis\_config.yaml}
 under the key \texttt{tolerance.parse\_failure\_threshold}. Pre-registered
@@ -959,6 +958,36 @@ At the cell level, single-occasion tolerances range from $0.019$ (HellaSwag, Pyt
 \end{sloppypar}
 
 The thirty cells partition into twenty-three $g$-theory cells and seven parse-failure-dominated cells under the §\ref{sec:design-regime-split} threshold of $0.30$ on median parseability. The parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M); the $g$-theory regime carries the schedule's variance-components-based SEM, while the parse-failure-dominated regime's tolerance is the sample standard deviation of cell scores. The two regimes are reported alongside each other in Table~\ref{tab:tolerance-by-cell} rather than collapsed into a single number; cell-level interpretation routes through the regime classification per §\ref{sec:tolerance-schedule}.
+
+Table~\ref{tab:parseability-audit} reports the per-cell median parseability rate for the generate-and-parse scoring rule, alongside the regime assignment each cell receives under the pre-registered $0.30$ cutoff. The audit makes the regime classification inspectable per cell: a reader can verify, on the manuscript alone, that the regime label assigned to any generate-and-parse cell in Table~\ref{tab:tolerance-by-cell} matches its empirical parseability median. Log-likelihood cells are not separately parseability-audited because no parsing step is involved; they are uniformly assigned to the $g$-theory regime because the variance-components decomposition is not subject to the parse-failure mechanism that the regime split addresses.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Parseability audit for the generate-and-parse regime classification on the primary panel. Median parseability rate is computed over the admissible generate-and-parse conditions per (benchmark, model) cell. The pre-registered cutoff is $0.30$ on median parseability: cells below the cutoff are assigned to the parse-failure-dominated regime; cells at or above the cutoff are assigned to the $g$-theory regime.}
+\label{tab:parseability-audit}
+\begin{tabular}{llrc}
+\toprule
+Benchmark & Model & Median parseability (G\&P) & Regime \\
+\midrule
+ARC-Challenge & Pythia-1.4B  & 0.401 & \textit{g}  \\
+ARC-Challenge & Pythia-410M  & 0.323 & \textit{g}  \\
+ARC-Challenge & Qwen2.5-1.5B & 0.511 & \textit{g}  \\
+HellaSwag     & Pythia-1.4B  & 0.060 & \textit{pf} \\
+HellaSwag     & Pythia-410M  & 0.188 & \textit{pf} \\
+HellaSwag     & Qwen2.5-1.5B & 0.967 & \textit{g}  \\
+MMLU panel    & Pythia-1.4B  & 0.500 & \textit{g}  \\
+MMLU panel    & Pythia-410M  & 0.283 & \textit{pf} \\
+MMLU panel    & Qwen2.5-1.5B & 0.388 & \textit{g}  \\
+TruthfulQA-MC & Pythia-1.4B  & 0.025 & \textit{pf} \\
+TruthfulQA-MC & Pythia-410M  & 0.207 & \textit{pf} \\
+TruthfulQA-MC & Qwen2.5-1.5B & 0.741 & \textit{g}  \\
+Winogrande    & Pythia-1.4B  & 0.060 & \textit{pf} \\
+Winogrande    & Pythia-410M  & 0.131 & \textit{pf} \\
+Winogrande    & Qwen2.5-1.5B & 0.846 & \textit{g}  \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 The largest single-occasion tolerances should not be read as pathological failures of the schedule, but as its intended warning case. Values approaching the scale of the bounded accuracy outcome indicate cells for which a single admissible evaluation condition is not a stable measurement occasion. The mechanisms differ across cells. In the TruthfulQA-MC Pythia-base cells, the high tolerances reflect the combination of small effective admissible-condition count after seed-facet collapse and large residual/item-level instability. For Qwen2.5-1.5B on ARC-Challenge and MMLU, the high tolerances are better interpreted as genuine between-condition sensitivity: the observed score changes substantially across otherwise admissible evaluation choices. In both cases the reporting implication is the same. The schedule is not producing spurious precision; it is refusing precision. A cell with tolerance on the order of $\pm 0.6$ or $\pm 0.9$ does not license decimal-place reporting under single-occasion measurement. It licenses, at most, interval-required reporting with an explicitly wide bound, or aggregation over enough admissible conditions to reduce the tolerance.
 
@@ -1468,7 +1497,7 @@ The v1.1.2 amendment resolved the tension via the regime split rather than by ad
 \subsection{Empirical demonstration on the present panel}
 \label{app:lpm-glmm-empirical}
 
-Table~\ref{tab:tolerance-by-cell} reports the regime classification per cell. The seven parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M) on benchmarks where small models struggle to produce parseable outputs in the constrained-choice format (HellaSwag, MMLU panel, TruthfulQA-MC, Winogrande). The twenty-three $g$-theory cells include all of ARC-Challenge ($g$-theory across all six cells, since ARC-Challenge's small-model parseability rates are above 0.30 for both scoring rules) and the length-normalized log-likelihood scoring rule on every cell (LL parseability is uniformly above 0.30 because LL scoring does not depend on the model producing parseable text).
+Table~\ref{tab:tolerance-by-cell} reports the regime classification per cell. The seven parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M) on benchmarks where small models struggle to produce parseable outputs in the constrained-choice format (HellaSwag, MMLU panel, TruthfulQA-MC, Winogrande). The twenty-three $g$-theory cells include all of ARC-Challenge ($g$-theory across all six cells, since ARC-Challenge's three G\&P cells have median parseability above 0.30 per Table~\ref{tab:parseability-audit}) and the length-normalized log-likelihood scoring rule on every cell (LL has no parseability metric, since LL scoring does not depend on the model producing parseable text; the pipeline assigns LL to the $g$-theory regime uniformly because the parse-failure mechanism the regime split addresses does not apply to LL scoring).
 
 For the twenty-three $g$-theory cells, the observed LPM-based tolerances are far above the $0.005$ two-decimal-precision threshold, so the H1 licensing decision is unlikely to depend on small LPM-versus-GLMM differences in the variance-components estimates; a direct GLMM replication remains the cleaner robustness check, and we do not claim equivalence beyond the proximity-of-decision-boundary argument. For the seven parse-failure-dominated cells, the observed sample-SD-based tolerances already exceed the decision threshold, so the precision-licensing conclusion does not require interpreting either LPM or GLMM variance components on these cells; the regime split makes the methodological choice transparent rather than concealing it.
 
