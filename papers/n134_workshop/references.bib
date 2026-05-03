@@ -335,6 +335,99 @@
   note          = {41-pp main + 53-pp appendix; generalizability-theory grounding; five-source variance taxonomy; 12-85 pp swings from minor design choices. Author given names to verify against arXiv at camera-ready.}
 }
 
+% https://arxiv.org/abs/2603.13285
+@misc{romanou2026brittlebench,
+  title         = {Brittlebench: Quantifying {LLM} Robustness via Prompt
+                   Sensitivity},
+  author        = {Romanou, Angelika and Ibrahim, Mark and Ross, Candace
+                   and Shaib, Chantal and Oktar, Kerem and Bell, Samuel J.
+                   and Ovalle, Anaelia and Dodge, Jesse and Bosselut,
+                   Antoine and Sinha, Koustuv and Williams, Adina},
+  year          = {2026},
+  eprint        = {2603.13285},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2603.13285},
+  note          = {Meta FAIR + EPFL + Allen AI. Theoretical framework
+                   for LLM brittleness with empirical decomposition of
+                   total performance variance: up to 12\% degradation
+                   under perturbation; perturbations account for up to
+                   half of variance; 63\% of model pairs flip ranking
+                   under any single perturbation. v1 2026-02-27, v2
+                   2026-04-06. CC-BY-SA 4.0.}
+}
+
+% https://arxiv.org/abs/2508.13144
+@misc{heineman2025signal,
+  author        = {Heineman, David and Hofmann, Valentin and Magnusson, Ian
+                   and Gu, Yuling and Smith, Noah A. and Hajishirzi, Hannaneh
+                   and Lo, Kyle and Dodge, Jesse},
+  title         = {Signal and Noise: A Framework for Reducing Uncertainty
+                   in Language Model Evaluation},
+  year          = {2025},
+  eprint        = {2508.13144},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2508.13144},
+  note          = {Allen Institute for AI and University of Washington.
+                   Defines benchmark "signal" (between-model variance / total
+                   variance) and "noise" (training-step trajectory
+                   variability) on 30 benchmarks and 375 open-weight models.
+                   Released dataset of 900K evaluation results / 200M
+                   instances. Companion repo:
+                   github.com/allenai/signal-and-noise.}
+}
+
+% https://arxiv.org/abs/2510.21460
+@inproceedings{mcgregor2025benchrisk,
+  author        = {McGregor, Sean and Lu, Victor and Tashev, Vassil and
+                   Foundjem, Armstrong and Ramasethu, Aishwarya and
+                   Zarkouei, Sadegh AlMahdi Kazemi and Knotz, Chris and
+                   Chen, Kongtao and Parrish, Alicia and Reuel, Anka and
+                   Frase, Heather},
+  title         = {Risk Management for Mitigating Benchmark Failure Modes:
+                   {BenchRisk}},
+  booktitle     = {Advances in Neural Information Processing Systems
+                   (NeurIPS)},
+  year          = {2025},
+  eprint        = {2510.21460},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2510.21460},
+  note          = {Responsible AI Collaborative + Google DeepMind +
+                   collaborators. Uses NIST risk management process to
+                   analyze 26 popular LLM benchmarks; identifies 57 failure
+                   modes and 196 mitigation strategies; scores benchmarks on
+                   five dimensions (comprehensiveness, intelligibility,
+                   consistency, correctness, longevity). Finds all 26
+                   benchmarks present significant risk within one or more
+                   dimensions. CC-BY-SA 4.0.}
+}
+
+% https://arxiv.org/abs/2505.22169
+@inproceedings{lior2025reliableeval,
+  author        = {Lior, Gili and Habba, Eliya and Levy, Shahar and
+                   Caciularu, Avi and Stanovsky, Gabriel},
+  title         = {{ReliableEval}: A Recipe for Stochastic {LLM}
+                   Evaluation via Method of Moments},
+  booktitle     = {Findings of the Association for Computational
+                   Linguistics: {EMNLP} 2025},
+  year          = {2025},
+  eprint        = {2505.22169},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2505.22169},
+  note          = {SLAB-NLP, Hebrew University of Jerusalem. Defines
+                   reliable evaluation as the expected accuracy under a
+                   distribution of meaning-preserving prompt
+                   perturbations; estimates the expectation by
+                   method-of-moments resampling and provides a recipe for
+                   the number of resamples needed for a stable estimate.
+                   Demonstrated on five frontier LLMs (GPT-4o,
+                   Claude-3.7-Sonnet and three others). Companion
+                   repository: github.com/SLAB-NLP/Reliable-Eval.}
+}
+
 
 % ----------------------------------------------------------------------------
 % Anonymized self-citations

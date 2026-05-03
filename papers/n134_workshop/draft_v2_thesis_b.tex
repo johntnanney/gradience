@@ -1,41 +1,11 @@
 % ============================================================================
-%  Thesis B — First complete LaTeX draft
-%  Working title: Measurement Discipline for ML Diagnostics:
-%                 A Psychometric Framework with a LoRA-Merging Case Study
-%
-%  Status: first complete prose pass. Follows the section structure and
-%  length budget of draft_v2_thesis_b_outline.md. Expected to go through
-%  at least one revision cycle before venue submission; see
-%  revision_notes.md RN-012 for the repositioning record and the outline
-%  for per-section intent.
-%
-%  Compile:
-%    pdflatex draft_v2_thesis_b
-%    bibtex   draft_v2_thesis_b
-%    pdflatex draft_v2_thesis_b
-%    pdflatex draft_v2_thesis_b
-%
-%  TMLR: this draft is configured for TMLR double-blind submission using
-%  the official TMLR stylefile (tmlr.sty / tmlr.bst / fancyhdr.sty shipped
-%  alongside this .tex). Camera-ready and arXiv preprint modes are one-line
-%  package-option swaps below. See revision_notes.md RN-019.
+%  Measurement Discipline for ML Diagnostics:
+%  A Psychometric Framework with a LoRA-Merging Case Study
 % ============================================================================
 
-% TMLR: 11pt article → 10pt article per TMLR stylefile convention.
 \documentclass[10pt]{article}
 
-% TMLR: tmlr.sty sets page dimensions (6.5in x 9.0in text area), loads
-% TMLR: fontenc+lmodern, \RequirePackages{natbib} and sets
-% TMLR: \setcitestyle{authoryear,round,citesep={;},...}, and installs
-% TMLR: the TMLR page header / maketitle machinery (including automatic
-% TMLR: anonymization when no package option is given). The following
-% TMLR: previously-standalone packages were therefore removed as redundant:
-% TMLR:   \usepackage[letterpaper,margin=1in]{geometry}
-% TMLR:   \usepackage[T1]{fontenc}
-% TMLR:   \usepackage{natbib}
 \usepackage{tmlr}
-% TMLR: camera-ready: replace the line above with \usepackage[accepted]{tmlr}
-% TMLR: arXiv preprint: replace the line above with \usepackage[preprint]{tmlr}
 
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb}
@@ -46,25 +16,13 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black}
 
-% TMLR: plainnat → tmlr (TMLR ships its own .bst matching its citestyle).
 \bibliographystyle{tmlr}
 
 \title{Measurement Discipline for ML Diagnostics:\\
   A Psychometric Framework with a LoRA-Merging Case Study}
 
-% ANON: author block. tmlr.sty auto-replaces \@author with "Anonymous authors
-% ANON: \\ Paper under double-blind review" whenever the package is loaded
-% ANON: without [accepted] or [preprint], so the block below is hidden under
-% ANON: review. The commented-out block is the TMLR-formatted camera-ready
-% ANON: author data; uncomment it AND swap the tmlr.sty line above to
-% ANON: \usepackage[accepted]{tmlr} at camera-ready. See RN-018/RN-019 for
-% ANON: the full restoration procedure.
-% \author{\name John T. Nanney \email johntnanney@gmail.com \\
-%       \addr TODO: affiliation string for camera-ready}
 \author{\name Anonymized \email anonymous@anonymous \\
       \addr Anonymized Institution}
-% TMLR: \date{...} removed — TMLR's \@maketitle does not use it; date
-% TMLR: is set by tmlr.sty via \month/\year macros at camera-ready only.
 
 \begin{document}
 \maketitle
@@ -73,33 +31,30 @@
 ML diagnostic metrics --- scores claimed to predict model behavior,
 merging outcomes, training dynamics, or capability --- are routinely
 reported as point estimates to three or four decimal places without
-the measurement-theoretic infrastructure that psychological assessment
-has treated as baseline methodology for decades. We argue that this
-practice systematically overclaims precision and generality, and we
-introduce a framework for applying classical measurement theory
-(reliability coefficients, standard error of measurement, confound
-decomposition, pre-registered decision rules with explicit tolerance
-schedules) to ML diagnostic reporting.
-% EDIT: 2026-04-23 — editorial #3 (Tier 2): abstract tightened around
-% EDIT: three outputs the framework produces on the case study. Drops
-% EDIT: the three-architectures/two-metric-families sentence (retained
-% EDIT: at §5.3) and subsumes the 'previously unnamed' →
-% EDIT: 'underreported' reframe from EDIT-01a. Closes on the meta-claim
-% EDIT: that measurement discipline changes what can be claimed.
+the measurement-theoretic infrastructure that psychological
+assessment, at least in its methodological canon, has treated as
+baseline methodology for decades. We argue that this
+practice systematically overclaims precision and generality. We
+introduce a framework for ML diagnostic reporting organized
+around construct articulation, reliability estimation,
+precision/tolerance, and pre-registered confound decomposition.
+In the worked example, these commitments are instantiated through
+ICC, SEM, tolerance schedules, and pre-registered decision rules.
 We demonstrate the framework through a pre-registered decoder-scale
 study of spectral LoRA-merging diagnostics ($N = 45$ cross-task
 adapter pairs on Mistral-7B-v0.3). Under the framework's discipline,
-the case study does three things: it produces a clean pre-registered
-null on per-pair merge prediction under family-confound control; it
-exposes that the headline statistic's floating-point precision at
-this sample size is of order $10^{-2}$, comparable to its sampling
-variability, so ordinary third-decimal reporting is spurious; and it
+the case study does three things: it produces a pre-registered null
+on per-pair merge prediction under family-confound control; it
+exposes that the headline statistic's cross-environment numerical
+tolerance at this sample size is of order $10^{-2}$, comparable to
+its sampling variability, so ordinary third-decimal reporting is
+not supported under reproducibility testing; and it
 bounds the diagnostic's reliability with an explicit regime-scope
 caveat. The case study illustrates the paper's central claim:
 measurement discipline applied to ML diagnostics changes what can
 responsibly be claimed --- not by decorating point estimates with
-error bars, but by forcing refusals the default reporting view would
-not.
+error bars, but by forcing explicit limits on claims that
+ordinary reporting would otherwise leave intact.
 \end{abstract}
 
 \section{Introduction}
@@ -140,30 +95,21 @@ point-estimate correlation as a self-standing measurement rather
 than as the central claim of an instrument whose reliability,
 precision, and confound structure have been independently
 characterized.
-% EDIT: 2026-04-23 — editorial #8: added illustrative-not-accusatory
-% EDIT: clarifier to reduce reviewer attack surface on a specific
-% EDIT: named-paper critique (reviewer-poisoning risk).
 We use this example not as a critique of the paper's execution
 under current norms but as an illustration of the norms themselves:
-the field currently permits a predictive correlation to function
-as the primary evidential object without requiring the accompanying
-measurement infrastructure that would calibrate its interpretation.
+current reporting conventions often permit a predictive correlation
+to function as the primary evidential object without requiring the
+accompanying measurement infrastructure that would calibrate its
+interpretation.
+The example is useful precisely because it is methodologically
+serious under current norms: the gap is not bad execution, but
+the absence of a reporting convention that would require
+measurement calibration.
 
-%
-% TODO(§1.1 second example): the capability-evaluation characterization
-% below is argumentatively defensible as a pattern-description, but
-% a specific cited claim would strengthen it. Candidate directions:
-% (a) a method-paper leaderboard claim reporting MMLU/BBH to two or
-% three decimals; (b) the capability-evaluation reliability literature
-% (e.g., Burnell et al. 2023 on reporting practice; Balloccu et al. on
-% contamination); (c) a specific probing-accuracy or faithfulness
-% claim from the interpretability literature. Any swap requires
-% verifying the exact reported value and adding the bib entry.
-%
-The same pattern appears outside the merging literature. Capability-
-evaluation scores on standard benchmarks --- MMLU, HellaSwag,
-BIG-Bench-Hard, and their successors --- are routinely reported to
-two or three decimal places of accuracy without cross-seed or
+A parallel pattern appears in capability evaluation. Benchmark
+accuracies on standard panels --- MMLU, HellaSwag,
+BIG-Bench-Hard, and their successors --- are routinely reported
+to two or three decimal places of accuracy without cross-seed or
 cross-prompt reliability coefficients, without explicit tolerance
 schedules for the reported digits, and without pre-registered
 confound controls that would distinguish improvements attributable
@@ -173,7 +119,10 @@ contamination. That the same measurement-theoretic context is
 missing in a subfield with no methodological contact with
 LoRA-merging research suggests the gap is not an idiosyncrasy of
 one community but a general feature of how ML diagnostics are
-currently reported.
+currently reported. Here this second instance functions as a
+parallel motivating substrate rather than as the empirical case
+of the present paper, whose worked example is the LoRA-merging
+diagnostic.
 
 Three specific gaps follow from this pattern. Reliability
 coefficients in the classical-test-theory sense --- ICC, SEM,
@@ -194,9 +143,9 @@ since at least the 1950s, and has developed a coordinated set of
 methods to address it. An instrument's reliability is treated as a
 first-class property, measured empirically and reported alongside any
 substantive claim \citep{cronbach1951alpha,shrout1979icc}. Standard
-error of measurement --- the expected deviation of a single
-observation from its true score under the instrument's reliability
---- is the decimal-place precision claim, calibrated to the
+error of measurement --- the standard deviation of measurement
+error implied by the instrument's reliability --- supplies the
+basis for decimal-place precision claims, calibrated to the
 instrument rather than quoted by convention. Construct validity ---
 the discipline of defending that an instrument measures what its
 name claims it measures, distinct from operationalization ---
@@ -207,9 +156,6 @@ what is specific to psychology is the systematic expectation that
 every reported diagnostic value carries this measurement-theoretic
 context.
 
-% EDIT: 2026-04-23 — editorial #6 (Tier 2): conciliatory framing — ML
-% EDIT: has statistical sophistication; the gap is specifically an
-% EDIT: integrated measurement argument, not statistical naivety.
 The claim this paper makes is narrower than a comparison of
 statistical sophistication between fields: ML diagnostic reporting
 often lacks an integrated measurement argument that ties score
@@ -217,19 +163,14 @@ meaning, reliability, precision, and confound structure to the
 substantive interpretation of the reported number. Component
 methods are present; their coordinated application is not.
 
-ML has drawn on this tradition less than it could. The framework we
-propose in Section~\ref{sec:framework} is not a claim of conceptual
-originality but a proposal for systematic, coordinated application
-of measurement-theoretic methods to ML diagnostic reporting.
+ML has adopted some of these tools piecemeal, but rarely as a
+coordinated reporting discipline. The framework we propose in
+Section~\ref{sec:framework} is not a claim of conceptual
+originality but a proposal for systematic, coordinated
+application of measurement-theoretic methods to ML diagnostic
+reporting.
 
-% EDIT: 2026-04-26 — daily research reviews 2026-04-25 (inaugural) and
-% EDIT: 2026-04-26 (second pass) surfaced five parallel-development
-% EDIT: works applying measurement-discipline registers to LLM
-% EDIT: evaluation. This expanded positioning paragraph names the
-% EDIT: convergence and locates the paper's distinctive contribution
-% EDIT: without revising the load-bearing empirical or prescriptive
-% EDIT: claims.
-A measurement-discipline register has emerged contemporaneously
+A measurement-discipline literature has emerged contemporaneously
 across multiple voices. \citet{messing2026hidden} develops a Total
 Evaluation Error framework for LLM evaluation pipelines that
 decomposes pipeline uncertainty into design-choice variance and
@@ -242,69 +183,80 @@ into define-target, run-evaluation, and analyze-and-report stages;
 its companion statistical-models document \citep{nist2026statmodels}
 formally endorses generalized linear mixed models for variance
 decomposition on AI benchmarks, demonstrated on twenty-two frontier
-% EDIT: 2026-04-26 — pre-submission cite verification: \citet key updated
-% EDIT: from `reuel2025measuring` (misattribution caught via arXiv API) to
-% EDIT: `bean2025measuring` reflecting the actual first author. arXiv:2511.04703
-% EDIT: has 42 authors; first author is Andrew M. Bean (Oxford). Anka Reuel
-% EDIT: is not in the author list. Likely conflation with Reuel et al.
-% EDIT: NeurIPS 2024 BetterBench, a different paper. Bib entry renamed
-% EDIT: in references.bib with the same date marker.
 LLMs. \citet{bean2025measuring} survey 445 LLM benchmarks and
 develop a construct-validity failure taxonomy with eight
 recommendations and an operational checklist. \citet{camuffo2026variance}
 identify five variance sources in LLM annotation for strategy
 research and demonstrate twelve to eighty-five percentage-point
 swings from minor design choices, grounding their protocol in
-generalizability theory.
+generalizability theory. \citet{romanou2026brittlebench} decompose
+total performance variance under semantics-preserving prompt
+perturbations and report that perturbations account for up to half
+of total variance and that 63\% of model-pair rankings flip under
+any single perturbation. \citet{heineman2025signal} formalize a
+signal-to-noise framework over 30 benchmarks and 375 open-weight
+models, releasing a 900K-result evaluation dataset.
+\citet{mcgregor2025benchrisk} ranks 26 LLM benchmarks on five risk
+dimensions under a NIST-aligned risk-management framework.
+\citet{lior2025reliableeval} introduces a method-of-moments
+resampling recipe for stochastic LLM evaluation, applied to five
+frontier LLMs.
 
 The shared diagnosis across this corpus is that ML evaluation
-pipelines carry hidden measurement variance that ordinary reporting
-does not surface; the convergence across substrates (benchmarking,
-annotation, regulatory practice) is itself evidence that the
-diagnosis is real. The prescriptive registers differ: Messing
-optimizes evaluation-budget allocation; NIST endorses GLMM
-methodology; the construct-validity survey provides taxonomic
-guidance; Camuffo et al.\ develop variance-aware annotation
-protocols. The present paper's contribution within this co-developed
-register is the decimal-place precision tolerance schedule ---
-licensing what numerical precision a reported score actually
-supports under a declared measurement universe. Generalizability
-theory, variance decomposition, and construct-validity reasoning
-are now shared methodological apparatus across the field; the
-tolerance-schedule prescription is what the present paper still
-distinctively contributes.
+pipelines carry hidden measurement variance that ordinary
+reporting does not surface. The adjacent works develop overlapping
+pieces of a measurement agenda: budget optimization, voluntary
+reporting practices, construct-validity taxonomies, variance-aware
+annotation protocols, brittleness diagnostics, benchmark-risk
+scores, and resampling rules. The present paper's contribution is
+not the first use of any individual component, but the coordinated
+application of four measurement commitments to ML diagnostic
+reporting: construct articulation, reliability estimation,
+precision/tolerance, and pre-registered confound decomposition.
+The worked example demonstrates what the coordinated discipline
+changes in practice: which claims are licensed, which are
+narrowed, and which must be refused.
 
 \subsection{Contribution claims}
 
 \begin{enumerate}
-  \item A four-component framework for applying measurement discipline
-    to ML diagnostics: (i) construct validity, (ii) reliability
-    coefficients, (iii) bounded precision claims with explicit
-    tolerance schedules, and (iv) confound decomposition with
-    pre-registered decision rules.
-  \item A detailed worked example applying the framework to spectral
-    LoRA-merging diagnostics: a pre-registered decoder-scale null on
-    per-pair merge prediction under family-confound control, a
-    three-architecture replication of task-boundary detection across
-    two metric families, and a pre-registered four-method comparison.
-% EDIT: 2026-04-23 — editorial #5: contribution claim iii reframed
-% EDIT: from phenomenon-novelty to reporting-register novelty.
-  \item Identification of an underreported precision limitation of
-    partial Spearman correlations on small-$N$ residuals as a
-    reporting-level measurement constraint: the floating-point
-    precision of rank-based diagnostic correlations at these sample
-    sizes is comparable to their sampling variability, a fact that
-    measurement-discipline scrutiny surfaces and that ordinary
-    reporting conventions do not.
+  \item \textbf{A coordinated measurement-discipline framework for
+    ML diagnostic reporting} that prescribes reliability-, precision-,
+    and confound-aware reporting as joint requirements rather than
+    optional virtues. The framework's four components ---
+    (i) construct articulation, (ii) reliability estimation,
+    (iii) precision and tolerance with explicit per-quantity
+    schedules, and (iv) pre-registered confound decomposition ---
+    are not separately novel; the contribution is their integrated
+    application to ML diagnostic metrics, with the discipline that
+    adopting any one without the others silently reverts the
+    report to the direct-readout view of diagnostic scores the
+    framework rejects.
+  \item \textbf{A worked LoRA-merging case study showing how the
+    framework changes scientific interpretation}: a pre-registered
+    per-pair prediction claim becomes an informative null after
+    family-confound control; a task-boundary result is scoped to
+    population-level structure rather than per-pair prediction; a
+    cross-seed reliability estimate is bounded to the same-task
+    regime that generated it; and a pre-registered four-method
+    comparison produces a regime-scope null. The framework's
+    discipline succeeds by making each refusal explicit rather
+    than by rescuing the diagnostic.
+  \item \textbf{A reporting-level precision finding for rank-based
+    residual correlations}: in this small-$N$ residualized
+    setting, partial Spearman $\rho$ exhibits cross-environment
+    numerical drift of order $10^{-2}$ between equally faithful
+    execution paths, comparable to its sampling variability, so
+    third-decimal reporting is not supported under reproducibility
+    testing. The empirical observation is what
+    measurement-discipline scrutiny surfaces; ordinary diagnostic
+    reporting conventions do not force such findings into view.
 \end{enumerate}
 
-% EDIT: 2026-04-23 — editorial #4 (Tier 2): concrete preview of what
-% EDIT: the framework changes in the worked example, to orient the
-% EDIT: reader before the body of the paper.
 In the worked example, the framework changes the scientific
 interpretation in three specific ways. A diagnostic relationship that
-an unstructured presentation would license as informative becomes a
-clean null once family-pair identity is residualized out
+an unstructured presentation might overinterpret becomes an
+informative null once family-pair identity is residualized out
 (Section~\ref{sec:empirical-h1}). A reliability estimate that a
 default report would quote as a universal property of the instrument
 is shown to license only the regime that generated it
@@ -328,9 +280,6 @@ practice. Section~\ref{sec:objections} addresses limitations and
 common objections to the thesis. Section~\ref{sec:conclusion}
 concludes.
 
-% EDIT: 2026-04-23 — editorial #2: explicit framework-vs-case-study
-% EDIT: hierarchy to prevent the paper being read as a spectral-merging
-% EDIT: paper with a methodological preface.
 The empirical case study is not offered as evidence that spectral
 diagnostics solve LoRA-merge prediction. It is offered as a stress
 test of the framework under deliberately unfavorable conditions: a
@@ -338,9 +287,8 @@ pre-registered diagnostic fails its primary prediction, a strong
 confound explains most outcome variance, and the headline statistic
 proves less numerically precise than ordinary reporting conventions
 would imply. The case is useful precisely because it demonstrates
-what measurement discipline prevents authors from claiming; the
-framework succeeds to the extent that the case study produces these
-refusals rather than rescues.
+how measurement discipline constrains the claims authors can
+responsibly make.
 
 \section{A Measurement-Discipline Framework for ML Diagnostics}
 \label{sec:framework}
@@ -359,8 +307,8 @@ to measure must be structurally defended rather than presumed. The
 framework we propose in this section is what follows from replacing
 the first view with the second.
 
-The replacement is not a methods upgrade. It is a conceptual
-reorientation whose consequences include a specific set of reporting
+The replacement is not merely a methods upgrade. It is a
+conceptual reorientation whose consequences include a specific set of reporting
 practices, but the practices are consequences rather than the
 starting point. Treating a diagnostic as a fallible indicator
 commits the author to defending, jointly and inseparably, four
@@ -416,8 +364,6 @@ direct-readout view it is not even legible as one.
 The distinction has empirical consequences. Different
 operationalizations of the same theoretical object can produce
 different predictive patterns on the same data.
-% ANON: removed internal project numbers (N07/N132, N133/N134); rephrased
-% ANON: to describe the two operationalizations abstractly.
 A subspace-principal-angle-based overlap metric and a
 singular-value-weighted cosine alignment both claim to measure
 spectral similarity between two adapters' weight-space updates, but
@@ -458,7 +404,6 @@ evidential weight of the score's reports. For a score computed
 per-pair of models, the analog is cross-seed-pair ICC across pairs
 that should be semantically equivalent (same task-pair, different
 random seeds).
-% ANON: "The N134 design" → "The present study's design"
 The present study's design commits to three seeds per task
 specifically to support this estimate. On this design the estimate
 is $\hat{\rho}_{\mathrm{ICC}} = 0.566$ (moderate) with SEM $= 0.014$
@@ -469,34 +414,37 @@ instrument-validation step the framework requires.
 \subsection{What precision the indication supports}
 \label{sec:framework-precision}
 
-% EDIT: 2026-04-23 — editorial (second round) #3: replace "intrinsic"
-% EDIT: with "environment-sensitive" / "effective reproducibility" in
-% EDIT: four occurrences of §2.3. Reason: the observed effect depends
-% EDIT: on residualization, near-ties, sample size, and implementation
-% EDIT: path, not a universal Spearman property.
-A score reported as ``$-0.533$'' to three decimals makes an implicit
-claim that its third decimal carries information. The claim may be
-defensible from sampling variability alone; it is rarely defensible
-once implementation sensitivity, cross-environment reproduction, and
-environment-sensitive numerical properties of the statistic at the operative
-sample size are considered. Bounded precision is the discipline of
-stating what the uncertainty on the reported decimal is, calibrated
-per source. The relevant calibration is not a single ``standard
-error'' but a tolerance schedule: sampling variability,
-implementation sensitivity, cross-environment reproduction, and
-statistic-level reproducibility each contribute, and which one
-dominates depends on the statistic, the operative sample size, and
-the reproduction condition.
+A score reported as ``$-0.533$'' to three decimals makes an
+implicit claim that its third decimal carries information. The
+claim may be defensible from sampling variability alone; it is
+rarely defensible once implementation sensitivity and
+cross-environment numerical tolerance of the statistic at the
+operative sample size are also considered. By
+\emph{cross-environment numerical tolerance} we mean the observed
+variation in the reproduced statistic across supported numerical
+environments, holding the data, analysis specification, and
+accepted numerical implementation fixed --- the empirical scale
+at which the statistic's reproduction drifts when the same
+computation is run faithfully under different floating-point
+paths. Bounded precision is the
+discipline of stating what the uncertainty on the reported
+decimal is, calibrated per source. The relevant calibration is
+not a single ``standard error'' but a tolerance schedule:
+sampling variability, implementation sensitivity, and
+cross-environment numerical tolerance each contribute, and which
+one dominates depends on the statistic, the operative sample
+size, and the reproduction condition.
 
 Section~\ref{sec:rank-observation} develops the paper's most
 striking instance: the worked example's headline statistic has
-environment-sensitive floating-point reproducibility of approximately $\pm 0.01$ at
-$n = 45$, meaning its third decimal is not a real claim regardless
-of what sampling variability the bootstrap confidence interval
-reports. The observation is not about the bootstrap's calibration;
-it is about the statistic's environment-sensitive reproducibility on residuals at this
-sample size. A single ``$\pm$'' would not have surfaced the
-distinction. A tolerance schedule does.
+cross-environment numerical tolerance of approximately $\pm 0.01$
+at $n = 45$, meaning its third decimal is not a real claim
+regardless of what sampling variability the bootstrap confidence
+interval reports. The observation is not about the bootstrap's
+calibration; it is about the statistic's cross-environment
+numerical tolerance on residuals at this sample size. A single
+``$\pm$'' would not have surfaced the distinction. A tolerance
+schedule does.
 
 \subsection{What else could explain the signal}
 \label{sec:framework-confound}
@@ -510,8 +458,9 @@ distinction is not load-bearing because the score's predictive
 relationship to its object is presumed; under the inferential view
 the distinction \emph{is} the test of the score's information over
 and above alternatives. A score whose reported predictive
-correlation is entirely accounted for by a simpler alternative has
-not measured its purported object; it has measured the alternative.
+correlation is entirely accounted for by a simpler alternative
+cannot be interpreted as evidence for its purported object
+without also specifying that alternative.
 
 Pre-registration of the decomposition is what distinguishes the
 framework's confound-handling from the post-hoc version that
@@ -552,8 +501,9 @@ Our worked example is a pre-registered decoder-scale study of one
 such spectral diagnostic: O-module depth-weighted
 singular-value-weighted alignment, denoted $S_{\mathrm{H1}}$. The
 formal definition is in Appendix~\ref{app:score}. The LoRA-merging
-setting is incidental to the paper's argument; the argument
-would hold equally for interpretability scores, capability
+setting is not the paper's general target; it is the worked
+substrate on which the framework is demonstrated. The argument
+would apply equally to interpretability scores, capability
 evaluations, or any other ML diagnostic class. This section treats
 the setting as background just sufficient for a reader outside the
 merging subfield to follow the worked example.
@@ -570,7 +520,6 @@ The operationalization is a specific computation from per-layer
 singular value decompositions (Appendix~\ref{app:score}), weighted
 by linear depth, restricted to the O-projection module. The choice
 to focus on the O-projection and to use linear depth weighting
-% ANON: "Gradience N133" project-brand identifier stripped; citation retained.
 derives from precursor analyses
 \citep{anonymized2026n133} which found that O-projection
 same-cross separation was stronger than Q/K/V and that deeper layers
@@ -583,7 +532,6 @@ commits to the specific choice before testing.
 \subsection{Reliability considerations at pre-registration time}
 \label{sec:applying-reliability}
 
-% ANON: "The N134 design" → "The present study's design"
 The present study's design commits to three seeds per task across eight
 pre-registered tasks, yielding 24 adapters. This design supports
 cross-seed reliability estimation for $S_{\mathrm{H1}}$ as an
@@ -596,29 +544,23 @@ pre-registered H1 test, the relevant observation is that the design
 was calibrated to support this estimate before data collection began,
 not that the estimate was examined post-hoc to reassure reviewers.
 
-% EDIT: 2026-04-23 — editorial #11: surface same-task-vs-cross-task
-% EDIT: regime-scope caveat from Appendix D into main text — this
-% EDIT: refusal-to-overgeneralize is the paper's thesis in compressed form.
 The reliability estimate validates only the same-task regime that
 supplies its replicate structure. The H1 test concerns cross-task
 pairs, for which the present design contains no direct reliability
-estimate. We therefore report the same-task ICC as an
-instrument-validation constraint, not as a universal reliability
-coefficient for $S_{\mathrm{H1}}$: the estimate licenses the claim
-that the score is moderately stable when the same task is scored
-under different seeds; it does not license the claim that the score
-% EDIT: 2026-04-23 — editorial (second round): soften "framework
-% EDIT: prescription" phrasing EDIT-05 introduced. The neutral
-% EDIT: variant better matches the register used elsewhere in §4.
-is moderately stable across tasks. Explicitly naming what the
-coefficient does not cover is part of the proposed reporting
-discipline.
+estimate. The reliability estimate is therefore not a property of
+$S_{\mathrm{H1}}$ in general. It is a property of $S_{\mathrm{H1}}$
+under the same-task seed-replication regime; the cross-task H1
+regime remains reliability-unestimated in this design. We
+therefore report the same-task ICC as an instrument-validation
+constraint, not as a universal reliability coefficient for
+$S_{\mathrm{H1}}$: the estimate licenses the claim that the score
+is moderately stable when the same task is scored under different
+seeds; it does not license the claim that the score is moderately
+stable across tasks. Explicitly naming what the coefficient does
+not cover is part of the proposed reporting discipline.
 
 \subsection{Confound decomposition pre-registration}
 
-% ANON: stripped internal project numbers "N133" and "N134 design";
-% ANON: added definite article "the" to "precursor analysis" for post-anon
-% ANON: readability (line 483 flagged during Phase 1 first-read, 2026-04-23).
 Four confounds were identified during the precursor analysis and
 were pre-registered against in the present study's design
 \citep{anonymized2026n134spec}:
@@ -664,7 +606,56 @@ a null under the rule, not as a reversed confirmation.
 \label{sec:empirical}
 
 The pre-registered H1 is not confirmed; confirmatory replications
-pass; the four-method comparison produces a regime null.
+pass; the four-method comparison produces a regime null. Pulled
+together at the level of claims, the framework's discipline
+licenses some claims about the spectral diagnostic family at this
+sample size and regime, and refuses others.
+Table~\ref{tab:claims-licensed-refused} summarizes which claims
+the joint application of the pre-registered analysis and
+reproducibility-check evidence supports, and which it forecloses.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{0.34\textwidth}p{0.40\textwidth}p{0.18\textwidth}}
+\toprule
+Candidate claim & Framework result & Licensed? \\
+\midrule
+$S_{\mathrm{H1}}$ predicts per-pair merge degradation
+  & Wrong-signed partial $\rho$, $\Delta R^2 = +0.003$ beyond
+    family baseline (\S\ref{sec:empirical-h1})
+  & No \\
+Tested spectral scores detect task-boundary structure
+  & Qualitative same/cross separation replicates across three
+    architectures and two metric families
+    (\S\ref{sec:empirical-replication})
+  & Yes, at population/task-boundary level only \\
+$S_{\mathrm{H1}}$ reliability generalizes across cross-task pairs
+  & ICC estimated only from same-task seed replicates
+    (\S\ref{sec:applying-reliability},
+    Appendix~\ref{app:reliability})
+  & No; same-task regime only \\
+Partial Spearman $\rho$ reportable to three decimals
+  & Cross-environment numerical drift $\approx 0.012$ at $n=45$
+    (\S\ref{sec:rank-observation})
+  & No; report approximately $-0.53 \pm 0.01$ \\
+Tested static weight-space spectral methods support reliable
+  per-pair merge triage
+  & Four-method comparison: no method's CI excludes random
+    baseline (\S\ref{sec:empirical-fourmethod})
+  & No, for the tested regime \\
+\bottomrule
+\end{tabular}
+\caption{Claims licensed and refused by the framework's joint
+  application to the worked example. Each row pairs a
+  candidate claim with the framework result that bears on it
+  and the resulting licensing status under the pre-registered
+  decision discipline. The table is the case study's
+  prescriptive output: the framework's value lies in
+  distinguishing which claims are licensed, narrowed, or
+  refused under the pre-registered decision discipline.}
+\label{tab:claims-licensed-refused}
+\end{table}
 
 \subsection{H1 outcome under the pre-registered rule}
 \label{sec:empirical-h1}
@@ -713,10 +704,20 @@ raw and family-residualized regression lines.
   \label{fig:h1-decision}
 \end{figure}
 
-Under the pre-registered rule, H1 is a null. The wrong-signed
-partial correlation is hypothesis-generating but excluded from
-licensing any conclusion by the C4 pre-registration discipline;
-follow-up is out of scope for the present paper.
+Under the pre-registered rule, H1 is not confirmed: it is a
+pre-registered null for the claimed triage interpretation, despite
+a statistically significant wrong-signed association. The result
+is not a weaker version of the predicted effect; it is the
+opposite of the predicted effect under the pre-registered sign
+convention.
+Treating it as support would require changing the construct
+interpretation after seeing the data --- exactly the kind of
+post-hoc construct re-articulation the C4 pre-registration
+discipline forecloses. The wrong-signed partial correlation is
+hypothesis-generating with respect to future construct
+re-articulation, but it is excluded from licensing any
+confirmatory conclusion in this study; follow-up is out of scope
+for the present paper.
 
 \subsection{Why this is an informative null, framework-wise}
 
@@ -731,10 +732,6 @@ is legible because the decomposition is pre-registered; it is
 opaque otherwise. The $R^2 = 0.881$ is itself a finding --- a large
 effect for the simplest alternative explanation, reportable
 regardless of how the geometric diagnostic performs.
-% EDIT: 2026-04-23 — editorial (second round) #7: acknowledge
-% EDIT: FAMILY_B's capacity explicitly to defuse "baseline eats the
-% EDIT: dataset" attack vector. Purpose of decomposition is
-% EDIT: incremental-information test, not deployable predictor.
 Because \textsc{family\_b} uses 28 family-pair cells relative to
 $N = 45$, it is a high-capacity baseline by design: its role in the
 decomposition is to test whether $S_{\mathrm{H1}}$ carries
@@ -746,9 +743,9 @@ estimate of what a deployable merge-risk predictor would achieve,
 and \textsc{family\_b} itself is not offered as one.
 
 \subsection{Three-architecture replication of task-boundary detection}
+\label{sec:empirical-replication}
 
 Three confirmatory replications of task-boundary detection pass
-% ANON: "cleanly on N134" → "cleanly on the present study"
 cleanly on the present study (Table~\ref{tab:replications}) and, combined with
 prior results on DistilBERT \citep{anonymized2026n130} and DeBERTa
 \citep{anonymized2026n132}, constitute a task-boundary detection
@@ -774,23 +771,21 @@ replication across three architectures and two metric families.
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.6\textwidth]{figures/layer_depth_trend.pdf}
-  % ANON: "under N134" → "in the present study"
   \caption{Per-layer same/cross alignment ratio on Mistral-7B in
     the present study. Linear fit: slope $+0.031$ per layer, $r = 0.919$, $p =
     1.1 \times 10^{-13}$. Ratio rises from $1.66$ at layer 0 to
     $2.58$ at layer 31. This is a property of the aggregate
     population geometry, not a predictor of per-pair merge outcomes:
-    the depth-weighting that $S_{\mathrm{H1}}$ was motivated by
-    (Section~\ref{sec:applying}) survives as an observation about
-    how spectral separation scales with depth, but does not
-    translate into per-pair risk prediction at this sample size and
-    scale (Section~\ref{sec:empirical-h1}).}
+    the depth trend motivating $S_{\mathrm{H1}}$
+    (Section~\ref{sec:applying}) survives as an aggregate
+    task-boundary observation about how spectral separation
+    scales with depth, but does not translate into per-pair risk
+    prediction at this sample size and scale
+    (Section~\ref{sec:empirical-h1}).}
   \label{fig:layer-depth}
 \end{figure}
 
 The three-architecture claim is framed honestly: two metric
-% ANON: stripped internal project numbers (N130/N132, N133/N134); metric
-% ANON: families are distinguished by descriptor rather than by project.
 families are involved (principal-angle for the precursor studies;
 SV-weighted cosine for the present one), so same/cross \emph{ratios} are not
 directly comparable; what replicates is the qualitative structure
@@ -800,32 +795,34 @@ enforces this restraint. Figure~\ref{fig:layer-depth} shows the
 layer-depth trend that motivated the depth weighting in
 $S_{\mathrm{H1}}$.
 
-% EDIT: 2026-04-23 — editorial #9 (Tier 2): explicit construct-scope
-% EDIT: narrowing frame so the task-boundary result serves the
-% EDIT: measurement-discipline thesis rather than living alongside the
-% EDIT: per-pair null.
 Framework-wise, this is a construct-scope refinement rather than a
-standalone positive result. The diagnostic family's construct
-validity is narrowed by the joint pattern across
-\S\ref{sec:empirical-h1} and this section: the spectral score is
-informative for population-level task-boundary structure, but not
-for per-pair merge-risk prediction under the tested regime. A report
-that quoted only the task-boundary replication as evidence for the
-diagnostic would be operating on a broader construct claim than the
-evidence warrants; a report that quoted only the per-pair null would
-miss a real regularity at a different level of aggregation. The
-framework's discipline is to license each claim at its proper scope.
+standalone positive result. The positive result is a
+level-of-analysis result: spectral structure separates task
+populations, not individual merge-risk pairs in the tested regime.
+The diagnostic family's construct validity is narrowed by the joint
+pattern across \S\ref{sec:empirical-h1} and this section: the
+spectral score is informative for population-level task-boundary
+structure, but not for per-pair merge-risk prediction under the
+tested regime. A report that quoted only the task-boundary
+replication as evidence for the diagnostic would be operating on a
+broader construct claim than the evidence warrants; a report that
+quoted only the per-pair null would miss a real regularity at a
+different level of aggregation. The framework's discipline is to
+license each claim at its proper scope.
 
 \subsection{Four-method comparison as a regime-scope test}
+\label{sec:empirical-fourmethod}
 
-The pre-registered four-method comparison ranks the 45 cross-task
-% ANON: "Gradience $S_{\mathrm{H1}}$" → "$S_{\mathrm{H1}}$"; project brand
-% ANON: reference stripped, score-name retained as defined in §4 / App.~A.
-pairs by each of four spectral triage scores
-($S_{\mathrm{H1}}$; KnOTS adaptation \citep{stoica2024knots}; TSV
-adaptation \citep{gargiulo2025tsv}; SVC adaptation
-\citep{li2026svc}; method adaptations documented inline in the
-scripts and in Appendix~\ref{app:adaptations}). The lowest-risk 22
+The pre-registered four-method comparison tests whether the regime
+null is specific to $S_{\mathrm{H1}}$ or extends across several
+static weight-space spectral triage scores. The 45 cross-task
+pairs are ranked by each of four scores, using pre-registered
+pairwise-triage adaptations of each method's core quantity rather
+than the published reference implementations ($S_{\mathrm{H1}}$;
+KnOTS adaptation \citep{stoica2024knots}; TSV adaptation
+\citep{gargiulo2025tsv}; SVC adaptation \citep{li2026svc};
+adaptation details inline in the scripts and in
+Appendix~\ref{app:adaptations}). The lowest-risk 22
 pairs are retained under each method's ranking and the mean max
 degradation of the retained set is reported
 (Figure~\ref{fig:four-method}). No method achieves significance at
@@ -851,9 +848,6 @@ interval crosses the random baseline.
   \label{fig:four-method}
 \end{figure}
 
-% EDIT: 2026-04-23 — editorial #10: reframe broad "binding constraint"
-% EDIT: claim as regime-specific null; evidence is about the tested
-% EDIT: regime, not about the class of weight-space spectral methods.
 The framework reading: within the tested regime --- 45 cross-task
 pairs on a single decoder backbone at a single rank under the
 specified merge operation --- changing the weight-space spectral
@@ -864,8 +858,6 @@ behavioral, or learned mergeability predictors.
 Activation-informed methods
 \citep{zhang2025osrm,zhou2026demystifying} remain open.
 
-% EDIT: 2026-04-23 — editorial #5: section title reframes novelty claim
-% EDIT: from phenomenon to reporting-register constraint.
 \section{A Reporting-Level Precision Constraint for Rank-Based Residual Correlations}
 \label{sec:rank-observation}
 
@@ -886,36 +878,28 @@ drift is in the Spearman statistic applied to OLS residuals.
 
 \subsection{Explanation}
 
-% EDIT: 2026-04-23 — editorial (second round) #5: retreat from precise
-% EDIT: per-flip algebra. Original text claimed Δρ per rank-pair flip
-% EDIT: ≈ 2/(n(n²-1)); empirical verification at n=45 (adjacent swap in
-% EDIT: one variable, scipy.stats.spearmanr) gives Δρ ≈ 1.32e-4, which
-% EDIT: matches the 12/(n(n²-1)) coefficient from the standard no-ties
-% EDIT: Spearman formula, not 2/(n(n²-1)). Rather than substitute a
-% EDIT: new precise coefficient (which would require a more careful
-% EDIT: near-tie-propagation analysis than the paper does), retreat to
-% EDIT: qualitative wording. The paper's argument — that many small
-% EDIT: rank perturbations accumulate to order-10⁻² drift at this n —
-% EDIT: is preserved; fake precision is dropped.
-Spearman correlation is a rank-based statistic: it depends on the
-pairwise ordering of its inputs, not their magnitudes. At $n = 45$
-residuals where many values are close together, a floating-point
-perturbation too small to shift the sum of squares by more than its
-15th decimal place can still flip the rank order of a few near-tied
-residual pairs. Small rank-order changes alter the squared
-rank-difference term in Spearman's statistic; at this sample size,
-many such changes can accumulate into movement at the $10^{-2}$
-scale. The exact contribution of any single near-tie depends on the
-surrounding rank configuration, and we do not attempt a closed-form
-per-flip accounting; what matters for the paper's argument is that
-the observed environment-to-environment drift is consistent with
-this sensitivity. Across numerical environments, the committed value
-and the reproduced value are \emph{both correct}: each is computed
-faithfully from the same input data by the same algorithm under
-different floating-point paths in \texttt{numpy.linalg.lstsq}.
-Neither value is more right than the other. The statistic is
-numerically ill-conditioned on residuals of this size at this
-sample count.
+The likely mechanism is rank instability among near-tied
+residuals: small floating-point differences in the OLS residuals
+can change the ordering of observations whose residual values are
+nearly equal. Because Spearman correlation is computed from
+ranks, in this observed residual configuration these local
+ordering changes accumulated into visible second-decimal movement
+even when raw regression quantities reproduced bit-identically. The exact contribution of any single
+near-tie depends on the surrounding rank configuration, and we do
+not attempt a closed-form per-flip accounting; what matters for
+the paper's argument is that the observed environment-to-
+environment drift is consistent with this sensitivity. Across
+numerical environments, the committed value and the reproduced
+value are \emph{both correct}: each is computed faithfully from
+the same input data by the same algorithm under different
+floating-point paths in \texttt{numpy.linalg.lstsq}. Neither
+value is more right than the other. The issue is therefore not
+computational error, but reporting precision: the statistic is
+stable enough for the H1 decision and not stable enough to
+support the displayed third decimal. We therefore treat $\pm 0.01$
+as the empirically observed cross-environment numerical tolerance
+for this statistic in this design, rather than as a universal
+analytic bound on Spearman correlations on small-$N$ residuals.
 
 \subsection{Implication}
 
@@ -924,12 +908,8 @@ is approximately $-0.53$ in both environments, decisively below the
 $+0.50$ threshold (wrong sign) in both, and the decision (H1 not
 confirmed) is identical in both. But the specific point estimate of
 partial $\rho$ should be reported as approximately $-0.53 \pm 0.01$
-rather than as a four-decimal value. The third decimal is not a real
-claim.
-% EDIT: 2026-04-23 — editorial (second round) #4: retreat from
-% EDIT: unsupported n=200 stabilization claim. The paper's own
-% EDIT: thesis precludes making confident claims without evidence;
-% EDIT: we leave the threshold unspecified.
+rather than as a four-decimal value. The third decimal is therefore
+not a supported measurement claim.
 At larger sample sizes, and especially when residual ranks are less
 dominated by near-ties, this source of drift should typically
 diminish; the present study does not estimate a general stabilization
@@ -939,26 +919,26 @@ threshold.
 
 Rank-based statistics appear widely in ML diagnostic reporting:
 Spearman correlations, Kendall's tau, rank-based robustness
-metrics, ranked model comparisons. Whenever these are computed on
+metrics, ranked model comparisons. When these are computed on
 residuals --- i.e., after controlling for another variable via
-regression --- the residualization step is a numerical-precision
-amplifier. Any paper reporting such statistics at small sample
-sizes without explicitly bounding the precision is making an
-implicit claim the data does not support.
-% ANON: "one-off observation about N134" → "one-off observation about this study"
-This is not a one-off
-observation about this study; it is a general measurement property the
-framework's reproducibility discipline surfaced.
+regression --- the residualization step can act as a
+numerical-precision amplifier. Any paper reporting such
+statistics at small sample sizes without explicitly bounding the
+precision is making an implicit claim the data does not support.
+This is not merely a bookkeeping oddity of the present run; it is
+evidence of a class-level precision risk for rank-based statistics
+computed on small-$N$ residuals. The present study demonstrates the risk
+in one controlled setting and motivates reporting it as part of a
+tolerance schedule rather than assuming that all displayed
+decimals are substantive.
 
 The observation also demonstrates the framework's central claim:
 measurement discipline applied to ML diagnostic reporting produces
 findings that unstructured reporting does not. The precision
-% ANON: "original N134 analysis" → "original analysis"
 property was not present in the original analysis and was not
 present in the committed report; it was surfaced by running the
 analysis in a different environment and comparing tier-by-tier
 with a tolerance schedule calibrated to quantity class. Without
-% ANON: "N134 would have reported" → "the worked example would have reported"
 that discipline, the worked example would have reported $-0.533$ to three
 decimals indefinitely, and the third decimal would have been an
 unstated promise the data could not keep.
@@ -970,16 +950,12 @@ cross-seed reliability $\hat{\rho}_{\mathrm{ICC}} = 0.566$
 null (Section~\ref{sec:empirical-h1}) --- exhibits a dialectic about
 what measurement-disciplined reporting yields. The three split into
 two epistemic kinds.
-% EDIT: 2026-04-23 — editorial (second round) #6: soften "discovery"
-% EDIT: language to "discovery-like in the narrower reporting sense"
-% EDIT: to avoid claiming priority over numerical-statistics
-% EDIT: literature. The contribution is in the reporting register,
-% EDIT: not in the mathematical phenomenon.
-The rank-on-residuals property is
-\emph{discovery-like in the narrower reporting sense}: a measurement
-constraint that was not visible in the original analysis and is
-rarely named in ML diagnostic reports, surfaced here by the
-framework's reproducibility discipline. The reliability estimate and the
+The rank-on-residuals property is a
+\emph{reporting-relevant measurement constraint}: a fact about how
+the headline statistic behaves on residuals at this sample size
+that was not visible in the original analysis and is rarely named
+in ML diagnostic reports, surfaced here by the framework's
+reproducibility discipline. The reliability estimate and the
 informative null are \emph{calibration-and-modesty findings}: the
 framework's infrastructure does not extend claims but bounds them.
 Both kinds are framework products, but their epistemic shape
@@ -995,39 +971,51 @@ The two kinds together are what measurement discipline is
 
 \subsection{Reporting practices the framework prescribes}
 
-Pulled together as a short list suitable for direct adoption:
+Table~\ref{tab:reporting-standard} summarizes the practical
+replacement the framework prescribes, organized as a one-to-one
+mapping between current reporting practice and the
+measurement-disciplined alternative. None of the replacements is
+mathematically novel; all are mature methods drawn from classical
+test theory and its descendants. What the framework adds is
+coordination --- translating the four framework commitments into
+a concrete reporting bundle rather than applying any one practice
+in isolation.
 
-\begin{enumerate}
-  \item Cross-seed ICC or equivalent reliability coefficient
-    reported alongside any diagnostic claim intended to support
-    quantitative prediction.
-  \item Bounded precision with explicit tolerance schedule,
-    calibrated per quantity class and per sample size. Rank-based
-    statistics on residuals, specifically, should report
-    sample-size-calibrated precision bounds.
-  \item Confound decomposition with pre-registered decision rules.
-    For predictive-correlation claims, the default should be a
-    family- or category-residualized partial correlation with a
-    $\Delta R^2$ threshold, not a raw correlation.
-  \item Floating-point reproducibility check with tiered
-    verification (qualitative claims, structural agreement,
-    quantitative agreement with tolerance schedule, gap
-    documentation). Binary pass/fail is insufficient once the
-    reproduction environment is not a controlled copy of
-    production.
-% EDIT: 2026-04-23 — editorial (second round) #8: distinguish
-% EDIT: evidential registers rather than negate evidential weight
-% EDIT: entirely. Exploratory findings are hypothesis-generating.
-  \item Post-hoc analyses labeled as such and assigned
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{0.42\textwidth}p{0.50\textwidth}}
+\toprule
+Current practice & Measurement-disciplined replacement \\
+\midrule
+Diagnostic claim reported without reliability evidence
+  & Cross-seed ICC or equivalent reliability coefficient reported
+    alongside the claim \\
+Point estimate quoted to convention-set decimal precision
+  & Bounded precision with explicit tolerance schedule, calibrated
+    per quantity class and per sample size (rank-based statistics
+    on residuals require sample-size-calibrated precision bounds) \\
+Raw predictive correlation reported as evidence
+  & Family- or category-residualized partial correlation with a
+    pre-registered $\Delta R^2$ threshold and decision rule \\
+Pass/fail reproducibility check (or none)
+  & Tiered reproducibility verification: qualitative claims,
+    structural agreement, quantitative agreement with tolerance
+    schedule, and gap documentation \\
+Post-hoc analyses reported as confirmatory or
+  decision-supporting
+  & Post-hoc analyses labeled as such and assigned
     hypothesis-generating rather than confirmatory evidential
-    status, consistent with the C4 pre-registration discipline as
-    minimum-viable methodological hygiene.
-\end{enumerate}
-
-None of these is mathematically novel; all are mature methods
-drawn from classical test theory and its descendants. What the
-framework adds is coordination --- applying all five in conjunction
-rather than any one in isolation.
+    status \\
+\bottomrule
+\end{tabular}
+\caption{Measurement-disciplined replacements for common ML
+  diagnostic reporting practices. Each row replaces a current
+  practice that produces an under-specified measurement claim
+  with a practice that names the measurement design and the
+  evidence the design supports.}
+\label{tab:reporting-standard}
+\end{table}
 
 \subsection{What this changes, and what it does not}
 
@@ -1036,29 +1024,33 @@ it does argue that readers of the ML methods literature should
 calibrate credence to the measurement-discipline practices of
 reports rather than to their reported point estimates. A diagnostic
 reported as ``Spearman $\rho = 0.572$'' without a cross-seed
-distribution, without a family-residualized partial correlation,
-and without a reproducibility-check trace is making a weaker
-evidential claim than the reported value suggests; readers should
-discount accordingly. This is not a critique of any specific paper.
+distribution, without an appropriate confound decomposition, and
+without a reproducibility-check trace is making a weaker
+evidential claim than the reported value alone suggests. This is
+not a critique of any specific paper.
 The practices the framework prescribes are not currently normative,
 so papers not following them are not violating field norms; they
 are following the norms that exist. Our claim is that the norms
 should change, and that individual papers should begin applying the
 framework voluntarily ahead of any field-wide shift. We apply it
-% ANON: "ourselves in N134" → "ourselves in the worked example"
 ourselves in the worked example; we do not ask others to retroactively apply it
 to work they have already published.
 
-\subsection{The psychometric-tradition reference}
+\subsection{Why the psychometric analogy matters}
 
-The framework draws from classical test theory and its
-descendants: \citet{cronbach1951alpha} on reliability,
-\citet{shrout1979icc} on ICC,
-\citet{messick1989validity,messick1995validity} on construct
-validity as unified-theory framework, and
-\citet{cronbachmeehl1955} on nomological networks. The contribution
-is not originality for these concepts but their systematic
-coordinated application to ML diagnostics.
+The analogy is not that ML diagnostics are psychological tests,
+but that both are instruments whose observed scores require
+validity, reliability, precision, and confound arguments before
+they can support substantive inference. The framework draws from
+classical test theory and its descendants:
+\citet{cronbach1951alpha} on reliability, \citet{shrout1979icc}
+on ICC, \citet{messick1989validity,messick1995validity} on
+construct validity as unified-theory framework, and
+\citet{cronbachmeehl1955} on nomological networks. The
+contribution is not originality for these concepts but their
+systematic coordinated application to ML diagnostics: each
+component is a mature method; their joint use as a reporting
+discipline is what the present paper proposes.
 
 \section{Objections, Alternatives, Limitations}
 \label{sec:objections}
@@ -1074,11 +1066,12 @@ are not currently coordinated in ML practice. The coordinated
 application is the contribution.
 
 \paragraph{``Pre-registration is high-overhead and impractical.''}
-% ANON: "The N134 experiment" → "The worked-example experiment"
-The worked-example experiment ran end-to-end in $\sim$30 hours for \$40 on
-commercial cloud compute, with a pre-registration written as a
-single document committed before data collection. The overhead is
-lower than typical reviewer-response cycles in the same literature.
+The worked-example experiment ran end-to-end in $\sim$30 hours for \$40
+on commercial cloud compute. The pre-registration overhead in this
+case was modest relative to the experiment: a single committed
+document before data collection, explicit decision thresholds, and
+deviation tracking. That overhead is lower than typical
+reviewer-response cycles in the same literature.
 
 \paragraph{``The case study is weaker than the framework.''} Two
 forms: that a null worked example is less compelling than a
@@ -1093,19 +1086,37 @@ paper's center of gravity; the generalization is to rank-based
 statistics on small-$N$ residuals, which covers a meaningful
 fraction of diagnostic reporting.
 
+\paragraph{``The cross-environment tolerance result is based on
+one observed environment gap.''} Correct. We treat it as an
+empirical measurement constraint surfaced by the reproducibility
+protocol, not as a universal bound on rank-based residual
+statistics. Its role in the paper is to demonstrate why
+tolerance schedules should be reported, not to establish a
+general theory of numerical drift.
+
+\paragraph{``The numerical-tolerance observation depends on an
+environment gap that could have been eliminated by stricter
+pinning.''} Stricter pinning would likely reduce this source of
+variation, and we do not claim otherwise. The reporting issue
+remains: if a statistic is published as reproducible across
+supported environments, its displayed precision should be
+calibrated to the tolerance actually observed under that
+reproduction condition. In this study, the decision is stable
+but the third decimal is not.
+
 \paragraph{Limitations proper.} The worked example studies a single
 backbone (Mistral-7B-v0.3), a single LoRA rank ($r = 16$), a single
 merge operation ($0.5/0.5$ linear), and a single class of diagnostic
 metric (weight-space spectral). The framework's claims generalize
 beyond these specifics; the worked example's empirical claims do
-not. A reader interested in the framework's application to their own
-diagnostic class will need to carry out their own application rather
-% ANON: "N134's results" → "the worked example's results"
-than directly importing the worked example's results.
+not. The direct reliability estimate is also limited to the
+same-task seed-replication regime; the cross-task H1 regime lacks
+direct replicate structure and is therefore reliability-unestimated
+in this design. A reader interested in the framework's application
+to their own diagnostic class will need to carry out their own
+application rather than directly importing the worked example's
+results.
 
-% EDIT: 2026-04-23 — editorial (second round) #7: limitations-side
-% EDIT: counterpart to §5.2's FAMILY_B clarification. Defends the
-% EDIT: decomposition choice as appropriate-for-purpose.
 The family-pair residualization used in the H1 test is intentionally
 conservative and high-capacity relative to the sample size. It is
 appropriate for testing whether the diagnostic carries incremental
@@ -1121,19 +1132,16 @@ select among post-hoc alternatives.
 \label{sec:conclusion}
 
 We have argued that ML diagnostic reporting systematically lacks the
-measurement-theoretic infrastructure that psychological assessment
-has treated as baseline methodology for decades, that this lack
-produces overclaims of precision and generality, and that a specific
-four-component framework --- construct validity, reliability
-coefficients, bounded precision claims with tolerance schedules,
+measurement-theoretic infrastructure that psychological assessment,
+at least in its methodological canon, has treated as baseline
+methodology for decades, that this lack produces overclaims of
+precision and generality, and that a specific
+four-component framework --- construct articulation, reliability
+estimation, precision and tolerance with explicit schedules,
 pre-registered confound decomposition --- addresses the gap.
-% ANON: "N134 worked example" → "worked example"
 The worked example applies the framework to spectral LoRA-merging
 diagnostics at decoder scale under family-confound control,
 produces a pre-registered null on per-pair merge prediction,
-% EDIT: 2026-04-23 — editorial #5 continuation: conclusion-level
-% EDIT: "previously-unnamed measurement property" reframed consistently
-% EDIT: with abstract, contribution claim (iii), and §6 title.
 replicates task-boundary detection across three architectures and
 two metric families, and surfaces an underreported precision
 limitation of the headline statistic (rank-based correlation on
@@ -1143,7 +1151,6 @@ do not flag.
 
 Three directions follow. First, activation-informed analogues of the
 worked example's spectral score remain a candidate for exceeding the
-% ANON: internal successor-study designator "(N135-alt)" stripped.
 regime null the worked example documents. Second, the
 framework's specific prescriptions will evolve with application
 experience; this paper is a starting point rather than a completed
@@ -1151,21 +1158,12 @@ methodology. Third, individual papers can begin applying the
 framework voluntarily ahead of any field-wide shift, and we invite
 them to.
 
-% EDIT: 2026-04-23 — editorial #13 (Tier 2): concrete norm-change
-% EDIT: close; turns the conclusion from observation to prescription
-% EDIT: by naming the minimum components of a measurement-disciplined
-% EDIT: diagnostic report.
 A minimal measurement-disciplined diagnostic report, in the sense
 this paper argues for, should include: a construct statement that
 distinguishes the theoretical object from its operationalization; a
 reliability estimate matched to the regime of intended use; a
 precision tolerance schedule for the reported quantities; and a
 pre-registered decomposition against obvious alternatives. A
-% EDIT: 2026-04-23 — editorial (second round) #9: the distinction
-% EDIT: being drawn is about licensed inferential status, not about
-% EDIT: whether numbers are produced. Exploratory analyses can be
-% EDIT: quantitative; the issue is confirmatory vs. decision-supporting
-% EDIT: status.
 diagnostic that cannot yet supply these elements may still be useful,
 but its evidential status should be described as exploratory rather
 than confirmatory or decision-supporting. The purpose of the
@@ -1231,15 +1229,13 @@ and 97.5\% empirical quantiles.
 
 The four-method comparison (Section~\ref{sec:empirical}) uses
 pairwise-triage adaptations of each method's core measurement
-quantity rather than the published reference implementations. We
-did not import the published repositories as dependencies; instead,
-% ANON: "N134 analysis scripts" → "study's analysis scripts"
-each of the three score functions in the study's analysis scripts
-computes the quantity that the corresponding paper identifies as its
-central interference or inflation signal, aggregated at the pair
-level as a triage score. The faithfulness and departure notes are
-inline in the score functions' docstrings;
-% ANON: specific filename + "companion repository" → "supplementary materials".
+quantity rather than the published reference implementations.
+These are not implementation-level reproductions of the published
+systems. They are pre-registered pairwise-triage adaptations of
+the measurement quantities those papers identify as central to
+interference or inflation, aggregated at the pair level as a
+triage score. The faithfulness and departure notes are inline in
+the score functions' docstrings;
 full documentation is in the method-comparison script in the
 supplementary materials. A reviewer who reads ``we used KnOTS'' in
 Section~\ref{sec:empirical} should read it as shorthand for ``we
@@ -1283,16 +1279,16 @@ $[0.015, 0.025]$, width $\approx 0.010$ --- an order of magnitude
 narrower than the same-task range, and \emph{narrower than the
 same-task SEM itself}. A naive transfer of the same-task SEM to
 cross-task pairs would yield a self-defeating statement: the
-instrument could not distinguish any cross-task pair from any other
-at this precision, which is contradicted by the fact that the
-primary H1 test does recover a significant (wrong-signed) partial
-correlation on cross-task pairs. The transfer fails, and the
-failure is informative: it says the reliability we have estimated
-is a property of the instrument in the same-task regime, not a
-universal property.
+instrument could not distinguish any cross-task pair from any
+other at this precision. That conclusion is not a valid inference
+from the present design; the primary H1 test nevertheless
+recovers a significant wrong-signed partial association on
+cross-task pairs. The appropriate conclusion is that the transfer
+fails, not that the cross-task regime has been validated: the
+reliability we have estimated is a property of the instrument in
+the same-task regime, not a universal property.
 
 What this reliability design can license and what it cannot is
-% ANON: "The N134 design" → "The present design"
 therefore worth stating directly. The present design supplies
 cross-seed replicate structure only on same-task pairs (three seeds
 per task, yielding three same-task seed-pairs per task). The 45
@@ -1309,11 +1305,6 @@ budget multiplicatively), or an analytical argument that cross-task
 reliability is bounded above or below by the same-task estimate
 (which we do not attempt here).
 
-% EDIT: 2026-04-23 — editorial #12 (tied to EDIT-05): soften Appendix D
-% EDIT: parallel to avoid redundancy with the new main-text caveat at
-% EDIT: §4.2. Technical content on extrapolation temptation retained;
-% EDIT: the "framework move" / "discipline in action" register is
-% EDIT: dropped since §4.2 now carries the register-heavy sentence.
 Explicitly bounding the coefficient's regime of validity is part of
 the proposed reporting discipline (\S\ref{sec:framework-reliability}).
 The temptation to extrapolate a reliability coefficient beyond the
@@ -1330,9 +1321,6 @@ $<\!0.50$ poor). We report the conventional description only as
 orientation and not as a binary gate; the paper's framework argues
 against thresholding continuous reliability estimates into
 verdicts.
-% ANON: specific repository paths (\texttt{sidecar/results/n134/analysis\_icc.json},
-% ANON: \texttt{sidecar/notes/n134\_icc\_spec.md}) replaced with generic pointer
-% ANON: to supplementary materials.
 Full panel, mean-squares decomposition, and bootstrap
 details are in the supplementary results bundle; design commitments
 are documented in the pre-registration spec included with the
@@ -1341,26 +1329,16 @@ supplementary materials.
 \section{Full Reproducibility-Check Trace}
 \label{app:reproducibility}
 
-% ANON: stripped internal task-letter "T6", project number "N134", filename
-% ANON: \texttt{n134\_reproducibility\_check.md}, "companion repository",
-% ANON: and "sidecar convention"; replaced with neutral descriptors.
-% EDIT: 2026-04-26 — pre-tarball pass: the "Full trace in the
-% EDIT: supplementary materials" pointer was inaccurate; the trace document
-% EDIT: was deliberately excluded from the supplementary bundle (see
-% EDIT: supplementary/README.md "Not attached" list). The four-tier summary
-% EDIT: below is itself the load-bearing trace for review purposes.
-Summary of the reproducibility check performed on the committed
-state of the worked example, organized by the four-tier verification
-protocol specified in Section~\ref{sec:rank-observation} and in the
-study's methodology convention.
+Summary of the reproducibility check performed on the worked
+example's submitted artifact bundle, organized by the four-tier
+verification protocol specified in
+Section~\ref{sec:rank-observation}.
 
 \textbf{Tier 1 (qualitative claims).} All six qualitative claims
 reproduce: H1 not confirmed; B-P1, B-P2, B-P4 replications all
-% ANON: "N133 composite score ... on N134 data" → "precursor-study
-% ANON: composite score ... on the present data".
-confirmed; no precursor-study composite score exceeds H1 thresholds on
-the present data; composite-score sign pattern unchanged across the
-environment gap.
+confirmed; no precursor-study composite score exceeds H1 thresholds
+on the present data; composite-score sign pattern unchanged across
+the environment gap.
 
 \textbf{Tier 2 (structural agreement).} \texttt{analysis\_h1.json}
 and \texttt{analysis\_secondary.json} schemas reproduce exactly.
@@ -1368,24 +1346,23 @@ and \texttt{analysis\_secondary.json} schemas reproduce exactly.
 \textbf{Tier 3 (quantitative agreement).} All scalars within the
 amended tolerance schedule. One value (partial Spearman $\rho$)
 falls into the rank-on-residuals precision regime, drifting by
-$1.18 \times 10^{-2}$ between the pod environment ($-0.5330$) and
-the dev environment ($-0.5448$). Every other scalar is bit-identical
-or at float-precision-noise magnitude. The Phase 5 four-method
-comparison cannot be re-verified from committed state alone because
-% ANON: "sidecars" (project-specific term) → "auxiliary files".
-per-adapter SVD factor auxiliary files were not committed (size constraint;
-1.2 GB on pod); the committed \texttt{method\_comparison.json} is
-the canonical Phase 5 output.
+$1.18 \times 10^{-2}$ between the original execution environment
+($-0.5330$) and the verification environment ($-0.5448$). Every
+other scalar is bit-identical or at float-precision-noise
+magnitude. The four-method comparison is not fully re-derived from the
+lightweight submitted bundle because auxiliary per-adapter SVD
+factor files were excluded for size reasons ($1.2$~GB). The
+bundle therefore includes the derived
+\texttt{method\_comparison.json} as the canonical artifact for
+that comparison, and the reproducibility trace records this
+limitation explicitly.
 
-% EDIT: 2026-04-26 — pre-tarball pass: dropped the
-% EDIT: "documented in the companion reproducibility-check trace" clause;
-% EDIT: that trace document is not in the supplementary bundle. The two
-% EDIT: gaps are documented inline in this paragraph.
 \textbf{Tier 4 (gap documentation).} Environment gap: Python 3.11
 $\rightarrow$ 3.14; \texttt{numpy} 1.26 $\rightarrow$ 2.4;
-\texttt{scipy} 1.13 $\rightarrow$ 1.17. Data-availability gap:
-Phase 5 per-adapter factor files are pod-only. Neither gap affects
-qualitative claims.
+\texttt{scipy} 1.13 $\rightarrow$ 1.17. Data-availability gap: the
+auxiliary per-adapter factor files used for the four-method
+comparison were not retained in the submitted bundle. Neither gap
+affects qualitative claims.
 
 \section{Deviations from Pre-Registration}
 \label{app:deviations}
@@ -1398,45 +1375,21 @@ change; (D2) pair-key ordering mismatch between \texttt{pair\_sample}
 and analysis script; (D3) layer-indexing and module-string schema
 mismatches; (D4) JSON bool serialization; (D5) CPU-contention
 incident during pilot training, with loss-trajectory continuity
-verified post-incident; (D6) Phase 5 per-pair v2.1 audit file shape
-gap, resolved via a lazy per-pair synthesizer before any
-% ANON: specific filenames (\texttt{n134\_incident\_log.md},
-% ANON: \texttt{n134\_report.md}) and "companion repository" replaced with
-% ANON: a neutral pointer to supplementary materials.
-% EDIT: 2026-04-26 — pre-tarball pass: dropped the "supplementary incident
-% EDIT: log" / "supplementary technical report (§8 therein)" pointer; both
-% EDIT: documents were deliberately excluded from the supplementary bundle
-% EDIT: (see supplementary/README.md "Not attached" list). The D1–D6
-% EDIT: summary above is the load-bearing deviation record for review
-% EDIT: purposes; further detail is available via OpenReview correspondence
-% EDIT: should reviewers request it.
-method-comparison numbers were committed. The above D1--D6 summaries
-are the load-bearing deviation record for review purposes.
+verified post-incident; (D6) per-pair audit file
+shape gap, resolved via a lazy per-pair synthesizer before any
+method-comparison numbers were committed. The above D1--D6
+summaries are the load-bearing deviation record for review
+purposes.
 
 \section{Compute, Environment, Artifacts}
 \label{app:compute}
 
-% ANON: cloud provider name "(RunPod Secure Cloud)" stripped.
 Single RTX 6000 Ada 48GB on commercial cloud.
 End-to-end compute approximately 30 hours at approximately \$40
-total cost. Pod software environment: Python 3.11, \texttt{torch}
+total cost. Execution environment: Python 3.11, \texttt{torch}
 2.3, \texttt{transformers} 4.44, \texttt{peft} 0.12, \texttt{numpy}
-1.26, \texttt{scipy} 1.13 (inferred from commit-time compatibility
-fixes; the pod was decommissioned before a \texttt{pip freeze} was
-% EDIT: 2026-04-26 — pre-tarball pass: dropped the post-hoc-pip-freeze
-% EDIT: claim; that file is not in the supplementary bundle (the bundle
-% EDIT: was trimmed to load-bearing artifacts only).
-captured).
-% ANON: "companion repository under tag \texttt{n134-submission-draft-v1}"
-% ANON: replaced with a neutral pointer to supplementary materials. The
-% ANON: tag name is the single most identifying phrase in the original
-% ANON: appendix and must not appear in the review-copy PDF.
-% EDIT: 2026-04-26 — pre-tarball pass: artifact list rewritten to match
-% EDIT: what the supplementary bundle actually ships per
-% EDIT: supplementary/README.md. Dropped figure-generation scripts and
-% EDIT: reproducibility-check trace (both deliberately excluded from the
-% EDIT: bundle). Specified the four top-level analytical JSONs and the
-% EDIT: 24-adapter raw-audit count for clarity.
+1.26, \texttt{scipy} 1.13. A complete package freeze was not
+captured before the environment was decommissioned.
 The supplementary materials accompanying this submission include
 the pre-registration documents, the four top-level analytical JSONs
 (H1, ICC, secondary, four-method comparison), the twenty-four
