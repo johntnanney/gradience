@@ -17,6 +17,8 @@
 \usepackage[round, authoryear]{natbib}
 \usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
 \hypersetup{colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue}
 
 \title{Benchmark Accuracy as Measurement:\\
@@ -186,7 +188,28 @@ The framework distinguishes four levels that benchmark-score reporting routinely
   \item \textbf{Generalized score.} The expected score of a model on a benchmark, generalized over the universe of admissible measurement occasions. This is the quantity a field-level claim about ``the model's MMLU accuracy'' implicitly references but that single-occasion reporting does not estimate.
 \end{enumerate}
 
-The paper's central methodological move is to treat the generalized score as the inferential target and to estimate its reliability and error bounds under a declared measurement universe. Single-occasion reporting of a benchmark score is, in the framework's terms, a measurement without a stated measurement universe --- an implicit point estimate of a generalized score with no accompanying account of what generalization is claimed.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  hlevel/.style={rectangle, draw, rounded corners, minimum width=4.8cm, minimum height=0.85cm, align=center, font=\small},
+  arr/.style={-{Latex[length=2mm]}, thick},
+  bypass/.style={-{Latex[length=2mm]}, thick, dashed},
+  arrlabel/.style={font=\scriptsize\itshape, align=center}
+]
+\node[hlevel] (op)  at (0, 0)   {Operational benchmark score};
+\node[hlevel] (occ) at (0, 1.9) {Measurement occasion};
+\node[hlevel] (gen) at (0, 3.8) {Generalized score};
+\node[hlevel] (lat) at (0, 5.7) {Latent capability};
+\draw[arr] (op)  -- node[arrlabel, right=4pt] {realized by} (occ);
+\draw[arr] (occ) -- node[arrlabel, right=4pt, align=left] {averaging over admissible\\measurement universe} (gen);
+\draw[arr] (gen) -- node[arrlabel, right=4pt] {substantive interpretation} (lat);
+\draw[bypass] (occ.west) to[out=160, in=200, looseness=1.5] node[arrlabel, left=4pt, align=center, pos=0.5] {single-occasion\\collapse:\\unlicensed\\shortcut} (lat.west);
+\end{tikzpicture}
+\caption{Measurement hierarchy for benchmark-based capability claims. The framework distinguishes the latent capability from an operational benchmark score, a realized measurement occasion, and the generalized score over the admissible universe of occasions. Substantive capability claims are licensed through the generalized score. The dashed shortcut marks the single-occasion collapse: treating one realized occasion as if it directly measured the latent capability.}
+\label{fig:measurement-hierarchy}
+\end{figure}
+
+The paper's central methodological move is to treat the generalized score as the inferential target and to estimate its reliability and error bounds under a declared measurement universe (Figure~\ref{fig:measurement-hierarchy}). Single-occasion reporting of a benchmark score is, in the framework's terms, a measurement without a stated measurement universe --- an implicit point estimate of a generalized score with no accompanying account of what generalization is claimed.
 
 \subsection{Construct articulation in this study}
 \label{sec:construct-articulation}
@@ -872,7 +895,7 @@ are committed in their entirety.
 \label{sec:results}
 
 
-This section reports the empirical findings of the pre-registered analyses described in §\ref{sec:design}. Each subsection follows the same descriptive structure: what was measured, what the data show, and a brief in-frame interpretive note where the result has direct implication within the framework's terms. Substantive interpretation, cross-paper integration with the precursor paper's substrate, and methodological reflection on the joint pattern across the four pre-registered hypotheses are reserved for §\ref{sec:discussion}. The four pre-registered decision rules are evaluated in §\ref{sec:tolerance-schedule-results} (H1, tolerance schedule), §\ref{sec:generalizability-results} (H2, generalizability), §\ref{sec:ranking-stability-results} (H3, ranking stability), and §\ref{sec:mmlu-subjects-results} (H4, MMLU subject interaction); the variance-components decomposition that the H1 and H2 schedules rest on is reported first.
+This section reports the empirical findings of the pre-registered analyses described in §\ref{sec:design}. The admissible measurement universe (§\ref{sec:design-materials}: prompts $\times$ seeds $\times$ scoring rules $\times$ few-shot exemplars, with the seed facet collapsed on TruthfulQA-MC) bounds every per-cell estimate reported below. Each subsection follows the same descriptive structure: what was measured, what the data show, and a brief in-frame interpretive note where the result has direct implication within the framework's terms. Substantive interpretation, cross-paper integration with the precursor paper's substrate, and methodological reflection on the joint pattern across the four pre-registered hypotheses are reserved for §\ref{sec:discussion}. The four pre-registered decision rules are evaluated in §\ref{sec:tolerance-schedule-results} (H1, tolerance schedule), §\ref{sec:generalizability-results} (H2, generalizability), §\ref{sec:ranking-stability-results} (H3, ranking stability), and §\ref{sec:mmlu-subjects-results} (H4, MMLU subject interaction); the variance-components decomposition that the H1 and H2 schedules rest on is reported first.
 
 \subsection{Variance components}
 \label{sec:variance-components-results}
@@ -937,6 +960,8 @@ At the cell level, single-occasion tolerances range from $0.019$ (HellaSwag, Pyt
 
 The thirty cells partition into twenty-three $g$-theory cells and seven parse-failure-dominated cells under the §\ref{sec:design-regime-split} threshold of $0.30$ on median parseability. The parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M); the $g$-theory regime carries the schedule's variance-components-based SEM, while the parse-failure-dominated regime's tolerance is the sample standard deviation of cell scores. The two regimes are reported alongside each other in Table~\ref{tab:tolerance-by-cell} rather than collapsed into a single number; cell-level interpretation routes through the regime classification per §\ref{sec:tolerance-schedule}.
 
+The largest single-occasion tolerances should not be read as pathological failures of the schedule, but as its intended warning case. Values approaching the scale of the bounded accuracy outcome indicate cells for which a single admissible evaluation condition is not a stable measurement occasion. The mechanisms differ across cells. In the TruthfulQA-MC Pythia-base cells, the high tolerances reflect the combination of small effective admissible-condition count after seed-facet collapse and large residual/item-level instability. For Qwen2.5-1.5B on ARC-Challenge and MMLU, the high tolerances are better interpreted as genuine between-condition sensitivity: the observed score changes substantially across otherwise admissible evaluation choices. In both cases the reporting implication is the same. The schedule is not producing spurious precision; it is refusing precision. A cell with tolerance on the order of $\pm 0.6$ or $\pm 0.9$ does not license decimal-place reporting under single-occasion measurement. It licenses, at most, interval-required reporting with an explicitly wide bound, or aggregation over enough admissible conditions to reduce the tolerance.
+
 Within the framework's terms, the schedule licenses a specific reading discipline. A reported benchmark score of the form ``$0.74$'' implicitly claims that the hundredths place is informative: under the half-unit rule, the measurement tolerance must be below $\pm 0.005$ accuracy. Under the present panel's measurement universe, that claim is licensed for none of the thirty cells at the single-occasion level and for one of the thirty cells at the full-design level.
 
 The two regimes' tolerance estimates are not interchangeable inferential objects. The $g$-theory regime's tolerance is the variance-components SEM under the declared measurement universe --- how much a cell's score moves under admissible design variation, with the variance attributed to identifiable facets via the mixed-effects cascade of §\ref{sec:design-cascade}. The parse-failure-dominated regime's tolerance is the sample standard deviation of cell scores --- how much a cell's score moves under the variation realized when parse-failure dominates the response distribution. The first is a structural claim about the universe; the second is a dispersion claim about the realized cells. Reporting both rather than collapsing across them is what keeps the cell-level interpretation tractable: a reader interpreting an interval-required cell from the parse-failure-dominated regime is consulting evidence of a different kind than one interpreting an interval-required cell from the $g$-theory regime, and the regime annotation in Table~\ref{tab:tolerance-by-cell} records the difference.
@@ -998,6 +1023,8 @@ Winogrande    & Qwen2.5-1.5B & LL   & \textit{g}  & 0.126 & 0.026 \\
 \subsection{Ranking stability (H3)}
 \label{sec:ranking-stability-results}
 
+The H3 finding's substantive content is conditional rather than aggregate: ranking stability holds for cross-skill model pairs (large mean accuracy difference relative to per-condition score-distribution width) and fails for close-skill pairs (small mean difference relative to that width). The remainder of this subsection establishes the conditional pattern; the headline 5/5-confirmation count, while pre-registered, is the threshold-met index of a structurally informative result rather than the result itself.
+
 The pre-registered H3 decision rule (§\ref{sec:design-decisions}) required at least three of five primary benchmarks to have at least one model pair whose pairwise condition-reversal fraction exceeds $20\%$, the threshold raised from an earlier $10\%$ at v1.1-draft to strengthen the test against trivial confirmation. Table~\ref{tab:ranking-reversals} reports per-pair reversal fractions across the three model pairs (Pythia-1.4B vs.\ Pythia-410M, Pythia-1.4B vs.\ Qwen2.5-1.5B-Instruct, and Pythia-410M vs.\ Qwen2.5-1.5B-Instruct) on each of the five primary benchmarks. Each of the five benchmarks has at least one model pair whose condition-reversal fraction exceeds the $20\%$ threshold; H3 is confirmed at $5/5$ where $3/5$ was required.
 
 The reversal pattern across pairs is structurally informative. The within-family Pythia-1.4B vs.\ Pythia-410M pair reverses substantially on every benchmark: $25.0\%$ on ARC-Challenge, $20.8\%$ on HellaSwag, $33.3\%$ on MMLU panel, $50.0\%$ on TruthfulQA-MC ($n = 8$ admissible conditions), and $54.2\%$ on Winogrande. The cross-lineage Pythia-vs-Qwen pairs reverse rarely on the four benchmarks with $n \geq 24$ admissible conditions where the cross-lineage accuracy gap is large: $0\%$ on ARC-Challenge, HellaSwag, and Winogrande for both Pythia models against Qwen; $8.3\%$ and $2.5\%$ on MMLU panel for the Pythia-1.4B vs.\ Qwen and Pythia-410M vs.\ Qwen pairs respectively. TruthfulQA-MC is the exception: its cross-lineage pairs reverse at $37.5\%$ (both pairs), reflecting the small admissible-condition count ($n = 8$) and the small overall mean differences between the cross-lineage pairs ($-0.090$ for Pythia-1.4B vs.\ Qwen, $+0.087$ for Pythia-410M vs.\ Qwen).
@@ -1039,7 +1066,9 @@ Winogrande    & Pythia-410M / Qwen2.5-1.5B & $-0.218$ & 24  & 0.000 & \\
 \subsection{MMLU subject-decomposition case (H4)}
 \label{sec:mmlu-subjects-results}
 
-The pre-registered H4 decision rule (§\ref{sec:design-decisions}) required the model-by-subject interaction in the MMLU subject panel to explain at least $10\%$ of total item-level response variance after controlling for model main effect and subject main effect, indicating that collapsed ``MMLU accuracy'' would mask meaningful model-specific subject variation. The observed interaction proportion is $0.0046$ --- approximately a twentieth of the pre-registered threshold value. H4 is not confirmed.
+The pre-registered H4 finding is a null: subject-level differences in MMLU performance on this panel are dominated by additive main effects rather than model-specific subject interaction. Within the framework's pre-registration discipline this is a substantive measurement finding rather than a missed effect; the framework treats a confirmed hypothesis and a pre-registered null as equal-weight reportable outputs of the same locked decision-rule machinery.
+
+The H4 decision rule (§\ref{sec:design-decisions}) required the model-by-subject interaction in the MMLU subject panel to explain at least $10\%$ of total item-level response variance after controlling for model main effect and subject main effect, indicating that collapsed ``MMLU accuracy'' would mask meaningful model-specific subject variation. The observed interaction proportion is $0.0046$ --- approximately a twentieth of the pre-registered threshold value. H4 is not confirmed.
 
 The pre-registered null reads as a substantive measurement finding. Subject-level differences in MMLU performance on this panel are dominated by additive main effects: subject difficulty (some subjects are uniformly harder) and model capability (some models are uniformly stronger), with model-specific subject interactions contributing approximately one-half of one percent of total variance. The five-subject panel was pre-registered at lock time to mitigate small-model floor risk (one subject from each MMLU subject grouping, chosen to span difficulty rather than to maximize between-model differentiation); the null result indicates that the additive main-effects structure captures most of the observable variance on this panel-and-regime configuration, not that the null would necessarily replicate on a different subject panel or model regime.
 
