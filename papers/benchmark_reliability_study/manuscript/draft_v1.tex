@@ -1,21 +1,7 @@
 % =============================================================================
-% Benchmark Accuracy as Measurement — Draft v1
+% Benchmark Accuracy as Measurement
 % =============================================================================
-% Working manuscript for the benchmark reliability study.
-% Sections committed at this draft level: §1 (Introduction), §2 (Prompt-sensitivity
-% literature), §3 (Framework setup — skeleton + portable bits), §4 (Parallel-
-% development register).
-%
-% §5 (pre-registered design), §6 (pipeline implementation), §7 (empirical
-% results), §8 (discussion), §9 (conclusion) wait for Phase 5 GPU completion.
-%
-% Editorial-pass marker convention follows the N134 paper:
-%   % EDIT:  — change to manuscript text with date and rationale
-%   % ANON:  — anonymized for review; restore at camera-ready
-%
-% Source outline: papers/benchmark_reliability_study/manuscript_outline_v0.md
-% Pre-registration: papers/benchmark_reliability_study/preregistration/prereg_v1_1_LOCKED.md
-% Lock state: v1.1.2-LOCKED at config_hash fbc4a5dd
+% Pre-registration lock state: v1.1.2-LOCKED at config_hash fbc4a5dd
 % =============================================================================
 
 \documentclass[11pt]{article}
@@ -51,8 +37,7 @@
 % =============================================================================
 
 \begin{abstract}
-% EDIT: 2026-04-28 — abstract empirical-findings sentence filled in post-Phase-5.
-Single-occasion benchmark accuracy reports treat the score as a fixed property of a (model, benchmark) pair, but admissible variation in prompt template, few-shot exemplar selection, and scoring rule contributes substantial variance to the observed score. This study applies a four-component measurement-discipline framework --- construct articulation, reliability estimation, precision and tolerance, and pre-registered confound decomposition --- to small-to-mid-scale open language models evaluated on six standard benchmarks under a declared measurement universe. We pre-register a mixed-effects variance-components decomposition, a decimal-place precision tolerance schedule, and a ranking-stability test. Three of four pre-registered hypotheses are confirmed (H1: $5/5$ benchmarks exceed the single-occasion second-decimal-precision tolerance threshold; H2: $4/5$ benchmarks fall below the $0.80$ generalizability standard at single-occasion measurement; H3: $5/5$ benchmarks have at least one model pair whose ranking does not survive admissible measurement-design variation), and the fourth (H4: MMLU model-by-subject interaction) is a pre-registered null. The bounded-precision schedule licenses interval-required reporting for thirty of thirty cells under single-occasion measurement on the panel and for twenty-nine of thirty at full-design averaging. A regime split between cells where variance components are inferentially meaningful and cells where parse-failure dominates the observed score is identified and motivated; we report tolerance schedules under each regime separately. The study is the second public demonstration of the measurement-discipline framework, on a substrate (LLM benchmark evaluation) deliberately chosen to be distinct from the framework's first demonstration on LoRA-merging diagnostics, and is intended as a portability test of the framework as much as an empirical study of benchmark reliability.
+Single-occasion benchmark accuracy reports treat the score as a fixed property of a (model, benchmark) pair, but admissible variation in prompt template, few-shot exemplar selection, and scoring rule contributes substantial variance to the observed score. The question is not whether benchmark scores vary under admissible measurement-design choices --- prior work has shown that they do --- but how many decimals a benchmark score supports once that variation is treated as part of the measurement design. This study applies a four-component measurement-discipline framework --- construct articulation, reliability estimation, precision and tolerance, and pre-registered confound decomposition --- to small-to-mid-scale open language models evaluated on five primary constrained-choice benchmarks and one secondary open-generation case study under a declared measurement universe. We pre-registered a mixed-effects variance-components decomposition, a decimal-place precision tolerance schedule, and a ranking-stability test (with one locked amendment, the regime split, applied before confirmatory analysis). Three of four pre-registered hypotheses are confirmed (H1: $5/5$ benchmarks exceed the single-occasion two-decimal-precision tolerance threshold under the half-unit rule; H2: $4/5$ benchmarks fall below the $0.80$ generalizability standard at single-occasion measurement; H3: $5/5$ benchmarks have at least one model pair whose ranking does not survive admissible measurement-design variation, with instability concentrated on close-skill model pairs), and the fourth (H4: MMLU model-by-subject interaction) is a pre-registered null. The bounded-precision schedule licenses interval-required reporting for thirty of thirty cells under single-occasion measurement on the panel and for twenty-nine of thirty at full-design averaging; a regime split routes parse-failure-dominated cells to a dispersion-based tolerance reported alongside the variance-components schedule. These results support a measurement-disciplined reporting standard: benchmark scores should be reported either as single-occasion scores with tolerance intervals or as generalized scores averaged over a declared measurement design, with ranking claims interpreted relative to condition-resampled stability rather than treated as fixed ordinal facts.
 \end{abstract}
 
 % =============================================================================
@@ -67,7 +52,7 @@ Single-occasion benchmark accuracy reports treat the score as a fixed property o
 
 A typical recent LLM evaluation paper reports benchmark accuracy as a single number, often quoted to two decimal places: ``model $M$ achieves $0.74$ on MMLU.'' A reader who wants to know how much credence to place in this number --- how stable it would be under a re-run with a different prompt template, a different few-shot exemplar draw, a different scoring rule --- has no systematic way to find out. The number is presented as if it were a stable property of the (model, benchmark) pair; the measurement design that produced it is rarely declared, and the variance attributable to that design is rarely estimated.
 
-The literature on prompt sensitivity makes the underlying problem visible. \citet{sclar2023quantifying} demonstrated that small format changes shift accuracy by tens of percentage points; \citet{polo2024efficient} reframed multi-prompt evaluation as estimating a performance distribution rather than selecting among prompts; the \citet{sclar2023quantifying} / \citet{polo2024efficient} register is now the established baseline for the empirical phenomenon. What the literature does not yet provide is a systematic measurement-theoretic response: a framework that ties reliability, precision, and confound structure to the substantive interpretation of the reported number.
+The literature on prompt sensitivity makes the underlying problem visible. \citet{sclar2023quantifying} demonstrated that small format changes shift accuracy by tens of percentage points; \citet{polo2024efficient} reframed multi-prompt evaluation as estimating a performance distribution rather than selecting among prompts; the \citet{sclar2023quantifying} / \citet{polo2024efficient} line is now the established baseline for the empirical phenomenon. What the literature does not yet provide is a systematic measurement-theoretic response: a framework that ties reliability, precision, and confound structure to the substantive interpretation of the reported number.
 
 This study estimates the measurement properties that single-prompt accuracy reports actually support. It does not claim that LLM benchmarks are invalid, that MMLU does not measure knowledge, or that leaderboards are meaningless. It claims that benchmark accuracy is better understood as a score sampled from a measurement design --- with prompt format, few-shot exemplar selection, scoring rule, and item composition each contributing variance --- than as a fixed property of a (model, benchmark) pair, and that field-level claims about ``the model's MMLU accuracy'' implicitly reference a generalized score the field's reporting practice does not estimate.
 
@@ -75,27 +60,29 @@ Three specific gaps follow from this pattern. Reliability coefficients in the cl
 
 The conceptual move the present paper rests on follows from these gaps directly. A reported benchmark score is not, on inspection, a fixed property of a (model, benchmark) pair; it is a score sampled from a measurement design --- a specific prompt template, few-shot exemplar draw, scoring rule, and item composition --- applied to that pair. The score that field-level claims about \emph{the model's MMLU accuracy} implicitly reference is the \emph{generalized} score: the expected score under the universe of admissible measurement designs. Single-occasion reporting is, in measurement-theoretic terms, a measurement without a stated measurement universe --- an implicit point estimate of a generalized score with no accompanying account of what generalization is claimed. Naming the measurement universe, and estimating its variance, is what licenses the rest of the apparatus this paper develops.
 
-The diagnosis is not a private one. Across roughly six months, multiple voices have arrived at structurally similar conclusions about LLM evaluation pipelines from different starting positions. The next subsection situates the present paper within that co-developed register.
+The diagnosis is not a private one. Across roughly six months, multiple voices have arrived at structurally similar conclusions about LLM evaluation pipelines from different starting positions. The next subsection situates the present paper within that recent literature.
 
 \subsection{Parallel-development register}
 \label{sec:parallel-dev-intro}
 
-The measurement-discipline register the precursor paper situated itself within has continued to develop across multiple voices in the months since. \citet{messing2026hidden} develops a Total Evaluation Error framework for LLM evaluation pipelines, decomposing pipeline uncertainty into design-choice variance and shrinking-with-$N$ variance, and demonstrating on MMLU benchmarking that optimized budget allocation halves estimation error at equivalent cost. The U.S.\ National Institute of Standards and Technology's voluntary-practices document \citep{nist2026benchmarkpractices} structures benchmark evaluation into define-target, run-evaluation, and analyze-and-report stages; its companion statistical-models document \citep{nist2026statmodels} formally endorses generalized linear mixed models for variance decomposition on AI benchmarks, demonstrated on twenty-two frontier LLMs. \citet{bean2025measuring} survey 445 LLM benchmarks with 29 expert reviewers and develop a construct-validity failure taxonomy with eight key recommendations and an operational checklist. \citet{camuffo2026variance} identify five variance sources in LLM annotation for strategy research and demonstrate twelve to eighty-five percentage-point swings from minor design choices, grounding their protocol in generalizability theory. \citet{romanou2026brittlebench} decompose total performance variance under semantics-preserving prompt perturbations and report that perturbations account for up to half of total variance and that 63\% of model-pair rankings flip under any single perturbation.
+The recent measurement-discipline literature the precursor paper situated itself within has continued to develop across multiple voices in the months since. \citet{messing2026hidden} develops a Total Evaluation Error framework for LLM evaluation pipelines, decomposing pipeline uncertainty into design-choice variance and shrinking-with-$N$ variance, and demonstrating on MMLU benchmarking that optimized budget allocation halves estimation error at equivalent cost. The U.S.\ National Institute of Standards and Technology's voluntary-practices document \citep{nist2026benchmarkpractices} structures benchmark evaluation into define-target, run-evaluation, and analyze-and-report stages; its companion statistical-models document \citep{nist2026statmodels} formally endorses generalized linear mixed models for variance decomposition on AI benchmarks, demonstrated on twenty-two frontier LLMs. \citet{bean2025measuring} survey 445 LLM benchmarks with 29 expert reviewers and develop a construct-validity failure taxonomy with eight key recommendations and an operational checklist. \citet{camuffo2026variance} identify five variance sources in LLM annotation for strategy research and demonstrate twelve to eighty-five percentage-point swings from minor design choices, grounding their protocol in generalizability theory. \citet{romanou2026brittlebench} decompose total performance variance under semantics-preserving prompt perturbations and report that perturbations account for up to half of total variance and that 63\% of model-pair rankings flip under any single perturbation. \citet{heineman2025signal} formalize a signal-to-noise framework over 30 benchmarks and 375 open-weight models, releasing a 900K-result evaluation dataset. \citet{mcgregor2025benchrisk} ranks 26 LLM benchmarks on five risk dimensions under a NIST-aligned risk-management framework. \citet{lior2025reliableeval} introduces a method-of-moments resampling recipe for stochastic LLM evaluation, applied to five frontier LLMs.
 
-The shared diagnosis across this corpus is that LLM evaluation pipelines carry hidden measurement variance that ordinary reporting does not surface; the convergence across substrates (benchmarking, annotation, regulatory practice, brittleness diagnostics) is itself evidence that the diagnosis is real. The prescriptive registers differ: \citet{messing2026hidden} optimizes evaluation-budget allocation; NIST endorses GLMM methodology; \citet{bean2025measuring} provides taxonomic guidance; \citet{camuffo2026variance} develops variance-aware annotation protocols; \citet{romanou2026brittlebench} frames the same phenomenon as model-level brittleness. The present paper's contribution within this co-developed register is the \textbf{decimal-place precision tolerance schedule} --- licensing what numerical precision a reported score actually supports under a declared measurement universe. Generalizability theory, variance decomposition, and construct-validity reasoning are now shared methodological apparatus across the field; the tolerance-schedule prescription is what the present paper distinctively contributes.
+The shared diagnosis across this corpus is that LLM evaluation pipelines carry hidden measurement variance that ordinary reporting does not surface; the convergence across substrates (benchmarking, annotation, regulatory practice, brittleness, benchmark-design, risk-management, frontier-model stochastic evaluation) is itself evidence that the diagnosis is real. The prescriptive outputs differ across the eight voices, and the difference is what makes their convergence informative rather than redundant: budget-optimization rules, normative practice recommendations, taxonomic guidance, variance-aware annotation protocols, model-level brittleness diagnostics, benchmark-design intervention recipes, benchmark-quality risk scores, and sample-size determination rules for stochastic resampling. Within this recent literature, the present paper's contribution is the \textbf{decimal-place precision tolerance schedule} --- licensing what numerical precision a reported score actually supports under a declared measurement universe. Generalizability theory, variance decomposition, signal-and-noise estimation, method-of-moments resampling, and construct-validity reasoning are now shared methodological apparatus across the field; the tolerance-schedule prescription is what the present paper distinctively adds, answering a different question from the others.
 
 \subsection{Contribution claims}
 \label{sec:contributions}
 
 This paper makes three claims, in priority order:
 
+\begin{sloppypar}
 \begin{enumerate}
-  \item \textbf{A second worked demonstration of the four-component measurement-discipline framework}, applied to LLM benchmark evaluation. The framework's substrate-portability is itself a contribution claim, and one we owe the reader an explicit defense of. The precursor paper's substrate (LoRA-merging diagnostic correlations on $n=45$ cross-task pairs, scored via partial Spearman with cross-seed ICC reliability and family-pair confound decomposition) and the present paper's substrate (benchmark accuracy on item-level binary correctness across thousands of items per cell, scored via mixed-effects variance-components GLMM with bootstrap confidence intervals and pre-registered random-effects structure) differ on inferential target, scoring object, sample-size regime, and error structure. Surviving application to both, with pre-registered findings on each, is non-trivial evidence that the framework is portable across the kinds of structural variation the field's substrates actually exhibit. Two demonstrations is not $k=\infty$ portability, and we do not claim it; the claim is that two demonstrations on appropriately diverse substrates is enough evidence to establish that the framework is not silently overfit to the substrate it was developed on.
+  \item \textbf{A decimal-place precision tolerance schedule for LLM benchmark accuracy}, estimating what numerical precision a reported score actually supports under a declared measurement universe. The schedule converts per-cell standard errors of measurement into licensed decimal-place precision via a half-unit rule (Section~\ref{sec:tolerance-schedule}). It is the paper's distinctive prescriptive output: a per-(benchmark, model, scoring rule) license for what decimal precision the cell's measurement supports, downstream of the variance-components decomposition that produces the SEM estimate. The schedule is the paper's primary contribution to field practice.
 
-  \item \textbf{Empirical results}: a pre-registered variance-components decomposition, generalizability-coefficient table, and decimal-place precision tolerance schedule for benchmark accuracy on the small-to-mid-scale open-model regime under a declared measurement universe (six benchmarks, three models, six prompt templates per benchmark, fixed scoring rules). Plus pre-registered ranking-stability findings against a 20\% reversal threshold (cf.\ H3, Section~\ref{sec:design}).
+  \item \textbf{Empirical results} establishing the schedule's empirical content on the tested regime. On the small-to-mid-scale open-model regime under a declared measurement universe (five primary benchmarks plus one secondary case study, three models, four prompt templates per benchmark, three few-shot seeds, two scoring rules where applicable), single-occasion benchmark reporting does not license ordinary two-decimal precision (H1, $5/5$), single-occasion generalizability falls below the conventional $0.80$ standard on most benchmarks (H2, $4/5$), and ranking instability concentrates on close-skill model pairs across all five benchmarks (H3, $5/5$); subject-level decomposition of MMLU is dominated by additive main effects rather than model-by-subject heterogeneity (H4, pre-registered null). Within the empirical results, a regime-split methodological resolution (introduced in a locked pre-confirmatory-analysis amendment at v1.1.2) distinguishes cells where variance-components decomposition is inferentially meaningful (\texttt{g\_theory} regime) from cells where parse-failure dominance makes the variance-components SEM uninterpretable (\texttt{parse\_failure\_dominated} regime); the split is reported as a measurement constraint surfaced by the locked pre-confirmatory pipeline rather than as a post-hoc exclusion rule.
 
-  \item \textbf{A regime-split methodological resolution}: distinguishing cells where variance-components decomposition is inferentially meaningful (\texttt{g\_theory} regime) from cells where parse-failure dominance makes the variance-components SEM uninterpretable (\texttt{parse\_failure\_dominated} regime). The split is offered in the same epistemic register as the precursor paper's rank-on-residuals observation --- discovery-like in the narrower reporting sense: a measurement constraint that was not visible in the precursor study's substrate and would not be visible in unstructured benchmark-score reports, surfaced here by the framework's reproducibility and pre-registration discipline.
+  \item \textbf{A substrate-portability demonstration of the four-component measurement-discipline framework}, previously applied to LoRA-merging diagnostics. The framework's substrate-portability is itself a contribution claim, and one we owe the reader an explicit defense of. The precursor paper's substrate (LoRA-merging diagnostic correlations on $n=45$ cross-task pairs, scored via partial Spearman with cross-seed ICC reliability and family-pair confound decomposition) and the present paper's substrate (benchmark accuracy on item-level binary correctness across thousands of items per cell, scored via mixed-effects variance-components modeling with bootstrap confidence intervals, with a documented LPM-vs-GLMM regime-split amendment and pre-registered random-effects structure as implemented) differ on inferential target, scoring object, sample-size regime, and error structure. Surviving application to both, with pre-registered findings on each, is non-trivial evidence that the framework is portable across the kinds of structural variation the field's substrates actually exhibit. Two demonstrations is not $k=\infty$ portability, and we do not claim it; the claim is that two demonstrations on appropriately diverse substrates establish that the framework is not silently overfit to the substrate it was developed on. The portability claim is defended in detail in Section~\ref{sec:relationship-to-precursor}.
 \end{enumerate}
+\end{sloppypar}
 
 \subsection{What this paper does not do}
 \label{sec:scope}
@@ -109,7 +96,9 @@ This paper does not claim that LLM benchmarks are invalid, that any specific rec
 \section{Prompt-sensitivity literature: the empirical baseline}
 \label{sec:prompt-sensitivity}
 
-The empirical literature on prompt sensitivity is the closest neighbor to this study's substrate. \citet{sclar2023quantifying} quantified language model sensitivity to spurious features in prompt design; \citet{polo2024efficient} reframed multi-prompt evaluation as estimating a performance distribution rather than selecting among prompts; \citet{lunardi2025robustness} extended the analysis across 34 LLMs and 6 benchmarks under paraphrase-sensitivity perturbations. This literature is the empirical baseline this study works from. Where it ends --- having established that benchmark scores move under prompt-format variation --- this study begins, by systematizing the methodological response: a measurement-theoretic framework, developed in Section~\ref{sec:framework}, that ties reliability, precision, and confound structure to the substantive interpretation of the reported number. The parallel-development register this paper turns to once the framework is in hand (Section~\ref{sec:parallel-dev-related-work}) is what licenses the comparison the related-work prose draws.
+The empirical literature on prompt sensitivity is the closest neighbor to this study's substrate. \citet{sclar2023quantifying} quantified language model sensitivity to spurious features in prompt design; \citet{polo2024efficient} reframed multi-prompt evaluation as estimating a performance distribution rather than selecting among prompts; \citet{lunardi2025robustness} extended the analysis across 34 LLMs and 6 benchmarks under paraphrase-sensitivity perturbations. This literature is the empirical baseline this study works from.
+
+The limitation of this literature for the present purpose is not that it misses the phenomenon, but that it usually stops before the reporting question. Showing that scores move under prompts does not by itself say what precision a reported score supports, how much averaging is required, or whether close model rankings survive admissible condition resampling. Those are the measurement questions taken up here. Where the prompt-sensitivity literature ends --- having established that benchmark scores move under prompt-format variation --- this study begins, by systematizing the methodological response: a measurement-theoretic framework, developed in Section~\ref{sec:framework}, that ties reliability, precision, and confound structure to the substantive interpretation of the reported number. The parallel work this paper turns to once the framework is in hand (Section~\ref{sec:parallel-dev-related-work}) is what licenses the related-work comparison.
 
 % =============================================================================
 % §3. Framework setup
@@ -118,20 +107,10 @@ The empirical literature on prompt sensitivity is the closest neighbor to this s
 \section{Framework setup}
 \label{sec:framework}
 
-% EDIT: 2026-04-26 — §3 sub-sections committed at skeleton level pending
-% EDIT: editorial pass to import N134 §2 prose with substrate substitution.
-% EDIT: §3.2 portable verbatim from prereg §2.2; §3.3, §3.4, §3.5, §3.6
-% EDIT: need substrate-specific writing.
 
 \subsection{The four components}
 \label{sec:framework-components}
 
-% EDIT: 2026-04-26 — §3.1 drafted by porting the precursor paper's framework
-% EDIT: section opening with substrate substitution (LoRA-merging diagnostic
-% EDIT: → benchmark accuracy). The two-views framing, the joint-defense logic,
-% EDIT: and the epistemic-ordering paragraph are structurally identical to the
-% EDIT: precursor; the substrate-specific content names benchmark accuracy as
-% EDIT: the diagnostic-class under inferential-view scrutiny.
 
 Two views of what a benchmark accuracy score is stand behind the
 reporting practices this paper addresses. On the first, which
@@ -148,10 +127,10 @@ presumed. The framework we develop in this section is what follows
 from replacing the first view with the second on the LLM-benchmark
 substrate.
 
-The replacement is not a methods upgrade. It is a conceptual
-reorientation whose consequences include a specific set of reporting
-practices, but the practices are consequences rather than the
-starting point. Treating a benchmark score as a fallible indicator
+The replacement is not merely a methods upgrade. It is a
+conceptual reorientation whose consequences include a specific set
+of reporting practices, but the practices are consequences rather
+than the starting point. Treating a benchmark score as a fallible indicator
 commits the reporter to defending, jointly and inseparably, four
 things: what the score indicates, how stable the indication is,
 what precision the indication can actually support, and what else
@@ -194,8 +173,6 @@ evidence for a substantive claim about model capability.
 \subsection{Construct hierarchy for benchmark accuracy}
 \label{sec:construct-hierarchy}
 
-% EDIT: 2026-04-26 — portable from prereg_v1_1_LOCKED.md §2.2; minor
-% EDIT: editorial smoothing for manuscript register.
 
 The framework distinguishes four levels that benchmark-score reporting routinely conflates:
 
@@ -214,11 +191,6 @@ The paper's central methodological move is to treat the generalized score as the
 \subsection{Construct articulation in this study}
 \label{sec:construct-articulation}
 
-% EDIT: 2026-04-26 — §3.3 drafted. Names six constructs the study articulates
-% EDIT: explicitly, and three deferred items (chain-of-thought scoring,
-% EDIT: contamination, agentic evaluation). The construct-vs-operationalization
-% EDIT: conflation framing parallels N134 §2.1 with substrate substitution
-% EDIT: (LL-vs-G&P scoring rules instead of subspace-vs-cosine alignment).
 
 A benchmark's theoretical object is what the score is taken to
 measure: a model's knowledge of grade-school physics, commonsense
@@ -269,12 +241,14 @@ The constructs this study articulates explicitly:
 \end{enumerate}
 
 For each construct, the operationalization is a specific
-scoring-rule-plus-prompt combination: six prompt templates per
+scoring-rule-plus-prompt combination: four prompt templates per
 benchmark sourced from canonical community repositories at pinned
-commits, two scoring rules where applicable
-(\texttt{ll\_norm} and \texttt{generate\_parse}), and a fixed item
-set per benchmark per the dataset hashes pinned in
-§\ref{sec:design}. Three operationalizations the study explicitly
+commits (P1 original benchmark authors, P2
+\texttt{lm-evaluation-harness} default, P3 HELM reference where
+available, P4 minimal direct-instruction variant), two scoring
+rules where applicable (\texttt{ll\_norm} and
+\texttt{generate\_parse}), and a fixed item set per benchmark per
+the dataset hashes pinned in §\ref{sec:design}. Three operationalizations the study explicitly
 does \emph{not} articulate: chain-of-thought or reasoning-trace
 scoring (a different operationalization of arithmetic reasoning the
 field is actively debating), benchmark contamination (a separate
@@ -287,21 +261,16 @@ articulation makes legible.
 \subsection{Reliability machinery}
 \label{sec:reliability-machinery}
 
-% EDIT: 2026-04-26 — §3.4 drafted. Substrate-specific machinery (variance
-% EDIT: components on item-level binary correctness via mixed-effects;
-% EDIT: bootstrap CIs; per-cell rather than aggregate). The opening sentence
-% EDIT: parallels N134 §2.2's "score has evidential weight only to the
-% EDIT: extent that it would reproduce" framing.
 
 A benchmark score has evidential weight only to the extent that it
 would reproduce under replication of the conditions that produced
 it. For an LLM benchmark accuracy score, the relevant replication
-is over prompt-template variation (six templates per benchmark
+is over prompt-template variation (four templates per benchmark
 sourced from canonical community repositories, see
-§\ref{sec:design}), few-shot exemplar selection (locked at 136
-fewshot draws per the pre-registration appendix at v1.1.1 lock),
-scoring-rule variation (length-normalized log-likelihood and
-generate-and-parse where applicable), and seed variation. A
+§\ref{sec:design}), few-shot exemplar selection (locked draws
+committed at v1.1.1 lock), scoring-rule variation
+(length-normalized log-likelihood and generate-and-parse where
+applicable), and seed variation. A
 benchmark score reported as ``$0.74$'' without an accompanying
 account of how stable it would be under these admissible variations
 is making an implicit claim that the score is perfectly reliable in
@@ -312,10 +281,18 @@ We make the recommendation specific rather than hortatory. The
 natural reliability machinery for benchmark accuracy on item-level
 binary-correctness data is variance-components decomposition via
 mixed-effects models in the generalizability-theory tradition
-\citep{brennan2001gtheory, cronbach1951alpha, shrout1979icc}: a
-generalized linear mixed model with random effects for prompt,
-seed, scoring rule, item, and the model-condition interactions
-specified in §\ref{sec:design}. The variance components decompose
+\citep{brennan2001gtheory, cronbach1951alpha, shrout1979icc}.
+The pre-registered specification was a generalized linear mixed
+model with random effects for prompt, seed, scoring rule, item,
+and the model-condition interactions specified in
+§\ref{sec:design}; the final implementation, documented in
+App.~\ref{app:lpm-glmm} and as deviation D-09 in
+App.~\ref{app:deviations}, uses a linear mixed-effects
+approximation (LPM) with a regime split for parse-failure-dominated
+cells. The discussion below describes the framework-level reliability
+defense in vocabulary that applies to either the GLMM specification
+or the LPM-with-regime-split implementation; the implementation
+defense is in the appendix. The variance components decompose
 the total observable variance in item-level correctness into the
 contributions of each facet, and the standard error of measurement
 (SEM) on the cell-level aggregate score follows from the
@@ -340,47 +317,70 @@ measurement error the framework is designed to surface.
 \subsection{Tolerance schedule construction}
 \label{sec:tolerance-schedule}
 
-% EDIT: 2026-04-26 — §3.5 drafted. This is the load-bearing distinctive-
-% EDIT: contribution paragraph the manuscript's positioning within the
-% EDIT: parallel-development register (§4) rests on. Three load-bearing
-% EDIT: paragraphs: decimal-place logic, regime-aware schedule construction,
-% EDIT: and the "what other works produce vs. what we add" closing.
 
 The third defense is bounded precision: not just whether a score is
 reliable in a population sense, but what specific numerical
 precision a single reported value can responsibly carry. A
 benchmark score reported as ``$0.74$'' carries an implicit claim
-that the second decimal is informative --- that a re-run of the
-evaluation would not produce $0.71$ or $0.79$. A score reported as
-``$0.741$'' carries the stronger implicit claim that the third
-decimal is informative. The discipline of bounded precision is to
-license what decimal-place precision is actually defensible per
-cell, rather than to quote scores at conventionally-chosen decimal
-places without that license.
+that the hundredths place is informative: that the uncertainty in
+the score is small enough to distinguish $0.74$ from nearby values
+that would round differently, such as $0.73$ or $0.75$. A score
+reported as ``$0.741$'' carries the stronger implicit claim that
+the thousandths place is informative. The discipline of bounded
+precision is to license what decimal-place precision is actually
+defensible per cell, rather than to quote scores at
+conventionally-chosen decimal places without that license.
 
-The decimal-place precision logic the paper develops is direct: a
-score reported to $k$ decimal places carries an implicit claim that
-the $(k{+}1)$th digit lies below the standard error of measurement
-on that score under the declared measurement universe. The
-\emph{tolerance schedule} estimates the SEM per cell, under the
-declared measurement universe (prompt $\times$ seed $\times$
-scoring-rule $\times$ item, per the mixed-effects cascade in
-§\ref{sec:design}), and rounds the licensed decimal-place precision
-down to the nearest defensible digit. A cell with $\mathrm{SEM} =
-0.012$ licenses $1$ decimal place: the third decimal lies below the
-SEM, so it is not a real claim. A cell with $\mathrm{SEM} = 0.003$
-licenses $2$ decimal places. The schedule is per-cell, not
-aggregate, because cells differ substantially in their measurement
-properties --- pre-empting the temptation to quote a single global
-precision figure.
+The decimal-place precision logic the paper develops is the
+half-unit rule: a reported decimal place is licensed only when the
+measurement tolerance is smaller than half the unit of that
+reported place. Reporting $0.74$ requires tolerance below $\pm
+0.005$ accuracy ($\pm 0.5$ percentage points); reporting $0.742$
+requires tolerance below $\pm 0.0005$ accuracy ($\pm 0.05$
+percentage points). Table~\ref{tab:notation-thresholds} summarizes
+the notation and the half-unit licensing thresholds.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Accuracy notation and half-unit licensing thresholds. The decimal-accuracy and percentage notations are interconvertible; the half-unit rule licenses the reported precision only when the measurement tolerance is below the threshold in the third column.}
+\label{tab:notation-thresholds}
+\begin{tabular}{lll}
+\toprule
+Reported form & Unit & Required tolerance \\
+\midrule
+$0.742$ / $74.2\%$ & $0.001$ accuracy & $< \pm 0.0005$ \\
+$0.74$ / $74\%$ & $0.01$ accuracy & $< \pm 0.005$ \\
+$0.7$ / $70\%$ & $0.1$ accuracy & $< \pm 0.05$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The \emph{tolerance schedule} estimates the
+SEM per cell under the declared measurement universe (prompt
+$\times$ seed $\times$ scoring-rule $\times$ item, per the
+mixed-effects cascade in §\ref{sec:design}) and converts it to a
+tolerance half-width, defined as $2 \times \mathrm{SEM}$. The
+licensed decimal-place precision is then assigned per cell by the
+half-unit rule. A cell with $\mathrm{SEM} = 0.012$ has tolerance
+$0.024$ and therefore does not license two-decimal reporting,
+since $0.024$ exceeds the half-unit threshold of $0.005$; it does
+license one-decimal reporting, since $0.024$ is below the
+one-decimal threshold of $0.05$. A cell with $\mathrm{SEM} =
+0.0015$ has tolerance $0.003$ and licenses two-decimal reporting,
+since $0.003$ is below the half-unit threshold of $0.005$. The
+schedule is per-cell, not aggregate, because cells differ
+substantially in their measurement properties --- pre-empting the
+temptation to quote a single global precision figure.
 
 The schedule is regime-aware. For cells where the variance-components
 decomposition is inferentially meaningful (the \texttt{g\_theory}
 regime), the SEM is the variance-components SEM. For cells where
 parse-failure dominance makes the variance-components SEM
 uninterpretable (the \texttt{parse\_failure\_dominated} regime,
-classified per a pre-registered parseability threshold of $0.30$ in
-the v1.1.2 amendment to the lock; see §\ref{sec:regime-split-design}),
+classified by a locked pre-confirmatory-analysis amendment at v1.1.2,
+using a parseability threshold of $0.30$; see
+§\ref{sec:regime-split-design}),
 the schedule uses the sample standard deviation of cell scores
 instead. The two regimes carry different inferential meanings: the
 \texttt{g\_theory} schedule licenses precision under the framework's
@@ -394,26 +394,36 @@ measure --- a fact the schedule's two-regime structure makes visible
 rather than concealing.
 
 This regime-aware tolerance schedule is the paper's distinctive
-contribution within the co-developed measurement-discipline register
+contribution within the recent measurement-discipline literature
 developed in §\ref{sec:parallel-dev-related-work}. Generalizability
-theory and variance decomposition are now shared methodological
-apparatus across recent work \citep{nist2026statmodels,
-camuffo2026variance, sui2025evaluating}, but the prescription that
-variance estimates should license decimal-place precision in
-reported scores is what this paper adds. A measurement universe
-declared without a tolerance schedule is a measurement design that
-produces variance estimates without saying what the variance
-estimates license. A tolerance schedule says it.
+theory, variance decomposition, and method-of-moments resampling are
+now shared methodological apparatus across recent work
+\citep{nist2026statmodels, camuffo2026variance, sui2025evaluating,
+lior2025reliableeval}, but the prescription that variance estimates
+should license decimal-place precision in reported scores is what
+this paper adds. A measurement universe declared without a tolerance
+schedule is a measurement design that produces variance estimates
+without saying what the variance estimates license. A tolerance
+schedule says it.
+
+A methodological-commitment note is in order on the form of the
+measurement universe the schedule rests on. The framework's
+universe is enumerated explicitly --- a finite, locked set of
+admissible community-sourced prompt templates and scoring rules,
+recorded at lock time per §\ref{sec:design-materials}. This differs
+from sampled-perturbation approaches such as
+\citet{lior2025reliableeval}, which estimate performance under a
+distribution of meaning-preserving prompt variants. The enumerated
+approach licenses narrower generalization but avoids adding a
+separate operationalization of semantic equivalence to the
+measurement design. The per-cell tolerance schedule developed here
+applies under the enumerated universe; whether its prescriptions
+transfer to a sampled universe is a regime question we do not
+adjudicate here.
 
 \subsection{Confound decomposition}
 \label{sec:confound-decomposition}
 
-% EDIT: 2026-04-26 — §3.6 drafted. Mirrors N134 §2.4 in structure: pre-
-% EDIT: registered enumeration distinguished from post-hoc decomposition;
-% EDIT: substrate-specific confound list (prompt-template family, scoring-
-% EDIT: rule choice, fewshot exemplar selection, seed, item-difficulty
-% EDIT: interaction). Closes by mapping to Bean et al. taxonomy items per
-% EDIT: §4.3's "earn its keep" principle.
 
 The final defense is the discipline of distinguishing what a
 benchmark score predicts from what is predictable by simpler
@@ -424,10 +434,12 @@ scoring-rule-as-confound. Under the direct-readout view the
 distinction is not load-bearing because the score's relationship to
 the construct is presumed; under the inferential view the
 distinction \emph{is} the test of the score's information over and
-above alternatives. A benchmark score whose reported variance is
-entirely accounted for by prompt-template choice has not measured
-the construct; it has measured prompt-template effects under a name
-the report attached to the construct.
+above alternatives. A benchmark score whose variance is largely
+accounted for by prompt-template choice cannot be interpreted as a
+construct estimate without also specifying the prompt-dependent
+operationalization that produced it; whatever construct content the
+score may carry is conditional on the operationalization rather
+than transferable across operationalizations.
 
 Pre-registration of the confound list is what distinguishes the
 framework's confound handling from the post-hoc version that
@@ -435,7 +447,7 @@ currently dominates. Post-hoc decomposition following an unexpected
 result reads as an excuse; pre-registered decomposition is a
 commitment that the diagnostic must clear \emph{before} seeing the
 data. The pre-registered confound list for this study, developed
-in §\ref{sec:design}, is: prompt-template family (six templates
+in §\ref{sec:design}, is: prompt-template family (four templates
 from canonical sources at pinned commits); scoring-rule choice
 (\texttt{ll\_norm} and \texttt{generate\_parse} with explicit
 per-benchmark availability); few-shot exemplar selection (locked
@@ -468,33 +480,46 @@ any post-hoc fit.
 \subsection{The co-developed register}
 \label{sec:codev-register}
 
-A co-developed measurement-discipline register has emerged contemporaneously across multiple voices. The Introduction (Section~\ref{sec:parallel-dev-intro}) introduced the corpus; the present subsection develops the comparison once the framework of Section~\ref{sec:framework} is in hand.
+A measurement-discipline literature has emerged contemporaneously across multiple voices. The Introduction (Section~\ref{sec:parallel-dev-intro}) introduced the corpus; the present subsection develops the comparison once the framework of Section~\ref{sec:framework} is in hand.
 
-% EDIT: 2026-04-27 (second pass) — seventh-voice update per 2026-04-27 daily
-% EDIT: research review second pass. \citet{mcgregor2025benchrisk} added as
-% EDIT: the canonical seventh voice — NeurIPS 2025-published, NIST-aligned
-% EDIT: methodology, 26-benchmark scope (overlapping with this paper's primary
-% EDIT: panel), Anka Reuel co-author resolving the Reuel-author thread (the
-% EDIT: 2026-04-26 cite-verification rename of `reuel2025measuring` →
-% EDIT: `bean2025measuring` was correct; BenchRisk is the additional
-% EDIT: Reuel-coauthored paper distinct from Bean et al.). The earlier
-% EDIT: sixth-voice update (\citet{heineman2025signal}) is preserved.
-% EDIT: \citet{sui2025evaluating} remains in §4.2 distinguishing-targets
-% EDIT: discussion only, properly tracked under the IRT-extension future-work
-% EDIT: register (RESEARCH_INVENTORY.md Section 4 sub-register).
-\citet{messing2026hidden} on Total Evaluation Error decomposition; \citet{nist2026benchmarkpractices, nist2026statmodels} on voluntary practices and GLMM endorsement; \citet{bean2025measuring} on construct-validity systematic review; \citet{camuffo2026variance} on variance-aware LLM annotation; \citet{romanou2026brittlebench} on prompt-brittleness decomposition; \citet{heineman2025signal} on signal-and-noise framework for benchmark-design intervention; \citet{mcgregor2025benchrisk} on NIST-aligned risk-management framework for benchmark failure modes. The convergence across substrates (benchmarking, annotation, regulatory practice, brittleness, benchmark-design, risk-management) is itself evidence that the underlying diagnosis is real.
+Eight voices have produced contemporaneous work on hidden evaluation variance, methodologically distinct enough that the convergence across them is itself epistemic content rather than a coincidence of vocabulary. Table~\ref{tab:parallel-corpus} summarizes the eight voices and their distinct inferential targets and prescriptive outputs alongside the present paper's contribution.
 
-The prescriptive registers differ across these works. \citet{messing2026hidden}'s TEE optimizes evaluation-budget allocation; \citet{nist2026statmodels} endorses GLMM as variance-decomposition methodology; \citet{bean2025measuring} provides taxonomic guidance; \citet{camuffo2026variance} develops a variance-aware annotation protocol; \citet{romanou2026brittlebench} frames the same variance phenomenon as a model-level brittleness diagnostic; \citet{heineman2025signal} produces benchmark-design intervention recommendations on the basis of signal-to-noise estimates over 30 benchmarks and 375 models; \citet{mcgregor2025benchrisk} produces a scored metaevaluation benchmark ranking 26 LLM benchmarks on five risk dimensions (comprehensiveness, intelligibility, consistency, correctness, longevity), built on the NIST risk management process. The present paper's distinctive contribution within this register is the decimal-place precision tolerance schedule (Section~\ref{sec:tolerance-schedule}), licensing what numerical precision a reported score supports under a declared measurement universe. A vocabulary note is in order: \citet{heineman2025signal}'s \emph{signal} quantity --- ratio of systematic between-model variance to total variance --- maps onto what the generalizability-theory tradition calls the \emph{generalizability coefficient}; the two are the same object expressed in different methodological registers. The tolerance-schedule prescription sits cleanly on top of either register. Generalizability theory, variance decomposition, signal-and-noise estimation, NIST-aligned risk management, and construct-validity reasoning are now shared methodological apparatus across the field; the tolerance-schedule prescription is what this paper's measurement-discipline framework distinctively contributes.
+\begin{table}[h]
+\centering
+\small
+\caption{Parallel work on hidden measurement variance in LLM evaluation. The shared diagnosis across the corpus is that LLM evaluation pipelines carry hidden variance that ordinary single-occasion reporting does not surface; the distinct prescriptive outputs are what makes the convergence load-bearing rather than redundant.}
+\label{tab:parallel-corpus}
+\begin{tabular}{p{0.21\textwidth}p{0.36\textwidth}p{0.36\textwidth}}
+\toprule
+Work & Inferential target & Prescriptive output \\
+\midrule
+\citet{messing2026hidden} & evaluation pipeline uncertainty (Total Evaluation Error) & evaluation-budget allocation rule \\
+\citet{nist2026benchmarkpractices, nist2026statmodels} & benchmark practice and statistical modeling & voluntary-practice document; GLMM endorsement \\
+\citet{bean2025measuring} & construct-validity failure modes (445-benchmark survey) & taxonomy and eight-recommendation operational checklist \\
+\citet{camuffo2026variance} & LLM annotation variance (G-theory grounded) & variance-aware annotation protocol \\
+\citet{romanou2026brittlebench} & model brittleness under semantics-preserving perturbations & model-comparison brittleness score \\
+\citet{heineman2025signal} & benchmark signal-to-noise (30 benchmarks, 375 models) & benchmark-redesign recipe \\
+\citet{mcgregor2025benchrisk} & benchmark risk under NIST-aligned framework (26 benchmarks) & benchmark-quality risk score \\
+\citet{lior2025reliableeval} & stable evaluation under prompt resampling (5 frontier LLMs) & sample-size determination rule (method of moments) \\
+\midrule
+\textit{This paper} & \textit{reporting precision under a declared measurement universe} & \textit{per-cell decimal-place tolerance schedule} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Within this recent literature, the present paper's contribution is the decimal-place precision tolerance schedule (Section~\ref{sec:tolerance-schedule}), licensing what numerical precision a reported score actually supports under a declared measurement universe. The schedule answers a different question from the other eight voices: not how to allocate evaluation effort, diagnose benchmark risk, taxonomize construct-validity failure, or determine resampling sample size, but what numerical precision a reported score supports once the cell's reliability is estimated. It is a per-(benchmark, model, scoring rule) precision-licensing rule, downstream of measured reliability rather than upstream of an evaluation budget or a risk score. The four kinds of output --- budget allocation, risk score, sample-size recommendation, precision license --- are sequentially complementary rather than mutually substitutable.
+
+A vocabulary note is in order, expanded from a two-tradition observation to a three-tradition one. \citet{heineman2025signal}'s \emph{signal} quantity --- the ratio of systematic between-model variance to total variance --- maps onto what the generalizability-theory tradition calls the \emph{generalizability coefficient}; \citet{lior2025reliableeval}'s method-of-moments resampling produces, in the limit, a frequentist standard error on the same population mean that G-theory's universe-score variance estimates. The three vocabularies (G-theory variance components, signal-to-noise estimation, method-of-moments resampling) operate from different theoretical foundations: classical-test-theory variance decomposition, signal-detection-style ratio estimation, and econometric parameter estimation, respectively. They estimate closely related quantities in the same measurement family --- not numerically identical estimands, but quantities that converge on the same practical target: how much measurement-design variation contributes to a reported benchmark score. When independent methodological traditions converge on the same practical target across different theoretical foundations, the convergence is positive evidence that the underlying phenomenon is methodology-invariant rather than artifact of any single tradition's apparatus. The tolerance-schedule prescription sits cleanly on top of any of these vocabularies; it requires only that the cell's reliability be estimable, not that it be estimated by any particular method.
 
 \subsection{Distinguishing inferential targets}
 \label{sec:distinguishing-targets}
 
-Several of the parallel works are close enough in vocabulary to risk substitution. \citet{romanou2026brittlebench} targets model-level brittleness --- a property of the model under adversarial-flavored semantics-preserving perturbations --- and produces a model-comparison diagnostic. The present study targets measurement tolerance --- a property of the (model, benchmark) cell under a community-provenance measurement universe --- and produces a per-cell precision-licensing schedule. The two are complementary, not redundant. \citet{sui2025evaluating} and \citet{camuffo2026variance} apply G-theory and Rasch modeling to LLM-as-rater on human-produced text; the present paper applies G-theory to benchmark items as evaluation instruments for LLMs. \citet{bean2025measuring} provide a construct-validity failure taxonomy with eight key recommendations; the present paper is one possible operational instantiation of items in that taxonomy on a specific substrate. The taxonomic-vs.-operational distinction is what allows both contributions to coexist.
+Several of the parallel works are close enough in vocabulary to risk substitution. \citet{romanou2026brittlebench} targets model-level brittleness --- a property of the model under adversarial-flavored semantics-preserving perturbations --- and produces a model-comparison diagnostic. The present study targets measurement tolerance --- a property of the (model, benchmark) cell under a community-provenance measurement universe --- and produces a per-cell precision-licensing schedule. The two are complementary, not redundant. \citet{sui2025evaluating} and \citet{camuffo2026variance} apply G-theory and Rasch modeling to LLM-as-rater on human-produced text; the present paper applies G-theory to benchmark items as evaluation instruments for LLMs. \citet{bean2025measuring} provide a construct-validity failure taxonomy with eight key recommendations; the present paper is one possible operational instantiation of items in that taxonomy on a specific substrate. The taxonomic-vs.-operational distinction is what allows both contributions to coexist. \citet{lior2025reliableeval} addresses the question of how many prompt resamplings produce a stable estimate of expected accuracy under a prompt-perturbation distribution; the present paper addresses, downstream of estimable reliability, what decimal precision is licensed for a per-cell point estimate. The two prescriptions should therefore be read as sequenced rather than competing: ReliableEval prescribes a sample size $N$ for the resampling procedure that makes the moment estimate stable, and the present paper prescribes a decimal-precision tolerance for the resulting reported point estimate. ReliableEval's standard error on the moment estimate is the same quantity as the generalizability-coefficient-derived standard error of measurement once both are operationalized, so the two prescriptions can be applied jointly to a single cell.
 
 \subsection{What is cited and what is not}
 \label{sec:cite-discipline}
 
-The parallel-development register here is curated, not exhaustive. Parallel work earns engagement when its empirical or framing register is load-bearing for \emph{this} paper's argument: \citet{romanou2026brittlebench}'s 63\% ranking-reversal headline is the comparison anchor for the H3 discussion in Section~\ref{sec:ranking-stability-results}; \citet{nist2026statmodels}'s GLMM endorsement is what the regime-split decision rule (Section~\ref{sec:regime-split-design}) explicitly responds to; \citet{bean2025measuring}'s eight recommendations and operational checklist are what the confound-decomposition list (Section~\ref{sec:confound-decomposition}) is one operational instantiation of. Methodologically adjacent works without inferential-target match are tracked but not engaged here; that does not entail a quality judgment, only a scope discipline. A reviewer who would expect a specific parallel item engaged here and finds it absent is encouraged to ask whether that work is load-bearing for the present paper's argument as opposed to neighboring it; the present register is constructed against the former criterion.
+The parallel work cited here is curated, not exhaustive. Parallel work earns engagement when its empirical or framing content directly supports \emph{this} paper's argument: \citet{romanou2026brittlebench}'s 63\% ranking-reversal headline is the comparison anchor for the H3 discussion in Section~\ref{sec:ranking-stability-results}; \citet{nist2026statmodels}'s GLMM endorsement is what the regime-split decision rule (Section~\ref{sec:regime-split-design}) explicitly responds to; \citet{bean2025measuring}'s eight recommendations and operational checklist are what the confound-decomposition list (Section~\ref{sec:confound-decomposition}) is one operational instantiation of. Methodologically adjacent works without inferential-target match are tracked but not engaged here; that does not entail a quality judgment, only a scope discipline.
 
 % =============================================================================
 % §5–§9 placeholders (wait for Phase 5 + manuscript portage)
@@ -503,13 +528,6 @@ The parallel-development register here is curated, not exhaustive. Parallel work
 \section{Pre-registered design}
 \label{sec:design}
 
-% EDIT: 2026-04-26 — §5 drafted via editorial pass on prereg_v1_1_LOCKED.md
-% EDIT: §3–§5. Protocol register converted to manuscript register: less
-% EDIT: imperative, more declarative; itemized lists collapsed to prose
-% EDIT: where prose flows; pre-registration provenance preserved as a
-% EDIT: methodological commitment rather than reproduced as a protocol
-% EDIT: artifact. Full pre-registration document is reproduced verbatim in
-% EDIT: the supplementary materials per the appendix structure.
 
 The pre-registered design is locked at v1.1.2 with config hash
 \texttt{fbc4a5dd}; the lock narrative and amendment chain
@@ -539,6 +557,7 @@ practice. All three models are loaded at pinned HuggingFace
 revisions (recorded in the lock manifest), in full or bfloat16
 precision, without fine-tuning or quantization.
 
+\begin{sloppypar}
 The benchmark panel pairs five constrained-choice benchmarks (the
 primary panel) with a single open-generation benchmark (the
 secondary tier). The five primary benchmarks are
@@ -558,6 +577,7 @@ open-generation tasks is part of the measurement instrument itself
 rather than a scoring-rule choice within a stable operationalization
 --- a distinction the regime split developed in
 §\ref{sec:design-regime-split} makes load-bearing.
+\end{sloppypar}
 
 A measurement condition --- a prompt template, a few-shot exemplar
 draw, a scoring rule, a seed --- is admissible for inclusion in
@@ -578,12 +598,14 @@ community source, with originating commit hashes pinned in the
 lock manifest. For each benchmark, four prompt templates are
 locked (P1, original benchmark authors; P2, lm-eval-harness;
 P3, HELM where available, otherwise a community variant; P4, the
-shortest admissible direct-instruction variant). Three few-shot
-seeds (42, 123, 2024) are used for exemplar selection from the
+shortest community-sourced admissible direct-instruction variant,
+with provenance recorded in App.~\ref{app:prereg-materials}).
+Three few-shot seeds (42, 123, 2024) are used for exemplar
+selection from the
 benchmark's published development split, with the same seed
 producing the same exemplar draw across all four prompt templates
-so that prompt-format variance is isolated from
-exemplar-selection variance. Two scoring rules are used for each
+and both scoring rules, so that prompt-format and scoring-rule
+variance are isolated from exemplar-selection variance. Two scoring rules are used for each
 constrained-choice benchmark: length-normalized log-likelihood
 (\texttt{ll\_norm}) and generate-and-parse with a benchmark-specific
 extraction regex (\texttt{generate\_parse}). The two rules
@@ -596,6 +618,7 @@ are tested under generate-and-parse (strict exact-match and a
 permissive regex accepting common formatting variants); the
 log-likelihood scoring rule does not apply.
 
+\begin{sloppypar}
 The full primary-study factorial is $3 \text{ models} \times 5
 \text{ benchmarks} \times 4 \text{ prompts} \times 3 \text{ seeds}
 \times 2 \text{ scoring rules} = 360$ condition-level scores
@@ -607,6 +630,7 @@ generalizability theory operates. The item-level sample within
 each cell is two orders of magnitude larger and is the primary
 unit on which mixed-effects analysis is fit
 (§\ref{sec:design-cascade}).
+\end{sloppypar}
 
 \subsection{The mixed-effects cascade}
 \label{sec:design-cascade}
@@ -615,14 +639,19 @@ The primary analysis vehicle is item-level mixed-effects modeling
 of binary correctness outcomes
 \citep{brennan2001gtheory, cronbach1951alpha}. For each benchmark,
 a model with fixed effect for the model factor (3 levels) and
-random effects for prompt, seed, scoring rule, item (nested within
-benchmark), the model-prompt interaction, and the model-scoring-rule
-interaction is fit at the item-correctness level. The
-random-effects structure is the cascade pre-registered in the
-lock; it is not reduced post-hoc on any cell-specific basis, and
-its motivation is that each named random effect corresponds to a
-measurement-design facet whose contribution to total observable
-variance the framework's reliability defense
+random effects for prompt, seed, scoring rule, the model-prompt
+interaction, and the model-scoring-rule interaction is fit at the
+item-correctness level; item-level variance is absorbed into the
+residual rather than partitioned as a separate item random effect,
+for the computational reasons documented as deviation D-20 in
+App.~\ref{app:deviations} (the pre-registered cascade included an
+item random effect at levels 1--3, but \texttt{statsmodels.MixedLM}
+fitting at full panel scale did not return within budget). The
+random-effects structure as implemented is the cascade locked at
+v1.1.2 with the D-20 reduction applied; it is not reduced post-hoc
+on any cell-specific basis, and the named random effects each
+correspond to a measurement-design facet whose contribution to
+total observable variance the framework's reliability defense
 (§\ref{sec:reliability-machinery}) requires estimating separately.
 
 Variance components are extracted as proportions of total
@@ -658,7 +687,8 @@ The pre-registered hypotheses are:
     three of the five benchmarks in the primary panel, the median
     single-occasion tolerance across the three primary models
     exceeds $\pm 0.005$ accuracy ($\pm 0.5$ percentage points),
-    making second-decimal reporting questionable and third-decimal
+    making two-decimal reporting (e.g., $0.74$) not licensed under
+    the half-unit rule and three-decimal
     reporting unsupported under the §\ref{sec:tolerance-schedule}
     decision rule.
 
@@ -693,13 +723,14 @@ pre-registered statistics, not statistical-significance tests; we
 do not compute null-hypothesis $p$-values for the primary
 hypotheses. The framework's commitment is that pre-registered
 threshold decisions on measurement-quality statistics are the
-appropriate inferential register for a paper about measurement
-discipline, and that significance-test decoration would itself be
-an instance of the kind of unstructured-uncertainty reporting the
-paper critiques. Comparison anchors are reported alongside each
-decision (e.g., the $63\%$ pairwise-reversal headline from
-\citet{romanou2026brittlebench} as the order-of-magnitude
-comparison for H3) but are not used to set the decision thresholds.
+appropriate inferential approach for a paper about measurement
+discipline, and that additional significance testing on top of the
+threshold structure would itself be an instance of the kind of
+unstructured-uncertainty reporting the paper critiques. Comparison
+anchors are reported alongside each decision (e.g., the $63\%$
+pairwise-reversal headline from \citet{romanou2026brittlebench} as
+the order-of-magnitude comparison for H3) but are not used to set
+the decision thresholds.
 
 Three exploratory analyses without hypothesis tests are pre-registered:
 scale sensitivity (Pythia-410M vs.\ Pythia-1.4B within the same
@@ -737,10 +768,11 @@ endorsement is most directly applicable.
 
 The amendment resolves the tension by routing cells to one of two
 regimes. The \texttt{g\_theory} regime applies to cells where the
-median parseability rate exceeds the pre-registered threshold of
-$0.30$; for these cells, the SEM is the variance-components SEM
-from the mixed-effects cascade, and the LPM/GLMM agreement holds
-substantively. The \texttt{parse\_failure\_dominated} regime
+median parseability rate exceeds the locked
+pre-confirmatory-analysis threshold of $0.30$; for these cells, the SEM is the variance-components SEM
+from the mixed-effects cascade, and the LPM approximation is
+treated as substantively adequate for the precision-licensing
+decision. The \texttt{parse\_failure\_dominated} regime
 applies to cells where median parseability falls at or below the
 threshold; for these cells, the variance-components SEM is
 uninterpretable (the variance estimates are dominated by
@@ -752,8 +784,9 @@ the tolerance schedule reports each cell's regime classification
 alongside the licensed precision, and the H1 decision rule is
 evaluated separately on each regime cohort.
 
-The threshold of $0.30$ is pre-registered as a parameter of the
-amendment, not tuned post-hoc on outcome data. Its value was
+The threshold of $0.30$ is locked as a parameter of the
+pre-confirmatory-analysis amendment, not tuned post-hoc on
+outcome data. Its value was
 chosen at the time of the amendment to align with the empirical
 distribution of cell-level parseability observed in the early
 GPU-run data (a clear bimodality between cells well above $0.5$
@@ -776,19 +809,14 @@ been visible to a study that committed to a single
 variance-decomposition method without observing the cell-level
 parseability distribution, and would not have been recoverable as a
 methodological refinement post-hoc without the pre-registration
-discipline that records when each commitment was made. We return to
-this point in §\ref{sec:results} (the empirical regime distribution)
-and §\ref{sec:discussion} (the discovery-like-in-the-narrower-sense
-register the regime split is offered in).
+discipline that records when each commitment was made. We return to this point in §\ref{sec:results} (the empirical
+regime distribution) and §\ref{sec:discussion} (the regime split
+as a measurement constraint surfaced by the pre-registered
+pipeline).
 
 \section{Pipeline implementation}
 \label{sec:pipeline}
 
-% EDIT: 2026-04-26 — §6 drafted as a brief section (~0.5pp) anchoring the
-% EDIT: reproducibility appendix. One paragraph on pipeline structure
-% EDIT: (CPU pre-inference + GPU inference + CPU post-inference), one on
-% EDIT: provenance and lock state, one on test-suite status. Full
-% EDIT: implementation detail in the SPEC_CPU and SPEC_GPU appendices.
 
 The analysis pipeline is a thirteen-script sequence partitioned
 across three phases. The CPU pre-inference phase (scripts
@@ -810,6 +838,7 @@ GSM8K case). Two terminal scripts (\texttt{98\_reproducibility\_trace}
 and \texttt{99\_make\_report}) generate the manuscript's
 reproducibility-trace artifact and the per-cell results report.
 
+\begin{sloppypar}
 Provenance is recorded at three layers. The locked configuration
 (\texttt{configs/analysis\_config.yaml} and the four pinned-resource
 sub-configs for benchmarks, prompts, models, and scoring rules)
@@ -823,27 +852,24 @@ chain itself (v1.1 \(\to\) v1.1.1 \(\to\) v1.1.2) is recorded in
 \texttt{LOCK\_NOTES.md} with config hashes per amendment, allowing
 results computed under one lock state to be distinguished from
 those computed under a later one.
+\end{sloppypar}
 
-The pipeline carries an automated test suite covering pre-inference
-validation, normalization, scoring, variance-components fitting,
-tolerance-schedule construction, and reproducibility-trace
-generation. As of the v1.1.2 lock the suite reports 181 tests
-passing and 2 skipped (the skipped tests cover GPU-only paths not
-exercisable in the test environment). The full implementation
-specification is reproduced in the pipeline appendix; this section
-is a summary anchor for the reproducibility appendix and the
-supplementary materials, where the pipeline scripts and their
-pinned configurations are committed in their entirety.
+The pipeline carries an automated test suite of approximately 180
+tests covering pre-inference validation, normalization, scoring,
+variance-components fitting, tolerance-schedule construction, and
+reproducibility-trace generation. The suite passes in full at the
+v1.1.2 lock state in the canonical test environment; a small number
+of tests guarded by \texttt{pytest.importorskip} on GPU-only or
+optional dependencies are skipped in environments where those
+dependencies are unavailable. The full implementation specification
+is reproduced in the pipeline appendix; this section is a summary
+anchor for the reproducibility appendix and the supplementary
+materials, where the pipeline scripts and their pinned configurations
+are committed in their entirety.
 
 \section{Empirical results}
 \label{sec:results}
 
-% EDIT: 2026-04-28 — §7 drafted against Phase 5 analysis output. Each
-% EDIT: subsection follows a descriptive primary clause structure: what was
-% EDIT: measured, what the data show, and a brief in-frame interpretive note
-% EDIT: when the result has direct implication within the framework's terms.
-% EDIT: Substantive interpretation, cross-paper integration, and methodological
-% EDIT: reflection on the joint pattern across H1–H4 are reserved for §8.
 
 This section reports the empirical findings of the pre-registered analyses described in §\ref{sec:design}. Each subsection follows the same descriptive structure: what was measured, what the data show, and a brief in-frame interpretive note where the result has direct implication within the framework's terms. Substantive interpretation, cross-paper integration with the precursor paper's substrate, and methodological reflection on the joint pattern across the four pre-registered hypotheses are reserved for §\ref{sec:discussion}. The four pre-registered decision rules are evaluated in §\ref{sec:tolerance-schedule-results} (H1, tolerance schedule), §\ref{sec:generalizability-results} (H2, generalizability), §\ref{sec:ranking-stability-results} (H3, ranking stability), and §\ref{sec:mmlu-subjects-results} (H4, MMLU subject interaction); the variance-components decomposition that the H1 and H2 schedules rest on is reported first.
 
@@ -852,7 +878,7 @@ This section reports the empirical findings of the pre-registered analyses descr
 
 The pre-registered mixed-effects cascade (§\ref{sec:design-cascade}) decomposed item-level binary correctness variance into facet contributions for prompt, seed, scoring rule, and residual (item-level) sources, with random effects for the model-prompt and model-scoring-rule interactions. Figure~\ref{fig:variance-stacked} shows the aggregated per-cell decomposition (15 cells; 5 benchmarks $\times$ 3 models), with the proportion of total variance attributed to each facet stacked per cell. Per-cell variance proportions are derived from the cascade fits via the standard generalizability-theory formulas \citep{brennan2001gtheory, shrout1979icc}; the cascade-convergence trace is reported in App.~\ref{app:pipeline}.
 
-The cascade converged at level\_1 (full random-effects structure, with prompt, seed, scoring rule, item, model-prompt interaction, and model-scoring-rule interaction as random effects) for four of five benchmarks: ARC-Challenge, HellaSwag, MMLU panel, and TruthfulQA-MC. Winogrande did not converge at level\_1 or level\_2 and converged at level\_3, where the seed random effect is dropped. The cascade descent on Winogrande reflects an estimability limit at this sample size --- the benchmark's empirical between-seed variance is small relative to the fit's numerical tolerance, and the optimizer treats the seed random effect as singular. No benchmark required the cascade's level\_4 ANOVA fallback; all five hypothesis tests rest on mixed-effects fits with the random-effects structures pre-registered at the v1.1.2 lock.
+The cascade converged at level\_1 (full random-effects structure as implemented per D-20, with prompt, seed, scoring rule, model-prompt interaction, and model-scoring-rule interaction as random effects, and item-level variance absorbed into the residual) for four of five benchmarks: ARC-Challenge, HellaSwag, MMLU panel, and TruthfulQA-MC. Winogrande did not converge at level\_1 or level\_2 and converged at level\_3, where the seed random effect is dropped. The cascade descent on Winogrande reflects an estimability limit at this sample size --- the benchmark's empirical between-seed variance is small relative to the fit's numerical tolerance, and the optimizer treats the seed random effect as singular. No benchmark required the cascade's level\_4 ANOVA fallback; all five hypothesis tests rest on mixed-effects fits with the random-effects structures pre-registered at the v1.1.2 lock.
 
 The dominant variance source across cells is the scoring rule. Twelve of fifteen cells attribute more than half of total variance to the scoring-rule facet, with cell-level proportions ranging from $28\%$ (TruthfulQA-MC, Qwen2.5-1.5B-Instruct) to $91\%$ (HellaSwag, Pythia-1.4B). The remaining variance distributes across prompt, seed, and residual (item-level) in patterns that are benchmark- and model-specific. ARC-Challenge attributes its next-largest fraction to the seed facet ($3$--$19\%$), with prompt and residual contributing smaller shares. HellaSwag concentrates non-scoring-rule variance in the seed facet for the Qwen cell ($72\%$) and in the prompt facet for the Pythia-410M cell ($16\%$). MMLU panel attributes substantial variance to item-level residual ($14$--$30\%$ across cells), with prompt and seed contributing near-zero. Winogrande attributes substantial variance to prompt on the Pythia-1.4B cell ($41\%$). TruthfulQA-MC is the most heterogeneous: its Pythia-1.4B cell is dominated by item-level residual variance ($94\%$); its Pythia-410M cell splits roughly equally between scoring rule ($52\%$) and residual ($48\%$); its Qwen cell distributes variance across prompt ($57\%$), scoring rule ($28\%$), and residual ($14\%$). Each cell's variance proportions sum to $1.0$ to within machine precision; the sanity check on the variance-attribution machinery passes per cell.
 
@@ -876,7 +902,7 @@ The pre-registered H2 decision rule (§\ref{sec:design-decisions}) required at l
 
 Averaging across measurement-design facets recovers reliability heterogeneously across benchmarks. ARC-Challenge moves from $g_{\mathrm{single}} = 0.564$ to $g_{\mathrm{full}} = 0.969$, with most of the gain captured by within-rule averaging ($0.877$) --- consistent with the §\ref{sec:variance-components-results} finding that ARC-Challenge's variance is concentrated on the scoring-rule facet, which within-rule averaging absorbs. MMLU panel improves from $0.301$ to $0.981$, with most of the gain coming from prompt-averaging ($0.896$). Winogrande follows a similar pattern at smaller magnitude ($0.405 \to 0.942$). HellaSwag begins above the threshold ($0.953$) and stays there. TruthfulQA-MC is the panel's outlier: it begins below the threshold ($0.049$) and remains below at $g_{\mathrm{full}} = 0.290$. Even averaging over the eight admissible conditions per cell (the seed facet collapses on TruthfulQA-MC, reducing its admissible-condition count to eight), cell-level reliability remains below the conventional $0.80$ standard --- consistent with the §\ref{sec:variance-components-results} attribution of TruthfulQA-MC's variance to item-level residual on the Pythia-1.4B cell ($94\%$) rather than to facets that admissible-design averaging would absorb.
 
-Within the framework's terms, the four-of-five H2 confirmation is the systematic counterpart to the §\ref{sec:tolerance-schedule-results} tolerance result. Where §\ref{sec:tolerance-schedule-results} reports per-cell SEMs that exceed the threshold for second-decimal-precision claims, §\ref{sec:generalizability-results} reports per-benchmark generalizability coefficients that fall below the conventional acceptable-reliability standard. The two findings are not independent: the same variance-components decomposition that produces the SEMs underwrites the $g$ estimates, and a benchmark whose SEM-based tolerance fails the decimal-place test is one whose generalizability under single-occasion measurement is small relative to its measurement-design variance. The schedule and the coefficient are, in measurement-theoretic terms, two readings of the same variance estimate: $g_{\mathrm{single}}$ asks ``what fraction of cell-level variance is the inferential target?'' and the SEM asks ``what cell-level variance does the residual carry?''. Each licenses a different reporting practice --- the coefficient licenses cell-level reliability claims; the SEM licenses decimal-place precision claims --- and the framework's defense holds the report accountable to both.
+Within the framework's terms, the four-of-five H2 confirmation is the systematic counterpart to the §\ref{sec:tolerance-schedule-results} tolerance result. Where §\ref{sec:tolerance-schedule-results} reports per-cell tolerances that exceed the threshold for two-decimal precision claims, §\ref{sec:generalizability-results} reports per-benchmark generalizability coefficients that fall below the conventional acceptable-reliability standard. The two findings are not independent: the same variance-components decomposition that produces the SEMs underwrites the $g$ estimates, and a benchmark whose tolerance fails the decimal-place test is one whose generalizability under single-occasion measurement is small relative to its measurement-design variance. The schedule and the coefficient are, in measurement-theoretic terms, two readings of the same variance estimate: $g_{\mathrm{single}}$ asks ``what fraction of cell-level variance is the inferential target?'' and the SEM asks ``what cell-level variance does the residual carry?''. Each licenses a different reporting practice --- the coefficient licenses cell-level reliability claims; the SEM licenses decimal-place precision claims --- and the framework's defense holds the report accountable to both.
 
 The TruthfulQA-MC pattern --- $g_{\mathrm{full}} = 0.290$ even under full-design averaging --- is informative for the boundary of the framework's reliability defense. The bounded-precision schedule has an answer for cells where measurement-design averaging recovers reliability (interval-required at single-occasion, possibly two-decimal at full-design); it has a different answer for cells where the residual is so dominant that no admissible-design averaging recovers reliability. On TruthfulQA-MC, cell-level reliability does not get above the threshold under any averaging the panel's measurement universe admits. The schedule treats this as a measurement-instrument finding rather than a model-capability finding: TruthfulQA-MC's $8$-condition cells (seed facet collapsed) cannot, on this regime, support cell-level reliability claims at the conventional standard, regardless of the model under test. A construct-validity reading of the implication (cf.~\citet{bean2025measuring}, §\ref{sec:codev-register}) belongs in §\ref{sec:methodological-implications}; the §\ref{sec:generalizability-results} measurement claim is bounded.
 
@@ -900,19 +926,21 @@ Winogrande    & 0.405 & 0.673 & 0.731 & 0.942 \\
 \subsection{Tolerance schedule}
 \label{sec:tolerance-schedule-results}
 
-The tolerance schedule licenses a per-cell decimal-place reporting precision under the cell's regime classification per the construction in §\ref{sec:tolerance-schedule}. Table~\ref{tab:tolerance-by-cell} reports the schedule across the thirty (model, benchmark, scoring rule) cells of the primary panel; Figure~\ref{fig:tolerance-calibration} plots the schedule's licensed precision against the conventional two-decimal reporting precision typical of recent LLM-evaluation papers.
+The tolerance schedule licenses a per-cell decimal-place reporting precision under the cell's regime classification per the construction in §\ref{sec:tolerance-schedule}. Table~\ref{tab:tolerance-by-cell} reports the schedule across the thirty (model, benchmark, scoring rule) cells of the primary panel; Figure~\ref{fig:tolerance-calibration} plots the schedule's licensed precision against the conventional two-decimal reporting precision typical of recent LLM-evaluation papers.\footnote{Throughout §\ref{sec:results}, ``cell'' refers to a rule-conditioned (benchmark, model, scoring rule) triple. This schedule answers the question: what precision is licensed once a scoring rule has been declared? The variance-components decomposition in §\ref{sec:variance-components-results} takes the (benchmark, model) pair as the unit and treats scoring rule as a measurement-design facet, aggregating across both rules per (benchmark, model). The thirty rule-conditioned cells of Table~\ref{tab:tolerance-by-cell} and the fifteen (benchmark, model) pairs of the variance-components decomposition are two views of the same factorial. A complementary across-rule schedule, treating scoring rule as an additional random facet rather than a fixed condition, answers a different question and is discussed in §\ref{sec:future-work}.}
 
 The cross-model median single-occasion tolerance per benchmark is: ARC-Challenge $0.217$, HellaSwag $0.078$, MMLU panel $0.212$, TruthfulQA-MC $0.596$, and Winogrande $0.126$. The pre-registered H1 decision rule (§\ref{sec:design-decisions}) required at least three of five primary benchmarks to exceed a single-occasion median tolerance of $\pm 0.005$. All five benchmarks exceed the threshold; the bootstrap lower bound on each per-benchmark median also exceeds the threshold. H1 is confirmed at $5/5$ where $3/5$ was required, with the smallest margin (HellaSwag) approximately fifteen-fold above the threshold and the largest (TruthfulQA-MC) approximately one hundred-and-twenty-fold.
 
-At the cell level, single-occasion tolerances range from $0.019$ (HellaSwag, Pythia-1.4B, generate-and-parse, parse-failure-dominated regime) to $0.972$ (TruthfulQA-MC, Pythia-410M, length-normalized log-likelihood, $g$-theory regime). Under the schedule's decimal-place rule, no cell in the primary panel licenses second-decimal reporting at the single-occasion level: every cell's licensed precision is interval-required. Averaging across the full design (twenty-four conditions per cell, eight for TruthfulQA-MC where the seed facet collapses) reduces the per-cell SEM by roughly the square root of the within-cell condition count, and the licensed precision improves accordingly: the per-benchmark medians of full-design tolerance fall to ARC-Challenge $0.044$, HellaSwag $0.016$, MMLU panel $0.019$, TruthfulQA-MC $0.211$, and Winogrande $0.026$. One cell licenses two-decimal reporting under the full-design schedule (HellaSwag, Pythia-1.4B, generate-and-parse, where the parse-failure-dominated regime's cell-SD-based tolerance is small in absolute terms because the cell's score variance is itself small); the remaining twenty-nine cells still require interval reporting at the full-design averaging level.
+\begin{sloppypar}
+At the cell level, single-occasion tolerances range from $0.019$ (HellaSwag, Pythia-1.4B, generate-and-parse, parse-failure-dominated regime) to $0.972$ (TruthfulQA-MC, Pythia-410M, length-normalized log-likelihood, $g$-theory regime). Under the schedule's decimal-place rule, no cell in the primary panel licenses two-decimal reporting (hundredths-place precision, e.g., $0.74$) at the single-occasion level: every cell's licensed precision is interval-required. Averaging across the full design (twenty-four conditions per cell, eight for TruthfulQA-MC where the seed facet collapses) reduces the per-cell SEM by roughly the square root of the within-cell condition count, and the licensed precision improves accordingly: the per-benchmark medians of full-design tolerance fall to ARC-Challenge $0.044$, HellaSwag $0.016$, MMLU panel $0.019$, TruthfulQA-MC $0.211$, and Winogrande $0.026$. One cell licenses two-decimal reporting under the full-design schedule (HellaSwag, Pythia-1.4B, generate-and-parse, where the parse-failure-dominated regime's cell-SD-based tolerance is small in absolute terms because the cell's score variance is itself small); the remaining twenty-nine cells still require interval reporting at the full-design averaging level.
+\end{sloppypar}
 
 The thirty cells partition into twenty-three $g$-theory cells and seven parse-failure-dominated cells under the §\ref{sec:design-regime-split} threshold of $0.30$ on median parseability. The parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M); the $g$-theory regime carries the schedule's variance-components-based SEM, while the parse-failure-dominated regime's tolerance is the sample standard deviation of cell scores. The two regimes are reported alongside each other in Table~\ref{tab:tolerance-by-cell} rather than collapsed into a single number; cell-level interpretation routes through the regime classification per §\ref{sec:tolerance-schedule}.
 
-Within the framework's terms, the schedule licenses a specific reading discipline. A reported benchmark score of the form ``$0.74$'' implicitly claims that the second decimal is informative --- that the third digit lies below the standard error of measurement. Under the present panel's measurement universe, that claim is licensed for none of the thirty cells at the single-occasion level and for one of the thirty cells at the full-design level.
+Within the framework's terms, the schedule licenses a specific reading discipline. A reported benchmark score of the form ``$0.74$'' implicitly claims that the hundredths place is informative: under the half-unit rule, the measurement tolerance must be below $\pm 0.005$ accuracy. Under the present panel's measurement universe, that claim is licensed for none of the thirty cells at the single-occasion level and for one of the thirty cells at the full-design level.
 
 The two regimes' tolerance estimates are not interchangeable inferential objects. The $g$-theory regime's tolerance is the variance-components SEM under the declared measurement universe --- how much a cell's score moves under admissible design variation, with the variance attributed to identifiable facets via the mixed-effects cascade of §\ref{sec:design-cascade}. The parse-failure-dominated regime's tolerance is the sample standard deviation of cell scores --- how much a cell's score moves under the variation realized when parse-failure dominates the response distribution. The first is a structural claim about the universe; the second is a dispersion claim about the realized cells. Reporting both rather than collapsing across them is what keeps the cell-level interpretation tractable: a reader interpreting an interval-required cell from the parse-failure-dominated regime is consulting evidence of a different kind than one interpreting an interval-required cell from the $g$-theory regime, and the regime annotation in Table~\ref{tab:tolerance-by-cell} records the difference.
 
-The full-design schedule illustrates the bounded-precision discipline as a measurement-design budget. Recovering second-decimal precision on this regime requires averaging over the full design --- twenty-four condition realizations per cell on the primary panel, eight on TruthfulQA-MC where the seed facet collapses. At that averaging level, one cell licenses two-decimal precision; the remaining twenty-nine still require interval reporting. The schedule does not prohibit second-decimal claims; it specifies the measurement-design cost those claims would require, per cell, under the universe declared. Single-occasion second-decimal claims on this regime are not licensable at any cost, since the SEM at single occasion exceeds $10^{-2}$ for every cell in the panel.
+The full-design schedule illustrates the bounded-precision discipline as a measurement-design budget. Recovering two-decimal precision on this regime requires averaging over the full design --- twenty-four condition realizations per cell on the primary panel, eight on TruthfulQA-MC where the seed facet collapses. At that averaging level, one cell licenses two-decimal precision; the remaining twenty-nine still require interval reporting. The schedule does not prohibit two-decimal claims; it specifies the measurement-design cost those claims would require, per cell, under the universe declared. Single-occasion two-decimal claims are not licensed under single-occasion measurement in this regime, since the single-occasion tolerance exceeds $0.005$ accuracy for every cell in the panel.
 
 Interval-required reporting is therefore the schedule's default per-cell prescription on this regime, and the form the panel's own results take in Table~\ref{tab:tolerance-by-cell}: every tolerance is reported with its bootstrap lower and upper bound, every cell's licensed precision is named explicitly, and the regime classification is visible per cell rather than averaged away. Whether the same conclusion holds on frontier-scale models, on different benchmark panels, or on adversarial-perturbation universes (cf.~\citet{romanou2026brittlebench}) is a question the schedule defers to re-application under those regimes' own measurement universes; the present finding is bounded to the small-to-mid-scale open-model regime the protocol tests (§\ref{sec:limitations}).
 
@@ -962,7 +990,7 @@ Winogrande    & Qwen2.5-1.5B & LL   & \textit{g}  & 0.126 & 0.026 \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.78\textwidth]{tolerance_calibration.pdf}
-\caption{Tolerance calibration across the thirty cells of the primary panel. X-axis: single-occasion tolerance ($k = 1$); Y-axis: full-design tolerance (averaging over admissible conditions per cell). Both axes log-scaled. Dashed reference lines mark the $\pm 0.005$ threshold (the H1 second-decimal-accuracy boundary); dotted reference lines mark the $\pm 0.05$ threshold (one-decimal accuracy). Cells are colored by regime. No cell falls left of the vertical $\pm 0.005$ line --- zero of thirty cells license second-decimal precision under single-occasion measurement. One cell falls below the horizontal $\pm 0.005$ line: HellaSwag, Pythia-1.4B, generate-and-parse, in the parse-failure-dominated regime, where the cell's small score variance carries small full-design tolerance in absolute terms. The diagonal $y = x$ reference line marks where averaging recovers no precision over single-occasion measurement; every cell sits below the diagonal, with the gap proportional to the full-design averaging gain on the cell.}
+\caption{Tolerance calibration across the thirty cells of the primary panel. X-axis: single-occasion tolerance ($k = 1$); Y-axis: full-design tolerance (averaging over admissible conditions per cell). Both axes log-scaled. Dashed reference lines mark the $\pm 0.005$ accuracy threshold (the H1 boundary; reporting to two decimal places in decimal-accuracy form, e.g. $0.74$); dotted reference lines mark the $\pm 0.05$ accuracy threshold (reporting to one decimal place in decimal-accuracy form, e.g. $0.7$). Cells are colored by regime. No cell falls left of the vertical $\pm 0.005$ line --- zero of thirty cells license two-decimal decimal-accuracy reporting under single-occasion measurement. One cell falls below the horizontal $\pm 0.005$ line: HellaSwag, Pythia-1.4B, generate-and-parse, in the parse-failure-dominated regime, where the cell's small score variance carries small full-design tolerance in absolute terms. The diagonal $y = x$ reference line marks where averaging recovers no precision over single-occasion measurement; every cell sits below the diagonal, with the gap proportional to the full-design averaging gain on the cell.}
 \label{fig:tolerance-calibration}
 \end{figure}
 
@@ -1016,14 +1044,11 @@ The pre-registered null reads as a substantive measurement finding. Subject-leve
 
 Within the framework's terms, the H4 null is informative for the §\ref{sec:reliability-machinery} reliability defense in a specific way: the subject facet does not introduce additional model-specific variance on this regime that the §\ref{sec:variance-components-results} cascade did not already estimate at the panel level. Collapsed ``MMLU accuracy'' on this regime --- aggregated across the five locked subjects --- is not, on the present panel, masking heavy subject-by-model heterogeneity. The framework's per-cell reliability picture (§\ref{sec:tolerance-schedule-results}) does not need to be further disaggregated to a per-subject level on this regime; the panel-level cells remain the appropriate unit of measurement-tolerance reporting on the small-to-mid-scale open-model regime tested.
 
+\begin{sloppypar}
 The pre-registered subject choice constrains the scope of the null. The five subjects (\texttt{world\_religions}, \texttt{elementary\_mathematics}, \texttt{high\_school\_psychology}, \texttt{professional\_accounting}, \texttt{global\_facts}) were chosen for floor-risk mitigation on small models, not to maximize between-model differentiation. A subject panel chosen to maximize differentiation, or a model regime where capability differences interact with subject domain (e.g., frontier-scale models with substantial domain specialization), would test a different question. Whether the null transfers to those regimes is named in §\ref{sec:future-work}; the present null is bounded to the panel and regime declared. The pre-registered framework treats a confirmed hypothesis and a pre-registered null as equal-weight reportable findings, neither over-interpreted as confirmation nor apologized for as a missed effect.
+\end{sloppypar}
 
-% TABLE 6 PLACEHOLDER. Per-subject variance components within MMLU panel,
-% with regime classification. 5 subjects × 4 facets = 20 rows.
-
-% FIGURE 5 PLACEHOLDER. Subject-level forest plot: point estimate ± SEM per
-% (model, subject), showing where within-MMLU subject variance dominates between-
-% subject signal vs. where additive main effects capture most of the variance.
+Per-subject variance components within the MMLU panel and a subject-level forest plot of per-(model, subject) point estimates and standard errors are provided in the supplementary materials.
 
 \subsection{GSM8K case}
 \label{sec:gsm8k-results}
@@ -1034,40 +1059,28 @@ The two extraction variants test the framework's regime split (§\ref{sec:design
 
 Within the framework's terms, the strict-vs-permissive contrast is the regime split at its most visible operationalization: the same benchmark, on the same model, on the same item set, with the same prompts, produces different licensed reporting precisions under different extraction rules. The extraction rule is not, on GSM8K, a transparent post-hoc choice of how to summarize a stable score; it is part of the measurement instrument, and the variance estimates that drive the schedule depend on which instrument is being used. A GSM8K accuracy report that does not declare its extraction rule is, in the framework's terms, a measurement without a fully-stated measurement universe.
 
-This is a finding the framework's reproducibility-and-pre-registration discipline surfaces in the same epistemic register as the pre-registered regime split itself --- discovery-like in the narrower reporting sense that the precursor paper articulates \citep{anonymized2026n134}. A study committing to a single extraction rule without observing the parseability distribution would not have surfaced the regime split's effect on tolerance on this benchmark; a study reporting only a single point estimate without naming the extraction rule would not have surfaced the dependence on it. The cross-model comparison originally planned would have made the within-model demonstration visible alongside the across-model contrast; the budget-driven scope reduction preserves the within-model demonstration the case study is empirically anchored to, and the cross-model extension is named in §\ref{sec:future-work}.
+This is a finding the framework's reproducibility-and-pre-registration discipline surfaces as a reporting-relevant measurement constraint, in the same kind as the v1.1.2 regime-split amendment itself. A study committing to a single extraction rule without observing the parseability distribution would not have surfaced the regime split's effect on tolerance on this benchmark; a study reporting only a single point estimate without naming the extraction rule would not have surfaced the dependence on it. The cross-model comparison originally planned would have made the within-model demonstration visible alongside the across-model contrast; the budget-driven scope reduction preserves the within-model demonstration the case study is empirically anchored to, and the cross-model extension is named in §\ref{sec:future-work}.
 
-% TABLE 7 PLACEHOLDER. GSM8K outcomes for Pythia-1.4B across (prompt, seed,
-% extraction variant) cells: parseability rate, accuracy, regime classification.
-% Source: analysis/gsm8k_case/gsm8k_tolerance_schedule.csv.
-
-% FIGURE 6 PLACEHOLDER. Parseability rate distribution per (prompt × seed) on
-% Pythia-1.4B; argues empirically for the 0.30 threshold or against it on the
-% single-model evidence base.
+Per-(prompt, seed, extraction-variant) cell-level GSM8K outcomes for Pythia-1.4B (parseability rate, accuracy, regime classification) and the per-(prompt $\times$ seed) parseability distribution are provided in the supplementary materials.
 
 \section{Discussion}
 \label{sec:discussion}
 
-% EDIT: 2026-04-28 — §8 drafted post-Phase-5. Five subsections: methodological
-% EDIT: implications (the field-level reading-discipline move), limitations
-% EDIT: (within-paper), relationship to precursor paper (cross-paper substrate-
-% EDIT: portability move; load-bearing for §1.3 contribution claim 1), future
-% EDIT: work, anticipated objections. Cross-paper register convergences with
-% EDIT: N134 are intentional per CLAUDE.md program conventions.
 
 \subsection{Methodological implications}
 \label{sec:methodological-implications}
 
 The empirical findings reported in §\ref{sec:results} license a specific reading discipline for benchmark accuracy reports under measurement universes structurally similar to the present panel's. The discipline is local to the framework's bounded-precision claim: it does not retroactively re-adjudicate published numbers or claim that any specific report is defective; it specifies what credence a careful reader is now licensed to place in benchmark numbers reported under conditions the present study's measurement universe matches.
 
-The reading-discipline implication is direct. A benchmark-accuracy report at two-decimal precision under single-occasion measurement on the small-to-mid-scale open-model regime, evaluated on benchmarks within the primary panel, claims a precision the schedule does not license: thirty of thirty cells in the panel require interval reporting at single-occasion. The implication generalizes to the field as a function of how closely a given report's measurement universe matches the panel's: a report that names its prompt template, seed, scoring rule, and measurement universe explicitly, under conditions structurally similar to the panel, inherits the panel's licensed-precision finding. A report that does not name those elements is, in the framework's terms, a measurement without a stated measurement universe; the schedule cannot speak to its licensed precision because the universe is undeclared.
+The reading-discipline implication is direct. A benchmark-accuracy report at two-decimal precision under single-occasion measurement on the small-to-mid-scale open-model regime, evaluated on benchmarks within the primary panel, claims a precision the schedule does not license: thirty of thirty cells in the panel require interval reporting at single-occasion. The implication generalizes to the field as a function of how closely a given report's measurement universe matches the panel's: a report that names its prompt template, seed, scoring rule, and measurement universe explicitly, under conditions structurally similar to the panel, can use the panel's licensed-precision finding as a calibration prior, but precise tolerance claims for that report's cells require re-estimation under that report's own measurement universe. The framework's argument is that measurement claims do not transfer beyond the design that produced them; this implication applies to the present paper's findings as well as to the field's. A report that does not name its measurement-design elements is, in the framework's terms, a measurement without a stated measurement universe; the schedule cannot speak to its licensed precision because the universe is undeclared.
 
 The H2 four-of-five generalizability finding sharpens the implication. Single-occasion generalizability below the conventional $0.80$ standard means that the cell-level reliability of single-occasion measurement is small relative to its measurement-design variance: a model-pair comparison, a leaderboard ranking, or any inference that treats a single-occasion score as a reliable estimate of the cell-level reliable score is, on this regime, drawing inference from a measurement instrument the framework's reliability defense flags as inadequate to the precision claimed. Recovering reliability requires averaging over admissible measurement-design variation per cell; the §\ref{sec:tolerance-schedule-results} schedule reports what averaging level recovers what precision and the design budget that imposes per cell.
 
-A vocabulary note connects the schedule's reliability machinery to the broader measurement-discipline register the §\ref{sec:codev-register} corpus has developed. \citet{heineman2025signal}'s \emph{signal} quantity --- the ratio of systematic between-model variance to total variance --- maps onto what the generalizability-theory tradition calls the \emph{generalizability coefficient}; the two are the same object expressed in different methodological registers. The tolerance-schedule prescription sits cleanly on top of either register: the schedule converts the variance-components SEM (or, equivalently, the cell-level $1 - g_{\mathrm{single}}$ relative to total variance) into licensed decimal-place precision via the §\ref{sec:tolerance-schedule} decimal-place rule. A reader more comfortable with the signal-and-noise vocabulary of \citet{heineman2025signal} can read the present paper's $g$ coefficients as the corresponding signal estimates without loss; the methodological-register choice does not change the substantive measurement claim.
+A vocabulary note connects the schedule's reliability machinery to the broader measurement-discipline literature the §\ref{sec:codev-register} corpus has developed, and the note sustains a stronger claim now that the literature has grown to eight voices spanning four methodologically distinct estimation traditions. \citet{heineman2025signal}'s \emph{signal} quantity --- the ratio of systematic between-model variance to total variance --- maps onto what the generalizability-theory tradition calls the \emph{generalizability coefficient}; \citet{lior2025reliableeval}'s method-of-moments resampling produces, in the limit, a frequentist standard error on the same population mean that G-theory's universe-score variance estimates; and \citet{mcgregor2025benchrisk}'s NIST-aligned risk-management metaevaluation operates over the same per-benchmark reliability picture under a different aggregation rule. The four traditions --- G-theory variance decomposition, signal-detection-style ratio estimation, econometric method-of-moments parameter estimation, and risk-management metaevaluation --- start from different theoretical foundations and converge on the same practical target: quantifying how much measurement-design variation a single-occasion benchmark accuracy carries relative to the field-level claim a single number is implicitly making. When independent methodological traditions converge on the same practical target across different theoretical foundations, the convergence is positive evidence that the underlying phenomenon is methodology-invariant rather than artifact of any single tradition's apparatus; the diagnostic the corpus collectively makes does not rest on the analytical preferences of any one of its voices. The tolerance-schedule prescription sits cleanly on top of any of these vocabularies: the schedule converts the variance-components SEM (or, equivalently, the cell-level $1 - g_{\mathrm{single}}$ relative to total variance, or a method-of-moments standard error on the population mean) into licensed decimal-place precision via the §\ref{sec:tolerance-schedule} decimal-place rule. A reader more comfortable with the signal-and-noise vocabulary of \citet{heineman2025signal}, the method-of-moments resampling vocabulary of \citet{lior2025reliableeval}, or the risk-management vocabulary of \citet{mcgregor2025benchrisk} can read the present paper's $g$ coefficients in the corresponding vocabulary without loss; the methodological-vocabulary choice does not change the substantive measurement claim.
 
-The H3 ranking-stability finding pulls the implication into a register the field's reporting practice does not currently distinguish. Ranking instability is concentrated on close-skill model pairs --- pairs whose accuracy gap is small relative to the per-condition score-distribution width --- and rank stability holds on cross-skill pairs. A leaderboard comparison between substantively different models (the cross-lineage Pythia-vs-Qwen pairs in the present panel on benchmarks with $n \geq 24$ admissible conditions) is licensed at single-occasion measurement; a leaderboard comparison between similar-capability models (the within-family Pythia pair) is not. Field-level leaderboards do not currently visibly separate close-skill from cross-skill comparisons; the H3 finding licenses the prescriptive recommendation that a leaderboard-aware reading discipline ask, of any reported model-pair comparison, what the per-condition score-distribution overlap between the pair is. Where the overlap is substantial, the rank claim is not licensed at single-occasion measurement under this regime.
+The H3 ranking-stability finding pulls the implication into a distinction the field's reporting practice does not currently make. Ranking instability is concentrated on close-skill model pairs --- pairs whose accuracy gap is small relative to the per-condition score-distribution width --- and rank stability holds on cross-skill pairs. A leaderboard comparison between substantively different models (the cross-lineage Pythia-vs-Qwen pairs in the present panel on benchmarks with $n \geq 24$ admissible conditions) is licensed at single-occasion measurement; a leaderboard comparison between similar-capability models (the within-family Pythia pair) is not. Field-level leaderboards do not currently visibly separate close-skill from cross-skill comparisons; the H3 finding licenses the prescriptive recommendation that a leaderboard-aware reading discipline ask, of any reported model-pair comparison, what the per-condition score-distribution overlap between the pair is. Where the overlap is substantial, the rank claim is not licensed at single-occasion measurement under this regime.
 
-The H4 null adds a register-bounded note: subject-level decomposition of the MMLU panel's variance does not show heavy model-by-subject heterogeneity on this regime, which means the per-cell reliability picture (§\ref{sec:variance-components-results}) is the appropriate level at which to evaluate MMLU measurement reliability on this panel. A panel chosen for differentiation rather than floor-risk mitigation, or a frontier-scale model regime where subject specialization may interact with model capability, would test a different question; whether the additive-main-effects structure transfers to those regimes is named in §\ref{sec:future-work}.
+The H4 null adds a scope-bounded note: subject-level decomposition of the MMLU panel's variance does not show heavy model-by-subject heterogeneity on this regime, which means the per-cell reliability picture (§\ref{sec:variance-components-results}) is the appropriate level at which to evaluate MMLU measurement reliability on this panel. A panel chosen for differentiation rather than floor-risk mitigation, or a frontier-scale model regime where subject specialization may interact with model capability, would test a different question; whether the additive-main-effects structure transfers to those regimes is named in §\ref{sec:future-work}.
 
 \subsection{Limitations}
 \label{sec:limitations}
@@ -1082,16 +1095,20 @@ The mixed-effects cascade is high-capacity relative to per-cell $N$. The random-
 
 The three-model panel is not a population. Two of the three models are same-family (Pythia-410M and Pythia-1.4B); the third (Qwen2.5-1.5B-Instruct) is a single cross-lineage point. Pattern-level findings about within-family vs.\ cross-lineage ranking stability rest on a single cross-lineage axis; whether the pattern extends across other lineage pairs is empirically open. The variance-components decomposition's facet attributions are estimated per (benchmark, model) cell, and the H2 generalizability coefficients are aggregated at the benchmark level across the three models; readers should not read either as licensing claims about the population of small-to-mid-scale open models in general.
 
+The implemented variance decomposition uses a linear mixed-effects approximation (LPM) rather than a full binomial GLMM (deviation D-09, resolved at v1.1.2 via the regime split). The regime split limits the LPM approximation to cells where it is most defensible (parseability above $0.30$); cells outside that range route to a sample-SD-based dispersion measure. A full GLMM replication --- using \texttt{rpy2} or \texttt{lme4::glmer} --- remains a natural robustness check on the variance-components estimates in the $g$-theory regime, although the H1 licensing decision is unlikely to depend on it for the cells actually tested (App.~\ref{app:lpm-glmm}).
+
 \subsection{Relationship to the precursor paper}
 \label{sec:relationship-to-precursor}
 
-Contribution claim 1 (§\ref{sec:contributions}) rests on the empirical demonstration that the four-component measurement-discipline framework survives application to a substrate structurally different from the one it was developed on. The precursor paper \citep{anonymized2026n134} applied the framework to LoRA-merging diagnostic correlations on $n = 45$ cross-task adapter pairs, scored via partial Spearman with cross-seed ICC reliability and family-pair confound decomposition; the present paper applies it to LLM benchmark accuracy on item-level binary correctness across thousands of items per cell, scored via mixed-effects variance-components GLMM with bootstrap CIs on per-cell SEM and pre-registered random-effects structure. The substrates differ on inferential target (regression-coefficient correlation vs.\ classification accuracy), scoring object (continuous Spearman correlations vs.\ binary item correctness), sample-size regime ($n = 45$ pairs vs.\ thousands of items per cell), error structure (cross-seed ICC vs.\ mixed-effects variance components), and adversary class (subspace-vs-cosine alignment vs.\ scoring-rule choice and prompt-format variation). Surviving application to both, with pre-registered findings on each, is non-trivial evidence that the framework is portable across the kinds of structural variation the field's substrates actually exhibit.
+\begin{sloppypar}
+Contribution claim 1 (§\ref{sec:contributions}) rests on the empirical demonstration that the four-component measurement-discipline framework survives application to a substrate structurally different from the one it was developed on. The precursor paper \citep{anonymized2026n134} applied the framework to LoRA-merging diagnostic correlations on $n = 45$ cross-task adapter pairs, scored via partial Spearman with cross-seed ICC reliability and family-pair confound decomposition; the present paper applies it to LLM benchmark accuracy on item-level binary correctness across thousands of items per cell, scored via item-level mixed-effects variance decomposition with bootstrap CIs on per-cell SEM, pre-registered random-effects structure as implemented per D-20, and a documented LPM-vs-GLMM regime-split amendment at v1.1.2. The substrates differ on inferential target (regression-coefficient correlation vs.\ classification accuracy), scoring object (continuous Spearman correlations vs.\ binary item correctness), sample-size regime ($n = 45$ pairs vs.\ thousands of items per cell), error structure (cross-seed ICC vs.\ mixed-effects variance components), and adversary class (subspace-vs-cosine alignment vs.\ scoring-rule choice and prompt-format variation). Surviving application to both, with pre-registered findings on each, is non-trivial evidence that the framework is portable across the kinds of structural variation the field's substrates actually exhibit.
+\end{sloppypar}
 
 The two papers' joint empirical content is what makes the portability claim defensible. The precursor paper's substantive findings include a pre-registered H1 null on its substrate (no LoRA-vs-full-FT advantage in the regime tested), a rank-on-residuals observation surfaced by the framework's discipline (a measurement constraint not visible without the framework's audit-trail commitments), and qualitative reproducibility of the analysis chain on a follow-up substrate. The present paper's findings include H1, H2, and H3 confirmed; H4 not confirmed (a pre-registered null with the same epistemic register as the precursor's H1 null); bit-identical reproducibility of the canonical analysis run; and the parse-failure regime split as a measurement-instrument finding on the present paper's substrate, with the GSM8K extraction-rule sensitivity (§\ref{sec:gsm8k-results}) as a within-benchmark instance. The combined pattern --- pre-registered methodology surfacing both confirmations and pre-registered nulls on both substrates, with substrate-specific findings (rank-on-residuals on one, regime split and extraction-rule sensitivity on the other) the framework's discipline made visible --- is what the substrate-portability claim references empirically.
 
 The framework's component practices are, taken individually, the standard stock of classical test theory and generalizability theory: variance-components decomposition, ICC, generalizability coefficients, bounded-precision logic, pre-registered confound enumeration. The framework's claim is that they are jointly required, not that any individual one is novel. A reader who would dispute the portability claim by pointing at the methodological standardness of any individual component is not reading the contribution claim correctly: the claim is that the joint discipline survives application to a substrate structurally different from the one it was developed on, not that any individual technique is new. Two demonstrations is not $k = \infty$ portability, and neither paper claims it; the claim is that two demonstrations on appropriately diverse substrates is enough evidence to establish that the framework is not silently overfit to the substrate it was developed on.
 
-The cross-paper coordination at the phrasing level of certain registers is part of the program's coherence rather than coincidence. The ``discovery-like in the narrower reporting sense'' framing applied to the rank-on-residuals observation in the precursor paper and to the regime split here, the post-hoc analysis register naming exploratory findings as ``hypothesis-generating rather than confirmatory evidential status,'' and the high-capacity-baseline acknowledgment for the family-pair residualization on one substrate and the mixed-effects cascade on the other --- these are intentionally consistent across the two papers. The joint reading the two papers license is that the framework's discipline produces findings of a specific epistemic kind on both substrates, with consistent register across cases, even though the substrates' empirical content is paper-specific.
+The two papers also share a reporting convention: post-hoc analyses are labeled as hypothesis-generating, high-capacity baselines are named as limitations, and measurement constraints surfaced during reproducibility checks are reported rather than hidden. This consistency is part of the framework's methodological discipline; the empirical content of each paper remains substrate-specific.
 
 \subsection{Future work}
 \label{sec:future-work}
@@ -1108,7 +1125,9 @@ Five extensions are named here; each preserves the framework's discipline while 
 
 \textbf{Cross-model GSM8K and other open-generation benchmarks.} The §\ref{sec:gsm8k-results} case study is single-model on Pythia-1.4B following the v1.1.2 budget amendment. A cross-model extension on GSM8K, plus extensions to other open-generation benchmarks (BIG-Bench Hard sub-tasks, open-ended summarization with reference-based scoring, code generation with execution-based scoring), would substantially broaden the regime-split evidence base.
 
-The list is constrained to extensions the framework's apparatus directly supports; methodologically orthogonal future work (contamination-aware extension, agentic-evaluation extension, model-internals interpretability extension) is named in the field's broader future-work register but is not internal to the present framework's discipline.
+\textbf{Across-rule tolerance schedule.} The §\ref{sec:tolerance-schedule-results} schedule is the rule-conditioned schedule: per (benchmark, model, scoring rule), it licenses precision conditional on a declared scoring rule. A complementary across-rule schedule, treating scoring rule as part of the admissible measurement universe rather than as a fixed cell-defining dimension, would license precision for the field's common reporting practice of citing benchmark accuracy without naming the scoring rule. The two schedules answer different questions: the rule-conditioned schedule is what the present paper develops and reports; the across-rule schedule would express the additional uncertainty introduced when a reported number does not commit to a scoring-rule choice. A larger follow-up could report both schedules side by side across a broader model and benchmark panel, making the prescriptive output more directly useful to the field's reporting practice when scoring rule is left unspecified.
+
+The list is constrained to extensions the framework's apparatus directly supports; methodologically orthogonal future work (contamination-aware extension, agentic-evaluation extension, model-internals interpretability extension) is named in the field's broader future-work catalog but is not internal to the present framework's discipline.
 
 \subsection{Anticipated objections}
 \label{sec:anticipated-objections}
@@ -1119,14 +1138,35 @@ Four reviewer objections are predictable on the present paper; each is addressed
 
 \textbf{``The small-to-mid-scale open-model regime does not extrapolate to frontier.''} The pre-registered scope is exactly the regime tested. The framework is what is offered for re-application; the specific tolerance schedule and generalizability coefficients are regime-bounded. Whether the same conclusions hold at frontier scale is named in §\ref{sec:future-work} as the first listed extension; the present paper does not claim frontier-scale generalization.
 
-\textbf{``The regime split (D-09 $\to$ v1.1.2) was added after data collection began and looks ad-hoc.''} The regime split was added before any analysis was run, in response to two events: the daily-review-surfaced publication of NIST AI 800-3 \citep{nist2026statmodels} formally endorsing GLMM for variance decomposition on AI benchmarks (February 2026), and early Phase~4 GPU output showing that approximately one-fifth of the cells in the primary panel sit outside the parseability range where GLMM and the linear probability model substantially agree. The amendment is recorded in \texttt{LOCK\_NOTES.md} v1.1.2 with full audit, the parseability threshold ($0.30$) is a pre-specified parameter rather than a tuned one, and the split is justified as a response to a methodological tension (NIST endorsing GLMM on cells where LPM and GLMM diverge) rather than as a fit-the-data move. The cross-paper register convention --- ``discovery-like in the narrower reporting sense'' --- is what the regime split is offered in: a measurement constraint surfaced by the framework's discipline that would not be visible in a study committing to a single variance-decomposition method without observing the cell-level parseability distribution.
+\textbf{``The regime split (D-09 $\to$ v1.1.2) was added after data collection began and looks ad-hoc.''} The regime split was added before any confirmatory analysis was run, in a locked pre-confirmatory-analysis amendment, in response to two events: the daily-review-surfaced publication of NIST AI 800-3 \citep{nist2026statmodels} formally endorsing GLMM for variance decomposition on AI benchmarks (February 2026), and early Phase~4 GPU pipeline diagnostic output showing that approximately one-fifth of the cells in the primary panel sit outside the parseability range where the LPM approximation is most defensible. The amendment is recorded in \texttt{LOCK\_NOTES.md} v1.1.2 with full audit, the parseability threshold ($0.30$) is a pre-specified parameter rather than a tuned one, and the split is justified as a response to a methodological tension (NIST endorsing GLMM on cells where LPM and GLMM are likely to diverge most) rather than as a fit-the-data move. The regime split is offered as a measurement constraint surfaced by the framework's reproducibility and pre-registration discipline that would not be visible in a study committing to a single variance-decomposition method without observing the cell-level parseability distribution.
 
 \textbf{``No contamination assessment.''} Correct. Benchmark contamination is a separate (and well-studied; e.g., \citet{hasan2025pitfalls}) measurement question. The present paper's measurement universe is admissible-prompt-and-scoring-rule variation conditional on a fixed item set; whether the item set itself is contaminated is orthogonal to the variance decomposition the framework estimates. Contamination-aware extension is named in §\ref{sec:future-work} as adjacent future work; the framework's apparatus does not extend cleanly to it (contamination detection requires different methodological tools than measurement-design variance estimation), and the present paper makes no contamination-related claim.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper applies a four-component measurement-discipline framework --- construct articulation, reliability estimation, precision and tolerance, pre-registered confound decomposition --- to LLM benchmark evaluation on a small-to-mid-scale open-model regime. Three of four pre-registered hypotheses were confirmed: single-occasion tolerance exceeds the second-decimal-precision threshold on all five primary benchmarks (H1, $5/5$); single-occasion generalizability falls below the conventional $0.80$ reliability standard on four of five (H2, $4/5$); each primary benchmark has at least one model pair whose ranking does not survive admissible measurement-design variation (H3, $5/5$). The fourth hypothesis was not confirmed: the MMLU subject panel's model-by-subject interaction proportion is approximately a twentieth of the threshold value, indicating that subject-level variation on this panel is dominated by additive main effects (H4, pre-registered null). The paper's distinctive prescriptive contribution within the co-developed measurement-discipline register is the decimal-place precision tolerance schedule (§\ref{sec:tolerance-schedule}), which licenses what numerical precision a reported score actually supports under a declared measurement universe. The present panel's schedule licenses interval-required reporting for thirty of thirty cells at single-occasion measurement and for twenty-nine of thirty at full-design averaging; recovering second-decimal precision under this regime requires averaging across the full measurement design, with the budget that imposes per cell.
+This paper applies a four-component measurement-discipline framework --- construct articulation, reliability estimation, precision and tolerance, pre-registered confound decomposition --- to LLM benchmark evaluation on a small-to-mid-scale open-model regime. Three of four pre-registered hypotheses were confirmed: single-occasion tolerance exceeds the two-decimal-precision threshold on all five primary benchmarks (H1, $5/5$); single-occasion generalizability falls below the conventional $0.80$ reliability standard on four of five (H2, $4/5$); each primary benchmark has at least one model pair whose ranking does not survive admissible measurement-design variation (H3, $5/5$). The fourth hypothesis was not confirmed: the MMLU subject panel's model-by-subject interaction proportion is approximately a twentieth of the threshold value, indicating that subject-level variation on this panel is dominated by additive main effects (H4, pre-registered null). The paper's distinctive prescriptive contribution within the recent measurement-discipline literature is the decimal-place precision tolerance schedule (§\ref{sec:tolerance-schedule}), which licenses what numerical precision a reported score actually supports under a declared measurement universe. The present panel's schedule licenses interval-required reporting for thirty of thirty cells at single-occasion measurement and for twenty-nine of thirty at full-design averaging; recovering two-decimal precision under this regime requires averaging across the full measurement design, with the budget that imposes per cell.
+
+The findings support a measurement-disciplined replacement for several common benchmark-reporting practices. Table~\ref{tab:reporting-standard} summarizes the replacement, organized as a one-to-one mapping between current practice and the framework's prescription.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Measurement-disciplined replacements for common benchmark-reporting practices. Each row replaces a current practice that produces an under-specified measurement claim with a practice that names the measurement design and the precision the design licenses.}
+\label{tab:reporting-standard}
+\begin{tabular}{p{0.42\textwidth}p{0.50\textwidth}}
+\toprule
+Current practice & Measurement-disciplined replacement \\
+\midrule
+Report a single point estimate (``$0.742$'') & Report score plus tolerance interval, with decimal precision licensed by the tolerance schedule (e.g., ``$0.74 \pm 0.04$'') \\
+Prompt template unspecified & Declare the prompt template and its community-traced source \\
+Scoring rule unspecified & Declare LL/G\&P/extraction rule used \\
+Decimal precision by convention & Decimals licensed per cell by the SEM/tolerance schedule under the half-unit rule \\
+Leaderboard rank treated as fixed & Report condition-resampled rank stability or pairwise overlap, especially for close-skill pairs \\
+Single score treated as a capability claim & State the measurement universe explicitly, or report a generalized score averaged over the declared universe \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 The paper is the second worked demonstration of the framework, on a substrate (LLM benchmark evaluation) deliberately chosen to be structurally different from the framework's first demonstration on LoRA-merging diagnostics \citep{anonymized2026n134}. The two demonstrations' joint empirical content --- both pre-registered methodologies producing confirmations and pre-registered nulls, both surfacing substrate-specific measurement-instrument findings the framework's discipline made visible (rank-on-residuals on one substrate, regime split and extraction-rule sensitivity on the other) --- is what the §\ref{sec:contributions} substrate-portability claim references. Two demonstrations is not portability without bound; it is enough to establish that the framework is not silently overfit to the substrate it was developed on.
 
@@ -1138,6 +1178,8 @@ The paper is the second worked demonstration of the framework, on a substrate (L
 
 \section{Pre-registration record (selected sections)}
 \label{app:prereg}
+
+\sloppy
 
 This appendix reproduces the load-bearing sections of the locked pre-registration document at lock state v1.1.2 (config hash \texttt{fbc4a5dd}). The full pre-registration document, including procedural sections (timeline, budget, deliverables) and historical-record sections (version history with internal-review decisions), is available in the supplementary materials and at the repository tag \texttt{v1\_1\_2\_LOCKED}. Sections reproduced below: the version history naming the lock-amendment chain (§\ref{app:prereg-version-history}); the pre-registered hypotheses and decision rules (§\ref{app:prereg-hypotheses}); the measurement universe and admissibility rules (§\ref{app:prereg-universe}); materials (§\ref{app:prereg-materials}); design and data hierarchy (§\ref{app:prereg-design}); pre-registered analyses (§\ref{app:prereg-analyses}); and the deviations protocol (§\ref{app:prereg-deviations}). Sections omitted: §1 Purpose (duplicates main-body §\ref{sec:intro}), §2 Theoretical framing (duplicates §\ref{sec:framework}), §8 Confound decomposition (duplicates §\ref{sec:confound-decomposition}), §9 Scope claims (duplicates §\ref{sec:scope} and §\ref{sec:limitations}), §10 Timeline and budget (operational), §12 Deliverables (operational), §14 Open Questions for Internal Review (resolved at v1.1-draft).
 
@@ -1159,7 +1201,7 @@ This appendix reproduces the load-bearing sections of the locked pre-registratio
 
 \textbf{Primary research question.} Under admissible variation in prompt template, few-shot exemplar selection, and scoring rule, how reliable are benchmark accuracy scores for small-to-mid-scale open language models on a fixed panel of constrained-choice benchmarks, and what decimal-place precision do they support in reporting?
 
-\textbf{H1 (primary; tolerance schedule).} For at least three of the five benchmarks in the primary panel, the median single-occasion tolerance across the three primary models exceeds $\pm 0.005$ accuracy ($\pm 0.5$ percentage points), making second-decimal reporting questionable and third-decimal reporting unsupported under the decimal-place decision rule.
+\textbf{H1 (primary; tolerance schedule).} For at least three of the five benchmarks in the primary panel, the median single-occasion tolerance across the three primary models exceeds $\pm 0.005$ accuracy ($\pm 0.5$ percentage points). Under the half-unit rule, two-decimal reporting (e.g., $0.74$) is not licensed when the tolerance exceeds half the unit of the second decimal; three-decimal reporting is unsupported a fortiori.
 
 \textbf{H2 (generalizability).} For at least three of the five primary benchmarks, the generalizability coefficient under single-occasion measurement (single prompt $\times$ single seed $\times$ single scoring rule) is less than $0.80$, indicating that single-occasion evaluation is an unreliable estimator of the generalized score.
 
@@ -1229,6 +1271,8 @@ Any deviation from this pre-registration discovered during execution must be doc
 \section{Pipeline implementation and reproducibility trace}
 \label{app:pipeline}
 
+\sloppy
+
 This appendix records the pipeline implementation and reproducibility audit underlying the §\ref{sec:results} empirical findings. §\ref{app:pipeline-architecture} summarizes the pipeline architecture; §\ref{app:lock-chain} records the lock-amendment chain (v1.1 $\to$ v1.1.1 $\to$ v1.1.2 plus a post-Phase-4 budget amendment); §\ref{app:deviations} enumerates the twenty-two implementation deviations from spec; §\ref{app:cascade-trace} reports the mixed-effects cascade convergence per benchmark; §\ref{app:repro-trace} records the eighteen-artifact reproducibility trace (SPEC §13.2 gate); §\ref{app:test-suite} documents the test suite at the lock state.
 
 \subsection{Pipeline architecture}
@@ -1247,15 +1291,15 @@ The architecture's load-bearing principle is that every script has a determinist
 \subsection{Configuration provenance and lock-amendment chain}
 \label{app:lock-chain}
 
-The pre-registration was locked at three sequential states: v1.1 (initial lock at config hash \texttt{65fdd1c2}), v1.1.1 (Phase 3 dry-run amendments at \texttt{89ce3f1f}), and v1.1.2 (regime-split resolution at \texttt{fbc4a5dd}). All three locks predate any data collection under the protocol; the amendment chain documents discovery-driven refinements before data collection rather than after.
+The pre-registration was locked at three sequential states: v1.1 (initial lock at config hash \texttt{65fdd1c2}), v1.1.1 (Phase 3 dry-run amendments at \texttt{89ce3f1f}), and v1.1.2 (regime-split resolution at \texttt{fbc4a5dd}). The v1.1 and v1.1.1 locks predate any data collection under the protocol. The v1.1.2 amendment was made after early Phase 4 GPU pipeline diagnostic outputs revealed a bimodal parseability distribution and the parse-failure-floor regime, but before confirmatory H1--H4 evaluation and before the canonical Phase 5 analysis artifacts were generated; the diagnostic outputs informed the regime-split design and were not part of the confirmatory dataset that the §\ref{sec:results} findings rest on. The amendment chain documents discovery-driven refinements before confirmatory analysis rather than after.
 
 \textbf{v1.1 $\to$ v1.1.1 (2026-04-25):} Phase 3 dry-run surfaced two execution-time issues. (1) \texttt{benchmarks.yaml} declared \texttt{item\_id\_field: qID} for Winogrande, but the HF dataset uses \texttt{sentence} as the natural item identifier; corrected. (2) \texttt{02\_draw\_fewshot\_examples.py} had a tier filter excluding GSM8K (secondary tier) from few-shot draws; the filter was a script-level oversight; removed. Both fixes applied; locked configs re-validated; test suite 133/133 passing. Provenance integrity: the \texttt{v1\_1\_LOCKED} tag remains on origin as the historical record of the catch; \texttt{v1\_1\_1\_LOCKED} is the corrected lock, both referring to states where no data has been collected.
 
-\textbf{v1.1.1 $\to$ v1.1.2 (2026-04-26):} The 2026-04-26 daily research review surfaced NIST AI 800-3 \citep{nist2026statmodels}, which formally endorses GLMM as the canonical method for AI variance decomposition. Combined with preliminary Phase 4 GPU-run data revealing that approximately one-fifth of the cells (parse-failure-dominated G\&P cells on base models) sit outside the LPM-vs.-GLMM agreement range, this motivated a regime-split resolution of D-09 (the LPM-not-logistic deviation). Resolution: added \texttt{tolerance.parse\_failure\_threshold = 0.30} to \texttt{analysis\_config.yaml}; cells with median parseability below threshold route to sample-SD-based tolerance instead of variance-components SEM, with a new \texttt{regime} column on \texttt{tolerance\_by\_cell.csv} marking the split. The seven load-bearing pre-registered commitments are unchanged across all three locks. Test suite 181 passed, 2 skipped. The methodological defense is in App.~\ref{app:lpm-glmm}.
+\textbf{v1.1.1 $\to$ v1.1.2 (2026-04-26):} A locked pre-confirmatory-analysis amendment introduced a regime split after early Phase 4 GPU pipeline diagnostic outputs revealed a bimodal parseability distribution: approximately one-fifth of the cells (parse-failure-dominated G\&P cells on base models) sit outside the parseability range where LPM and logit-link variance estimates are typically similar. The 2026-04-26 daily research review concurrently surfaced NIST AI 800-3 \citep{nist2026statmodels}, whose endorsement of GLMM as a canonical method for AI variance decomposition reinforced the case for revisiting the original D-09 LPM-not-logistic deviation. Resolution: added \texttt{tolerance.parse\_failure\_threshold = 0.30} to \texttt{analysis\_config.yaml}; cells with median parseability below threshold route to sample-SD-based tolerance instead of variance-components SEM, with a new \texttt{regime} column on \texttt{tolerance\_by\_cell.csv} marking the split. The amendment did not change the benchmark panel, model panel, hypotheses, decision thresholds, or hypothesis-decision rules; only the SEM source for parse-failure-dominated cells changed. The methodological defense is in App.~\ref{app:lpm-glmm}.
 
 \textbf{Post-lock budget amendment (2026-04-26 22:55 UTC):} Not a pre-registration amendment; the locked pre-reg at v1.1.2 is unchanged. A pre-committed cost-projection tripwire was set at GPU run launch: if at the 12-hour-from-launch check the projected total exceeded \$29 (with the optimistic end no longer keeping the run safely inside the \$30 hard cap), execute Cut 2: drop GSM8K symmetrically across the not-yet-completed models. At 32h45m elapsed, the projection had moved to approximately \$31 on trailing-pace and \$29.6 on per-model-scaling; the tripwire criterion was met and Cut 2 was executed. Pythia-1.4B's 24 GSM8K conditions had completed before the cut; Pythia-410M's and Qwen2.5-1.5B-Instruct's 48 GSM8K conditions were removed from the run manifest, with the original preserved at \texttt{conditions\_gsm8k.csv.pre\_cut2}. Pre-reg §11.4 frames Tier 2 GSM8K as a standalone case study with self-contained scope; reducing its breadth from 3-model demonstration to 1-model case study is consistent with that framing. The manuscript §\ref{sec:gsm8k-results} reports the 1-model case study.
 
-\textbf{Configuration provenance.} The combined config hash at v1.1.2 is \texttt{fbc4a5ddbf037c5fce38950b84e8735de5a058fc0ace8a3899df90bbb6c240c8} (short: \texttt{fbc4a5dd}). Per-file SHA-256 hashes for the six locked YAML files (\texttt{study\_config.yaml}, \texttt{models.yaml}, \texttt{benchmarks.yaml}, \texttt{prompts.yaml}, \texttt{scoring\_rules.yaml}, \texttt{analysis\_config.yaml}) are recorded in \texttt{reports/reproducibility\_trace.md} and \texttt{reports/config\_validation.json}.
+\textbf{Configuration provenance.} The combined config hash at v1.1.2 is \texttt{fbc4a5dd} (short form; the full 64-character SHA-256 is recorded in \texttt{reports/reproducibility\_trace.md}). Per-file SHA-256 hashes for the six locked YAML files (\texttt{study\_config.yaml}, \texttt{models.yaml}, \texttt{benchmarks.yaml}, \texttt{prompts.yaml}, \texttt{scoring\_rules.yaml}, \texttt{analysis\_config.yaml}) are recorded in the same trace file and in \texttt{reports/config\_validation.json}.
 
 \subsection{Implementation deviations from specification}
 \label{app:deviations}
@@ -1354,40 +1398,40 @@ A reviewer wishing to verify reproducibility independently can: (a) check out th
 \subsection{Test suite}
 \label{app:test-suite}
 
-The pipeline carries an automated test suite covering pre-inference validation, normalization, scoring, variance-components fitting, tolerance-schedule construction, ranking-stability, MMLU subject decomposition, GSM8K case, and reproducibility-trace generation. At the v1.1.2 lock state, 181 tests pass and 2 are skipped (skipped tests cover GPU-only paths not exercisable in the test environment). The test suite is run before each commit on the working branch and as part of the v1.1.2 lock validation.
+The pipeline carries an automated test suite of approximately 180 tests covering pre-inference validation, normalization, scoring, variance-components fitting, tolerance-schedule construction, ranking-stability, MMLU subject decomposition, GSM8K case, and reproducibility-trace generation. At the v1.1.2 lock state the suite passes in full in the canonical test environment; a small number of tests guarded by \texttt{pytest.importorskip} on GPU-only or optional dependencies (\texttt{torch}, \texttt{jsonschema}) are skipped in environments where those dependencies are unavailable. The test suite is run before each commit on the working branch and as part of the v1.1.2 lock validation.
 
 \section{LPM versus GLMM: methodological side-by-side for the regime split}
 \label{app:lpm-glmm}
 
-The §\ref{sec:design-regime-split} regime-split amendment to the v1.1.2 lock routes cells with median parseability below 0.30 to sample-SD-based tolerance and cells above 0.30 to LPM-based variance-components SEM. This appendix records the methodological side-by-side underlying the routing decision: the LPM-versus-GLMM choice, the agreement region between the two methods, the disagreement region, the NIST AI 800-3 endorsement that motivated revisiting the original D-09 deviation, and the empirical pattern on the present panel that supports the regime classification.
+The §\ref{sec:design-regime-split} regime-split amendment to the v1.1.2 lock routes cells with median parseability below 0.30 to sample-SD-based tolerance and cells above 0.30 to LPM-based variance-components SEM. This appendix records the methodological side-by-side underlying the routing decision: the LPM-versus-GLMM choice, the approximation region where the LPM treatment is most defensible, the disagreement region where it is not, the NIST AI 800-3 endorsement that motivated revisiting the original D-09 deviation, and the empirical pattern on the present panel that supports the regime classification.
 
 \subsection{Linear probability model and generalized linear mixed model on item-level binary correctness}
 \label{app:lpm-glmm-background}
 
 For item-level binary correctness data, the variance-components decomposition can be implemented in two primary methodological registers. The linear probability model (LPM) treats the binary outcome as a continuous response and fits a Gaussian mixed-effects model with random effects for each measurement-design facet; per the standard ANOVA decomposition, variance components are reported as fractions of total continuous-outcome variance. The generalized linear mixed model (GLMM) treats the outcome as Bernoulli with a logit link, fits maximum-likelihood random-effects estimates under the binomial family, and reports variance components on the log-odds scale.
 
-The two methods agree at the practical level when item-level accuracy is in the moderate range, conventionally $0.15$--$0.85$, where the logit link function is approximately linear in the response and the GLMM's link-function curvature does not meaningfully change the variance-components estimates relative to LPM \citep{hellevik2009linear}. Outside this range, the methods diverge: the GLMM's link function produces qualitatively different log-odds-scale variance estimates than LPM's identity-link variance estimates, and the divergence grows with the proportion's distance from $0.5$.
+The two methods are typically closest in practical interpretation when item-level accuracy is in the moderate range, conventionally $0.15$--$0.85$, where the logit link is less likely to dominate the substantive interpretation and the GLMM's link-function curvature is less likely to meaningfully change the variance-components estimates relative to LPM \citep{hellevik2009linear}. Outside this range, the methods diverge: the GLMM's link function produces qualitatively different log-odds-scale variance estimates than LPM's identity-link variance estimates, and the divergence grows with the proportion's distance from $0.5$.
 
-\subsection{Agreement region: cells with parseability $\geq 0.30$}
+\subsection{Approximation region: cells with parseability $\geq 0.30$}
 \label{app:lpm-glmm-agreement}
 
-The present panel's $g$-theory regime cells (twenty-three of thirty cells per Table~\ref{tab:tolerance-by-cell}) all have median parseability above the 0.30 threshold. For these cells, item-level accuracy ranges from approximately 0.20 to 0.85, comfortably within the LPM-versus-GLMM agreement range. The variance-components estimates produced by LPM (the implementation chosen for this study) match what GLMM would produce within the methodological tolerance the field treats as substantively equivalent.
+The present panel's $g$-theory regime cells (twenty-three of thirty cells per Table~\ref{tab:tolerance-by-cell}) all have median parseability above the 0.30 threshold. For these cells, item-level accuracy lies in the range where LPM and logit-link models are typically most similar in marginal-effect interpretation. We therefore treat the LPM-based decomposition as a reasonable approximation for the purpose of precision licensing, while acknowledging that a full GLMM replication would be the cleaner confirmatory implementation; the present results should be read as LPM-based variance decompositions rather than GLMM-equivalent ones.
 
-The §\ref{sec:variance-components-results} variance-components decomposition, the §\ref{sec:generalizability-results} generalizability coefficients, and the $g$-theory-regime portion of the §\ref{sec:tolerance-schedule-results} tolerance schedule rest on the LPM implementation; the schedule's licensed-precision claims for these twenty-three cells are equivalent to what GLMM would license. A reviewer with a strong methodological preference for GLMM can read the LPM results in this regime as the GLMM equivalent without loss.
+The §\ref{sec:variance-components-results} variance-components decomposition, the §\ref{sec:generalizability-results} generalizability coefficients, and the $g$-theory-regime portion of the §\ref{sec:tolerance-schedule-results} tolerance schedule rest on the LPM implementation. A GLMM replication is a natural robustness check; the regime split (App.~\ref{app:lpm-glmm-disagreement}) is designed to avoid the cells where the LPM approximation is least defensible, which constrains the precision-licensing claims to cells where the methodological choice is least likely to be load-bearing.
 
 \subsection{Disagreement region: cells with parseability $< 0.30$}
 \label{app:lpm-glmm-disagreement}
 
-The seven parse-failure-dominated cells per Table~\ref{tab:tolerance-by-cell} have median parseability below 0.30. For these cells, item-level accuracy is concentrated near zero (most items fail to parse and produce a default-incorrect score). LPM's identity-link continuous treatment of the response models the variance as if accuracy were continuous; GLMM's logit-link treatment correctly recognizes that the response is at a parseability floor where the binomial variance is dominated by the parse-failure mechanism rather than by measurement-design facets.
+The seven parse-failure-dominated cells per Table~\ref{tab:tolerance-by-cell} have median parseability below 0.30. For these cells, item-level accuracy is concentrated near zero (most items fail to parse and produce a default-incorrect score). LPM's identity-link continuous treatment of the response models the variance as if accuracy were continuous; GLMM's logit-link treatment represents the floor-region response on a binomial scale, but the resulting variance estimate would still be dominated by the parse-failure mechanism rather than by ordinary measurement-design facets.
 
-In this disagreement region, neither LPM nor GLMM produces a variance-components decomposition that the framework's reliability defense (§\ref{sec:reliability-machinery}) can interpret cleanly: LPM under-attributes variance to the floor-effect mechanism; GLMM correctly attributes variance to the floor effect but the cell-level variance estimate is then dominated by a non-measurement-design source. The regime split routes cells in this region to a non-parametric tolerance measure (the sample standard deviation of the cell's condition-level scores), which on these cells produces a substantively similar conclusion to either parametric method but does not require interpreting the variance attribution.
+In this region, neither LPM nor a GLMM would produce a variance-components decomposition that the framework's reliability defense (§\ref{sec:reliability-machinery}) can interpret cleanly: LPM under-attributes variance to the floor-effect mechanism, and a GLMM would represent the floor-region response on a binomial scale, but the resulting variance estimate would still be dominated by the parse-failure mechanism rather than by ordinary measurement-design facets. The regime split routes cells in this region to a non-parametric tolerance measure (the sample standard deviation of the cell's condition-level scores), which on these cells produces the relevant precision-licensing conclusion without requiring either parametric variance attribution.
 
 \subsection{NIST AI 800-3 endorsement and the v1.1.2 amendment trigger}
 \label{app:lpm-glmm-nist}
 
-The 2026-04-26 daily research review surfaced NIST AI 800-3 \citep{nist2026statmodels}, which formally endorses GLMM as the canonical method for variance decomposition on AI benchmarks, demonstrating the method on twenty-two frontier LLMs. The endorsement put pressure on the original D-09 deviation (LPM-not-logistic, justified at v1.1 lock by the 0.15--0.85 agreement region): NIST is now formally endorsing the canonical method the implementation declined to use, weakening the original deviation's defensibility against reviewer scrutiny.
+The 2026-04-26 daily research review surfaced NIST AI 800-3 \citep{nist2026statmodels}, which formally endorses GLMM as the canonical method for variance decomposition on AI benchmarks, demonstrating the method on twenty-two frontier LLMs. The endorsement put pressure on the original D-09 deviation (LPM-not-logistic, justified at v1.1 lock by reference to the $0.15$--$0.85$ approximation region where LPM and logit-link models are typically closest in practical interpretation): NIST is now formally endorsing the canonical method the implementation declined to use, weakening the original deviation's defensibility against reviewer scrutiny.
 
-Compounding this, preliminary Phase 4 GPU-run data revealed that the parseability-floor cells described in §\ref{app:lpm-glmm-disagreement} sit outside the 0.15--0.85 agreement range that the original D-09 justification covered. The two facts together created a methodological tension: NIST's endorsement recommended GLMM as the methodologically meaningful choice, but the GLMM-versus-LPM agreement holds only on the cell subset where neither side of the regression sits at a parseability floor or ceiling.
+Compounding this, preliminary Phase 4 GPU-run data revealed that the parseability-floor cells described in §\ref{app:lpm-glmm-disagreement} sit outside the $0.15$--$0.85$ range the original D-09 justification covered. The two facts together created a methodological tension: NIST's endorsement recommended GLMM as the methodologically meaningful choice, but the LPM approximation is only defensible on the cell subset where neither side of the regression sits at a parseability floor or ceiling.
 
 The v1.1.2 amendment resolved the tension via the regime split rather than by adopting GLMM uniformly. Adopting GLMM uniformly would have introduced an R dependency (the only available GLMM implementation for binomial mixed-effects with the cascade structure was \texttt{lme4} via \texttt{rpy2}); routing parse-failure-dominated cells to sample-SD-based tolerance instead achieves the same effect (a tolerance measure that does not depend on a parametric variance-components decomposition the data does not support) without the dependency.
 
@@ -1396,9 +1440,9 @@ The v1.1.2 amendment resolved the tension via the regime split rather than by ad
 
 Table~\ref{tab:tolerance-by-cell} reports the regime classification per cell. The seven parse-failure-dominated cells are concentrated in the generate-and-parse scoring rule on base models (Pythia-1.4B and Pythia-410M) on benchmarks where small models struggle to produce parseable outputs in the constrained-choice format (HellaSwag, MMLU panel, TruthfulQA-MC, Winogrande). The twenty-three $g$-theory cells include all of ARC-Challenge ($g$-theory across all six cells, since ARC-Challenge's small-model parseability rates are above 0.30 for both scoring rules) and the length-normalized log-likelihood scoring rule on every cell (LL parseability is uniformly above 0.30 because LL scoring does not depend on the model producing parseable text).
 
-For the twenty-three $g$-theory cells, the LPM-based tolerance and the (unimplemented) GLMM-based tolerance would license the same decimal-place precision under the §\ref{sec:tolerance-schedule} decision rule, because the cells' single-occasion SEMs are well above the second-decimal-precision threshold (0.005) and methodological tolerance between the two estimators is well below this threshold. For the seven parse-failure-dominated cells, both LPM-based and GLMM-based tolerance would also license interval-required reporting, because the cells' sample standard deviations are also above the threshold; the regime split makes the methodological choice transparent rather than concealing it.
+For the twenty-three $g$-theory cells, the observed LPM-based tolerances are far above the $0.005$ two-decimal-precision threshold, so the H1 licensing decision is unlikely to depend on small LPM-versus-GLMM differences in the variance-components estimates; a direct GLMM replication remains the cleaner robustness check, and we do not claim equivalence beyond the proximity-of-decision-boundary argument. For the seven parse-failure-dominated cells, the observed sample-SD-based tolerances already exceed the decision threshold, so the precision-licensing conclusion does not require interpreting either LPM or GLMM variance components on these cells; the regime split makes the methodological choice transparent rather than concealing it.
 
-The substantive measurement claim --- that no cell in the panel licenses second-decimal precision under single-occasion measurement --- is therefore robust to the LPM-versus-GLMM choice; the regime split is what makes the methodological transparency about which estimator a given cell uses defensible to a reviewer following the NIST AI 800-3 endorsement.
+The substantive measurement claim --- that no cell in the panel licenses two-decimal precision under single-occasion measurement --- is unlikely to depend on the LPM-versus-GLMM choice, because the observed tolerances are far from the $0.005$ decision boundary in the relevant cells. A direct GLMM replication remains the cleaner robustness check; the regime split is what makes the methodological transparency about which estimator a given cell uses defensible to a reviewer following the NIST AI 800-3 endorsement.
 
 % =============================================================================
 % Bibliography
