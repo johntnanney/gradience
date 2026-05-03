@@ -8,7 +8,6 @@
 % - Titles use {curly braces} to protect capitalization
 % - entry types: article for arXiv, inproceedings for proceedings, misc for anonymized
 %
-% Unresolved citations at the bottom of the file (see TODO BLOCK).
 % ============================================================================
 
 
@@ -68,14 +67,10 @@
 
 % ----------------------------------------------------------------------------
 % Mergeability-prediction literature (the paper positions against)
-% ANON: comment text "Gradience positions against" → "the paper positions
-% ANON: against"; project-brand word "Gradience" stripped from section header.
 % ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.22934
 % https://aclanthology.org/2025.acl-long.1284/
-% ANON: zhang2025osrm note: stripped "N134 report" and "N135-alt
-% ANON: follow-up" phrases.
 @inproceedings{zhang2025osrm,
   author    = {Zhang, Haobo and Zhou, Jiayu},
   title     = {{Unraveling LoRA Interference: Orthogonal Subspaces for
@@ -89,7 +84,6 @@
 }
 
 % https://arxiv.org/abs/2601.22285
-% ANON: zhou2026demystifying note: stripped "Cited in N134 report" phrase.
 @article{zhou2026demystifying,
   author  = {Zhou, Luca and Zhao, Bo and Yu, Rose and Rodol{\`a},
              Emanuele},
@@ -106,7 +100,6 @@
 }
 
 % https://arxiv.org/abs/2601.06672
-% ANON: rahamim2026mergeability note: stripped "Cited in N134 discussion" phrase.
 @article{rahamim2026mergeability,
   author  = {Rahamim, Adir and Yehudai, Asaf and Carmeli, Boaz and
              Choshen, Leshem and Mass, Yosi and Belinkov, Yonatan},
@@ -137,15 +130,10 @@
 % Decoder-scale evaluation (Hitit et al., not "Cocchieri")
 % ----------------------------------------------------------------------------
 %
-% ANON: section comment originally described an internal misattribution
-% ANON: correction and named project-specific files (sidecar paths,
-% ANON: docs/THEORY.md, docs/positioning/gradience_differentiation.md).
-% ANON: Replaced with a neutral note.
 % NB: authorship for arXiv:2511.21437 verified on 2026-04-20 as
 % Hitit, Girrbach, Akata.
 
 % https://arxiv.org/abs/2511.21437
-% ANON: hitit2026insystematic note: stripped "Cited in N134 report" phrase.
 @article{hitit2026insystematic,
   author  = {Hitit, O{\u{g}}uz Ka{\u{g}}an and Girrbach, Leander and
              Akata, Zeynep},
@@ -170,8 +158,6 @@
 % ----------------------------------------------------------------------------
 
 % https://arxiv.org/abs/2505.10833
-% ANON: he2025mergebench note: stripped "cited in the discussion" phrase
-% ANON: (referred to this paper).
 @article{he2025mergebench,
   author  = {He, Yifei and Zeng, Siqi and others},
   title   = {{MergeBench: A Benchmark for Merging Domain-Specialized
@@ -267,9 +253,6 @@
 % ----------------------------------------------------------------------------
 % Parallel-development corpus (measurement-discipline register, 2025-2026)
 % ----------------------------------------------------------------------------
-% ANON: full author and affiliation restored at camera-ready; the
-% ANON: v2-anonymized supplement does not name these works because the
-% ANON: cites were added at v2.1 (post-anonymization-tag).
 
 % https://arxiv.org/abs/2604.11581
 @misc{messing2026hidden,
@@ -431,20 +414,11 @@
 
 % ----------------------------------------------------------------------------
 % Anonymized self-citations
-% ANON: section header "(prior Gradience work)" and explanatory comment
-% ANON: naming "N127-N133 prior work" and the author's name removed. The
-% ANON: camera-ready restoration procedure is recorded in RN-018.
 % ----------------------------------------------------------------------------
 %
 % These entries are placeholders for prior work referenced in the draft's
 % prior-work chain. For review they are anonymized per venue policy.
 
-% ANON: Titles stripped of internal project numbers (N127, N130, N132,
-% ANON: N133, N134) and the notes stripped of repository / tag references
-% ANON: ("See repository", "n134-report-v1"). The cite keys are retained
-% ANON: because they are referenced from the body .tex and the strings
-% ANON: are not printed in the bibliography's rendered output. Restore
-% ANON: original titles and notes at camera-ready time.
 @misc{anonymized2026n127,
   author = {Anonymized},
   title  = {{Same/cross alignment separation on a small encoder
@@ -488,43 +462,3 @@
 }
 
 
-% ============================================================================
-% TODO BLOCK — unresolved citations
-% ============================================================================
-%
-% The following citation could not be verified via web search or arXiv fetch
-% during T4. If the revision process in draft_current.md re-introduces it,
-% resolve it first (by reading the paper directly, contacting the author,
-% or removing the attribution in favor of citation-by-title).
-
-
-% TODO: "Panahi et al." attribution for OpenReview FSDxP3ZpAx
-% ----------------------------------------------------------------
-% Earlier Gradience positioning material (docs/positioning/
-% gradience_differentiation.md, docs/THEORY.md, docs/technical-report.md)
-% attributed the paper "LoRA Provably Reduces Forgetting and Enables
-% Adapter Merging in Multiclass Linear Classification" (OpenReview id
-% FSDxP3ZpAx) to "Panahi et al. 2026." On 2026-04-20 this attribution
-% could not be independently verified: the OpenReview page returned
-% HTTP 403 to the bibliography-writing agent, and search could not
-% confirm the first author's surname. The references to "Panahi et al."
-% in those three documents were softened on 2026-04-20 to cite the
-% paper by title rather than by author (see RN-003 in revision_notes.md).
-%
-% Resolution: check OpenReview authorship directly (requires login).
-% If confirmed, add a bib entry with the correct author list; update
-% in-text citations in the positioning material. If the first author
-% is someone other than Panahi, correct the attribution record in
-% revision_notes.md and wherever the title-based citation appears.
-
-% Template stub (uncomment and fill when authorship resolved):
-%   inproceedings TODO_lora_provably_reduces_forgetting
-%   author    = TODO
-%   title     = LoRA Provably Reduces Forgetting and Enables Adapter
-%               Merging in Multiclass Linear Classification
-%   booktitle = Proceedings of ICLR 2026
-%   year      = 2026
-%   note      = OpenReview id FSDxP3ZpAx. Search on 2026-04-20
-%               confirmed ICLR 2026 acceptance; author list still
-%               requires verification via direct OpenReview login
-%               or the ICLR 2026 proceedings page once indexed.
