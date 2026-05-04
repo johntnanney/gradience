@@ -829,7 +829,34 @@ verbal description of the parseability distribution, we report the
 per-cell parseability audit in Section~\ref{sec:tolerance-schedule-results}.
 That audit exposes both clear parse-failure cases and near-threshold
 cells, making the regime assignment inspectable rather than hidden
-inside the evaluation pipeline. The amendment
+inside the evaluation pipeline.
+
+Beyond inspectability, the locked threshold's substantive conclusions
+are robust to small perturbations of its value. Under threshold values
+of $0.25$ and $0.35$ --- $\pm 0.05$ around the locked $0.30$ --- two of
+thirty cells flip regime relative to the locked classification: at
+$0.25$, MMLU panel × Pythia-410M (G\&P) flips from
+\texttt{parse\_failure\_dominated} to \texttt{g\_theory} (its median
+parseability is $0.283$, below the locked $0.30$ but above the
+alternate $0.25$); at $0.35$, ARC-Challenge × Pythia-410M (G\&P) flips
+from \texttt{g\_theory} to \texttt{parse\_failure\_dominated} (its median
+parseability is $0.323$, above $0.30$ but below $0.35$). The flipped
+cells' rule-conditioned single-occasion tolerances shift by approximately
+$3\%$ (MMLU × Pythia-410M G\&P: $0.075 \to 0.078$) and $30\%$ (ARC × Pythia-410M
+G\&P: $0.125 \to 0.162$) respectively, but the substantive H1 and
+two-decimal-licensing conclusions are unchanged: H1 confirms at $5/5$ at
+all three thresholds, and zero of thirty cells license two-decimal
+reporting at either single-occasion or full-design averaging at any of
+the three thresholds. The across-rule estimand availability (the count of
+(benchmark, model) cells where both rules are in the $g$-theory regime;
+see §\ref{sec:tolerance-schedule-results}) shifts by exactly one cell in
+each direction --- $8 \to 9$ at $0.25$ and $8 \to 7$ at $0.35$ --- reflecting
+the same two near-threshold cells. The locked threshold's substantive
+conclusions are therefore robust to small perturbations of its value, and
+the regime classification's local fragility is confined to the two
+near-threshold cells the audit table makes visible.
+
+The amendment
 is recorded in \texttt{LOCK\_NOTES.md} v1.1.2 with full audit, and
 the threshold parameter is set in \texttt{configs/analysis\_config.yaml}
 under the key \texttt{tolerance.parse\_failure\_threshold}. Pre-registered
@@ -1083,7 +1110,7 @@ Winogrande    & Qwen2.5-1.5B & 0.126 & 0.026 \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.78\textwidth]{tolerance_calibration.pdf}
-\caption{Tolerance calibration across the thirty cells of the primary panel. X-axis: single-occasion tolerance ($k = 1$); Y-axis: full-design tolerance (averaging over admissible conditions per cell). Both axes log-scaled. Dashed reference lines mark the $\pm 0.005$ accuracy threshold (the H1 boundary; reporting to two decimal places in decimal-accuracy form, e.g. $0.74$); dotted reference lines mark the $\pm 0.05$ accuracy threshold (reporting to one decimal place in decimal-accuracy form, e.g. $0.7$). Cells are colored by regime. No cell falls left of the vertical $\pm 0.005$ line --- zero of thirty cells license two-decimal decimal-accuracy reporting under single-occasion measurement. One cell falls below the horizontal $\pm 0.005$ line: HellaSwag, Pythia-1.4B, generate-and-parse, in the parse-failure-dominated regime, where the cell's small score variance carries small full-design tolerance in absolute terms. The diagonal $y = x$ reference line marks where averaging recovers no precision over single-occasion measurement; every cell sits below the diagonal, with the gap proportional to the full-design averaging gain on the cell. The figure plots across-rule estimands; under the rule-conditioned primary schedule (Table~\ref{tab:tolerance-rule-conditioned}), no cell in the panel licenses two-decimal reporting at either single-occasion or full-design averaging.}
+\caption{Rule-conditioned tolerance calibration across the thirty cells of the primary panel. X-axis: rule-conditioned single-occasion tolerance ($k = 1$); Y-axis: rule-conditioned full-design tolerance (averaging over admissible conditions at fixed scoring rule; $12$ on ARC-Challenge, HellaSwag, and Winogrande, $60$ on MMLU panel where the subject facet contributes, $4$ on TruthfulQA-MC where the seed facet collapses). Both axes log-scaled. Dashed reference lines mark the $\pm 0.005$ accuracy threshold (the H1 boundary; reporting to two decimal places in decimal-accuracy form, e.g. $0.74$); dotted reference lines mark the $\pm 0.05$ accuracy threshold (reporting to one decimal place in decimal-accuracy form, e.g. $0.7$). Markers indicate regime: open circles for $g$-theory cells, filled squares for parse-failure-dominated cells. No cell falls left of the vertical $\pm 0.005$ line --- zero of thirty cells license two-decimal decimal-accuracy reporting under single-occasion measurement. No cell falls below the horizontal $\pm 0.005$ line either: zero of thirty cells license two-decimal reporting under full-design averaging on the rule-conditioned schedule. The diagonal $y = x$ reference line marks where averaging recovers no precision over single-occasion measurement; every cell sits below the diagonal, with the gap proportional to the rule-conditioned full-design averaging gain on the cell.}
 \label{fig:tolerance-calibration}
 \end{figure}
 
