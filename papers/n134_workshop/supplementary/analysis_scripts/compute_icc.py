@@ -1,7 +1,4 @@
 """Cross-seed ICC for S_H1 as an instrument.
-# ANON: docstring header rewritten to drop project identifier and
-# ANON: working-repo path ("papers/n134_workshop/draft_v2_thesis_b.tex",
-# ANON: "sidecar/notes/n134_icc_spec.md"); bundle-relative reference used instead.
 
 Closes the [TODO] in the Appendix-D reliability section of the main
 manuscript, per the spec at pre_registration/icc_analysis_preregistration.md.
@@ -35,7 +32,7 @@ Shrout-Fleiss ICC(2,1) and its CI, on a complete n_tasks x n_raters panel:
   variant we use here.)
 
 Usage:
-  python analysis_scripts/compute_icc.py  # ANON: path rewritten to bundle-relative.
+  python analysis_scripts/compute_icc.py
 
 Override workspace via N134_WORKSPACE env var (same pattern as 06/07/08).
 
@@ -55,14 +52,13 @@ import numpy as np
 from scipy import stats
 
 # Import compute_s_h1 from the H1 analysis script.  Adding analysis_scripts/ to
-# ANON: previous comment pointed at "scripts/n134/"; bundle-relative rewrite.
 # sys.path lets us use the 06 module without repackaging it.  Filename
 # starts with a digit so we import via importlib.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import importlib.util as _ilu  # noqa: E402
 _spec_06 = _ilu.spec_from_file_location(
-    "_compute_s_h1_loader",  # ANON: loader module name generic.
-    str(Path(__file__).resolve().parent / "compute_s_h1.py"),  # ANON: script renamed.
+    "_compute_s_h1_loader",
+    str(Path(__file__).resolve().parent / "compute_s_h1.py"),
 )
 _m06 = _ilu.module_from_spec(_spec_06)
 _spec_06.loader.exec_module(_m06)
@@ -235,7 +231,7 @@ def bootstrap_icc(
 
 def main() -> None:
     print("=" * 74)
-    print("  Cross-seed ICC for S_H1 (per pre_registration/icc_analysis_preregistration.md)")  # ANON: rewrite.
+    print("  Cross-seed ICC for S_H1 (per pre_registration/icc_analysis_preregistration.md)")
     print("=" * 74)
 
     pair_full_path = AUDIT_DIR / "pair_alignment_full.json"
@@ -314,8 +310,8 @@ def main() -> None:
     output = {
         "instrument": "S_H1",
         "instrument_source":
-            "analysis_scripts/compute_s_h1.py:compute_s_h1",  # ANON: bundle-relative.
-        "spec": "pre_registration/icc_analysis_preregistration.md",  # ANON: bundle-relative.
+            "analysis_scripts/compute_s_h1.py:compute_s_h1",
+        "spec": "pre_registration/icc_analysis_preregistration.md",
         "design": {
             "icc_form": "ICC(2,1)",
             "agreement_type": "absolute",

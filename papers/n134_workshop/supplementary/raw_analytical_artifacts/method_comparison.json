@@ -1,5 +1,4 @@
 {
-  "_anon_note": "Anonymized for double-blind review. Field changes from camera-ready source: \"experiment\" rewrote \"N134 four-method scheduled comparison\" to \"Four-method scheduled comparison (decoder-scale controlled triage)\" (project identifier stripped); \"protocol.methods\" list entry \"gradience (S_H1)\" rewrote to \"S_H1 (this paper)\"; \"methods\" dict key \"gradience\" rewrote to \"s_h1\" (structural rename coupled with the analysis_scripts/compare_methods.py rewrite so that the per-method lookup path remains consistent). No numerical values changed.",
   "experiment": "Four-method scheduled comparison (decoder-scale controlled triage)",
   "protocol": {
     "n_cross_task_pairs_evaluated": 45,

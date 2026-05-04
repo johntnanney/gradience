@@ -4,7 +4,7 @@
 
 This bundle accompanies the submitted manuscript. It contains the pre-registration documents, the raw analytical artifacts, and the analysis scripts that produce the headline numbers reported in the paper. The purpose of the bundle is to make the paper's measurement-discipline arguments auditable in the sense the paper itself argues for: a reviewer should be able to verify that each reported number is the output of the pre-registered decision rule applied to the committed data, rather than a post-hoc artifact.
 
-All files in this bundle have been reviewed for identity-revealing content consistent with TMLR's double-blind review policy. Replacements follow the same `% ANON:` / `# ANON:` marker convention used in the main manuscript: each edited region carries an adjacent comment naming what was changed, so a reviewer encountering a stripped passage knows the edit is intentional and has a signature that persists through the camera-ready restoration.
+All files in this bundle have been reviewed for identity-revealing content consistent with TMLR's double-blind review policy. Original content is preserved in the authors' version control for camera-ready restoration.
 
 ---
 
@@ -35,7 +35,7 @@ supplementary/
     └── compare_methods.py                         (produces method_comparison.json)
 ```
 
-Directory and filenames in this bundle are renamed versions of the corresponding files in the authors' working repository. The renaming strips project-internal identifiers (see the ANON comment block at the top of each file for the original filename, restored at camera-ready).
+Directory and filenames in this bundle are renamed versions of the corresponding files in the authors' working repository. The renaming strips project-internal identifiers; original filenames are preserved in the authors' version control for camera-ready restoration.
 
 ---
 

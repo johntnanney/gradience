@@ -1,11 +1,8 @@
-<!-- ANON: title renamed from "N134 Cross-Seed ICC Specification" to drop project number. -->
 # Cross-Seed ICC Analysis — Pre-Registration Supplement
 
 **Status:** spec, pending implementation.
-<!-- ANON: "Purpose" line rewritten: working-repo path ("papers/n134_workshop/draft_v2_thesis_b.tex") replaced with descriptive paper-section reference. -->
 **Purpose:** close the `\emph{[TODO...]}` in the Appendix-D reliability
 section of the main manuscript.
-<!-- ANON: companion-artefacts block rewritten: bundle-relative paths replace the working-repo "sidecar/results/n134/" and "scripts/n134/" prefixes per checklist §2.2. -->
 **Companion artefacts at completion time:**
 `raw_analytical_artifacts/analysis_icc.json`,
 `analysis_scripts/compute_icc.py`, short Appendix-D paragraph and §2.2 /
@@ -23,7 +20,6 @@ reverse-engineering both from the reported number.
 
 ## 1. What is being estimated
 
-<!-- ANON: "scripts/n134/06_analysis_h1.py" path → bundle-relative "analysis_scripts/compute_s_h1.py". -->
 Cross-seed intraclass correlation for $S_{\mathrm{H1}}$ as an instrument,
 where "the instrument" is the `compute_s_h1(pair)` function in
 `analysis_scripts/compute_s_h1.py` applied to a same-task adapter pair.
@@ -48,7 +44,6 @@ The target value goes into:
 
 ## 2. Data inputs
 
-<!-- ANON: "sidecar/results/n134/audit/" path → bundle-relative "raw_analytical_artifacts/". -->
 - **Source file.** `raw_analytical_artifacts/pair_alignment_full.json`.
   Verified top-level schema: dictionary keyed by pair identifier
   `{task_a}_s{seed_a}_vs_{task_b}_s{seed_b}`, with per-pair per-layer
@@ -61,7 +56,6 @@ The target value goes into:
   (deterministic ordering: $(42,123)$, $(42,456)$, $(123,456)$; the
   within-task ordering is arbitrary for an ICC(2,1) estimate but should be
   fixed for reproducibility).
-<!-- ANON: "the N134 pre-registration's" → "this study's pre-registration". -->
 - **Completeness.** 24/24 by design (this study's pre-registration's
   three-seeds-per-task commitment guarantees no missing cells). The
   implementer should assert this explicitly rather than silently proceed on
@@ -86,7 +80,6 @@ The target value goes into:
   rank-order the tasks identically. The paper's bounded-precision claims
   couple to absolute-agreement SEM; consistency ICC would answer a
   different (weaker) question.
-<!-- ANON: "the N134 design happened to have available" → "this study's design happened to have available". -->
 - **Single measurement, not average.** The paper's primary H1 test applies
   $S_{\mathrm{H1}}$ to a single seed-pair per cross-task pair. The
   relevant reliability is therefore of a single measurement, not of a
@@ -130,7 +123,6 @@ figures.
 
 ### 3.4 Instrument-output definition: raw `compute_s_h1(pair)`
 
-<!-- ANON: "scripts/n134/06_analysis_h1.py" → "analysis_scripts/compute_s_h1.py". -->
 No normalization, no standardization, no family-residualization (same-task
 pairs have no family-identity confound structure — they are the
 reliability design itself). Compute $S_{\mathrm{H1}}$ by calling
@@ -143,7 +135,6 @@ under H1 test."
 
 ## 4. Computation procedure
 
-<!-- ANON: all working-repo paths in steps 1/3/7 → bundle-relative. -->
 1. Load `raw_analytical_artifacts/pair_alignment_full.json`.
 2. Filter to same-task pairs (`is_same_task == true`); assert the
    resulting count is exactly 24.
@@ -165,7 +156,6 @@ under H1 test."
 
 ## 5. Output schema
 
-<!-- ANON: "instrument_source" field value → bundle-relative path. -->
 ```json
 {
   "instrument": "S_H1",
@@ -221,7 +211,6 @@ under H1 test."
   computational error or degenerate between-task variance (all tasks
   producing indistinguishable $S_{\mathrm{H1}}$ distributions); investigate
   before reporting.
-<!-- ANON: "Prior Gradience program experience with" → "Prior experience in this research program with". -->
 - **Magnitude expectation.** Prior experience in this research program
   with spectral scores on seed-replicated adapters in the same task
   suggests ICC > 0.6 is the expected regime. $\mathrm{ICC} < 0.5$ is not a
@@ -251,7 +240,6 @@ under H1 test."
   the lower bound, report both in the appendix with a one-sentence
   acknowledgement that parametric assumptions may be borderline at
   $N = 8$ tasks.
-<!-- ANON: internal revision-note identifier "RN-NNN" stripped per checklist §1 "paper-private working-session labels". -->
 - If the implementer has a principled reason to depart from a design
   choice in §3, do not depart silently: document the alternative in a
   supplementary revision note and update this spec before proceeding.
@@ -293,7 +281,6 @@ under H1 test."
 
 ## 9. Promotion to convention
 
-<!-- ANON: §9 rewritten to strip project-brand ("Gradience"), follow-up study identifier ("N135-alt"), and sidecar/internal path reference ("sidecar/conventions/cross_seed_icc.md") and "reproducibility_check_tiers.md" sibling-convention reference per checklist §1 patterns. -->
 If a subsequent study in this research program uses the same procedure,
 promote §3's design choices to a standalone convention document,
 following the study-specific-spec-first, convention-abstracted-on-second-use

@@ -1,6 +1,4 @@
 """Primary H1 analysis + confirmatory replications (decoder-scale controlled triage).
-# ANON: original title "N134 primary H1 analysis + confirmatory replications";
-# ANON: project-number identifier stripped for double-blind review.
 
 H1 metric: O-module depth-weighted alignment.
 
@@ -50,7 +48,6 @@ from scipy import stats
 # ---------------------------------------------------------------------------
 
 # WORKSPACE defaults to the pod-absolute path that produced the committed
-# ANON: comment block rewritten to drop sidecar/ internal path example.
 # bundle artifacts. Replicators running outside the original environment can
 # override via the N134_WORKSPACE environment variable — pointing it at,
 # e.g., the bundle's raw_analytical_artifacts/ directory or an isolated /tmp/ workspace — without
@@ -532,7 +529,7 @@ def plot_h1_scatter(
     ax.set_xlabel("S_H1 (O-module depth-weighted alignment)", fontsize=11)
     ax.set_ylabel("max degradation (%)", fontsize=11)
     ax.set_title(
-        f"H1: S_H1 vs merge degradation\n"  # ANON: project-number prefix stripped from figure title.
+        f"H1: S_H1 vs merge degradation\n"
         f"partial rho = {rho_partial:+.3f}, delta-R2 = {delta_r2:+.3f}",
         fontsize=12,
     )
@@ -583,7 +580,7 @@ def plot_bootstrap_distribution(boot_results: dict, out_path: Path) -> None:
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
 
-    fig.suptitle(f"H1 block-bootstrap CIs ({boot_results['n_valid_boots']} resamples)", fontsize=13)  # ANON: project-number prefix stripped.
+    fig.suptitle(f"H1 block-bootstrap CIs ({boot_results['n_valid_boots']} resamples)", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -636,7 +633,7 @@ def plot_replications(bp1: dict, bp2: dict, bp4: dict, out_path: Path) -> None:
         ax.text(0.5, 0.5, "Insufficient data", ha="center", va="center", transform=ax.transAxes)
         ax.set_title("B-P4: erank ANOVA", fontsize=10)
 
-    fig.suptitle("Confirmatory replications (non-gating)", fontsize=13)  # ANON: project-number prefix stripped.
+    fig.suptitle("Confirmatory replications (non-gating)", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -648,7 +645,7 @@ def plot_replications(bp1: dict, bp2: dict, bp4: dict, out_path: Path) -> None:
 
 def main() -> None:
     print("=" * 74)
-    print("  Primary H1 analysis: O-module depth-weighted alignment")  # ANON: stripped.
+    print("  Primary H1 analysis: O-module depth-weighted alignment")
     print("=" * 74)
 
     FIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -795,7 +792,7 @@ def main() -> None:
 
     # ---- Save JSON ----
     result = {
-        "experiment": "H1: O-module depth-weighted alignment (decoder-scale controlled triage)",  # ANON: stripped.
+        "experiment": "H1: O-module depth-weighted alignment (decoder-scale controlled triage)",
         "n_eval_cross_task_pairs": n_eval,
         "n_family_pair_cells": n_cells,
         "h1_score": {
@@ -864,7 +861,7 @@ def main() -> None:
     print(f"\n  Saved {out_path}")
 
     print("\n" + "=" * 74)
-    print(f"  H1 result: {'CONFIRMED' if h1_confirmed else 'NOT CONFIRMED'}")  # ANON: stripped.
+    print(f"  H1 result: {'CONFIRMED' if h1_confirmed else 'NOT CONFIRMED'}")
     print("=" * 74)
 
 

@@ -1,9 +1,8 @@
 """Four-method scheduled comparison (decoder-scale controlled triage).
-# ANON: original title "N134 four-method scheduled comparison"; project prefix stripped.
 
 Compares four merge-risk triage methods on the evaluated cross-task pairs:
 
-    1. S_H1 (this paper): O-module depth-weighted alignment  # ANON: method label rewritten.
+    1. S_H1 (this paper): O-module depth-weighted alignment
     2. KnOTS (Stoica et al. 2024): joint SVD rotation, interference norm
     3. TSV (Gargiulo et al. 2025): task-singular-vector whitened interference
     4. SVC (Li et al. 2026): singular-value rescaling, SV-inflation index
@@ -36,12 +35,6 @@ from pathlib import Path
 
 import matplotlib
 
-# ANON: the dict key and string-literal method-name "gradience" (used throughout as the key
-# ANON: into the methods output dict) has been renamed to "s_h1" in all 5 occurrences
-# ANON: in this file. This rename is coupled with the parallel rename in the companion
-# ANON: raw_analytical_artifacts/method_comparison.json output, so the key remains
-# ANON: consistent between the script and the data. See the _anon_note field in
-# ANON: method_comparison.json for the JSON-side rename record.
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,14 +45,13 @@ from scipy import stats
 # ---------------------------------------------------------------------------
 
 # WORKSPACE defaults to the pod-absolute path that produced the committed
-# ANON: comment rewritten to drop sidecar/internal-path example.
 # bundle artifacts. Replicators running outside the original environment can
 # override via the N134_WORKSPACE environment variable without editing
 # the script; the default preserves pod-era provenance. NB: Phase 5
 # additionally requires per-adapter .npz SVD sidecars under
 # {WORKSPACE}/audit/{adapter_id}_svd.npz which are not committed to the
 # repository (1.2 GB total); replicators need to re-audit adapters (see
-# the audit script referenced in the pre-registration) before running this script.  # ANON
+# the audit script referenced in the pre-registration) before running this script.
 import os  # noqa: E402
 
 WORKSPACE = Path(os.environ.get("N134_WORKSPACE", "/workspace/n134"))
@@ -221,7 +213,7 @@ def family_pair_label(task_a: str, task_b: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Method 1: S_H1 (this paper)  # ANON: method label rewritten.
+# Method 1: S_H1 (this paper)
 # ---------------------------------------------------------------------------
 
 def compute_s_h1(pair: dict) -> float:
@@ -817,7 +809,7 @@ def plot_method_comparison(method_results: dict, out_path: Path) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels([m.upper() for m in methods], fontsize=11)
     ax.set_ylabel("Mean max degradation in retained set (%)", fontsize=11)
-    ax.set_title(f"Four-method triage comparison (retain {N_RETAIN} lowest-risk pairs)",  # ANON
+    ax.set_title(f"Four-method triage comparison (retain {N_RETAIN} lowest-risk pairs)",
                  fontsize=12)
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3, axis="y")
@@ -834,7 +826,7 @@ def plot_rank_correlation(method_results: dict, eval_degs: dict, out_path: Path)
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     method_names = ["s_h1", "knots", "tsv", "svc"]
-    method_labels = ["S_H1 (this paper)", "KnOTS", "TSV", "SVC"]  # ANON: first label rewritten.
+    method_labels = ["S_H1 (this paper)", "KnOTS", "TSV", "SVC"]
     color_list = ["#3498db", "#e67e22", "#2ecc71", "#9b59b6"]
 
     for ax, name, label, color in zip(axes.flat, method_names, method_labels, color_list):
@@ -871,7 +863,7 @@ def plot_rank_correlation(method_results: dict, eval_degs: dict, out_path: Path)
         ax.set_title(f"{label}\nrho = {rho:+.3f}, p = {p_val:.3e}", fontsize=11)
         ax.grid(True, alpha=0.3)
 
-    fig.suptitle("Risk score vs merge degradation per method", fontsize=13)  # ANON
+    fig.suptitle("Risk score vs merge degradation per method", fontsize=13)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -883,7 +875,7 @@ def plot_rank_correlation(method_results: dict, eval_degs: dict, out_path: Path)
 
 def main() -> None:
     print("=" * 74)
-    print("  Four-method scheduled comparison")  # ANON
+    print("  Four-method scheduled comparison")
     print("=" * 74)
 
     # ---- Load ----
@@ -899,9 +891,9 @@ def main() -> None:
 
     method_results: dict[str, dict] = {}
 
-    # ---- Method 1: S_H1 (this paper) ----  # ANON: method label rewritten.
+    # ---- Method 1: S_H1 (this paper) ----
     print("\n" + "-" * 74)
-    print("  Method 1: S_H1 (this paper)")  # ANON
+    print("  Method 1: S_H1 (this paper)")
     print("-" * 74)
 
     g_scores = gradience_scores(pair_full)
@@ -1094,12 +1086,12 @@ def main() -> None:
         serializable[name] = entry
 
     report = {
-        "experiment": "Four-method scheduled comparison (decoder-scale controlled triage)",  # ANON
+        "experiment": "Four-method scheduled comparison (decoder-scale controlled triage)",
         "protocol": {
             "n_cross_task_pairs_evaluated": n_eval,
             "n_retain": N_RETAIN,
             "n_bootstrap": N_BOOTSTRAP,
-            "methods": ["S_H1 (this paper)", "knots", "tsv", "svc"],  # ANON: first list entry rewritten from "gradience (S_H1)".
+            "methods": ["S_H1 (this paper)", "knots", "tsv", "svc"],
         },
         "methods": serializable,
     }
@@ -1109,7 +1101,7 @@ def main() -> None:
     print(f"\n  Saved {out_path}")
 
     print("\n" + "=" * 74)
-    print("  Four-method comparison complete")  # ANON: prefix stripped.
+    print("  Four-method comparison complete")
     print("=" * 74)
 
 

@@ -1,5 +1,4 @@
 {
-  "_anon_note": "Anonymized for double-blind review. Field changes from camera-ready source: \"experiment\" rewrote \"N134 H1: O-module depth-weighted alignment\" to \"H1: O-module depth-weighted alignment (decoder-scale controlled triage)\" (project identifier stripped). No numerical values changed.",
   "experiment": "H1: O-module depth-weighted alignment (decoder-scale controlled triage)",
   "n_eval_cross_task_pairs": 45,
   "n_family_pair_cells": 28,
@@ -41,7 +40,7 @@
     "rho_ci_025": -0.8251385653501776,
     "rho_ci_975": -0.13122569456952446,
     "dr2_mean": 0.005750463341893426,
-    "dr2_ci_025": 1.7133068050662063e-05,
+    "dr2_ci_025": 0.000017133068050662063,
     "dr2_ci_975": 0.02289018729947445
   },
   "tied_pairs": {
@@ -65,7 +64,7 @@
       "cross_mean": 0.03709949303765103,
       "ratio": 2.2803146766926217,
       "welch_t": 15.90244390258596,
-      "welch_p": 5.97919412473465e-14,
+      "welch_p": 5.97919412473465E-14,
       "n_same": 24,
       "n_cross": 252,
       "confirmed": true
@@ -93,7 +92,7 @@
         "boolq": 11.305508335883856
       },
       "anova_F": 165.6036043520068,
-      "anova_p": 1.0167222010909925e-13,
+      "anova_p": 1.0167222010909925E-13,
       "confirmed": true
     }
   },

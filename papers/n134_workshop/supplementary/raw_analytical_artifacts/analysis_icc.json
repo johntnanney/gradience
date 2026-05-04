@@ -1,5 +1,4 @@
 {
-  "_anon_note": "Anonymized for double-blind review. Field changes from camera-ready source: \"instrument_source\" rewrote \"scripts/n134/06_analysis_h1.py:compute_s_h1\" to \"analysis_scripts/compute_s_h1.py:compute_s_h1\" (bundle-relative path); \"spec\" rewrote \"sidecar/notes/n134_icc_spec.md\" to \"pre_registration/icc_analysis_preregistration.md\" (bundle-relative path). No numerical values changed.",
   "instrument": "S_H1",
   "instrument_source": "analysis_scripts/compute_s_h1.py:compute_s_h1",
   "spec": "pre_registration/icc_analysis_preregistration.md",

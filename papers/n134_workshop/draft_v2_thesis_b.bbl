@@ -5,31 +5,31 @@
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Anonymized(2026{\natexlab{a}})]{anonymized2026n130}
+\bibitem[Anonymized(2026{\natexlab{a}})]{anonymized2026descriptive}
 Anonymized.
-\newblock {Task-boundary triage replication on a small encoder backbone},
-  2026{\natexlab{a}}.
-\newblock Anonymized for review.
+\newblock {Decoder-scale exploratory merge triage: descriptive predecessor
+  study}, 2026{\natexlab{a}}.
+\newblock Anonymized for review. Descriptive-only predecessor to the present
+  study.
 
-\bibitem[Anonymized(2026{\natexlab{b}})]{anonymized2026n132}
+\bibitem[Anonymized(2026{\natexlab{b}})]{anonymized2026midencoder}
 Anonymized.
 \newblock {Task-boundary triage replication on a mid-sized encoder backbone},
   2026{\natexlab{b}}.
 \newblock Anonymized for review.
 
-\bibitem[Anonymized(2026{\natexlab{c}})]{anonymized2026n133}
-Anonymized.
-\newblock {Decoder-scale exploratory merge triage: descriptive predecessor
-  study}, 2026{\natexlab{c}}.
-\newblock Anonymized for review. Descriptive-only predecessor to the present
-  study.
-
-\bibitem[Anonymized(2026{\natexlab{d}})]{anonymized2026n134spec}
+\bibitem[Anonymized(2026{\natexlab{c}})]{anonymized2026prereg}
 Anonymized.
 \newblock {Pre-registration (v3.1) for decoder-scale controlled merge triage},
-  2026{\natexlab{d}}.
+  2026{\natexlab{c}}.
 \newblock The pre-registration document for the present paper. Anonymized for
   review.
+
+\bibitem[Anonymized(2026{\natexlab{d}})]{anonymized2026smallencoder}
+Anonymized.
+\newblock {Task-boundary triage replication on a small encoder backbone},
+  2026{\natexlab{d}}.
+\newblock Anonymized for review.
 
 \bibitem[Bean et~al.(2025)Bean, Kearns, Romanou, et~al.]{bean2025measuring}
 Andrew~M. Bean, Ryan~Othniel Kearns, Angelika Romanou, et~al.

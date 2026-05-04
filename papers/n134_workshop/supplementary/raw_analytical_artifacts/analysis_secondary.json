@@ -1,5 +1,4 @@
 {
-  "_anon_note": "Anonymized for double-blind review. Field changes from camera-ready source: \"experiment\" rewrote \"N134 secondary exploratory analysis\" to \"Secondary exploratory analysis (decoder-scale controlled triage)\" (project identifier stripped). No numerical values changed.",
   "experiment": "Secondary exploratory analysis (decoder-scale controlled triage)",
   "caveat": "All results in this file are exploratory and non-evidential.",
   "n_eval_pairs": 45,
@@ -33,7 +32,7 @@
     "trend_slope": 0.03132523722432976,
     "trend_intercept": 1.8329410644032271,
     "trend_r": 0.919433291197456,
-    "trend_p": 1.0807368089963541e-13,
+    "trend_p": 1.0807368089963541E-13,
     "per_layer": [
       {
         "layer": 0,
@@ -236,7 +235,7 @@
       "spearman_raw_p": 0.10082640902068386,
       "spearman_partial": -0.31329711228936347,
       "spearman_partial_p": 0.03611771423246064,
-      "delta_r2": 1.9173149445883553e-06,
+      "delta_r2": 0.0000019173149445883553,
       "exceeds_h1_thresholds": false
     },
     {
