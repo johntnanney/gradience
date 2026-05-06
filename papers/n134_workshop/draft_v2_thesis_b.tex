@@ -201,15 +201,31 @@ models, releasing a 900K-result evaluation dataset.
 dimensions under a NIST-aligned risk-management framework.
 \citet{lior2025reliableeval} introduces a method-of-moments
 resampling recipe for stochastic LLM evaluation, applied to five
-frontier LLMs.
+frontier LLMs. \citet{salaudeen2025measurement} adapt the
+psychometric breakdown of validity into a validity-centered
+framework for AI evaluation, instantiated through case studies of
+vision and language model evaluations.
+\citet{jo2025evalinference} articulate evaluation-as-inference at
+the framework level (capability-theory first, then estimation
+methods derived from it) and contribute an adaptive-sampling
+algorithm addressing perturbation sensitivity that significantly
+reduces sample complexity. \citet{karmakar2026singleprompt} audit
+multi-variant LLM reliability across calibration, verbal-confidence,
+and evaluator-side failure modes on a 15-model open-weight corpus,
+finding that evaluation design materially changes the reliability
+conclusion (e.g., chain-of-thought paired with a first-character
+evaluator on ARC-Challenge reduces apparent accuracy by 72--88\%
+across all five primary models).
 
 The shared diagnosis across this corpus is that ML evaluation
 pipelines carry hidden measurement variance that ordinary
 reporting does not surface. The adjacent works develop overlapping
 pieces of a measurement agenda: budget optimization, voluntary
 reporting practices, construct-validity taxonomies, variance-aware
-annotation protocols, brittleness diagnostics, benchmark-risk
-scores, and resampling rules. The present paper's contribution is
+annotation protocols, brittleness diagnostics, benchmark-design
+intervention recipes, benchmark-risk scores, resampling rules,
+validity-centered evaluation frameworks, evaluation-as-inference
+framework articulation, and reliability-audit reporting requirements. The present paper's contribution is
 not the first use of any individual component, but the coordinated
 application of four measurement commitments to ML diagnostic
 reporting: construct articulation, reliability estimation,
@@ -360,6 +376,12 @@ weights) as though they were results about the theoretical object
 (the geometric relationship between two adapters' learned updates).
 Under the inferential view the conflation is an error; under the
 direct-readout view it is not even legible as one.
+\citet{jo2025evalinference} articulate the same inferential-view
+framing for AI evaluation contemporaneously from a different
+theoretical entry point (capability-theory first, then estimation
+methods derived from it); the convergence between independent
+articulations of the same framing is itself register-level
+evidence consistent with the parallel-development corpus's claim.
 
 The distinction has empirical consequences. Different
 operationalizations of the same theoretical object can produce
