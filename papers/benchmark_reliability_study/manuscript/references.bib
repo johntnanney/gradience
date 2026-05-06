@@ -428,6 +428,47 @@
                    language model evaluations.}
 }
 
+% https://arxiv.org/abs/2605.02038
+% Surfaced via 2026-05-06 daily research review. arXiv:2605.02038, v1
+% 3 May 2026, cs.CL (cross-listed cs.AI). Tenth voice in the
+% parallel-development register; multi-variant reliability-audit
+% register covering measurement dimensions (calibration, verbal-
+% confidence, evaluator-side failure modes) complementary to the
+% present paper's variance-components-derived tolerance schedule.
+@article{karmakar2026singleprompt,
+  author        = {Karmakar, Ranit and Chatterjee, Jayita},
+  title         = {What Single-Prompt Accuracy Misses: A Multi-Variant
+                   Reliability Audit of Language Models},
+  year          = {2026},
+  eprint        = {2605.02038},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2605.02038},
+  note          = {15-model open-weight corpus (10 instruct primary)
+                   across 5 classification/reasoning benchmarks under 5
+                   prompt variants per cell. Measures accuracy,
+                   token-probability calibration, verbal-confidence
+                   calibration, verbal parse rate, and prompt-perturbation
+                   spread. Three findings: (i) evaluation design
+                   materially changes conclusions (ECE-token raw vs
+                   label-set-normalized definition shifts per-cell
+                   calibration by mean abs 0.149; CoT prompt + first-
+                   character evaluator on ARC-Challenge reduces apparent
+                   accuracy 72-88\% across all five primary models, with
+                   two repair procedures recovering 93.8\% and 102.7\% of
+                   lost performance, indicating evaluator-side failure);
+                   (ii) confidence signals are fragile (verbal-reported
+                   confidence exceeds both accuracy and token-probability
+                   confidence on MMLU-Pro across all primary models);
+                   (iii) prompt robustness does not track parameter count
+                   reliably (correlation between model size and
+                   prompt-perturbation spread ranges from -0.244 to
+                   0.474 across benchmarks). Argues calibration
+                   definitions, evaluator logic, verbal parseability, and
+                   prompt robustness should be reported explicitly when
+                   making reliability claims.}
+}
+
 % https://www.sciencedirect.com/science/article/pii/S2666920X25001213
 @article{sui2025evaluating,
   author  = {Sui and others},
