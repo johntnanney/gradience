@@ -171,8 +171,23 @@ originality but a proposal for systematic, coordinated
 application of measurement-theoretic methods to ML diagnostic
 reporting.
 
-A measurement-discipline literature has emerged contemporaneously
-across multiple voices. \citet{messing2026hidden} develops a Total
+A measurement-discipline literature has consolidated rapidly across
+2024--2026 from independent research programs converging on
+overlapping concerns. Two predecessor-wave contributions set the
+methodological tone for the wave that followed.
+\citet{perlitz2024efficientbenchmarking} introduce Decision Impact
+on Reliability (DIoR) as a quantitative measure of how benchmark
+design choices --- subset size, prompt-format selection, scoring
+rule --- reshape the conclusions a benchmark licenses, demonstrated
+on HELM. \citet{polo2024promptevalUniverso} bring item response
+theory to bear on multi-prompt LLM evaluation, producing
+distributions over per-prompt accuracy from a held-out prompt
+subsample. Both establish, well before the 2025--2026 wave, that
+benchmark design choices and prompt sensitivity are first-class
+measurement concerns rather than implementation details.
+
+The 2025--2026 wave has expanded the program along multiple axes.
+\citet{messing2026hidden} develops a Total
 Evaluation Error framework for LLM evaluation pipelines that
 decomposes pipeline uncertainty into design-choice variance and
 shrinking-with-N variance, demonstrating on MMLU benchmarking that
@@ -215,50 +230,68 @@ and evaluator-side failure modes on a 15-model open-weight corpus,
 finding that evaluation design materially changes the reliability
 conclusion (e.g., chain-of-thought paired with a first-character
 evaluator on ARC-Challenge reduces apparent accuracy by 72--88\%
-across all five primary models).
+across all five primary models). Several entries within this
+corpus share authorship structure --- in particular, a Stanford-
+anchored thread surfaces across \citet{salaudeen2025measurement}
+(Reuel, Koyejo, and Domingue at Stanford), the multi-institution
+\citet{bean2025measuring} (in which Reuel appears in the 42-author
+list), and \citet{mcgregor2025benchrisk} (with Reuel as a coauthor).
+We treat these as one co-developing research program rather than
+three independent voices, while reading the rest of the corpus as
+genuinely parallel development.
 
 The shared diagnosis across this corpus is that ML evaluation
 pipelines carry hidden measurement variance that ordinary
 reporting does not surface. The adjacent works develop overlapping
-pieces of a measurement agenda: budget optimization, voluntary
-reporting practices, construct-validity taxonomies, variance-aware
-annotation protocols, brittleness diagnostics, benchmark-design
-intervention recipes, benchmark-risk scores, resampling rules,
-validity-centered evaluation frameworks, evaluation-as-inference
-framework articulation, and reliability-audit reporting requirements. The present paper's contribution is
-not the first use of any individual component, but the coordinated
-application of four measurement commitments to ML diagnostic
-reporting: construct articulation, reliability estimation,
-precision/tolerance, and pre-registered confound decomposition.
-The worked example demonstrates what the coordinated discipline
-changes in practice: which claims are licensed, which are
-narrowed, and which must be refused.
+pieces of a measurement agenda: design-choice impact analysis
+(DIoR), item-response-theoretic prompt evaluation, budget
+optimization, voluntary reporting practices, construct-validity
+taxonomies, variance-aware annotation protocols, brittleness
+diagnostics, benchmark-design intervention recipes, benchmark-risk
+scores, resampling rules, validity-centered evaluation frameworks,
+evaluation-as-inference framework articulation, and reliability-
+audit reporting requirements. The present paper does not introduce
+the individual components, several of which are decades old in
+psychometrics and have circulating ML-side analogues across the
+corpus above. Its contribution is to synthesize the corpus's
+overlapping commitments into a coordinated reporting discipline
+for ML diagnostic metrics --- construct articulation, reliability
+estimation, precision/tolerance, and pre-registered confound
+decomposition jointly --- and to demonstrate, through a worked
+LoRA-merging case study, what the coordinated discipline changes
+in practice: which claims are licensed, which are narrowed, and
+which must be refused. A second-order empirical contribution
+surfaces in the worked example: at small $N$, partial Spearman
+$\rho$ exhibits cross-environment numerical drift of order
+$10^{-2}$ between equally faithful execution paths, comparable
+to its sampling variability --- a reporting-level precision
+finding that the coordinated discipline forces into view but
+that ordinary diagnostic reporting does not.
 
 \subsection{Contribution claims}
 
+The contributions of this paper are best understood as one
+empirical demonstration that the coordinated discipline changes
+what can responsibly be claimed, one second-order empirical
+finding that the discipline surfaces, and one framework-level
+synthesis of the corpus surveyed above. We list them in that
+order to reflect what is load-bearing.
+
 \begin{enumerate}
-  \item \textbf{A coordinated measurement-discipline framework for
-    ML diagnostic reporting} that prescribes reliability-, precision-,
-    and confound-aware reporting as joint requirements rather than
-    optional virtues. The framework's four components ---
-    (i) construct articulation, (ii) reliability estimation,
-    (iii) precision and tolerance with explicit per-quantity
-    schedules, and (iv) pre-registered confound decomposition ---
-    are not separately novel; the contribution is their integrated
-    application to ML diagnostic metrics, with the discipline that
-    adopting any one without the others silently reverts the
-    report to the direct-readout view of diagnostic scores the
-    framework rejects.
-  \item \textbf{A worked LoRA-merging case study showing how the
-    framework changes scientific interpretation}: a pre-registered
-    per-pair prediction claim becomes an informative null after
-    family-confound control; a task-boundary result is scoped to
-    population-level structure rather than per-pair prediction; a
-    cross-seed reliability estimate is bounded to the same-task
-    regime that generated it; and a pre-registered four-method
-    comparison produces a regime-scope null. The framework's
-    discipline succeeds by making each refusal explicit rather
-    than by rescuing the diagnostic.
+  \item \textbf{A worked LoRA-merging case study showing how
+    coordinated measurement discipline changes scientific
+    interpretation}: a pre-registered per-pair prediction claim
+    becomes an informative null after family-confound control; a
+    task-boundary result is scoped to population-level structure
+    rather than per-pair prediction; a cross-seed reliability
+    estimate is bounded to the same-task regime that generated it;
+    and a pre-registered four-method comparison produces a
+    regime-scope null. The discipline succeeds by making each
+    refusal explicit rather than by rescuing the diagnostic. This
+    is the paper's primary empirical contribution: an existence
+    proof that ordinary ML diagnostic reporting and
+    measurement-disciplined reporting yield substantively different
+    scientific conclusions on the same data.
   \item \textbf{A reporting-level precision finding for rank-based
     residual correlations}: in this small-$N$ residualized
     setting, partial Spearman $\rho$ exhibits cross-environment
@@ -268,6 +301,25 @@ narrowed, and which must be refused.
     testing. The empirical observation is what
     measurement-discipline scrutiny surfaces; ordinary diagnostic
     reporting conventions do not force such findings into view.
+    This is a second-order empirical contribution: the discipline's
+    practical value is demonstrated not only by what it forces a
+    paper to refuse but by what additional empirical regularities
+    it brings into view.
+  \item \textbf{A coordinated measurement-discipline framework for
+    ML diagnostic reporting} that prescribes reliability-,
+    precision-, and confound-aware reporting as joint requirements
+    rather than optional virtues. The framework's four components
+    --- (i) construct articulation, (ii) reliability estimation,
+    (iii) precision and tolerance with explicit per-quantity
+    schedules, and (iv) pre-registered confound decomposition ---
+    are not separately novel: each is a long-established
+    psychometric position with circulating ML-side analogues
+    across the parallel-development corpus above. The
+    framework-level contribution is the synthesis that treats the
+    four as a single joint requirement on ML diagnostic
+    reporting, with the discipline that adopting any one without
+    the others silently reverts the report to the direct-readout
+    view of diagnostic scores the framework rejects.
 \end{enumerate}
 
 In the worked example, the framework changes the scientific

@@ -1,4 +1,4 @@
-\begin{thebibliography}{28}
+\begin{thebibliography}{33}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -120,6 +120,39 @@ Edward~J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
 \newblock {LoRA: Low-Rank Adaptation of Large Language Models}.
 \newblock \emph{arXiv preprint arXiv:2106.09685}, 2021.
 
+\bibitem[Jo \& Wilson(2025)Jo and Wilson]{jo2025evalinference}
+Nathanael Jo and Ashia Wilson.
+\newblock What does your benchmark really measure? a framework for robust
+  inference of {AI} capabilities.
+\newblock 2025.
+\newblock \doi{10.48550/arXiv.2509.19590}.
+\newblock Articulates evaluation-as-inference as the correct framing for AI
+  evaluation: benchmark scores are inferences from a model of capability, not
+  direct measurements. Proof of concept addresses sensitivity to perturbations:
+  introduces an ability-model formulation and methods that infer ability while
+  accounting for uncertainty from sensitivity and finite samples, including an
+  adaptive algorithm that significantly reduces sample complexity. Framework-
+  level peer to the present paper, sharing the psychometrics-grounded
+  evaluation-as-inference posture but differing in prescriptive output.
+
+\bibitem[Karmakar \& Chatterjee(2026)Karmakar and
+  Chatterjee]{karmakar2026singleprompt}
+Ranit Karmakar and Jayita Chatterjee.
+\newblock What single-prompt accuracy misses: A multi-variant reliability audit
+  of language models.
+\newblock 2026.
+\newblock \doi{10.48550/arXiv.2605.02038}.
+\newblock 15-model open-weight corpus (10 instruct primary) across 5
+  classification/reasoning benchmarks under 5 prompt variants per cell. Three
+  findings: evaluation design materially changes conclusions (ECE-token
+  definition shifts calibration by mean abs 0.149; chain-of-thought +
+  first-character evaluator on ARC-Challenge cuts apparent accuracy 72-88\%);
+  verbal confidence exceeds both accuracy and token-probability confidence;
+  prompt robustness does not track parameter count reliably (corr -0.244 to
+  0.474). Argues calibration definitions, evaluator logic, verbal parseability,
+  and prompt robustness should be reported explicitly when making reliability
+  claims.
+
 \bibitem[Li et~al.(2026)Li, Peng, Zhang, Guo, Duan, and Shi]{li2026svc}
 Yayuan Li, Ze~Peng, Jian Zhang, Jintao Guo, Yue Duan, and Yinghuan Shi.
 \newblock {When Shared Knowledge Hurts: Spectral Over-Accumulation in Model
@@ -205,6 +238,40 @@ Solomon Messing.
   jan 2026.
 \newblock 60-day public comment period closed 2026-03-31.
 
+\bibitem[Perlitz et~al.(2024)Perlitz, Bandel, Gera, Arviv, Ein-Dor, Shnarch,
+  Slonim, Shmueli-Scheuer, and Choshen]{perlitz2024efficientbenchmarking}
+Yotam Perlitz, Elron Bandel, Ariel Gera, Ofir Arviv, Liat Ein-Dor, Eyal
+  Shnarch, Noam Slonim, Michal Shmueli-Scheuer, and Leshem Choshen.
+\newblock Efficient benchmarking (of language models).
+\newblock In \emph{Proceedings of the 2024 Conference of the North American
+  Chapter of the Association for Computational Linguistics: Human Language
+  Technologies (NAACL-HLT)}, 2024.
+\newblock \doi{10.48550/arXiv.2308.11696}.
+\newblock IBM Research and University of Cambridge. Frames the problem of
+  efficient benchmarking — reducing computation cost without compromising
+  reliability — and introduces Decision Impact on Reliability (DIoR) as a
+  quantitative measure of how benchmark design choices (subset size,
+  prompt-format selection, scoring rule) reshape the conclusions licensed.
+  Demonstrated on HELM. Establishes the design-choices-affect-reliability
+  stance well before the 2025--2026 wave.
+
+\bibitem[Polo et~al.(2024)Polo, Xu, Weber, Silva, Bhardwaj, Choshen,
+  de~Oliveira, Sun, and Yurochkin]{polo2024promptevalUniverso}
+Felipe~Maia Polo, Ronald Xu, Lucas Weber, M{\'\i}rian Silva, Onkar Bhardwaj,
+  Leshem Choshen, Allysson Flavio~Melo de~Oliveira, Yuekai Sun, and Mikhail
+  Yurochkin.
+\newblock Efficient multi-prompt evaluation of {LLM}s.
+\newblock In \emph{Proceedings of the 41st International Conference on Machine
+  Learning (ICML)}, 2024.
+\newblock \doi{10.48550/arXiv.2405.17202}.
+\newblock MIT-IBM Watson AI Lab and University of Michigan. Brings item
+  response theory to bear on multi-prompt LLM evaluation: produces
+  distributions over per-prompt accuracy from a small held-out prompt
+  subsample, yielding both point estimates and uncertainty under prompt
+  variation. Predecessor of the IRT-based wave (Madaan, Karmakar) and
+  methodological cousin of the present paper's per-quantity precision
+  schedules.
+
 \bibitem[Rahamim et~al.(2026)Rahamim, Yehudai, Carmeli, Choshen, Mass, and
   Belinkov]{rahamim2026mergeability}
 Adir Rahamim, Asaf Yehudai, Boaz Carmeli, Leshem Choshen, Yosi Mass, and
@@ -227,6 +294,17 @@ Angelika Romanou, Mark Ibrahim, Candace Ross, Chantal Shaib, Kerem Oktar,
   12\% degradation under perturbation; perturbations account for up to half of
   variance; 63\% of model pairs flip ranking under any single perturbation. v1
   2026-02-27, v2 2026-04-06. CC-BY-SA 4.0.
+
+\bibitem[Salaudeen et~al.(2025)Salaudeen, Reuel, Ahmed, Bedi, Robertson,
+  Sundar, Domingue, Wang, and Koyejo]{salaudeen2025measurement}
+Olawale Salaudeen, Anka Reuel, Ahmed Ahmed, Suhana Bedi, Zachary Robertson,
+  Sudharsan Sundar, Ben Domingue, Angelina Wang, and Sanmi Koyejo.
+\newblock Measurement to meaning: A validity-centered framework for {AI}
+  evaluation, 2025.
+\newblock Validity-centered framework for AI evaluation leveraging
+  psychometrics' breakdown of validity into construct, content, and criterion
+  dimensions; instantiated through case studies of vision and language model
+  evaluations.
 
 \bibitem[Shrout \& Fleiss(1979)Shrout and Fleiss]{shrout1979icc}
 Patrick~E. Shrout and Joseph~L. Fleiss.
