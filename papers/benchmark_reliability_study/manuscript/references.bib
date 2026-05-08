@@ -401,6 +401,130 @@
                    repository: github.com/SLAB-NLP/Reliable-Eval.}
 }
 
+% https://arxiv.org/abs/2512.21326
+% Surfaced via 2026-05-08 daily research review (back-fill from
+% comprehensive-sweep miss). Direct-substrate-match register voice on
+% noise decomposition for LLM evaluation: prediction noise + data noise
+% + total noise, applied across millions of question-level predictions.
+% Vocabulary parallel: noise-decomposition (Wang) maps onto
+% variance-components (G-theory tradition) and signal-and-noise
+% (Heineman tradition). Fourteenth voice in the parallel-development
+% register; bridges the two-tradition / three-tradition vocabulary move
+% in §4.1 to a four-tradition observation.
+@misc{wang2025measuringnoises,
+  author        = {Wang, Sida},
+  title         = {Measuring all the noises of {LLM} Evals},
+  year          = {2025},
+  eprint        = {2512.21326},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2512.21326},
+  note          = {Defines and measures three noise types in LLM
+                   evaluation: prediction noise (from generating
+                   different answers on a given question), data noise
+                   (from sampling questions), and combined total noise
+                   (law of total variance). Proposes the all-pairs
+                   paired method, applying paired analysis across all
+                   pairs of LLMs and measuring noise components from
+                   millions of question-level predictions across many
+                   evals and settings. v1 2025-12; v2 2026-03. Voice
+                   missed by the 2026-05-06 comprehensive sweep;
+                   back-filled at the 2026-05-08 daily review.}
+}
+
+% https://arxiv.org/abs/2601.03986
+% Surfaced via 2026-05-08 daily research review. Meta-benchmark
+% construction-tier voice (closer to Bean / Heineman than to the
+% tolerance-schedule prescription). Cited at §4.2 distinguishing-targets
+% to pre-empt the "what about Benchmark²?" reviewer objection. Not a
+% register voice — adjacent prescriptive output (which benchmarks merit
+% inclusion in a measurement universe) sequenced upstream of the
+% tolerance schedule's per-cell precision-licensing question.
+@misc{qian2026benchmarksquared,
+  author        = {Qian, Qi and Huang, Chengsong and Xu, Jingwen and
+                   Lv, Changze and Wu, Muling and Liu, Wenhao and
+                   Wang, Xiaohua and Wang, Zhenghua and Huang, Zisu and
+                   Tian, Muzhao and Xu, Jianhan and Hu, Kun and
+                   Wang, He-Da and Hu, Yao and Huang, Xuanjing and
+                   Zheng, Xiaoqing},
+  title         = {{Benchmark}\textsuperscript{2}: Systematic Evaluation
+                   of {LLM} Benchmarks},
+  year          = {2026},
+  eprint        = {2601.03986},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2601.03986},
+  note          = {Fudan University and Xiaohongshu collaborators.
+                   Three meta-benchmark metrics (Cross-Benchmark Ranking
+                   Consistency, Discriminability Score, Capability
+                   Alignment Deviation) for evaluating which benchmarks
+                   to use; 15 benchmarks across mathematics, reasoning,
+                   and knowledge domains, evaluating 11 LLMs across 4
+                   model families. The prescriptive register (which
+                   benchmarks merit inclusion) is sequenced upstream of
+                   the present paper's tolerance-schedule prescription
+                   (what numerical precision the per-cell score reports).}
+}
+
+% https://arxiv.org/abs/2308.11696
+% Surfaced via 2026-05-06 comprehensive literature sweep (N3 reframe).
+% Predecessor-wave voice in the parallel-development register; introduces
+% Decision Impact on Reliability (DIoR) as a measure of how benchmark
+% design choices reshape what conclusions are licensed. v1 2023-08;
+% NAACL main-track 2024.
+@inproceedings{perlitz2024efficientbenchmarking,
+  author        = {Perlitz, Yotam and Bandel, Elron and Gera, Ariel and
+                   Arviv, Ofir and Ein-Dor, Liat and Shnarch, Eyal and
+                   Slonim, Noam and Shmueli-Scheuer, Michal and
+                   Choshen, Leshem},
+  title         = {Efficient Benchmarking (of Language Models)},
+  booktitle     = {Proceedings of the 2024 Conference of the North
+                   American Chapter of the Association for Computational
+                   Linguistics: Human Language Technologies (NAACL-HLT)},
+  year          = {2024},
+  eprint        = {2308.11696},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2308.11696},
+  note          = {IBM Research and University of Cambridge. Frames the
+                   problem of efficient benchmarking — reducing computation
+                   cost without compromising reliability — and introduces
+                   Decision Impact on Reliability (DIoR) as a quantitative
+                   measure of how benchmark design choices (subset size,
+                   prompt-format selection, scoring rule) reshape the
+                   conclusions licensed. Demonstrated on HELM. Establishes
+                   the design-choices-affect-reliability stance well before
+                   the 2025--2026 wave.}
+}
+
+% https://arxiv.org/abs/2405.17202
+% Surfaced via 2026-05-06 comprehensive literature sweep (N3 reframe).
+% Predecessor-wave voice; brings item response theory to multi-prompt LLM
+% evaluation. ICML 2024. Distinct from the existing polo2024efficient
+% entry (which is tinyBenchmarks, a different Polo-coauthored 2024 paper).
+@inproceedings{polo2024promptevalUniverso,
+  author        = {Polo, Felipe Maia and Xu, Ronald and Weber, Lucas and
+                   Silva, M{\'\i}rian and Bhardwaj, Onkar and Choshen,
+                   Leshem and de Oliveira, Allysson Flavio Melo and
+                   Sun, Yuekai and Yurochkin, Mikhail},
+  title         = {Efficient Multi-Prompt Evaluation of {LLM}s},
+  booktitle     = {Proceedings of the 41st International Conference on
+                   Machine Learning (ICML)},
+  year          = {2024},
+  eprint        = {2405.17202},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2405.17202},
+  note          = {MIT-IBM Watson AI Lab and University of Michigan.
+                   Brings item response theory to bear on multi-prompt
+                   LLM evaluation: produces distributions over per-prompt
+                   accuracy from a small held-out prompt subsample,
+                   yielding both point estimates and uncertainty under
+                   prompt variation. Predecessor of the IRT-based wave
+                   (Madaan, Karmakar) and methodological cousin of the
+                   present paper's per-quantity precision schedules.}
+}
+
 % https://arxiv.org/abs/2505.10573
 % Surfaced via 2026-05-03 daily research review as citation-completeness
 % catch. arXiv:2505.10573, v1 May 2025, v4 June 2025; cs.CY (cross-listed
