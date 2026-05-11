@@ -230,7 +230,15 @@ and evaluator-side failure modes on a 15-model open-weight corpus,
 finding that evaluation design materially changes the reliability
 conclusion (e.g., chain-of-thought paired with a first-character
 evaluator on ARC-Challenge reduces apparent accuracy by 72--88\%
-across all five primary models). Several entries within this
+across all five primary models). \citet{wang2025measuringnoises}
+defines and measures three noise types for LLM evaluation ---
+prediction noise (from generating different answers on a given
+question), data noise (from sampling questions), and combined total
+noise (law of total variance) --- and proposes an all-pairs paired
+method applying paired analysis across millions of question-level
+predictions; the noise-decomposition framing is vocabulary-bridging
+between G-theory's variance-components tradition and the
+signal-and-noise tradition. Several entries within this
 corpus share authorship structure --- in particular, a Stanford-
 anchored thread surfaces across \citet{salaudeen2025measurement}
 (Reuel, Koyejo, and Domingue at Stanford), the multi-institution
@@ -249,8 +257,10 @@ optimization, voluntary reporting practices, construct-validity
 taxonomies, variance-aware annotation protocols, brittleness
 diagnostics, benchmark-design intervention recipes, benchmark-risk
 scores, resampling rules, validity-centered evaluation frameworks,
-evaluation-as-inference framework articulation, and reliability-
-audit reporting requirements. The present paper does not introduce
+evaluation-as-inference framework articulation, reliability-audit
+reporting requirements, and noise-decomposition
+(prediction $\times$ data $\times$ total) measurement. The present
+paper does not introduce
 the individual components, several of which are decades old in
 psychometrics and have circulating ML-side analogues across the
 corpus above. Its contribution is to synthesize the corpus's

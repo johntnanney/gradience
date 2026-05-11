@@ -552,6 +552,36 @@
                    explicitly when making reliability claims.}
 }
 
+% https://arxiv.org/abs/2512.21326
+% Surfaced via 2026-05-08 daily research review (back-fill from
+% comprehensive-sweep miss). Direct-substrate-match register voice on
+% noise decomposition for LLM evaluation: prediction noise + data noise
+% + total noise, applied across millions of question-level predictions.
+% Vocabulary-bridging — noise-decomposition (Wang) maps onto
+% variance-components (G-theory tradition) and signal-and-noise
+% (Heineman tradition). Fourteenth voice in the parallel-development
+% register.
+@misc{wang2025measuringnoises,
+  author        = {Wang, Sida},
+  title         = {Measuring all the noises of {LLM} Evals},
+  year          = {2025},
+  eprint        = {2512.21326},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  doi           = {10.48550/arXiv.2512.21326},
+  note          = {Defines and measures three noise types in LLM
+                   evaluation: prediction noise (from generating
+                   different answers on a given question), data noise
+                   (from sampling questions), and combined total noise
+                   (law of total variance). Proposes the all-pairs
+                   paired method, applying paired analysis across all
+                   pairs of LLMs and measuring noise components from
+                   millions of question-level predictions across many
+                   evals and settings. v1 2025-12; v2 2026-03. Voice
+                   missed by the 2026-05-06 comprehensive sweep;
+                   back-filled at the 2026-05-08 daily review.}
+}
+
 
 % ----------------------------------------------------------------------------
 % Anonymized self-citations
