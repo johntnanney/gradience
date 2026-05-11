@@ -343,3 +343,44 @@ Rough estimates, based on the file-by-file scope analysis:
 - Phase 4 (bundle + sanity check): 10 minutes.
 
 **Total: 4–7 hours.** Compatible with the April 28 decision gate provided the pass starts within the next 48 hours.
+
+---
+
+## Phase 2.3 re-audit (2026-05-11)
+
+Re-audit triggered by `CODING_AGENT_HANDOFF_2026-05-08.md` Phase 2.3.
+Scope: check the manuscript-side post-Wang (commit 6c84e3a) +
+post-Voudouris (commit 8854e2f) state for residual identifying content
+not caught at the prior audit (3be686d).
+
+### Grep coverage
+
+| Category | Pattern | Hits |
+|---|---|---:|
+| Author / affiliation | `Cocchieri\|Nanney\|johntnanney\|gradience` | 0 |
+| Project numbers | `N13[0-9]\b\|Thesis [AB]\b\|tier_1_5\|prereg_v1_1` | 1 → 0 after strip |
+| Email patterns | `[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}` | 0 |
+| EDIT/ANON markers | `^% EDIT:\|^% ANON:` | 0 |
+| AppleDouble / DS_Store in `supplementary/` | `\._*\|DS_Store` | 0 |
+
+### Single hit + disposition
+
+| Hit | Location | Disposition |
+|---|---|---|
+| `% Foundational references for the Thesis B measurement-discipline framework.` | `references.bib` line 176 (pre-strip) | **STRIPPED 2026-05-11.** Rewrote to `% Foundational references for the measurement-discipline framework.` Drops "Thesis B" project identifier. The line is a section divider comment, not a bibtex entry; the underlying psychometric-tradition entries below the divider are unchanged. |
+
+### PDF metadata audit (Phase 2.4 inline)
+
+| Field | Value | Disposition |
+|---|---|---|
+| `/Author`, `/Title`, `/Subject`, `/Keywords` | empty | OK. |
+| `/Creator` | `LaTeX with hyperref` | OK. |
+| `/Producer` | `pdfTeX-1.40.29` | OK. |
+| PDF-stream identifying-string count | 0 | OK. |
+
+### Post-strip recompile
+
+21 pages, 0 citation undefined, 0 reference undefined, 0 errors.
+Pre-existing 2 "empty journal" bibtex warnings on `jo2025evalinference`
+and `karmakar2026singleprompt` unchanged; same warnings appear on
+bench-reliability (pre-existing across both papers).
