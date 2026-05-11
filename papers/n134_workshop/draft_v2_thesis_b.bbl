@@ -1,4 +1,4 @@
-\begin{thebibliography}{33}
+\begin{thebibliography}{35}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -319,6 +319,32 @@ George Stoica, Pratik Ramesh, Boglarka Ecsedi, Leshem Choshen, and Judy
   Hoffman.
 \newblock {Model Merging with SVD to Tie the KnOTS}.
 \newblock \emph{arXiv preprint arXiv:2410.19735}, 2024.
+
+\bibitem[Voudouris et~al.(2026)Voudouris, Thalmann, Kipnis,
+  Hern{\'a}ndez-Orallo, and Schulz]{voudouris2026measurementscience}
+Konstantinos Voudouris, Mirko Thalmann, Alex Kipnis, Jos{\'e}
+  Hern{\'a}ndez-Orallo, and Eric Schulz.
+\newblock Measuring what {AI} systems might do: Towards a measurement science
+  in {AI}, 2026.
+\newblock Argues capabilities and propensities are dispositional properties
+  characterized by counterfactual relationships between contextual conditions
+  and behavioral outputs; critiques benchmark averages and IRT-based
+  latent-variable models for bypassing dispositional measurement.
+  Framework-level position paper grounded in philosophy of science, measurement
+  theory, and cognitive science. Pre-submission engaged at framework-section
+  footnote level.
+
+\bibitem[Wang(2025)]{wang2025measuringnoises}
+Sida Wang.
+\newblock Measuring all the noises of {LLM} evals, 2025.
+\newblock Defines and measures three noise types in LLM evaluation: prediction
+  noise (from generating different answers on a given question), data noise
+  (from sampling questions), and combined total noise (law of total variance).
+  Proposes the all-pairs paired method, applying paired analysis across all
+  pairs of LLMs and measuring noise components from millions of question-level
+  predictions across many evals and settings. v1 2025-12; v2 2026-03. Voice
+  missed by the 2026-05-06 comprehensive sweep; back-filled at the 2026-05-08
+  daily review.
 
 \bibitem[Zhang \& Zhou(2025)Zhang and Zhou]{zhang2025osrm}
 Haobo Zhang and Jiayu Zhou.
