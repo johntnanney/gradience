@@ -176,6 +176,10 @@ def get_dataset_revision(dataset_id: str, split: str | None = None) -> dict[str,
         from datasets import load_dataset_builder
         from huggingface_hub import dataset_info
 
+        from gradience.bench._util import canonical_dataset_id
+
+        dataset_id = canonical_dataset_id(dataset_id)
+
         # Get dataset info from hub
         info = dataset_info(dataset_id)
 
