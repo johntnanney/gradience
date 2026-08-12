@@ -26,8 +26,10 @@ class GLUESequenceClassificationProfile:
         """Load GLUE dataset from config."""
         from datasets import load_dataset
 
+        from gradience.bench._util import canonical_dataset_id
+
         task_config = cfg["task"]
-        dataset = load_dataset(task_config["dataset"], task_config["subset"])
+        dataset = load_dataset(canonical_dataset_id(task_config["dataset"]), task_config["subset"])
 
         # Apply sample limits if specified
         if "train" in cfg:
