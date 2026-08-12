@@ -26,6 +26,27 @@ def round_to_allowed_ranks(suggested_r: int | float, allowed_ranks: list[int]) -
     return min(allowed_ranks, key=lambda x: abs(x - suggested_r))
 
 
+# Hugging Face retired bare canonical dataset ids; the Hub now requires
+# "namespace/name". Configs and recorded provenance still carry the legacy
+# short ids, so normalize at the load boundary rather than rewriting configs
+# (which would change every create_config_hash() value).
+LEGACY_DATASET_IDS = {
+    "glue": "nyu-mll/glue",
+    "gsm8k": "openai/gsm8k",
+    "sst2": "stanfordnlp/sst2",
+}
+
+
+def canonical_dataset_id(dataset: str) -> str:
+    """Map a legacy bare dataset id to its namespaced Hub id.
+
+    Already-namespaced ids and unknown names pass through unchanged.
+    """
+    if not dataset or "/" in dataset:
+        return dataset
+    return LEGACY_DATASET_IDS.get(dataset.lower(), dataset)
+
+
 def get_primary_metric_key(config: dict[str, Any]) -> str:
     """Determine the primary evaluation metric based on the task configuration."""
     task_config = config.get("task", {})
