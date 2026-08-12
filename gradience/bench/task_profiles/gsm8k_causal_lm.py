@@ -27,8 +27,10 @@ class GSM8KCausalLMProfile:
         """Load GSM8K dataset."""
         from datasets import load_dataset
 
+        from gradience.bench._util import canonical_dataset_id
+
         # GSM8K has train/test splits, we'll use test as validation
-        dataset = load_dataset("gsm8k", "main")
+        dataset = load_dataset(canonical_dataset_id("gsm8k"), "main")
 
         # Apply sample limits if specified
         task_config = cfg.get("task", {})
