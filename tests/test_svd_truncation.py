@@ -106,7 +106,7 @@ class TestSVDMathematicalCorrectness:
         S = torch.linalg.svdvals(delta_W_truncated)
 
         # Count significant singular values (numerical rank)
-        threshold = 1e-6 * S[0].item()  # Relative threshold
+        threshold = max(delta_W_truncated.shape) * torch.finfo(delta_W_truncated.dtype).eps * S[0].item()
         numerical_rank = torch.sum(S > threshold).item()
 
         assert numerical_rank <= target_rank, f"Numerical rank {numerical_rank} exceeds target rank {target_rank}"
