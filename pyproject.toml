@@ -56,6 +56,7 @@ bench = [
   "scikit-learn>=1.3.0",     # For metrics
   "pandas>=2.0.0",           # For data analysis
   "huggingface_hub>=0.20.0", # For adapter discovery and downloading
+  "psutil>=5.9.0",          # For benchmark watchdog diagnostics
 ]
 
 # Hugging Face integration only (lighter than full bench)
@@ -73,6 +74,7 @@ dev = [
   "pytest>=7.0.0",
   "pytest-cov>=4.0.0",     # Coverage reporting
   "pytest-timeout>=2.2.0", # Test timeouts
+  "psutil>=5.9.0",         # Bench/watchdog unit tests also run without [bench]
   "build>=0.10.0",         # Package building
   "ruff>=0.1.0",           # Linting and formatting
   "mypy>=1.5.0",           # Type checking
