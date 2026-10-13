@@ -11,6 +11,8 @@ Tests the 4 critical fixes for validation evidence:
 import json
 import tempfile
 import unittest
+import warnings
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -86,6 +88,22 @@ class TestAggregateReportCorrectness(unittest.TestCase):
         import shutil
 
         shutil.rmtree(self.temp_dir)
+
+    def test_timestamp_keeps_utc_z_format_without_deprecations(self):
+        """Aggregate timestamps remain current UTC ISO timestamps ending in Z."""
+        from gradience.bench.protocol import create_multi_seed_aggregated_report
+
+        before = datetime.now(timezone.utc)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            result = create_multi_seed_aggregated_report(self.seed_reports, {"bench_version": "0.1"}, self.temp_dir)
+        after = datetime.now(timezone.utc)
+
+        timestamp = result["timestamp"]
+        self.assertTrue(timestamp.endswith("Z"))
+        parsed = datetime.fromisoformat(timestamp[:-1] + "+00:00")
+        self.assertLessEqual(before, parsed)
+        self.assertLessEqual(parsed, after)
 
     def test_seed_identity_propagation_fix(self):
         """Test that aggregate seeds are correctly extracted (Bug #1 fix)."""

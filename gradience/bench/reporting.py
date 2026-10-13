@@ -731,7 +731,7 @@ def create_multi_seed_aggregated_report(
 
     Returns bench_aggregate.json format with mean ± std statistics.
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     import numpy as np
 
@@ -740,7 +740,7 @@ def create_multi_seed_aggregated_report(
 
     # Extract metadata from first report
     base_report = seed_reports[0]
-    timestamp = datetime.utcnow().isoformat() + "Z"
+    timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     # Aggregate probe results
     probe_accuracies = [r["probe"]["accuracy"] for r in seed_reports]
